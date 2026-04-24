@@ -19,7 +19,7 @@ static const ComponentRegistry& lut_test_registry() {
 // Helper: check if device class is visual_only in presentation
 static bool is_device_visual_only(const std::string& classname) {
     const auto& reg = lut_test_registry();
-    if (auto* pres = reg.presentation.get(classname)) {
+    if (auto* pres = reg.get_presentation(classname)) {
         return pres->visual_only;
     }
     return false;

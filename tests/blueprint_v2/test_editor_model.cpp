@@ -502,7 +502,7 @@ TEST(EditorModel, RandomizedEditsMaintainInvariants) {
     battery.classname = "Battery";
     battery.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, Domain::Electrical, false};
     battery.ports["v_in"] = Port{bp2::Direction::Input, PortType::V, Domain::Electrical, false};
-    registry.types["Battery"] = std::move(battery);
+    registry.register_type("Battery", std::move(battery));
     bp2::EditorModel model;
 
     std::mt19937 rng(1337u);

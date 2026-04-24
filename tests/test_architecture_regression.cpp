@@ -659,7 +659,7 @@ TEST(E009_SingleSolve, StepCountAndTimeConsistent) {
 TEST(E010_SingleRegistry, CanonicalRegistryLoadsFromLibrary) {
     // The canonical load path must succeed and contain known types.
     ComponentRegistry reg = load_component_registry("library/");
-    EXPECT_GT(reg.types.size(), 50u)
+    EXPECT_GT(reg.all_types().size(), 50u)
         << "Canonical ComponentRegistry should have 50+ types from library/";
     EXPECT_TRUE(reg.has("ElectricalSource"))
         << "ComponentRegistry must contain ElectricalSource";
@@ -681,12 +681,12 @@ TEST(E010_SingleRegistry, RegistryHasPortDefinitions) {
 TEST(E010_SingleRegistry, RegistryHasCategoryMapping) {
     // The categories map is used for library path lookup (e.g. "electrical").
     ComponentRegistry reg = load_component_registry("library/");
-    EXPECT_FALSE(reg.catalog.categories.empty())
+    EXPECT_FALSE(reg.all_categories().empty())
         << "ComponentRegistry must populate categories for menu/path lookup";
 
     // AZS should be in an "electrical" category subdirectory
-    auto it = reg.catalog.categories.find("AZS");
-    ASSERT_NE(it, reg.catalog.categories.end());
+    auto it = reg.all_categories().find("AZS");
+    ASSERT_NE(it, reg.all_categories().end());
     EXPECT_FALSE(it->second.empty());
 }
 
@@ -700,7 +700,8 @@ TEST(E010_SingleRegistry, NoSecondRegistryInBp2Namespace) {
     // and uses ComponentRegistry unqualified — if a bp2::ComponentRegistry existed,
     // it would cause ambiguity errors in bp2-using translation units.
     static_assert(
-        std::is_same_v<decltype(ComponentRegistry::types), std::unordered_map<std::string, ComponentSpec>>,
-        "ComponentRegistry must be the parser struct with types map (not a bp2:: class)"
+        std::is_same_v<const std::unordered_map<std::string, ComponentSpec>&,
+                       decltype(std::declval<const ComponentRegistry&>().all_types())>,
+        "ComponentRegistry must expose all_types() returning const unordered_map<string, ComponentSpec>&"
     );
 }

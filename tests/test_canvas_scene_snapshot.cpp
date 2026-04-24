@@ -24,13 +24,14 @@ static ComponentRegistry make_snapshot_test_registry() {
         PrimitiveSpec def;
         def.classname = name;
         for (auto& [k, v] : params) def.params[k] = ParamSpec{ParamSchemaType::String, v};
-        reg.types[def.classname] = std::move(def);
+        TypePresentation pres;
         if (hint && hint[0]) {
-            reg.presentation.specs[name].render_hint = hint;
+            pres.render_hint = hint;
         }
         if (ct && ct[0] && strcmp(ct, "None") != 0) {
-            reg.presentation.specs[name].content_type = bp2::parse_node_content_type(ct);
+            pres.content_type = bp2::parse_node_content_type(ct);
         }
+        reg.register_type(def.classname, def, pres);
     };
     add("Battery");
     add("Lamp");

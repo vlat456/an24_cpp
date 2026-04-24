@@ -709,24 +709,24 @@ TEST(PushBuildValidation, ExpandSubBlueprintReferences_CleansLoadingStackAfterFa
     self_ref.classname = "SelfRef";
     self_ref.domains = {Domain::Electrical};
     self_ref.sub_blueprints.push_back(SubBlueprintRef{"inner", "", "SelfRef"});
-    registry.types["SelfRef"] = self_ref;
+    registry.register_type("SelfRef", self_ref);
 
     PrimitiveSpec leaf;
     leaf.classname = "Leaf";
     leaf.domains = {Domain::Electrical};
-    registry.types["Leaf"] = leaf;
+    registry.register_type("Leaf", leaf);
 
     CompositeSpec wrapper;
     wrapper.classname = "Wrapper";
     wrapper.domains = {Domain::Electrical};
     wrapper.sub_blueprints.push_back(SubBlueprintRef{"nested", "", "LeafComposite"});
-    registry.types["Wrapper"] = wrapper;
+    registry.register_type("Wrapper", wrapper);
 
     CompositeSpec leaf_composite;
     leaf_composite.classname = "LeafComposite";
     leaf_composite.domains = {Domain::Electrical};
     leaf_composite.devices.push_back(DeviceInstance{"leaf", "Leaf"});
-    registry.types["LeafComposite"] = leaf_composite;
+    registry.register_type("LeafComposite", leaf_composite);
 
     std::set<std::string> loading_stack;
     EXPECT_THROW(expand_sub_blueprint_references(self_ref, registry, loading_stack), std::runtime_error);

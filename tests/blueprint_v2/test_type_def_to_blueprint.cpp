@@ -54,7 +54,7 @@ ComponentRegistry make_registry() {
     src_out.type = PortType::Bool;
     src_out.domain = Domain::Logical;
     src.ports["out"] = src_out;
-    registry.types[src.classname] = src;
+    registry.register_type(src.classname, src);
 
     PrimitiveSpec dst;
     dst.classname = "SinkNode";
@@ -63,7 +63,7 @@ ComponentRegistry make_registry() {
     dst_in.type = PortType::Bool;
     dst_in.domain = Domain::Logical;
     dst.ports["in"] = dst_in;
-    registry.types[dst.classname] = dst;
+    registry.register_type(dst.classname, dst);
 
     return registry;
 }
@@ -102,12 +102,12 @@ TEST(TypeDefToBlueprint, WireDomainMatchesResolvedEndpointInterface) {
     ui::StringInterner interner;
     CompositeSpec def = make_composite_def();
     ComponentRegistry registry = make_registry();
-    auto* src_def = as_primitive_mut(registry.types.at("SourceNode"));
+    auto* src_def = as_primitive_mut(*registry.get_mut("SourceNode"));
     ASSERT_NE(src_def, nullptr);
     src_def->ports["out"].type = PortType::V;
     src_def->ports["out"].domain = Domain::Electrical;
 
-    auto* dst_def = as_primitive_mut(registry.types.at("SinkNode"));
+    auto* dst_def = as_primitive_mut(*registry.get_mut("SinkNode"));
     ASSERT_NE(dst_def, nullptr);
     dst_def->ports["in"].type = PortType::V;
     dst_def->ports["in"].domain = Domain::Electrical;
@@ -128,7 +128,7 @@ TEST(TypeDefToBlueprint, MalformedBridgeMetadataFailsImport) {
     sink_in.type = PortType::Bool;
     sink_in.domain = Domain::Logical;
     sink.ports["in"] = sink_in;
-    registry.types["BoolSink"] = sink;
+    registry.register_type("BoolSink", sink);
 
     CompositeSpec def;
     def.classname = "BadComposite";
@@ -167,18 +167,18 @@ TEST(TypeDefToBlueprint, Regression_PrimitivePortMutationUsesCorrectAccessor) {
     ComponentRegistry registry = make_registry();
 
     // Verify the registry entries are PrimitiveSpec, not CompositeSpec
-    ASSERT_NE(as_primitive(registry.types.at("SourceNode")), nullptr);
-    ASSERT_NE(as_primitive(registry.types.at("SinkNode")), nullptr);
-    ASSERT_EQ(as_composite(registry.types.at("SourceNode")), nullptr);
-    ASSERT_EQ(as_composite(registry.types.at("SinkNode")), nullptr);
+    ASSERT_NE(as_primitive(registry.all_types().at("SourceNode")), nullptr);
+    ASSERT_NE(as_primitive(registry.all_types().at("SinkNode")), nullptr);
+    ASSERT_EQ(as_composite(registry.all_types().at("SourceNode")), nullptr);
+    ASSERT_EQ(as_composite(registry.all_types().at("SinkNode")), nullptr);
 
     // Mutate via correct accessor
-    auto* src = as_primitive_mut(registry.types.at("SourceNode"));
+    auto* src = as_primitive_mut(*registry.get_mut("SourceNode"));
     ASSERT_NE(src, nullptr);
     src->ports["out"].type = PortType::V;
     src->ports["out"].domain = Domain::Electrical;
 
-    auto* dst = as_primitive_mut(registry.types.at("SinkNode"));
+    auto* dst = as_primitive_mut(*registry.get_mut("SinkNode"));
     ASSERT_NE(dst, nullptr);
     dst->ports["in"].type = PortType::V;
     dst->ports["in"].domain = Domain::Electrical;

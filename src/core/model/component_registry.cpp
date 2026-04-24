@@ -67,8 +67,8 @@ std::vector<std::string> ComponentRegistry::get_composites_topo_sorted() const {
             throw std::runtime_error("Cycle in composite hierarchy: " + name);
         }
 
-        auto it = types.find(name);
-        if (it == types.end()) {
+        auto it = types_.find(name);
+        if (it == types_.end()) {
             throw std::runtime_error("Missing composite dependency: " + name);
         }
         if (is_primitive(it->second)) {
@@ -96,7 +96,7 @@ std::vector<std::string> ComponentRegistry::get_composites_topo_sorted() const {
         result.push_back(name);
     };
 
-    for (const auto& [name, spec] : types) {
+    for (const auto& [name, spec] : types_) {
         if (is_composite(spec)) {
             visit(name);
         }

@@ -103,7 +103,7 @@ NodeContent resolve_base_content(const bp2::Blueprint::Node& node,
                                   const ComponentRegistry* registry) {
     const std::string type_name(interner.resolve(node.semantic.type));
     const auto* def = registry ? registry->get(type_name) : nullptr;
-    const TypePresentation* pres = registry ? registry->presentation.get(type_name) : nullptr;
+    const TypePresentation* pres = registry ? registry->get_presentation(type_name) : nullptr;
     if (!def) return NodeContent{};
     return create_node_content(*def, pres, node.semantic.params, node.semantic.string_params, interner);
 }

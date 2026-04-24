@@ -259,7 +259,7 @@ inline JitBuildInput make_jit_input_from_composite(
                 "' (classname: " + dev.classname + ")");
         }
         // Skip visual-only devices - same as elaboration boundary filtering
-        if (auto* pres = reg.presentation.get(dev.classname)) {
+        if (auto* pres = reg.get_presentation(dev.classname)) {
             if (pres->visual_only) {
                 continue;
             }

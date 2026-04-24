@@ -31,7 +31,7 @@ inline bp2::BlueprintLibrary build_bake_library(Document& doc) {
         return library;
     }
 
-    for (const auto& [classname, spec] : registry->types) {
+    for (const auto& [classname, spec] : registry->all_types()) {
         if (!is_composite(spec)) {
             continue;
         }

@@ -119,9 +119,9 @@ static void orient_ref_node_ports(Scene& scene,
          const std::string src_type(interner.resolve(src_node->semantic.type));
          const std::string tgt_type(interner.resolve(tgt_node->semantic.type));
          auto src_kind = editor::presentation::resolve_frame_kind(
-             registry.get(src_type), registry.presentation.get(src_type));
+             registry.get(src_type), registry.get_presentation(src_type));
          auto tgt_kind = editor::presentation::resolve_frame_kind(
-             registry.get(tgt_type), registry.presentation.get(tgt_type));
+             registry.get(tgt_type), registry.get_presentation(tgt_type));
 
          if (src_kind == NodeFrameKind::Reference && ref_to_connected.count(src_node_id) == 0) {
              ref_to_connected.emplace(src_node_id, tgt_node_id);
@@ -188,7 +188,7 @@ void rebuild(Scene& scene,
              bp2::Blueprint::NodeIfaceAuthority{interner, &registry});
          const std::string type_name(interner.resolve(n.semantic.type));
           const ComponentSpec* def = registry.get(type_name);
-          const TypePresentation* pres = registry.presentation.get(type_name);
+          const TypePresentation* pres = registry.get_presentation(type_name);
           auto frame_kind = editor::presentation::resolve_frame_kind(def, pres);
            const editor::NodeInstanceKey instance_key = editor::make_node_instance_key(instance_path, n.semantic.id);
           const editor::RuntimeNodeState* runtime_state = nullptr;

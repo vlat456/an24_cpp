@@ -350,7 +350,7 @@ TEST(Blueprint, ResolveNodeIfaceRejectsReferencedPrimitiveAuthority) {
     PrimitiveSpec primitive;
     primitive.classname = "Battery";
     primitive.ports["v"] = Port{bp2::Direction::Output, PortType::V, Domain::Electrical, false};
-    registry.types[primitive.classname] = primitive;
+    registry.register_type(primitive.classname, primitive);
 
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("ref1");

@@ -24,7 +24,7 @@ bp2::BlueprintLibrary build_library(
 
     bp2::BlueprintLibrary library;
     if (library_index && type_registry) {
-        for (const auto& [classname, spec] : type_registry->types) {
+        for (const auto& [classname, spec] : type_registry->all_types()) {
             if (!is_composite(spec)) continue;
             bp2::Blueprint loaded;
             try {

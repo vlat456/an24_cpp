@@ -44,7 +44,7 @@ static std::string scalar_json_to_param_string(const json& value) {
 
 static bp2::BlueprintLibrary build_library(const ComponentRegistry& registry, ui::StringInterner& interner) {
     bp2::BlueprintLibrary library;
-    for (const auto& [classname, def] : registry.types) {
+    for (const auto& [classname, def] : registry.all_types()) {
         if (!is_composite(def)) continue;
         try {
             auto loaded = bp2::blueprint_from_type_definition(def, interner, registry);

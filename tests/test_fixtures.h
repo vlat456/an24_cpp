@@ -202,17 +202,17 @@ inline PrimitiveSpec make_bus_type() {
 // Note: visual_only type-level flag moved to TypePresentation - not set here
 
 inline void register_lamp_composite_types(ComponentRegistry& registry) {
-    registry.types["IndicatorLight"] = make_indicator_light_type();
+    registry.register_type("IndicatorLight", make_indicator_light_type());
 }
 
 inline void register_basic_electrical_types(ComponentRegistry& registry) {
-    registry.types["ElectricalSource"] = make_electrical_source_type();
-    registry.types["ElectricalConductance"] = make_electrical_conductance_type();
-    registry.types["RefNode"] = make_refnode_type();
+    registry.register_type("ElectricalSource", make_electrical_source_type());
+    registry.register_type("ElectricalConductance", make_electrical_conductance_type());
+    registry.register_type("RefNode", make_refnode_type());
 }
 
 inline void register_generator_sense_ref_types(ComponentRegistry& registry) {
-    registry.types["Generator"] = make_generator_type();
-    registry.types["CurrentSense"] = make_currentsense_type();
-    registry.types["RefNode"] = make_refnode_type();
+    registry.register_type("Generator", make_generator_type());
+    registry.register_type("CurrentSense", make_currentsense_type());
+    registry.register_type("RefNode", make_refnode_type());
 }

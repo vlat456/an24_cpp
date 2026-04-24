@@ -650,10 +650,10 @@ TEST(ComponentRegistry, LoadRecursive_SubdirSetsCategory) {
     ASSERT_TRUE(registry.has("Resistor"));
 
     // Root-level file has no category entry
-    EXPECT_EQ(registry.catalog.categories.count("ElectricalSource"), 0u);
+    EXPECT_EQ(registry.all_categories().count("ElectricalSource"), 0u);
     // Subdir file gets category from directory path
-    ASSERT_EQ(registry.catalog.categories.count("Resistor"), 1u);
-    EXPECT_EQ(registry.catalog.categories.at("Resistor"), "electrical");
+    ASSERT_EQ(registry.all_categories().count("Resistor"), 1u);
+    EXPECT_EQ(registry.all_categories().at("Resistor"), "electrical");
 
     fs::remove_all(tmp);
 }
@@ -714,8 +714,8 @@ TEST(ComponentRegistry, LoadRecursive_DeepNesting) {
     auto registry = load_component_registry(tmp.string());
 
     ASSERT_TRUE(registry.has("Generator"));
-    ASSERT_EQ(registry.catalog.categories.count("Generator"), 1u);
-    EXPECT_EQ(registry.catalog.categories.at("Generator"), "electrical/generators");
+    ASSERT_EQ(registry.all_categories().count("Generator"), 1u);
+    EXPECT_EQ(registry.all_categories().at("Generator"), "electrical/generators");
 
     fs::remove_all(tmp);
 }
@@ -725,8 +725,8 @@ TEST(ComponentRegistry, BuildMenuTree_FlatLibrary) {
 
     PrimitiveSpec bat; bat.classname = "ElectricalSource";
     PrimitiveSpec res; res.classname = "Resistor";
-    reg.types["ElectricalSource"] = bat;
-    reg.types["Resistor"] = res;
+    reg.register_type("ElectricalSource", bat);
+    reg.register_type("Resistor", res);
     // No categories — all root level
 
     auto tree = reg.build_menu_tree();
@@ -739,19 +739,16 @@ TEST(ComponentRegistry, BuildMenuTree_WithSubdirs) {
     ComponentRegistry reg;
 
     PrimitiveSpec bat; bat.classname = "ElectricalSource";
-    reg.types["ElectricalSource"] = bat;
+    reg.register_type("ElectricalSource", bat);
 
     PrimitiveSpec res; res.classname = "Resistor";
-    reg.types["Resistor"] = res;
-    reg.catalog.categories["Resistor"] = "electrical";
+    reg.register_type("Resistor", res, {}, "electrical");
 
     PrimitiveSpec gen; gen.classname = "Generator";
-    reg.types["Generator"] = gen;
-    reg.catalog.categories["Generator"] = "electrical/generators";
+    reg.register_type("Generator", gen, {}, "electrical/generators");
 
     PrimitiveSpec and_gate; and_gate.classname = "AND";
-    reg.types["AND"] = and_gate;
-    reg.catalog.categories["AND"] = "logic";
+    reg.register_type("AND", and_gate, {}, "logic");
 
     auto tree = reg.build_menu_tree();
 
@@ -781,7 +778,7 @@ TEST(ComponentRegistry, BuildMenuTree_EntriesAreSorted) {
 
     for (const auto& name : {"Zebra", "Alpha", "Middle"}) {
         PrimitiveSpec d; d.classname = name;
-        reg.types[name] = d;
+        reg.register_type(name, d);
     }
 
     auto tree = reg.build_menu_tree();
@@ -796,12 +793,10 @@ TEST(ComponentRegistry, BuildMenuTree_BlueprintsInSameTree) {
     ComponentRegistry reg;
 
     PrimitiveSpec bat; bat.classname = "ElectricalSource";
-    reg.types["ElectricalSource"] = bat;
-    reg.catalog.categories["ElectricalSource"] = "electrical";
+    reg.register_type("ElectricalSource", bat, {}, "electrical");
 
     CompositeSpec lamp; lamp.classname = "LampPassThrough";
-    reg.types["LampPassThrough"] = lamp;
-    reg.catalog.categories["LampPassThrough"] = "electrical";
+    reg.register_type("LampPassThrough", lamp, {}, "electrical");
 
     auto tree = reg.build_menu_tree();
 
@@ -813,12 +808,10 @@ TEST(ComponentRegistry, ListClassnames_IncludesAllCategorized) {
     ComponentRegistry reg;
 
     PrimitiveSpec bat; bat.classname = "ElectricalSource";
-    reg.types["ElectricalSource"] = bat;
-    reg.catalog.categories["ElectricalSource"] = "electrical";
+    reg.register_type("ElectricalSource", bat, {}, "electrical");
 
     PrimitiveSpec and_gate; and_gate.classname = "AND";
-    reg.types["AND"] = and_gate;
-    reg.catalog.categories["AND"] = "logic";
+    reg.register_type("AND", and_gate, {}, "logic");
 
     auto names = reg.list_classnames();
     EXPECT_EQ(names.size(), 2u);

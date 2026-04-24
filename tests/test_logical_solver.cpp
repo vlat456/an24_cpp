@@ -77,7 +77,7 @@ TEST(LogicalSolverTest, Comparator_TypeDefinitionExists) {
     }
 
     // Check description
-    const auto* pres = registry.presentation.get("Comparator");
+    const auto* pres = registry.get_presentation("Comparator");
     EXPECT_TRUE(pres && !pres->description.empty()) << "Comparator should have a description";
 
     // Check ports exist (Von and Voff are parameters, not ports!)

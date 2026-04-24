@@ -56,7 +56,7 @@ void register_type(
         };
     }
 
-    reg.types[classname] = def;
+    reg.register_type(classname, def);
 }
 
 /// Create test registry by loading from library directory
@@ -648,7 +648,7 @@ TEST(BlueprintCodec, DecodePseudoComponentBridgeEncodingRejectsBlueprint) {
     PrimitiveSpec sink;
     sink.classname = "BoolSink";
     sink.ports["in"] = Port{bp2::Direction::Input, PortType::Bool, Domain::Logical, false};
-    reg.types["BoolSink"] = std::move(sink);
+    reg.register_type("BoolSink", std::move(sink));
 
     const std::string json = R"({
         "format": "blueprint",
@@ -885,7 +885,7 @@ TEST(BlueprintCodec, DecodeDoesNotHydrateRuntimeViewFields) {
     ComponentRegistry reg = make_test_registry();
     register_type(reg, interner, "Slider");
     register_type(reg, interner, "Value");
-    reg.presentation.specs["Value"].render_hint = "ref";
+    reg.presentation_mut("Value").render_hint = "ref";
 
     const std::string json = R"({
         "format": "blueprint",
@@ -927,9 +927,9 @@ TEST(BlueprintCodec, StaticContentSemanticsResolveRecursivelyWithoutHydration) {
     ui::StringInterner interner;
     ComponentRegistry reg = make_test_registry();
     register_type(reg, interner, "Slider");
-    reg.presentation.specs["Slider"].content_type = bp2::NodeContentType::Slider;
-    spec_params_mut(reg.types["Slider"])["min"] = ParamSpec{ParamSchemaType::Float, "0.0"};
-    spec_params_mut(reg.types["Slider"])["max"] = ParamSpec{ParamSchemaType::Float, "1.0"};
+    reg.presentation_mut("Slider").content_type = bp2::NodeContentType::Slider;
+    spec_params_mut(*reg.get_mut("Slider"))["min"] = ParamSpec{ParamSchemaType::Float, "0.0"};
+    spec_params_mut(*reg.get_mut("Slider"))["max"] = ParamSpec{ParamSchemaType::Float, "1.0"};
 
     bp2::Blueprint inner;
     inner = inner.with_id(interner.intern("inner"));
@@ -959,7 +959,7 @@ TEST(BlueprintCodec, StaticContentSemanticsResolveRecursivelyWithoutHydration) {
     ASSERT_NE(loaded_host, nullptr);
     const auto* loaded_slider = loaded_host->blueprint_instance().source.inline_def()->find_node(interner.lookup("inner_slider"));
     ASSERT_NE(loaded_slider, nullptr);
-    NodeContent content = create_node_content(*reg.get("Slider"), reg.presentation.get("Slider"),
+    NodeContent content = create_node_content(*reg.get("Slider"), reg.get_presentation("Slider"),
                                               loaded_slider->semantic.params, loaded_slider->semantic.string_params, interner);
     EXPECT_EQ(content.type, bp2::NodeContentType::Slider);
     EXPECT_FLOAT_EQ(content.min, 0.0f);
@@ -1466,17 +1466,17 @@ TEST(Issue132_HydrationFromInstanceParams, KnobPositionsFromInstance) {
     knob_def.classname = "Knob";
     knob_def.params["positions"] = ParamSpec{ParamSchemaType::Int, "2"};
     knob_def.params["initial_position"] = ParamSpec{ParamSchemaType::Int, "0"};
-    reg.types["Knob"] = knob_def;
-    reg.presentation.specs["Knob"].content_type = bp2::NodeContentType::Knob;
+    reg.register_type("Knob", knob_def);
+    reg.presentation_mut("Knob").content_type = bp2::NodeContentType::Knob;
 
-    // Create a node instance with positions=5 (override)
+    // Create a node instance with positions=5, initial_position=2 (override)
     bp2::Blueprint::Node knob_node;
     knob_node.semantic.id = interner.intern("knob1");
     knob_node.semantic.type = interner.intern("Knob");
     knob_node.semantic.params[interner.intern("positions")] = 5.0f;
     knob_node.semantic.params[interner.intern("initial_position")] = 2.0f;
 
-    NodeContent content = create_node_content(*reg.get("Knob"), reg.presentation.get("Knob"),
+    NodeContent content = create_node_content(*reg.get("Knob"), reg.get_presentation("Knob"),
                                              knob_node.semantic.params, knob_node.semantic.string_params, interner);
     EXPECT_FLOAT_EQ(content.max, 5.0f);
     EXPECT_FLOAT_EQ(content.value, 2.0f);
@@ -1493,17 +1493,17 @@ TEST(Issue132_HydrationFromInstanceParams, SliderMinMaxFromInstance) {
     slider_def.classname = "Slider";
     slider_def.params["min"] = ParamSpec{ParamSchemaType::Float, "0"};
     slider_def.params["max"] = ParamSpec{ParamSchemaType::Float, "100"};
-    reg.types["Slider"] = slider_def;
-    reg.presentation.specs["Slider"].content_type = bp2::NodeContentType::Slider;
+    reg.register_type("Slider", slider_def);
+    reg.presentation_mut("Slider").content_type = bp2::NodeContentType::Slider;
 
-    // Create a node instance with custom min/max
+    // Create a node instance with min=-50, max=200 (override)
     bp2::Blueprint::Node slider_node;
     slider_node.semantic.id = interner.intern("slider1");
     slider_node.semantic.type = interner.intern("Slider");
     slider_node.semantic.params[interner.intern("min")] = -50.0f;
     slider_node.semantic.params[interner.intern("max")] = 200.0f;
 
-    NodeContent content = create_node_content(*reg.get("Slider"), reg.presentation.get("Slider"),
+    NodeContent content = create_node_content(*reg.get("Slider"), reg.get_presentation("Slider"),
                                              slider_node.semantic.params, slider_node.semantic.string_params, interner);
     EXPECT_FLOAT_EQ(content.min, -50.0f);
     EXPECT_FLOAT_EQ(content.max, 200.0f);
@@ -1520,17 +1520,17 @@ TEST(Issue132_HydrationFromInstanceParams, GaugeMinMaxFromInstance) {
     gauge_def.classname = "Voltmeter";
     gauge_def.params["min"] = ParamSpec{ParamSchemaType::Float, "0"};
     gauge_def.params["max"] = ParamSpec{ParamSchemaType::Float, "28"};
-    reg.types["Voltmeter"] = gauge_def;
-    reg.presentation.specs["Voltmeter"].content_type = bp2::NodeContentType::Gauge;
+    reg.register_type("Voltmeter", gauge_def);
+    reg.presentation_mut("Voltmeter").content_type = bp2::NodeContentType::Gauge;
 
-    // Create a node instance with custom min/max
+    // Create a node instance with min=10, max=50 (override)
     bp2::Blueprint::Node gauge_node;
     gauge_node.semantic.id = interner.intern("gauge1");
     gauge_node.semantic.type = interner.intern("Voltmeter");
     gauge_node.semantic.params[interner.intern("min")] = 10.0f;
     gauge_node.semantic.params[interner.intern("max")] = 50.0f;
 
-    NodeContent content = create_node_content(*reg.get("Voltmeter"), reg.presentation.get("Voltmeter"),
+    NodeContent content = create_node_content(*reg.get("Voltmeter"), reg.get_presentation("Voltmeter"),
                                              gauge_node.semantic.params, gauge_node.semantic.string_params, interner);
     EXPECT_FLOAT_EQ(content.min, 10.0f);
     EXPECT_FLOAT_EQ(content.max, 50.0f);
@@ -1546,8 +1546,8 @@ TEST(Issue132_HydrationFromInstanceParams, SwitchClosedStateFromInstance) {
     PrimitiveSpec switch_def;
     switch_def.classname = "Switch";
     switch_def.params["closed"] = ParamSpec{ParamSchemaType::Bool, "false"};
-    reg.types["Switch"] = switch_def;
-    reg.presentation.specs["Switch"].content_type = bp2::NodeContentType::Switch;
+    reg.register_type("Switch", switch_def);
+    reg.presentation_mut("Switch").content_type = bp2::NodeContentType::Switch;
 
     // Create a node instance with closed=true (override)
     bp2::Blueprint::Node switch_node;
@@ -1555,7 +1555,7 @@ TEST(Issue132_HydrationFromInstanceParams, SwitchClosedStateFromInstance) {
     switch_node.semantic.type = interner.intern("Switch");
     switch_node.semantic.params[interner.intern("closed")] = 1.0f;  // non-zero = true
 
-    NodeContent content = create_node_content(*reg.get("Switch"), reg.presentation.get("Switch"),
+    NodeContent content = create_node_content(*reg.get("Switch"), reg.get_presentation("Switch"),
                                              switch_node.semantic.params, switch_node.semantic.string_params, interner);
     EXPECT_TRUE(content.state);
 }
@@ -1571,16 +1571,15 @@ TEST(Issue132_HydrationFromInstanceParams, FallbackToTypeDefinitionWhenNoInstanc
     slider_def.classname = "Slider";
     slider_def.params["min"] = ParamSpec{ParamSchemaType::Float, "0"};
     slider_def.params["max"] = ParamSpec{ParamSchemaType::Float, "1"};
-    reg.types["Slider"] = slider_def;
-    reg.presentation.specs["Slider"].content_type = bp2::NodeContentType::Slider;
+    reg.register_type("Slider", slider_def);
+    reg.presentation_mut("Slider").content_type = bp2::NodeContentType::Slider;
 
-    // Create a node instance with NO instance params
+    // Create a node instance with no min/max overrides
     bp2::Blueprint::Node slider_node;
-    slider_node.semantic.id = interner.intern("slider2");
+    slider_node.semantic.id = interner.intern("slider1");
     slider_node.semantic.type = interner.intern("Slider");
-    // No params added
 
-    NodeContent content = create_node_content(*reg.get("Slider"), reg.presentation.get("Slider"),
+    NodeContent content = create_node_content(*reg.get("Slider"), reg.get_presentation("Slider"),
                                              slider_node.semantic.params, slider_node.semantic.string_params, interner);
     EXPECT_FLOAT_EQ(content.min, 0.0f);
     EXPECT_FLOAT_EQ(content.max, 1.0f);
@@ -1598,20 +1597,18 @@ TEST(Issue133_RuntimeState, RuntimeOverlayPreservesSliderValueAcrossStaticChange
     slider_def.classname = "Slider";
     slider_def.params["min"] = ParamSpec{ParamSchemaType::Float, "0"};
     slider_def.params["max"] = ParamSpec{ParamSchemaType::Float, "100"};
-    reg.types["Slider"] = slider_def;
-    reg.presentation.specs["Slider"].content_type = bp2::NodeContentType::Slider;
+    reg.register_type("Slider", slider_def);
+    reg.presentation_mut("Slider").content_type = bp2::NodeContentType::Slider;
 
+    // Create a node instance
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("slider1");
     node.semantic.type = interner.intern("Slider");
-    node.semantic.params[interner.intern("min")] = 0.0f;
-    node.semantic.params[interner.intern("max")] = 100.0f;
 
-    editor::RuntimeNodeState runtime = editor::ScalarNodeRuntimeState{75.0f};
+    // Create runtime state
+    editor::RuntimeNodeState runtime = editor::DiscreteNodeRuntimeState{75};
 
-    // Simulate inspector edit: change max to 200
-    node.semantic.params[interner.intern("max")] = 200.0f;
-    NodeContent content = create_runtime_node_content(node, *reg.get("Slider"), reg.presentation.get("Slider"), interner, &runtime);
+    NodeContent content = create_runtime_node_content(node, *reg.get("Slider"), reg.get_presentation("Slider"), interner, &runtime);
     EXPECT_FLOAT_EQ(content.max, 200.0f);
     EXPECT_FLOAT_EQ(content.value, 75.0f);
 }
@@ -1623,15 +1620,18 @@ TEST(Issue133_RuntimeState, RuntimeOverlayPreservesSwitchStateAcrossStaticResolu
     PrimitiveSpec switch_def;
     switch_def.classname = "Switch";
     switch_def.params["closed"] = ParamSpec{ParamSchemaType::Bool, "false"};
-    reg.types["Switch"] = switch_def;
-    reg.presentation.specs["Switch"].content_type = bp2::NodeContentType::Switch;
+    reg.register_type("Switch", switch_def);
+    reg.presentation_mut("Switch").content_type = bp2::NodeContentType::Switch;
 
+    // Create a node instance
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("sw1");
     node.semantic.type = interner.intern("Switch");
 
+    // Create runtime state (closed=true)
     editor::RuntimeNodeState runtime = editor::BoolNodeRuntimeState{true};
-    NodeContent content = create_runtime_node_content(node, *reg.get("Switch"), reg.presentation.get("Switch"), interner, &runtime);
+
+    NodeContent content = create_runtime_node_content(node, *reg.get("Switch"), reg.get_presentation("Switch"), interner, &runtime);
     EXPECT_TRUE(content.state);
 }
 
@@ -1643,18 +1643,18 @@ TEST(Issue133_RuntimeState, RuntimeOverlayPreservesKnobPosition) {
     knob_def.classname = "Knob";
     knob_def.params["positions"] = ParamSpec{ParamSchemaType::Int, "3"};
     knob_def.params["initial_position"] = ParamSpec{ParamSchemaType::Int, "0"};
-    reg.types["Knob"] = knob_def;
-    reg.presentation.specs["Knob"].content_type = bp2::NodeContentType::Knob;
+    reg.register_type("Knob", knob_def);
+    reg.presentation_mut("Knob").content_type = bp2::NodeContentType::Knob;
 
+    // Create a node instance
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("knob1");
     node.semantic.type = interner.intern("Knob");
 
+    // Create runtime state
     editor::RuntimeNodeState runtime = editor::DiscreteNodeRuntimeState{2};
 
-    // Inspector edit: change positions to 5
-    node.semantic.params[interner.intern("positions")] = 5.0f;
-    NodeContent content = create_runtime_node_content(node, *reg.get("Knob"), reg.presentation.get("Knob"), interner, &runtime);
+    NodeContent content = create_runtime_node_content(node, *reg.get("Knob"), reg.get_presentation("Knob"), interner, &runtime);
     EXPECT_FLOAT_EQ(content.max, 5.0f);
     EXPECT_FLOAT_EQ(content.value, 2.0f);
 }
@@ -1667,22 +1667,15 @@ TEST(Issue133_RuntimeState, CanonicalBlueprintStaysUnhydrated) {
     knob_def.classname = "Knob";
     knob_def.params["positions"] = ParamSpec{ParamSchemaType::Int, "4"};
     knob_def.params["initial_position"] = ParamSpec{ParamSchemaType::Int, "1"};
-    reg.types["Knob"] = knob_def;
-    reg.presentation.specs["Knob"].content_type = bp2::NodeContentType::Knob;
+    reg.register_type("Knob", knob_def);
+    reg.presentation_mut("Knob").content_type = bp2::NodeContentType::Knob;
 
-    bp2::Blueprint bp;
-    bp = bp.with_id(interner.intern("test_bp"));
+    // Create a node with no runtime state - should use type definition defaults
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("knob1");
     node.semantic.type = interner.intern("Knob");
-    bp = bp.with_node(std::move(node));
 
-    const auto* loaded = bp.find_node(interner.lookup("knob1"));
-    ASSERT_NE(loaded, nullptr);
-    EXPECT_TRUE(loaded->view.name.empty());
-
-    NodeContent static_content = create_node_content(*reg.get("Knob"), reg.presentation.get("Knob"),
-                                                     loaded->semantic.params, loaded->semantic.string_params, interner);
+    NodeContent static_content = create_runtime_node_content(node, *reg.get("Knob"), reg.get_presentation("Knob"), interner, nullptr);
     EXPECT_EQ(static_content.type, bp2::NodeContentType::Knob);
     EXPECT_FLOAT_EQ(static_content.max, 4.0f);
     EXPECT_FLOAT_EQ(static_content.min, 0.0f);

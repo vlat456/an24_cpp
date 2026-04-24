@@ -35,32 +35,32 @@ PrimitiveSpec make_primitive_spec(
 const ComponentRegistry& parity_registry() {
     static const ComponentRegistry registry = [] {
         ComponentRegistry reg;
-        reg.types["Battery"] = make_primitive_spec(
+        reg.register_type("Battery", make_primitive_spec(
             "Battery",
             {
                 {"v_out", Port{bp2::Direction::Output, PortType::V, Domain::Electrical, false}},
                 {"v_in", Port{bp2::Direction::Input, PortType::V, Domain::Electrical, false}},
             },
-            {Domain::Electrical});
-        reg.types["Resistor"] = make_primitive_spec(
+            {Domain::Electrical}));
+        reg.register_type("Resistor", make_primitive_spec(
             "Resistor",
             {
                 {"v_in", Port{bp2::Direction::Input, PortType::V, Domain::Electrical, false}},
                 {"v_out", Port{bp2::Direction::Output, PortType::V, Domain::Electrical, false}},
             },
-            {Domain::Electrical});
-        reg.types["LED"] = make_primitive_spec(
+            {Domain::Electrical}));
+        reg.register_type("LED", make_primitive_spec(
             "LED",
             {
                 {"v_in", Port{bp2::Direction::Input, PortType::V, Domain::Electrical, false}},
             },
-            {Domain::Electrical});
-        reg.types["InertiaNode"] = make_primitive_spec(
+            {Domain::Electrical}));
+        reg.register_type("InertiaNode", make_primitive_spec(
             "InertiaNode",
             {
                 {"rpm_out", Port{bp2::Direction::Output, PortType::RPM, Domain::Mechanical, false}},
             },
-            {Domain::Mechanical});
+            {Domain::Mechanical}));
         return reg;
     }();
     return registry;

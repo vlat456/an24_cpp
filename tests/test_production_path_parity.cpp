@@ -30,7 +30,7 @@ ComponentRegistry build_registry_for_lamp() {
     };
     lamp.ports["vin"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
     lamp.ports["vout"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
-    registry.types["voltage_indicator"] = lamp;
+    registry.register_type("voltage_indicator", lamp);
 
     return registry;
 }
@@ -39,7 +39,7 @@ ComponentRegistry build_registry_for_lamp() {
 
 TEST(ProductionPathParity, CompositeAotJitTopologyParity) {
     ComponentRegistry registry = build_registry_for_lamp();
-    const auto& lamp_variant = registry.types.at("voltage_indicator");
+    const auto& lamp_variant = registry.all_types().at("voltage_indicator");
     const CompositeSpec& lamp = std::get<CompositeSpec>(lamp_variant);
 
     auto aot_result = CodeGen::generate_composite_systems(lamp, registry);
@@ -125,7 +125,7 @@ TEST(ProductionPathParity, MultiIslandDebugAndPlanParity) {
         {"load_b.v_out", "gnd_b.v", {}},
         {"src_b.v_in", "gnd_b.v", {}}
     };
-    registry.types["multi_island_circuit"] = circuit;
+    registry.register_type("multi_island_circuit", circuit);
 
     auto aot_result = CodeGen::generate_composite_systems(circuit, registry);
     ASSERT_FALSE(aot_result.header.empty());

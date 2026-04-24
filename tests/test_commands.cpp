@@ -65,8 +65,9 @@ static ComponentRegistry make_command_test_registry() {
             p.source_writer = false;
             def.ports.emplace(port_name, std::move(p));
         }
-        reg.types[type_name] = std::move(def);
-        reg.presentation.specs[type_name].description = "command test synthetic type";
+        TypePresentation pres;
+        pres.description = "command test synthetic type";
+        reg.register_type(type_name, def, pres);
     }
 
     return reg;

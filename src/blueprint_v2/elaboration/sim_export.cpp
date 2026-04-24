@@ -170,7 +170,7 @@ JitBuildInput elaborate_for_jit(
         dev.display_name = classname;
 
         // Filter out visual-only devices at the elaboration boundary
-        if (auto* pres = type_registry.presentation.get(classname)) {
+        if (auto* pres = type_registry.get_presentation(classname)) {
             if (!pres->description.empty()) {
                 dev.display_name = pres->description;
             }

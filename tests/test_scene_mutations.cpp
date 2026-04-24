@@ -33,10 +33,11 @@ static ComponentRegistry make_scene_test_registry() {
     auto add = [&](const char* name, const char* hint = "") {
         CompositeSpec def;
         def.classname = name;
-        reg.types[name] = std::move(def);
+        TypePresentation pres;
         if (hint && hint[0]) {
-            reg.presentation.specs[name].render_hint = hint;
+            pres.render_hint = hint;
         }
+        reg.register_type(name, def, pres);
     };
     add("Battery");
     add("Lamp");
@@ -825,9 +826,17 @@ TEST(SceneMutations, RebuildSeedsWidgetWithLiveDynamicContentState) {
     bp2::PathArena arena(interner);
 
     ComponentRegistry reg = scene_reg();
-    reg.presentation.specs["Slider"].content_type = bp2::NodeContentType::Slider;
-    spec_params_mut(reg.types["Slider"])["min"] = ParamSpec{ParamSchemaType::Float, "-10"};
-    spec_params_mut(reg.types["Slider"])["max"] = ParamSpec{ParamSchemaType::Float, "200"};
+
+    // Register dynamic-content types not in the base scene registry.
+    {
+        CompositeSpec slider_spec;
+        slider_spec.classname = "Slider";
+        TypePresentation slider_pres;
+        slider_pres.content_type = bp2::NodeContentType::Slider;
+        slider_spec.params["min"] = ParamSpec{ParamSchemaType::Float, "-10"};
+        slider_spec.params["max"] = ParamSpec{ParamSchemaType::Float, "200"};
+        reg.register_type("Slider", slider_spec, slider_pres);
+    }
 
     auto slider = make_bp2_node(interner, "slider_live", "Slider");
     slider.view.name = "slider_live";
@@ -843,8 +852,14 @@ TEST(SceneMutations, RebuildSeedsWidgetWithLiveDynamicContentState) {
     set_iface(sw, {
         make_port(interner, "state", Domain::Electrical, bp2::Direction::Output, PortType::V),
     });
-    reg.presentation.specs["Switch"].content_type = bp2::NodeContentType::Switch;
-    spec_params_mut(reg.types["Switch"])["closed"] = ParamSpec{ParamSchemaType::Bool, "false"};
+    {
+        CompositeSpec switch_spec;
+        switch_spec.classname = "Switch";
+        TypePresentation switch_pres;
+        switch_pres.content_type = bp2::NodeContentType::Switch;
+        switch_spec.params["closed"] = ParamSpec{ParamSchemaType::Bool, "false"};
+        reg.register_type("Switch", switch_spec, switch_pres);
+    }
 
     bp2::Blueprint bp;
     bp = bp.with_node(std::move(slider));

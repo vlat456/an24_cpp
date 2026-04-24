@@ -517,7 +517,7 @@ void PropertiesWindow::render_port_layout_section(const bp2::Blueprint::Node& no
     // Skip for Bus nodes - they have their own port_edge mechanism
     if (type_registry_ && interner_) {
         const std::string type_name(interner_->resolve(node.semantic.type));
-        auto fk = editor::presentation::resolve_frame_kind(type_registry_->get(type_name), type_registry_->presentation.get(type_name));
+        auto fk = editor::presentation::resolve_frame_kind(type_registry_->get(type_name), type_registry_->get_presentation(type_name));
         if (fk == editor::presentation::NodeFrameKind::Bus) return;
     }
 
@@ -641,7 +641,7 @@ void PropertiesWindow::apply() {
         if (type_registry_) {
             const std::string type_name(interner_->resolve(updated.semantic.type));
             def = type_registry_->get(type_name);
-            pres = type_registry_->presentation.get(type_name);
+            pres = type_registry_->get_presentation(type_name);
         }
 
         // Apply all pending params

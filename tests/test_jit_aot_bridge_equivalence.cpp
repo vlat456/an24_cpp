@@ -20,7 +20,7 @@ std::vector<ResolvedDevice> resolve_all_devices(const std::vector<DeviceInstance
             throw std::runtime_error("Missing test spec for " + dev.classname);
         }
         // Skip visual-only devices - same as elaboration boundary filtering
-        if (auto* pres = registry.presentation.get(dev.classname)) {
+        if (auto* pres = registry.get_presentation(dev.classname)) {
             if (pres->visual_only) {
                 continue;
             }
@@ -40,11 +40,11 @@ TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
     ComponentRegistry registry;
 
     PrimitiveSpec gnd = make_refnode_type(bp2::Direction::Output);
-    registry.types["RefNode"] = gnd;
+    registry.register_type("RefNode", gnd);
 
     PrimitiveSpec cmd = make_any_v_to_bool_type();
     cmd.ports["v_in"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
-    registry.types["Any_V_to_Bool"] = cmd;
+    registry.register_type("Any_V_to_Bool", cmd);
 
     PrimitiveSpec src;
     src.classname = "ControlledVoltageSource";
@@ -70,13 +70,13 @@ TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
         role.value_map["bind_handle"] = 1.0f;
         src.solver.solver_role = role;
     }
-    registry.types["ControlledVoltageSource"] = src;
+    registry.register_type("ControlledVoltageSource", src);
 
     PrimitiveSpec val = make_value_type();
-    registry.types["Value"] = val;
+    registry.register_type("Value", val);
 
     PrimitiveSpec meter = make_voltmeter_type();
-    registry.types["Voltmeter"] = meter;
+    registry.register_type("Voltmeter", meter);
 
     std::vector<DeviceInstance> devices;
 
@@ -187,7 +187,7 @@ TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
 
 TEST(JitAotBridgeEquivalence, SignalAllocationParityForBridgeAndAliasRules) {
     ComponentRegistry registry;
-    registry.types["Resistor"] = make_resistor_type();
+    registry.register_type("Resistor", make_resistor_type());
 
     std::vector<DeviceInstance> devices;
     std::vector<BridgePortDefinition> bridges = {
@@ -251,12 +251,10 @@ TEST(JitAotBridgeEquivalence, SignalAllocationParityForBridgeAndAliasRules) {
 
 TEST(JitAotBridgeEquivalence, VisualOnlyDevicesIgnoredByBothPaths) {
     ComponentRegistry registry;
-    registry.types["Resistor"] = make_resistor_type();
+    registry.register_type("Resistor", make_resistor_type());
     PrimitiveSpec value_type = make_value_type();
-    // visual_only is now on TypePresentation
-    registry.presentation.specs["Value"] = TypePresentation{};
-    registry.presentation.specs["Value"].visual_only = true;
-    registry.types["Value"] = value_type;
+    // visual_only is now on TypePresentation - bundle with register_type
+    registry.register_type("Value", value_type, TypePresentation{.visual_only = true});
 
     std::vector<DeviceInstance> devices;
     std::vector<BridgePortDefinition> bridges = {

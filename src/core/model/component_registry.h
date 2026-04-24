@@ -14,11 +14,7 @@
 #include "core/model/catalog_registry.h"
 
 struct ComponentRegistry {
-    // == Public data (will be made private after test migration in #235-B) ==
-    std::unordered_map<std::string, ComponentSpec> types;
-    PresentationRegistry presentation;
-    CatalogRegistry catalog;
-
+public:
     // == Registration ==
 
     /// Register a component type with optional presentation and category.
@@ -31,70 +27,81 @@ struct ComponentRegistry {
         std::string category = "")
     {
         assert(spec_classname(spec) == classname && "classname key must match spec's internal classname");
-        types[classname] = std::move(spec);
-        presentation.specs[classname] = std::move(pres);
+        types_[classname] = std::move(spec);
+        presentation_.specs[classname] = std::move(pres);
         if (!category.empty()) {
-            catalog.categories[classname] = std::move(category);
+            catalog_.categories[classname] = std::move(category);
         }
     }
 
     // == Lookup ==
 
     const ComponentSpec* get(const std::string& classname) const {
-        auto it = types.find(classname);
-        if (it != types.end()) return &it->second;
+        auto it = types_.find(classname);
+        if (it != types_.end()) return &it->second;
+        return nullptr;
+    }
+
+    ComponentSpec* get_mut(const std::string& classname) {
+        auto it = types_.find(classname);
+        if (it != types_.end()) return &it->second;
         return nullptr;
     }
 
     bool has(const std::string& classname) const {
-        return types.count(classname) > 0;
+        return types_.count(classname) > 0;
     }
 
     std::vector<std::string> list_classnames() const {
         std::vector<std::string> names;
-        names.reserve(types.size());
-        for (const auto& [name, _] : types) names.push_back(name);
+        names.reserve(types_.size());
+        for (const auto& [name, _] : types_) names.push_back(name);
         return names;
     }
 
     // == Bulk read access ==
 
     /// Read-only view of all registered types.
-    const std::unordered_map<std::string, ComponentSpec>& all_types() const { return types; }
+    const std::unordered_map<std::string, ComponentSpec>& all_types() const { return types_; }
 
     /// Read-only view of all presentations.
     const std::unordered_map<std::string, TypePresentation>& all_presentations() const {
-        return presentation.specs;
+        return presentation_.specs;
     }
 
     /// Read-only view of all categories.
     const std::unordered_map<std::string, std::string>& all_categories() const {
-        return catalog.categories;
+        return catalog_.categories;
     }
 
     // == Presentation delegation ==
 
     const TypePresentation* get_presentation(const std::string& classname) const {
-        return presentation.get(classname);
+        return presentation_.get(classname);
     }
 
-    // == Mutable presentation access for test configuration ==
-    // Transitional: prefer constructing TypePresentation fully before register_type().
+    /// Mutable presentation access for test configuration.
+    /// Prefer constructing TypePresentation fully before register_type() when possible.
     TypePresentation& presentation_mut(const std::string& classname) {
-        return presentation.specs[classname];
+        return presentation_.specs[classname];
     }
 
     // == Catalog lookup ==
 
     const std::string* get_category(const std::string& classname) const {
-        auto it = catalog.categories.find(classname);
-        return it != catalog.categories.end() ? &it->second : nullptr;
+        auto it = catalog_.categories.find(classname);
+        return it != catalog_.categories.end() ? &it->second : nullptr;
     }
 
     // == Existing methods ==
 
-    MenuTree build_menu_tree() const { return catalog.build_menu_tree(types, presentation); }
+    MenuTree build_menu_tree() const { return catalog_.build_menu_tree(types_, presentation_); }
     std::optional<std::string> validate_instance(const DeviceInstance& instance) const;
     std::optional<std::string> validate_instance(const ResolvedDevice& instance) const;
     std::vector<std::string> get_composites_topo_sorted() const;
+
+private:
+    std::unordered_map<std::string, ComponentSpec> types_;
+    PresentationRegistry presentation_;
+    CatalogRegistry catalog_;
 };

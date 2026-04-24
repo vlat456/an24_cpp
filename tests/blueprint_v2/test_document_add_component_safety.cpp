@@ -86,7 +86,7 @@ NodeContent resolve_node_content(const bp2::Blueprint::Node& node,
     const std::string type_name(interner.resolve(node.semantic.type));
     const auto* def = registry.get(type_name);
     EXPECT_NE(def, nullptr);
-    return create_node_content(*def, registry.presentation.get(type_name),
+    return create_node_content(*def, registry.get_presentation(type_name),
                                node.semantic.params, node.semantic.string_params, interner);
 }
 
@@ -210,7 +210,7 @@ TEST(DocumentSafety, LoadHydratesRootNodeViewFromComponentRegistry) {
     const auto* loaded_value = require_node(doc.model().current(), doc.interner(), "value1");
     ASSERT_NE(loaded_value, nullptr);
     EXPECT_EQ(editor::presentation::resolve_frame_kind(
-                  registry.get("Value"), registry.presentation.get("Value")),
+                  registry.get("Value"), registry.get_presentation("Value")),
               editor::presentation::NodeFrameKind::Reference);
 
     fs::remove_all(dir);
@@ -923,7 +923,7 @@ TEST(DocumentSafety, OpenExternalRefWindowHydratesNodeViewFromComponentRegistry)
     const auto* loaded_value = require_node(*win->external_blueprint, *win->external_interner, "external_value");
     ASSERT_NE(loaded_value, nullptr);
     EXPECT_EQ(editor::presentation::resolve_frame_kind(
-                  registry.get("Value"), registry.presentation.get("Value")),
+                  registry.get("Value"), registry.get_presentation("Value")),
               editor::presentation::NodeFrameKind::Reference);
 
     fs::remove_all(dir);

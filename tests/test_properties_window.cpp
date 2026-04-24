@@ -62,7 +62,7 @@ static NodeContent resolve_test_content(const bp2::Blueprint::Node& node,
                                         ui::StringInterner& interner) {
     const std::string type_name(interner.resolve(node.semantic.type));
     const auto* def = registry.get(type_name);
-    const auto* pres = registry.presentation.get(type_name);
+    const auto* pres = registry.get_presentation(type_name);
     EXPECT_NE(def, nullptr);
     return create_node_content(*def, pres, node.semantic.params, node.semantic.string_params, interner);
 }
@@ -81,43 +81,39 @@ protected:
         // Register common types used in tests with content types and params
         PrimitiveSpec battery_def;
         battery_def.classname = "Battery";
-        registry.types["Battery"] = battery_def;
+        registry.register_type("Battery", battery_def);
 
         PrimitiveSpec knob_def;
         knob_def.classname = "KnobSwitch";
         knob_def.params["positions"] = ParamSpec{ParamSchemaType::Int, "2"};
         knob_def.params["initial_position"] = ParamSpec{ParamSchemaType::Int, "0"};
-        registry.types["KnobSwitch"] = knob_def;
-        registry.presentation.specs["KnobSwitch"].content_type = bp2::NodeContentType::Knob;
+        registry.register_type("KnobSwitch", knob_def, {.content_type = bp2::NodeContentType::Knob});
 
         PrimitiveSpec slider_def;
         slider_def.classname = "Slider";
         slider_def.params["min"] = ParamSpec{ParamSchemaType::Float, "0"};
         slider_def.params["max"] = ParamSpec{ParamSchemaType::Float, "100"};
-        registry.types["Slider"] = slider_def;
-        registry.presentation.specs["Slider"].content_type = bp2::NodeContentType::Slider;
+        registry.register_type("Slider", slider_def, {.content_type = bp2::NodeContentType::Slider});
 
         PrimitiveSpec gauge_def;
         gauge_def.classname = "Gauge";
         gauge_def.params["min"] = ParamSpec{ParamSchemaType::Float, "0"};
         gauge_def.params["max"] = ParamSpec{ParamSchemaType::Float, "30"};
-        registry.types["Gauge"] = gauge_def;
-        registry.presentation.specs["Gauge"].content_type = bp2::NodeContentType::Gauge;
+        registry.register_type("Gauge", gauge_def, {.content_type = bp2::NodeContentType::Gauge});
 
         PrimitiveSpec voltmeter_def;
         voltmeter_def.classname = "Voltmeter";
         voltmeter_def.params["min"] = ParamSpec{ParamSchemaType::Float, "0"};
         voltmeter_def.params["max"] = ParamSpec{ParamSchemaType::Float, "30"};
-        registry.types["Voltmeter"] = voltmeter_def;
-        registry.presentation.specs["Voltmeter"].content_type = bp2::NodeContentType::Gauge;
+        registry.register_type("Voltmeter", voltmeter_def, {.content_type = bp2::NodeContentType::Gauge});
 
         PrimitiveSpec bus_def;
         bus_def.classname = "Bus";
-        registry.types["Bus"] = bus_def;
+        registry.register_type("Bus", bus_def);
 
         PrimitiveSpec lut_def;
         lut_def.classname = "LookupTable";
-        registry.types["LookupTable"] = lut_def;
+        registry.register_type("LookupTable", lut_def);
     }
 };
 
@@ -1107,8 +1103,7 @@ TEST_F(PropertiesWindowTest, ApplySwitchClosedUpdatesCanonicalDefaultOnly) {
     PrimitiveSpec switch_def;
     switch_def.classname = "Switch";
     switch_def.params["closed"] = ParamSpec{ParamSchemaType::Bool, "false"};
-    registry.types["Switch"] = switch_def;
-    registry.presentation.specs["Switch"].content_type = bp2::NodeContentType::Switch;
+    registry.register_type("Switch", switch_def, {.content_type = bp2::NodeContentType::Switch});
 
     PropertiesWindow win;
     win.open(*node_ptr, interner.intern("switch1"), create_editor_model_host(model), interner, &registry, [](ui::InternedId) {});
@@ -1126,8 +1121,7 @@ TEST_F(PropertiesWindowTest, ApplyAzsClosedUpdatesCanonicalVerticalToggleDefault
     PrimitiveSpec azs_def;
     azs_def.classname = "AZS";
     azs_def.params["closed"] = ParamSpec{ParamSchemaType::Bool, "false"};
-    registry.types["AZS"] = azs_def;
-    registry.presentation.specs["AZS"].content_type = bp2::NodeContentType::VerticalToggle;
+    registry.register_type("AZS", azs_def, {.content_type = bp2::NodeContentType::VerticalToggle});
 
     bp2::Blueprint::Node n;
     n.semantic.id = interner.intern("azs1");
@@ -1154,8 +1148,7 @@ TEST_F(PropertiesWindowTest, ApplyRelayClosedUpdatesCanonicalSwitchDefaultOnly) 
     PrimitiveSpec relay_def;
     relay_def.classname = "Relay";
     relay_def.params["closed"] = ParamSpec{ParamSchemaType::Bool, "false"};
-    registry.types["Relay"] = relay_def;
-    registry.presentation.specs["Relay"].content_type = bp2::NodeContentType::Switch;
+    registry.register_type("Relay", relay_def, {.content_type = bp2::NodeContentType::Switch});
 
     bp2::Blueprint::Node n;
     n.semantic.id = interner.intern("relay1");

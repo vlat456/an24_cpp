@@ -75,18 +75,18 @@ static ComponentRegistry make_validation_registry() {
     battery.classname = "Battery";
     battery.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, Domain::Electrical, false};
     battery.ports["v_in"] = Port{bp2::Direction::Input, PortType::V, Domain::Electrical, false};
-    reg.types["Battery"] = std::move(battery);
+    reg.register_type("Battery", std::move(battery));
 
     PrimitiveSpec resistor;
     resistor.classname = "Resistor";
     resistor.ports["in"] = Port{bp2::Direction::Input, PortType::V, Domain::Electrical, false};
     resistor.ports["out"] = Port{bp2::Direction::Output, PortType::V, Domain::Electrical, false};
-    reg.types["Resistor"] = std::move(resistor);
+    reg.register_type("Resistor", std::move(resistor));
 
     PrimitiveSpec composite;
     composite.classname = "CompositeType";
     composite.ports["inner_only"] = Port{bp2::Direction::Input, PortType::V, Domain::Electrical, false};
-    reg.types["CompositeType"] = std::move(composite);
+    reg.register_type("CompositeType", std::move(composite));
 
     return reg;
 }
@@ -230,12 +230,12 @@ TEST(WireValidator, AnyToAnyUsesSharedLegacyResolutionRule) {
     PrimitiveSpec src;
     src.classname = "SrcAny";
     src.ports["out"] = Port{bp2::Direction::Output, PortType::Any, Domain::Electrical, false};
-    reg.types["SrcAny"] = std::move(src);
+    reg.register_type("SrcAny", std::move(src));
 
     PrimitiveSpec dst;
     dst.classname = "DstAny";
     dst.ports["in"] = Port{bp2::Direction::Input, PortType::Any, Domain::Logical, false};
-    reg.types["DstAny"] = std::move(dst);
+    reg.register_type("DstAny", std::move(dst));
 
     bp2::Blueprint bp;
     bp = bp.with_node(make_node(I, "src", "SrcAny"));
@@ -259,12 +259,12 @@ TEST(WireValidator, ContextualBindsToConcreteAnchor) {
     PrimitiveSpec value;
     value.classname = "Value";
     value.ports["o"] = Port{bp2::Direction::Output, PortType::Contextual, Domain::Electrical, false};
-    reg.types["Value"] = std::move(value);
+    reg.register_type("Value", std::move(value));
 
     PrimitiveSpec sink;
     sink.classname = "BoolSink";
     sink.ports["in"] = Port{bp2::Direction::Input, PortType::Bool, Domain::Logical, false};
-    reg.types["BoolSink"] = std::move(sink);
+    reg.register_type("BoolSink", std::move(sink));
 
     bp2::Blueprint bp;
     bp = bp.with_node(make_node(I, "value", "Value"));
@@ -288,12 +288,12 @@ TEST(WireValidator, ContextualOnlySignalFailsExplicitly) {
     PrimitiveSpec lhs;
     lhs.classname = "CtxOut";
     lhs.ports["out"] = Port{bp2::Direction::Output, PortType::Contextual, Domain::Electrical, false};
-    reg.types["CtxOut"] = std::move(lhs);
+    reg.register_type("CtxOut", std::move(lhs));
 
     PrimitiveSpec rhs;
     rhs.classname = "CtxIn";
     rhs.ports["in"] = Port{bp2::Direction::Input, PortType::Contextual, Domain::Electrical, false};
-    reg.types["CtxIn"] = std::move(rhs);
+    reg.register_type("CtxIn", std::move(rhs));
 
     bp2::Blueprint bp;
     bp = bp.with_node(make_node(I, "a", "CtxOut"));
@@ -317,7 +317,7 @@ TEST(WireValidator, ContextualBridgeBindsToExposedRootPort) {
     PrimitiveSpec sink;
     sink.classname = "BoolSink";
     sink.ports["in"] = Port{bp2::Direction::Input, PortType::Bool, Domain::Logical, false};
-    reg.types["BoolSink"] = std::move(sink);
+    reg.register_type("BoolSink", std::move(sink));
 
     bp2::Blueprint bp;
     bp = bp.with_interface(Interface({
@@ -347,17 +347,17 @@ TEST(WireValidator, ContextualAliasGroupBindsTransitivelyToConcreteAnchor) {
     splitter.ports["i"] = Port{bp2::Direction::Input, PortType::Contextual, Domain::Electrical, false};
     splitter.ports["o1"] = Port{bp2::Direction::Output, PortType::Contextual, Domain::Electrical, false, std::string("i")};
     splitter.ports["o2"] = Port{bp2::Direction::Output, PortType::Contextual, Domain::Electrical, false, std::string("i")};
-    reg.types["CtxSplitter"] = std::move(splitter);
+    reg.register_type("CtxSplitter", std::move(splitter));
 
     PrimitiveSpec sink;
     sink.classname = "BoolSink";
     sink.ports["in"] = Port{bp2::Direction::Input, PortType::Bool, Domain::Logical, false};
-    reg.types["BoolSink"] = std::move(sink);
+    reg.register_type("BoolSink", std::move(sink));
 
     PrimitiveSpec value;
     value.classname = "Value";
     value.ports["o"] = Port{bp2::Direction::Output, PortType::Contextual, Domain::Electrical, false};
-    reg.types["Value"] = std::move(value);
+    reg.register_type("Value", std::move(value));
 
     bp2::Blueprint bp;
     bp = bp.with_node(make_node(I, "value", "Value"));
@@ -389,12 +389,12 @@ TEST(WireValidator, ContextualAndAnyWithoutConcreteAnchorFailsExplicitly) {
     PrimitiveSpec src;
     src.classname = "CtxOut";
     src.ports["out"] = Port{bp2::Direction::Output, PortType::Contextual, Domain::Electrical, false};
-    reg.types["CtxOut"] = std::move(src);
+    reg.register_type("CtxOut", std::move(src));
 
     PrimitiveSpec dst;
     dst.classname = "AnyIn";
     dst.ports["in"] = Port{bp2::Direction::Input, PortType::Any, Domain::Logical, false};
-    reg.types["AnyIn"] = std::move(dst);
+    reg.register_type("AnyIn", std::move(dst));
 
     bp2::Blueprint bp;
     bp = bp.with_node(make_node(I, "ctx", "CtxOut"));
@@ -418,14 +418,14 @@ TEST(WireValidator, SignalValueBindsToSignalMathPort) {
     PrimitiveSpec src;
     src.classname = "Value";
     src.ports["o"] = Port{bp2::Direction::Output, PortType::Signal, Domain::Logical, false};
-    reg.types["Value"] = std::move(src);
+    reg.register_type("Value", std::move(src));
 
     PrimitiveSpec dst;
     dst.classname = "Multiply";
     dst.ports["A"] = Port{bp2::Direction::Input, PortType::Signal, Domain::Logical, false};
     dst.ports["B"] = Port{bp2::Direction::Input, PortType::Signal, Domain::Logical, false};
     dst.ports["o"] = Port{bp2::Direction::Output, PortType::Signal, Domain::Logical, false};
-    reg.types["Multiply"] = std::move(dst);
+    reg.register_type("Multiply", std::move(dst));
 
     bp2::Blueprint bp;
     bp = bp.with_node(make_node(I, "value", "Value"));
@@ -449,7 +449,7 @@ TEST(WireValidator, BridgeWithoutMatchingExposedRootPortFailsExplicitly) {
     PrimitiveSpec sink;
     sink.classname = "BoolSink";
     sink.ports["in"] = Port{bp2::Direction::Input, PortType::Bool, Domain::Logical, false};
-    reg.types["BoolSink"] = std::move(sink);
+    reg.register_type("BoolSink", std::move(sink));
 
     bp2::Blueprint bp;
     bp = bp.with_interface(Interface({
@@ -477,7 +477,7 @@ TEST(WireValidator, NestedEmbeddedContextualBridgeChainBindsToRootConcreteAnchor
     PrimitiveSpec sink;
     sink.classname = "BoolSink";
     sink.ports["in"] = Port{bp2::Direction::Input, PortType::Bool, Domain::Logical, false};
-    reg.types["BoolSink"] = std::move(sink);
+    reg.register_type("BoolSink", std::move(sink));
 
     bp2::Blueprint leaf;
     leaf = leaf.with_id(I.intern("LeafType"));
@@ -566,12 +566,12 @@ TEST(WireValidator, DomainMismatchFails) {
     PrimitiveSpec src;
     src.classname = "Src";
     src.ports["out"] = Port{bp2::Direction::Output, PortType::V, Domain::Electrical, false};
-    reg.types["Src"] = std::move(src);
+    reg.register_type("Src", std::move(src));
 
     PrimitiveSpec dst;
     dst.classname = "Dst";
     dst.ports["in"] = Port{bp2::Direction::Input, PortType::Bool, Domain::Logical, false};
-    reg.types["Dst"] = std::move(dst);
+    reg.register_type("Dst", std::move(dst));
 
     PathArena arena(I);
     bp2::Blueprint bp;
@@ -818,8 +818,8 @@ TEST(BlueprintValidate, ParserRegistryOverloadAcceptsKnownType) {
     ui::StringInterner I;
     PathArena arena(I);
     ComponentRegistry parser_registry = load_component_registry("library/");
-    ASSERT_FALSE(parser_registry.types.empty());
-    const std::string known_type = parser_registry.types.begin()->first;
+    ASSERT_FALSE(parser_registry.all_types().empty());
+    const std::string known_type = parser_registry.all_types().begin()->first;
 
     bp2::Blueprint bp;
     bp = bp.with_node(make_node_with_interface(I, "n1", known_type.c_str(), parser_registry));
@@ -856,8 +856,8 @@ TEST(WireValidator, ParserRegistryOverloadValidateWire) {
     ui::StringInterner I;
     PathArena arena(I);
     ComponentRegistry parser_registry = load_component_registry("library/");
-    ASSERT_FALSE(parser_registry.types.empty());
-    const std::string known_type = parser_registry.types.begin()->first;
+    ASSERT_FALSE(parser_registry.all_types().empty());
+    const std::string known_type = parser_registry.all_types().begin()->first;
 
     bp2::Blueprint bp;
     bp2::Blueprint::Node a;
@@ -890,8 +890,8 @@ TEST(InvariantChecker, ParserRegistryOverloadValidateBlueprint) {
     ui::StringInterner I;
      PathArena arena(I);
      ComponentRegistry parser_registry = load_component_registry("library/");
-     ASSERT_FALSE(parser_registry.types.empty());
-     const std::string known_type = parser_registry.types.begin()->first;
+     ASSERT_FALSE(parser_registry.all_types().empty());
+     const std::string known_type = parser_registry.all_types().begin()->first;
  
      bp2::Blueprint bp;
      bp = bp.with_node(make_node_with_interface(I, "n1", known_type.c_str(), parser_registry));
@@ -990,7 +990,7 @@ TEST(BlueprintDecode, RequiredParamValidation_MissingRequiredParamFails) {
     req_param.type = ParamSchemaType::Float;
     req_param.required = true;
     test_type.params["critical_value"] = req_param;
-    reg.types["TestComponent"] = std::move(test_type);
+    reg.register_type("TestComponent", std::move(test_type));
     
     // Try to decode a blueprint with TestComponent but missing the required param
     std::string json_str = R"({
@@ -1034,7 +1034,7 @@ TEST(BlueprintDecode, RequiredParamValidation_PresentRequiredParamPasses) {
     req_param.type = ParamSchemaType::Float;
     req_param.required = true;
     test_type.params["critical_value"] = req_param;
-    reg.types["TestComponent"] = std::move(test_type);
+    reg.register_type("TestComponent", std::move(test_type));
 
     // Decode a blueprint with TestComponent AND the required param present
     std::string json_str = R"({
@@ -1077,7 +1077,7 @@ TEST(BlueprintDecode, RequiredParamValidation_OptionalParamCanBeMissing) {
     opt_param.type = ParamSchemaType::Float;
     opt_param.required = false;  // Optional
     test_type.params["optional_value"] = opt_param;
-    reg.types["TestComponent"] = std::move(test_type);
+    reg.register_type("TestComponent", std::move(test_type));
 
     // Decode a blueprint with TestComponent but NO optional param
     std::string json_str = R"({

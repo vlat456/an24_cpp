@@ -56,7 +56,7 @@ inline ui::Pt get_default_node_size(const std::string& type_name, const Componen
 
     // Try to get size from presentation spec
     if (registry) {
-        const auto* pres = registry->presentation.get(type_name);
+        const auto* pres = registry->get_presentation(type_name);
         if (pres && pres->default_size.has_value()) {
             return ui::Pt(pres->default_size->first * GRID_UNIT,
                      pres->default_size->second * GRID_UNIT);

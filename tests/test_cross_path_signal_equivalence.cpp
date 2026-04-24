@@ -205,11 +205,11 @@ ComponentRegistry make_minimal_registry() {
         role.param_map["voltage"] = "v_nominal";
         role.value_map["bind_handle"] = 1.0f;
         spec.solver.solver_role = role;
-        registry.types["Battery"] = spec;
+        registry.register_type("Battery", spec);
     }
 
     // Resistor
-    registry.types["Resistor"] = make_resistor_type();
+    registry.register_type("Resistor", make_resistor_type());
 
     // Ground (port name must match Blueprint interface "gnd")
     {
@@ -227,7 +227,7 @@ ComponentRegistry make_minimal_registry() {
         role.value_map["bind_handle"] = 1.0f;
         spec.solver.solver_role = role;
         spec.solver.solver_owned_electrical = false;
-        registry.types["Ground"] = spec;
+        registry.register_type("Ground", spec);
     }
 
     // LED (simple passive)
@@ -247,7 +247,7 @@ ComponentRegistry make_minimal_registry() {
         role.param_map["g"] = "conductance";
         role.value_map["bind_handle"] = 1.0f;
         spec.solver.solver_role = role;
-        registry.types["LED"] = spec;
+        registry.register_type("LED", spec);
     }
 
     return registry;
@@ -522,7 +522,7 @@ TEST(CrossPathSignalEquivalence, ClosedCircuitBlueprint) {
 
     // Build library from registry (non-primitive composites)
     bp2::BlueprintLibrary library;
-    for (const auto& [classname, spec] : registry.types) {
+    for (const auto& [classname, spec] : registry.all_types()) {
         if (is_primitive(spec)) continue;
         try {
             auto loaded = bp2::blueprint_from_type_definition(spec, I, registry);

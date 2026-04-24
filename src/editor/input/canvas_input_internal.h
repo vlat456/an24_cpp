@@ -28,7 +28,7 @@ inline bool is_bus_node(const bp2::Blueprint& bp, ui::InternedId node_id,
     if (!node) return false;
     const std::string type_name(interner.resolve(node->semantic.type));
     const ComponentSpec* def = registry.get(type_name);
-    const TypePresentation* pres = registry.presentation.get(type_name);
+    const TypePresentation* pres = registry.get_presentation(type_name);
     return editor::presentation::resolve_frame_kind(def, pres)
         == editor::presentation::NodeFrameKind::Bus;
 }
@@ -37,7 +37,7 @@ inline bool is_ref_node(const bp2::Blueprint::Node& node,
                         const ComponentRegistry& registry, const ui::StringInterner& interner) {
     const std::string type_name(interner.resolve(node.semantic.type));
     const ComponentSpec* def = registry.get(type_name);
-    const TypePresentation* pres = registry.presentation.get(type_name);
+    const TypePresentation* pres = registry.get_presentation(type_name);
     return editor::presentation::resolve_frame_kind(def, pres)
         == editor::presentation::NodeFrameKind::Reference;
 }

@@ -108,13 +108,14 @@ static ComponentRegistry make_canvas_input_test_registry() {
         PrimitiveSpec def;
         def.classname = name;
         for (auto& [k, v] : params) def.params[k] = ParamSpec{ParamSchemaType::String, v};
-        reg.types[def.classname] = std::move(def);
+        TypePresentation pres;
         if (hint && hint[0]) {
-            reg.presentation.specs[name].render_hint = hint;
+            pres.render_hint = hint;
         }
         if (ct && ct[0] && strcmp(ct, "None") != 0) {
-            reg.presentation.specs[name].content_type = bp2::parse_node_content_type(ct);
+            pres.content_type = bp2::parse_node_content_type(ct);
         }
+        reg.register_type(def.classname, def, pres);
     };
 
     // Types with specific ports (used by wire-compatibility tests)
@@ -124,20 +125,19 @@ static ComponentRegistry make_canvas_input_test_registry() {
         def.params["min"] = ParamSpec{ParamSchemaType::Float, "0"};
         def.params["max"] = ParamSpec{ParamSchemaType::Float, "1"};
         def.ports.emplace("out", Port(bp2::Direction::Output, PortType::Bool, Domain::Logical, false));
-        reg.types[def.classname] = std::move(def);
-        reg.presentation.specs["Slider"].content_type = bp2::NodeContentType::Slider;
+        reg.register_type(def.classname, def, TypePresentation{{}, bp2::NodeContentType::Slider});
     }
     {
         PrimitiveSpec def;
         def.classname = "BoolSrc";
         def.ports.emplace("out", Port(bp2::Direction::Output, PortType::Bool, Domain::Logical, false));
-        reg.types[def.classname] = std::move(def);
+        reg.register_type("BoolSrc", std::move(def));
     }
     {
         PrimitiveSpec def;
         def.classname = "BoolSink";
         def.ports.emplace("in", Port(bp2::Direction::Input, PortType::Bool, Domain::Logical, false));
-        reg.types[def.classname] = std::move(def);
+        reg.register_type("BoolSink", std::move(def));
     }
     // Simple types
     add_simple("Battery");

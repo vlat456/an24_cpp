@@ -90,7 +90,7 @@ void expand_composite_into(
             expand_composite_into(ctx, prefixed_dev, *inner_comp, registry, expanding);
         } else {
             // Skip visual-only devices at expansion boundary
-            if (auto* pres = registry.presentation.get(inner_dev.classname)) {
+            if (auto* pres = registry.get_presentation(inner_dev.classname)) {
                 if (pres->visual_only) {
                     spdlog::debug("[json_io] Skipping visual-only inner device '{}' of type '{}'",
                         inner_dev.name.empty() ? raw_dev.name : inner_dev.name, inner_dev.classname);
@@ -175,7 +175,7 @@ ParserContext parse_json_impl(
         }
 
         // Skip visual-only devices at resolution boundary
-        if (auto* pres = registry.presentation.get(raw_dev.classname)) {
+        if (auto* pres = registry.get_presentation(raw_dev.classname)) {
             if (pres->visual_only) {
                 spdlog::debug("[json_io] Skipping visual-only device '{}' of type '{}'",
                     raw_dev.name, raw_dev.classname);

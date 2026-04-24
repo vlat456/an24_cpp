@@ -267,7 +267,7 @@ TEST(BlueprintCycleDetection, ValidNesting_NoCycle) {
 TEST(BlueprintExtension, RegistryLoadsOnlyBlueprintFiles) {
     ComponentRegistry reg = load_component_registry("library/");
     // Registry must find at least some components
-    EXPECT_GT(reg.types.size(), 10u) << "Registry should load many .blueprint files";
+    EXPECT_GT(reg.all_types().size(), 10u) << "Registry should load many .blueprint files";
     // Battery is a well-known component
     EXPECT_TRUE(reg.has("ElectricalSource"));
     // 12SAM28 (composite) must also load from .blueprint
@@ -437,7 +437,7 @@ TEST(BlueprintExtension, CodegenUsesBluprintExtension) {
 
     // Find any composite type
     std::string composite_name;
-    for (const auto& [name, def] : reg.types) {
+    for (const auto& [name, def] : reg.all_types()) {
         if (is_composite(def)) {
             composite_name = name;
             break;

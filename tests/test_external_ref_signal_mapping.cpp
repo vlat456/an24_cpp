@@ -106,7 +106,7 @@ static const ComponentRegistry& fixture_registry() {
 
 static bp2::BlueprintLibrary build_library(const ComponentRegistry& registry, ui::StringInterner& interner) {
     bp2::BlueprintLibrary library;
-    for (const auto& [classname, spec] : registry.types) {
+    for (const auto& [classname, spec] : registry.all_types()) {
         if (::is_primitive(spec)) continue;
         try {
             auto loaded = bp2::blueprint_from_type_definition(spec, interner, registry);
