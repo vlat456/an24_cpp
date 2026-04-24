@@ -382,11 +382,7 @@ ComponentRegistry load_component_registry(const std::string& library_dir) {
             std::string category = relative_dir.generic_string();
             if (category == ".") category = "";
 
-            registry.types[classname] = std::move(spec);
-            registry.presentation.specs[classname] = std::move(pres);
-            if (!category.empty()) {
-                registry.catalog.categories[classname] = category;
-            }
+            registry.register_type(classname, std::move(spec), std::move(pres), std::move(category));
             loaded_count++;
 
             spdlog::debug("[json_io] Loaded type definition: '{}' from {} (category: {})",

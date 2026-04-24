@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
     std::string build_factory_path = "src/core/solvers/jit/build_factory.cpp";
 
     auto registry = load_component_registry(library_dir);
-    std::cout << "Loaded " << registry.types.size() << " types from " << library_dir << "/\n";
+    std::cout << "Loaded " << registry.all_types().size() << " types from " << library_dir << "/\n";
 
     // Generate component_kind.h first — port_registry.h includes it
     CodeGen::generate_component_kind(registry, component_kind_path);

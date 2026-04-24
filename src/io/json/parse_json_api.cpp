@@ -327,13 +327,13 @@ json template_to_json(const SystemTemplate& tpl) {
 
 ParserContext parse_json(const std::string& json_text) {
     auto registry = load_component_registry();
-    spdlog::info("[json_io] Loaded {} type definitions", registry.types.size());
+    spdlog::info("[json_io] Loaded {} type definitions", registry.all_types().size());
     return parse_json_impl(json_text, registry, {});
 }
 
 ParserContext parse_json(const std::string& json_text, const std::string& library_dir) {
     auto registry = load_component_registry(library_dir);
-    spdlog::info("[json_io] Loaded {} type definitions from '{}'", registry.types.size(), library_dir);
+    spdlog::info("[json_io] Loaded {} type definitions from '{}'", registry.all_types().size(), library_dir);
     return parse_json_impl(json_text, registry, {});
 }
 

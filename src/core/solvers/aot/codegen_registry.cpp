@@ -40,7 +40,7 @@ struct ComponentPorts {
 std::vector<ComponentPorts> build_component_metadata(const ComponentRegistry& registry) {
     std::vector<ComponentPorts> all_components;
 
-    for (const auto& [name, spec] : registry.types) {
+    for (const auto& [name, spec] : registry.all_types()) {
         (void)name;
         const auto* def = as_primitive(spec);
         if (!def) {
