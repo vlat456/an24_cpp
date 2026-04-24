@@ -1,21 +1,43 @@
 #pragma once
 
-#include "codegen_internal.h"
-#include "../common/signal_union_rules.h"
-#include "../../utils/union_find.h"
+/// Signal allocation via UnionFind — the single source of truth.
+///
+/// Given a set of devices, bridge ports, and connections, assigns compact
+/// signal indices such that connected ports share an index. Used by:
+///   - AOT codegen (codegen_composite.cpp)
+///   - JIT test infrastructure (jit_build_input_test_helper.h)
+///   - AOT↔JIT parity tests (test_electrical_parity_fixtures.cpp, etc.)
+///
+/// Three-phase pipeline:
+///   1. build_port_index_map()      — enumerate all ports, assign sequential indices
+///   2. apply_signal_allocation_rules() — union connected ports via UnionFind
+///   3. finalize_signal_indices()   — compact UnionFind roots to dense signal range
 
-namespace codegen_composite_detail {
+#include "signal_key.h"
+#include "signal_union_rules.h"
+#include "core/utils/union_find.h"
+#include "core/model/component_types.h"
+#include "core/model/connection.h"
+
+#include <cstdint>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
+namespace signal_alloc {
 
 using UnionFind = core::utils::UnionFind;
 
+/// Phase 1: Enumerate all ports across devices and bridge ports.
+/// Populates `out_all_ports` (ordered list) and `out_port_to_idx` (name → flat index).
 template <typename DeviceT>
 void build_port_index_map(
-    const std::vector<DeviceT>& expanded_devices,
+    const std::vector<DeviceT>& devices,
     const std::vector<BridgePortDefinition>& bridge_ports,
     std::vector<std::string>& out_all_ports,
     std::unordered_map<std::string, uint32_t>& out_port_to_idx
 ) {
-    for (const auto& dev : expanded_devices) {
+    for (const auto& dev : devices) {
         for (const auto& [port_name, port] : dev.ports) {
             (void)port;
             std::string full_port = signal_key::make_node_port_key(dev.name, port_name);
@@ -46,23 +68,29 @@ void build_port_index_map(
     }
 }
 
+/// Phase 2: Apply all union rules — wires, bridges, aliases.
+/// After this, `uf.find(i)` gives the canonical root for each port index.
 template <typename DeviceT>
 void apply_signal_allocation_rules(
     UnionFind& uf,
-    const std::vector<DeviceT>& expanded_devices,
+    const std::vector<DeviceT>& devices,
     const std::vector<BridgePortDefinition>& bridge_ports,
-    const std::vector<Connection>& expanded_connections,
+    const std::vector<Connection>& connections,
     const std::unordered_map<std::string, uint32_t>& port_to_idx
 ) {
     signal_union_rules::apply_structural_bridge_unions(uf, bridge_ports, port_to_idx);
     signal_union_rules::apply_signal_union_rules(
         uf,
-        expanded_devices,
-        expanded_connections,
+        devices,
+        connections,
         port_to_idx,
-        [](const std::string&, const std::string&, bool, bool) {});
+        [](const std::string&, const std::string&, bool, bool) {}
+    );
 }
 
+/// Phase 3: Compact UnionFind roots to a dense signal range [0, signal_count).
+/// Returns port_name → signal_index map.
+/// Sets `out_signal_count` to the number of unique signals + 1 sentinel.
 std::unordered_map<std::string, uint32_t> finalize_signal_indices(
     const UnionFind& uf,
     const std::vector<std::string>& all_ports,
@@ -70,4 +98,4 @@ std::unordered_map<std::string, uint32_t> finalize_signal_indices(
     uint32_t& out_signal_count
 );
 
-} // namespace codegen_composite_detail
+} // namespace signal_alloc

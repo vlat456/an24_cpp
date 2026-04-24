@@ -208,7 +208,7 @@ E-005 — ComponentVariant with 68+ Types
 
 - Severity: Medium
 - Category: Architecture / Performance
-- Location: src/jit_solver/components/port_registry.h:3380-3459
+- Location: src/core/solvers/common/port_registry.h (ComponentVariant definition)
 - Problem: ComponentVariant = std::variant<68 types>. Every std::visit instantiates 68 specializations, generating enormous jump tables. The variant itself is as large as the biggest component + alignment + discriminant. This bloats compile times and binary size significantly.
 - Impact: Slow compilation (already noted in errors_TODO.md #5), binary bloat, and the per-frame variant scans in E-002 compound this cost. Each visit site generates a 68-entry branch table.
 - Fix: Two options: (a) Split into domain-specific variants (ElectricalVariant, LogicalVariant, etc.) reducing each visit to ~20 alternatives, or (b) use type-erased wrappers with SBO for the device map, keeping std::variant only where exhaustive matching is needed.

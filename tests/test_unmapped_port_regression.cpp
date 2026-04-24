@@ -7,8 +7,8 @@
 /// The fix uses UINT32_MAX as a sentinel value and adds has() for safe checks.
 
 #include <gtest/gtest.h>
-#include "core/solvers/jit/components/provider.h"
-#include "core/solvers/jit/components/port_registry.h"
+#include "core/solvers/common/provider.h"
+#include "core/solvers/common/port_registry.h"
 
 // =============================================================================
 // Sentinel Value Tests

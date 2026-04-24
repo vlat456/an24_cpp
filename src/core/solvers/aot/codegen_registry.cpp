@@ -99,9 +99,9 @@ void emit_port_registry_prelude(std::ostringstream& oss, const std::vector<Compo
     oss << "#include <stdexcept>\n";
     oss << "#include <vector>\n";
     oss << "#include <variant>\n\n";
-    oss << "#include \"provider.h\"\n";
-    oss << "#include \"all.h\"\n";
-    oss << "#include \"port_names.h\"\n";
+    oss << "#include \"core/solvers/common/provider.h\"\n";
+    oss << "#include \"core/solvers/jit/components/all.h\"\n";
+    oss << "#include \"core/solvers/common/port_names.h\"\n";
     oss << "#include \"core/model/component_kind.h\"\n\n";
 
     for (const auto& comp : all_components) {
@@ -125,7 +125,7 @@ void emit_port_registry_metadata(std::ostringstream& oss, const std::vector<Comp
     }
     oss << "\n";
 
-    oss << "#include \"../../../../blueprint_v2/interface/direction.h\"\n\n";
+    oss << "#include \"blueprint_v2/interface/direction.h\"\n\n";
     for (const auto& comp : all_components) {
         oss << "constexpr bp2::Direction " << comp.classname << "_PORT_DIRECTIONS[] = {\n";
         for (size_t i = 0; i < comp.ports.size(); ++i) {

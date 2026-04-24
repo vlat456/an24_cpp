@@ -1,5 +1,5 @@
 #include "bus.h"
-#include "port_registry.h"
+#include "core/solvers/common/port_registry.h"
 #include "../state.h"
 
 template <typename Provider>

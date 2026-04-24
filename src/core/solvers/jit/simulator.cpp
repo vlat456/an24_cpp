@@ -1,5 +1,5 @@
 #include "simulator.h"
-#include "components/port_registry.h"
+#include "core/solvers/common/port_registry.h"
 #include "core/solvers/common/signal_key.h"
 #include "../../../parse_number.h"
 #include <algorithm>

@@ -1,6 +1,6 @@
 // ПРИМЕР: Как Editor будет использовать ComponentVariant
 
-#include "core/solvers/jit/components/port_registry.h"
+#include "core/solvers/common/port_registry.h"
 #include "core/solvers/jit/state.h"
 #include <unordered_map>
 #include <string>

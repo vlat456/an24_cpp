@@ -1,6 +1,6 @@
 #pragma once
 
-#include "components/port_registry.h"
+#include "core/solvers/common/port_registry.h"
 #include "scheduler.h"
 #include "subsolvers/subsolver_types.h"
 #include "core/model/resolved_device.h"

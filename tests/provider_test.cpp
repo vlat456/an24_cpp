@@ -1,5 +1,5 @@
-#include "core/solvers/jit/components/provider.h"
-#include "core/solvers/jit/components/port_registry.h"
+#include "core/solvers/common/provider.h"
+#include "core/solvers/common/port_registry.h"
 #include "core/solvers/jit/state.h"
 #include <iostream>
 #include <cassert>

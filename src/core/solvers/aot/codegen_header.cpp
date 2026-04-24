@@ -154,7 +154,7 @@ std::string CodeGen::generate_header(
     oss << "#include <cmath>\n";
     oss << "#include \"core/solvers/jit/state.h\"\n";
     oss << "#include \"core/solvers/jit/components/all.h\"\n";
-    oss << "#include \"core/solvers/jit/components/port_registry.h\"\n\n";
+    oss << "#include \"core/solvers/common/port_registry.h\"\n\n";
     oss << "#ifdef __GNUC__\n";
     oss << "#define AOT_INLINE __attribute__((always_inline)) inline\n";
     oss << "#define AOT_LIKELY(x) __builtin_expect(!!(x), 1)\n";

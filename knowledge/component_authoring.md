@@ -5,7 +5,7 @@ This guide is for writing components that behave well in the current solver.
 Relevant code:
 
 - `src/core/solvers/jit/components/all.h`
-- `src/core/solvers/jit/components/provider.h`
+- `src/core/solvers/common/provider.h`
 - `src/core/solvers/jit/state.h`
 - `src/core/solvers/jit/build_factory.cpp` (AUTO-GENERATED — do not edit)
 - `src/core/solvers/aot/codegen_registry.cpp` (codegen tool that produces the factory)
@@ -197,7 +197,7 @@ Place in `src/core/solvers/jit/components/my_component.h`:
 
 ```cpp
 #pragma once
-#include "provider.h"
+#include "core/solvers/common/provider.h"
 #include "component_enums.h"
 #include "../state.h"
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "provider.h"
+#include "core/solvers/common/provider.h"
 #include "../state.h"
 
 /// Switch - manual toggle switch (triggered by control signal)

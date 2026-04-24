@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include "core/solvers/jit/simulator.h"
 #include "core/solvers/aot/codegen.h"
-#include "core/solvers/aot/codegen_composite_helpers.h"
+#include "core/solvers/common/signal_allocation.h"
 #include "core/solvers/jit/jit_solver.h"
 #include "core/solvers/jit/subsolvers/electrical_subsolver.h"
 #include "io/json/parse_json_api.h"
@@ -265,14 +265,15 @@ static void run_aot_electrical(
 ) {
     std::vector<std::string> all_ports;
     std::unordered_map<std::string, uint32_t> port_to_idx;
-    codegen_composite_detail::build_port_index_map(devices, {}, all_ports, port_to_idx);
+    signal_alloc::build_port_index_map(devices, {}, all_ports, port_to_idx);
 
-    codegen_composite_detail::UnionFind uf(all_ports.size());
-    codegen_composite_detail::apply_signal_allocation_rules(uf, devices, {}, connections, port_to_idx);
+    signal_alloc::UnionFind uf(all_ports.size());
 
+    signal_alloc::apply_signal_allocation_rules(uf, devices, {}, connections, port_to_idx);
+
+    // Signal allocation works with string keys internally
     uint32_t signal_count = 0;
-    // AOT codegen pipeline works with string keys internally
-    const auto string_p2s = codegen_composite_detail::finalize_signal_indices(uf, all_ports, port_to_idx, signal_count);
+    const auto string_p2s = signal_alloc::finalize_signal_indices(uf, all_ports, port_to_idx, signal_count);
 
     // Extract plan using codegen's extract_electrical_plan (string-keyed)
     ElectricalExtractOptions options;

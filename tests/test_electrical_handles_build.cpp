@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include "core/solvers/jit/jit_solver.h"
 #include "core/solvers/jit/subsolvers/subsolver_types.h"
-#include "core/solvers/jit/components/port_registry.h"
+#include "core/solvers/common/port_registry.h"
 #include "core/registry/component_resolution.h"
 #include "jit_build_input_test_helper.h"
 #include <algorithm>

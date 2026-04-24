@@ -1,4 +1,5 @@
-#include "codegen_composite_helpers.h"
+#include "codegen_internal.h"
+#include "core/solvers/common/signal_allocation.h"
 #include "core/registry/component_resolution.h"
 #include "core/registry/composite_expansion.h"
 
@@ -27,13 +28,13 @@ CompositeCodegenResult CodeGen::generate_composite_systems(
 
     std::vector<std::string> all_ports;
     std::unordered_map<std::string, uint32_t> port_to_idx;
-    codegen_composite_detail::build_port_index_map(resolved_devices, expanded.bridge_ports, all_ports, port_to_idx);
+    signal_alloc::build_port_index_map(resolved_devices, expanded.bridge_ports, all_ports, port_to_idx);
 
-    codegen_composite_detail::UnionFind uf(all_ports.size());
-    codegen_composite_detail::apply_signal_allocation_rules(uf, resolved_devices, expanded.bridge_ports, expanded.connections, port_to_idx);
+    signal_alloc::UnionFind uf(all_ports.size());
+    signal_alloc::apply_signal_allocation_rules(uf, resolved_devices, expanded.bridge_ports, expanded.connections, port_to_idx);
 
     uint32_t signal_count = 0;
-    auto port_to_signal = codegen_composite_detail::finalize_signal_indices(uf, all_ports, port_to_idx, signal_count);
+    auto port_to_signal = signal_alloc::finalize_signal_indices(uf, all_ports, port_to_idx, signal_count);
 
     ElectricalPlanCodegen electrical_plan = extract_electrical_plan(resolved_devices, port_to_signal);
 

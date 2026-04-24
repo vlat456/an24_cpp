@@ -380,4 +380,4 @@ cmake --build build
 
 - `src/codegen/codegen.h` — API declarations
 - `src/codegen/codegen.cpp` — Implementation
-- `src/core/solvers/jit/components/port_registry.h` — Auto-generated from library
+- `src/core/solvers/common/port_registry.h` — Auto-generated from library

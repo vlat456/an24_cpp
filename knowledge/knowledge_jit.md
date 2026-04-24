@@ -217,4 +217,4 @@ Main phases achieve complexity ~5-7 (acceptable for domain logic).
 - `src/core/solvers/jit/scheduler.h` — PushScheduler
 - `src/core/solvers/jit/simulator.h` — Simulator<T> template
 - `src/core/solvers/jit/state.h` — SimulationState
-- `src/core/solvers/jit/components/provider.h` — JitProvider/AotProvider
+- `src/core/solvers/common/provider.h` — JitProvider/AotProvider

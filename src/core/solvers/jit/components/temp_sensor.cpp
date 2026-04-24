@@ -1,5 +1,5 @@
 #include "temp_sensor.h"
-#include "port_registry.h"
+#include "core/solvers/common/port_registry.h"
 
 template <typename Provider>
 void TempSensor<Provider>::execute(SimulationState& st, double /*dt*/) {

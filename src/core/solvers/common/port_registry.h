@@ -11,9 +11,9 @@
 #include <vector>
 #include <variant>
 
-#include "provider.h"
-#include "all.h"
-#include "port_names.h"
+#include "core/solvers/common/provider.h"
+#include "core/solvers/jit/components/all.h"
+#include "core/solvers/common/port_names.h"
 #include "core/model/component_kind.h"
 
 constexpr size_t AND_PORT_COUNT = 3;
@@ -450,7 +450,7 @@ constexpr const char* XOR_PORTS[] = {
     "o"
 };
 
-#include "../../../../blueprint_v2/interface/direction.h"
+#include "blueprint_v2/interface/direction.h"
 
 constexpr bp2::Direction AND_PORT_DIRECTIONS[] = {
     bp2::Direction::Input,

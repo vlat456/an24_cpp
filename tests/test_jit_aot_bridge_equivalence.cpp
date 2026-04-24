@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "core/solvers/aot/codegen.h"
-#include "core/solvers/aot/codegen_composite_helpers.h"
+#include "core/solvers/common/signal_allocation.h"
 #include "core/solvers/jit/jit_solver.h"
 #include "core/registry/component_resolution.h"
 #include "jit_build_input_test_helper.h"
@@ -218,14 +218,14 @@ TEST(JitAotBridgeEquivalence, SignalAllocationParityForBridgeAndAliasRules) {
 
     std::vector<std::string> all_ports;
     std::unordered_map<std::string, uint32_t> port_to_idx;
-    codegen_composite_detail::build_port_index_map(resolved_for_aot, bridges, all_ports, port_to_idx);
+    signal_alloc::build_port_index_map(resolved_for_aot, bridges, all_ports, port_to_idx);
 
-    codegen_composite_detail::UnionFind uf(all_ports.size());
-    codegen_composite_detail::apply_signal_allocation_rules(uf, resolved_for_aot, bridges, connections, port_to_idx);
+    signal_alloc::UnionFind uf(all_ports.size());
+    signal_alloc::apply_signal_allocation_rules(uf, resolved_for_aot, bridges, connections, port_to_idx);
 
     uint32_t aot_signal_count = 0;
     auto aot_port_to_signal =
-        codegen_composite_detail::finalize_signal_indices(uf, all_ports, port_to_idx, aot_signal_count);
+        signal_alloc::finalize_signal_indices(uf, all_ports, port_to_idx, aot_signal_count);
 
     for (const auto& [port, aot_sig] : aot_port_to_signal) {
         auto it_jit = jit.port_to_signal.find(jit.signal_key_interner.lookup(port));
@@ -294,14 +294,14 @@ TEST(JitAotBridgeEquivalence, VisualOnlyDevicesIgnoredByBothPaths) {
 
     std::vector<std::string> all_ports;
     std::unordered_map<std::string, uint32_t> port_to_idx;
-    codegen_composite_detail::build_port_index_map(resolved_for_aot, bridges, all_ports, port_to_idx);
+    signal_alloc::build_port_index_map(resolved_for_aot, bridges, all_ports, port_to_idx);
 
-    codegen_composite_detail::UnionFind uf(all_ports.size());
-    codegen_composite_detail::apply_signal_allocation_rules(uf, resolved_for_aot, bridges, connections, port_to_idx);
+    signal_alloc::UnionFind uf(all_ports.size());
+    signal_alloc::apply_signal_allocation_rules(uf, resolved_for_aot, bridges, connections, port_to_idx);
 
     uint32_t aot_signal_count = 0;
     auto aot_port_to_signal =
-        codegen_composite_detail::finalize_signal_indices(uf, all_ports, port_to_idx, aot_signal_count);
+        signal_alloc::finalize_signal_indices(uf, all_ports, port_to_idx, aot_signal_count);
 
     // Bridges are elaboration-only for runtime component execution and AOT codegen,
     // but their ports remain part of signal allocation in both paths.

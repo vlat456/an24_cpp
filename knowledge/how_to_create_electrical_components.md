@@ -103,7 +103,7 @@ Run:
 cmake --build build --target regenerate_port_registry
 ```
 
-This updates `src/jit_solver/components/port_registry.h`.
+This updates `src/core/solvers/common/port_registry.h`.
 
 ## 5) Ensure builder path recognizes component
 

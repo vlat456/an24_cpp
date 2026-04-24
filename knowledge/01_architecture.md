@@ -120,7 +120,7 @@ The electrical subsolver handles closed electrical networks while the push sched
 |---------|------|
 | Simulation State | `src/core/solvers/jit/state.h` |
 | Component Base | `src/core/solvers/jit/component.h` |
-| Provider Pattern | `src/core/solvers/jit/components/provider.h` |
+| Provider Pattern | `src/core/solvers/common/provider.h` |
 | All Components | `src/core/solvers/jit/components/all.h` |
 | JIT Solver Build | `src/core/solvers/jit/jit_solver.h` |
 | Push Scheduler | `src/core/solvers/jit/scheduler.h` |

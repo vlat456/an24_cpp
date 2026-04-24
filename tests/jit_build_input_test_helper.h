@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/solvers/jit/jit_solver.h"
-#include "core/solvers/aot/codegen_composite_helpers.h"
+#include "core/solvers/common/signal_allocation.h"
 #include "core/solvers/jit/state.h"
 #include "core/model/component_kind.h"
 #include "io/json/component_registry_json_loader.h"
@@ -238,7 +238,7 @@ inline JitBuildInput make_jit_input(
 }
 
 /// Helper to construct JitBuildInput from composite signal allocation rules.
-/// Uses codegen_composite_detail production functions to compute signal allocation
+/// Uses signal_alloc production functions to compute signal allocation
 /// from explicit device and connection pairs.
 inline JitBuildInput make_jit_input_from_composite(
     std::vector<DeviceInstance> devices,
@@ -270,18 +270,18 @@ inline JitBuildInput make_jit_input_from_composite(
     // Build port index map from all declared device ports
     std::vector<std::string> all_ports;
     std::unordered_map<std::string, uint32_t> port_to_idx;
-    codegen_composite_detail::build_port_index_map(input.devices, bridge_ports, all_ports, port_to_idx);
+    signal_alloc::build_port_index_map(input.devices, bridge_ports, all_ports, port_to_idx);
     
     // Construct union-find for signal allocation
-    codegen_composite_detail::UnionFind uf(all_ports.size());
+    signal_alloc::UnionFind uf(all_ports.size());
     
     // Apply signal allocation rules (connections, alias rules, etc.)
-    codegen_composite_detail::apply_signal_allocation_rules(uf, input.devices, bridge_ports, connections, port_to_idx);
+    signal_alloc::apply_signal_allocation_rules(uf, input.devices, bridge_ports, connections, port_to_idx);
     
     // Finalize signal indices from union-find result
     uint32_t signal_count = 0;
     const auto string_p2s =
-        codegen_composite_detail::finalize_signal_indices(uf, all_ports, port_to_idx, signal_count);
+        signal_alloc::finalize_signal_indices(uf, all_ports, port_to_idx, signal_count);
     // Convert string-keyed map to InternedId-keyed map
     for (const auto& [port_str, sig] : string_p2s) {
         input.port_to_signal[input.signal_key_interner.intern(port_str)] = sig;

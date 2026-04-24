@@ -26,8 +26,8 @@ ctest -R "editor_data" --output-on-failure
 
 ```cpp
 #include <gtest/gtest.h>
-#include "jit_solver/components/all.h"
-#include "jit_solver/components/port_registry.h"
+#include "core/solvers/jit/components/all.h"
+#include "core/solvers/common/port_registry.h"
 
 // Helper factory
 static AND<JitProvider> make_and() {

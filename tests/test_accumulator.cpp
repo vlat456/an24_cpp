@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include "core/solvers/jit/components/all.h"
-#include "core/solvers/jit/components/port_registry.h"
+#include "core/solvers/common/port_registry.h"
 #include "core/solvers/jit/state.h"
 
 

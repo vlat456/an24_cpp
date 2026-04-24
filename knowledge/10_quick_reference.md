@@ -22,7 +22,7 @@ cd build && ctest
 |------|-------|
 | Simulation State | `src/core/solvers/jit/state.h` |
 | Component Base | `src/core/solvers/jit/component.h` |
-| Provider Pattern | `src/core/solvers/jit/components/provider.h` |
+| Provider Pattern | `src/core/solvers/common/provider.h` |
 | All Components | `src/core/solvers/jit/components/all.h` |
 | JIT Solver | `src/core/solvers/jit/jit_solver.h` |
 | JIT signal building | `src/core/solvers/jit/build_signals.cpp` |
@@ -39,13 +39,14 @@ cd build && ctest
 | Flattener | `src/blueprint_v2/flattener/flattener.h` |
 | Code Generator | `src/core/solvers/aot/codegen.h` |
 | AOT common utilities | `src/core/solvers/common/signal_union_rules.h` |
+| Signal Allocation | `src/core/solvers/common/signal_allocation.h` |
 | UnionFind (shared) | `src/core/utils/union_find.h` |
 | Document | `src/editor/document.h` |
 | Document I/O | `src/editor/document_io.cpp` |
 | Document simulation | `src/editor/document_simulation.cpp` |
 | Document windows | `src/editor/document_windows.cpp` |
 | Scene | `src/editor/visual/scene.h` |
-| Port Registry | `src/core/solvers/jit/components/port_registry.h` |
+| Port Registry | `src/core/solvers/common/port_registry.h` |
 | Component Library | `library/**/*.blueprint` |
 | Tests | `tests/*.cpp` |
 | Generated Code | `generated/*.cpp, *.h` |
@@ -55,9 +56,10 @@ cd build && ctest
 | File/Path | Notes |
 |------|------|
 | `src/core/model/component_kind.h` | Auto-generated ComponentKind enum from library blueprints |
-| `src/core/solvers/jit/components/port_registry.h` | Auto-generated from library blueprints |
+| `src/core/solvers/common/port_registry.h` | Auto-generated from library blueprints |
 | `src/core/solvers/jit/build_factory.cpp` | Auto-generated component factory from library blueprints |
-| `src/core/solvers/jit/components/port_names.h` | Auto-generated port enum from library blueprints |
+| `src/core/solvers/common/port_names.h` | Auto-generated port enum from library blueprints |
+| `src/core/solvers/common/signal_allocation.h` | UnionFind signal allocation (shared by JIT/AOT/tests) |
 | `generated/*.cpp, generated/*.h` | AOT-generated outputs |
 | `build*/`, `Testing/Temporary/*`, `.cache/clangd/*` | Build/cache artifacts, never hand-edit/commit |
 

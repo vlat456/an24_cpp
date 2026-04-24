@@ -1,5 +1,5 @@
 #include "add.h"
-#include "port_registry.h"
+#include "core/solvers/common/port_registry.h"
 
 template <typename Provider>
 void Add<Provider>::execute(SimulationState& st, double /*dt*/) {

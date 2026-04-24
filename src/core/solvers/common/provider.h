@@ -9,9 +9,7 @@
 // Full definition of PortNames (lightweight, no component dependencies)
 #include "port_names.h"
 
-// =============================================================================
 // Provider Pattern for Zero-Overhead AOT vs Flexible JIT
-// =============================================================================
 
 /// AOT Provider - compile-time constexpr port index lookup
 /// Generates direct array access: state.values[0] instead of state.values[this->v_in_idx]
