@@ -17,6 +17,7 @@ add_library(blueprint_v2 STATIC
     codec/blueprint_codec_decode.cpp
     flattener/flattener.cpp
     elaboration/sim_export.cpp
+    elaboration/codegen_export.cpp
     editor_model/editor_model.cpp
     validation/path_resolver.cpp
     validation/signal_typing.cpp

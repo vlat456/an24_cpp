@@ -14,6 +14,14 @@ namespace bp2::elaboration {
 /// node_id string. Used by elaborate_for_jit and test infrastructure.
 std::string node_id_from_path(Path node_path, PathArena& arena, const ui::StringInterner& interner);
 
+/// Compute the parent-facing signal key for a bridge component.
+/// For a bridge node "parent:bridge_id" with exposed_port_name "port",
+/// returns "parent.port". Returns "" if the node_id has no colon separator.
+std::string exposed_key_for_bridge(
+    std::string_view bridge_dev_id,
+    const ui::InternedId& exposed_port_name,
+    const ui::StringInterner& interner);
+
 /// Extract BridgePortDefinitions from a FlatNetlist.
 /// Bridge components (non-empty `exposed_port_name`) are converted to their
 /// equivalent BridgePortDefinition with direction and type inferred from port descriptors.

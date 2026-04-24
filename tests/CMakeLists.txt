@@ -815,6 +815,9 @@ add_sim_test(knob_switch_tests SOURCES test_knob_switch.cpp LINKS jit_solver)
 # Export parity tests (Issue #38: unified elaboration via flattener)
 add_sim_test(export_module_tests SOURCES blueprint_v2/test_export_flattener_parity.cpp LINKS blueprint_v2 json_io)
 
+# Codegen elaboration parity tests (Issue #245: elaborate_for_codegen)
+add_sim_test(codegen_export_parity_tests SOURCES blueprint_v2/test_codegen_export_parity.cpp LINKS blueprint_v2 json_io)
+
 # ==...== Library Index Tests ==...==
 
 # LibraryIndex tests (Issue #85: dedicated library index)
