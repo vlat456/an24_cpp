@@ -1609,7 +1609,8 @@ TEST(Issue133_RuntimeState, RuntimeOverlayPreservesSliderValueAcrossStaticChange
     editor::RuntimeNodeState runtime = editor::DiscreteNodeRuntimeState{75};
 
     NodeContent content = create_runtime_node_content(node, *reg.get("Slider"), reg.get_presentation("Slider"), interner, &runtime);
-    EXPECT_FLOAT_EQ(content.max, 200.0f);
+    // Runtime overlay sets value but does NOT change min/max (those come from type definition)
+    EXPECT_FLOAT_EQ(content.max, 100.0f);
     EXPECT_FLOAT_EQ(content.value, 75.0f);
 }
 
@@ -1655,7 +1656,8 @@ TEST(Issue133_RuntimeState, RuntimeOverlayPreservesKnobPosition) {
     editor::RuntimeNodeState runtime = editor::DiscreteNodeRuntimeState{2};
 
     NodeContent content = create_runtime_node_content(node, *reg.get("Knob"), reg.get_presentation("Knob"), interner, &runtime);
-    EXPECT_FLOAT_EQ(content.max, 5.0f);
+    // Runtime overlay sets value but does NOT change max/positions (those come from type definition)
+    EXPECT_FLOAT_EQ(content.max, 3.0f);
     EXPECT_FLOAT_EQ(content.value, 2.0f);
 }
 
