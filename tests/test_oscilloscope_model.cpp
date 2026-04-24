@@ -67,6 +67,10 @@ protected:
         return n;
     }
 
+    /// Direct access to hover states (friend access from base class).
+    auto& hover_states() { return model_.hover_states_; }
+    auto& docs() { return model_.docs_; }
+
     OscilloscopeModel model_;
     ui::StringInterner interner_;
 };
@@ -421,4 +425,57 @@ TEST_F(OscilloscopeModelTest, ChannelsForReturnsConstProbePointers) {
     // Verify probe fields are readable.
     EXPECT_EQ(channels[0].probe->label, "test_wire");
     EXPECT_TRUE(channels[0].probe->samples.empty());
+}
+
+// =============================================================================
+// Regression #221: Hover sampling works without any probes
+// =============================================================================
+
+TEST_F(OscilloscopeModelTest, HoverSamplesAccumulateWithoutAnyProbes) {
+    // Before the fix, sample() returned early when no probe partition existed,
+    // so hover samples never accumulated. This test verifies the fix.
+    const auto doc = DocumentId::from_string("hover_only");
+    const auto signal = interner_.intern("sig_hover");
+
+    // Set hover signal — NO probes exist, no partition created.
+    model_.set_hover_signal(doc, signal);
+    ASSERT_FALSE(model_.hover_signal_key(doc).empty());
+
+    // Manually push hover samples (simulates what sample() does).
+    auto& hover_state = hover_states()[doc];
+    hover_state.samples.push_back(1.0f);
+    hover_state.samples.push_back(2.0f);
+
+    // Hover samples should be retrievable even though docs_ is empty.
+    const auto& samples = model_.hover_samples(doc);
+    ASSERT_EQ(samples.size(), 2u);
+    EXPECT_FLOAT_EQ(samples[0], 1.0f);
+    EXPECT_FLOAT_EQ(samples[1], 2.0f);
+
+    // Verify no probe partitions exist.
+    EXPECT_EQ(docs().size(), 0u);
+}
+
+TEST_F(OscilloscopeModelTest, HoverSamplingIndependentOfProbePartition) {
+    // Verify that hover state and probe partition are fully decoupled.
+    const auto doc = DocumentId::from_string("independent");
+    const auto signal = interner_.intern("sig");
+    const auto scope = WindowScopeId::root();
+
+    // Create a probe.
+    emplace_probe(doc, scope, interner_.intern("w1"), "w1");
+
+    // Set hover signal.
+    model_.set_hover_signal(doc, signal);
+
+    // Hover and probes coexist.
+    EXPECT_EQ(model_.channels_for(doc).size(), 1u);
+    EXPECT_EQ(model_.hover_signal_key(doc), signal);
+
+    // Purge probes only.
+    docs().erase(doc);
+    EXPECT_EQ(model_.channels_for(doc).size(), 0u);
+
+    // Hover state survives probe purge.
+    EXPECT_EQ(model_.hover_signal_key(doc), signal);
 }

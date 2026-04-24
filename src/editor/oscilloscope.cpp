@@ -165,19 +165,26 @@ void OscilloscopeModel::on_blueprint_changed(Document& doc) {
     if (!partition) return;
     if (partition->probes.empty()) return;
 
+    // When simulation is stopped, signal key resolution is impossible
+    // (the simulation's signal_key_interner is empty). Skip re-resolution
+    // — probes retain their stale signal_iid until next sim start.
+    // Anchor re-resolution is independent of sim state (depends on wire geometry).
+    const bool sim_running = doc.isSimulationRunning();
+
     // Collect keys to remove (can't erase while iterating).
     std::vector<ProbeKey> to_remove;
 
     for (auto& [key, probe] : partition->probes) {
-        // Re-resolve signal key — may change after sim rebuild.
-        if (!resolve_probe_signal(doc, key.scope_id, key.wire_iid,
-                                  probe.signal_iid, probe.label)) {
-            to_remove.push_back(key);
-            continue;
+        // Re-resolve signal key only while simulation is running.
+        if (sim_running) {
+            if (!resolve_probe_signal(doc, key.scope_id, key.wire_iid,
+                                      probe.signal_iid, probe.label)) {
+                to_remove.push_back(key);
+                continue;
+            }
         }
-        // Re-resolve anchor position — wire geometry may have changed.
-        // Copy old position to avoid aliasing: preferred_world and out_world
-        // must not point to the same object.
+
+        // Re-resolve anchor position — depends on wire geometry, not sim state.
         const ui::Pt old_pos = probe.world_pos;
         if (!resolve_probe_anchor(doc, key.wire_iid, key.scope_id,
                                   &old_pos, probe.world_pos)) {
@@ -205,19 +212,20 @@ void OscilloscopeModel::on_blueprint_changed(Document& doc) {
 void OscilloscopeModel::sample(Document& doc, bool simulation_running, float sample_dt_sec) {
     if (sample_dt_sec > 0.0f) sample_period_sec_ = sample_dt_sec;
 
+    // -- Probe sampling (gated on partition existence) --
     auto* partition = find_doc(doc.id());
-    if (!partition) return;
-
-    for (auto& [key, probe] : partition->probes) {
-        float v = 0.0f;
-        if (simulation_running && !probe.signal_iid.empty()) {
-            v = doc.simulation().get_signal_value(probe.signal_iid);
+    if (partition) {
+        for (auto& [key, probe] : partition->probes) {
+            float v = 0.0f;
+            if (simulation_running && !probe.signal_iid.empty()) {
+                v = doc.simulation().get_signal_value(probe.signal_iid);
+            }
+            probe.samples.push_back(v);
+            while (probe.samples.size() > max_samples_) probe.samples.pop_front();
         }
-        probe.samples.push_back(v);
-        while (probe.samples.size() > max_samples_) probe.samples.pop_front();
     }
 
-    // Per-document hover sampling.
+    // -- Hover sampling (always runs, independent of probe partition) --
     auto hover_it = hover_states_.find(doc.id());
     if (hover_it != hover_states_.end() && !hover_it->second.signal_iid.empty()) {
         float v = 0.0f;
