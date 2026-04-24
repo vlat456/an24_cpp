@@ -154,6 +154,37 @@ Blueprint blueprint_from_type_definition(const ComponentSpec& spec,
         bp = bp.with_node(make_bridge_node(bridge, interner));
     }
 
+    // --- Sub-blueprint instances → BlueprintInstanceData nodes ---
+    // Each SubBlueprintRef becomes a blueprint_instance node that the Flattener
+    // resolves recursively via the BlueprintLibrary.
+    for (const auto& ref : comp->sub_blueprints) {
+        Blueprint::Node node;
+        node.semantic.id = interner.intern(ref.id);
+        node.semantic.type = interner.intern(ref.type_name);
+        node.content = Blueprint::Node::BlueprintInstanceData{
+            Blueprint::Node::BlueprintSource::make_reference(
+                interner.intern(ref.type_name)),
+        };
+
+        // Apply parameter overrides as instance params
+        for (const auto& [override_key, override_val] : ref.params_override) {
+            // Override keys may be "device.param" format — store as string params
+            node.semantic.string_params[override_key] = override_val;
+        }
+
+        if (ref.pos) {
+            node.layout.x = ref.pos->first;
+            node.layout.y = ref.pos->second;
+        }
+        if (ref.size) {
+            node.layout.width = ref.size->first;
+            node.layout.height = ref.size->second;
+        }
+        node.layout.collapsed = true;
+
+        bp = bp.with_node(std::move(node));
+    }
+
     // --- Wires from connections ---
     int wire_idx = 0;
     for (const auto& conn : comp->connections) {
