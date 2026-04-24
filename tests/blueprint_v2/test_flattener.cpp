@@ -48,8 +48,10 @@ static bp2::BlueprintLibrary make_test_library(ui::StringInterner& interner) {
 static bp2::Blueprint::Node make_bridge_node(ui::StringInterner& I,
                                              const char* id,
                                              bool input_side,
-                                             Domain domain,
-                                             PortType type = PortType::V) {
+                                             Domain domain) {
+    // Derive PortType from Domain: electrical → V, everything else → Signal
+    PortType type = (domain == Domain::Electrical) ? PortType::V : PortType::Signal;
+
     bp2::Blueprint::Node bridge;
     bridge.semantic.id = I.intern(id);
     bridge.semantic.type = I.intern("BridgePort");

@@ -14,6 +14,9 @@ class Flattener {
 public:
     explicit Flattener(BlueprintLibrary const& library);
 
+    /// Flatten a blueprint hierarchy into a single FlatNetlist.
+    /// Safe to call sequentially on the same instance.
+    /// NOT thread-safe (mutates arena_ during call).
     FlatNetlist flatten(Blueprint const& root, PathArena& arena);
 
 private:

@@ -161,16 +161,11 @@ JitBuildInput elaborate_for_jit(
     }
 
     // --- Build port_to_signal directly from FlatNetlist signal indices ---
-    // Use component port_signals for the mapping: each entry maps
-    // (component, port_name) → signal_index.
-    //
-    // We remap FlatNetlist signal indices to a compact contiguous range.
-    // (After the UnionFind refactor, compact_signals() already produces dense
-    // indices, so this remap is an identity mapping — kept as a safety net.)
+    // compact_signals() already produces dense contiguous indices,
+    // so signal indices are used directly — no remap needed.
     //
     // Keys are interned via signal_key_interner — string construction happens
     // once at build time, runtime lookups use InternedId (integer comparison).
-    std::unordered_map<SignalIndex, uint32_t> signal_remap;
     uint32_t next_signal = 0;
 
     for (const auto& comp : netlist.components) {
@@ -179,11 +174,9 @@ JitBuildInput elaborate_for_jit(
             const std::string port_name(interner.resolve(port_iid));
             const std::string key = signal_key::make_node_port_key(dev_id, port_name);
 
-            auto [it, inserted] = signal_remap.emplace(sig_idx, next_signal);
-            if (inserted) {
-                next_signal++;
-            }
-            result.port_to_signal[result.signal_key_interner.intern(key)] = it->second;
+            // Track the maximum signal index to compute signal_count
+            if (sig_idx >= next_signal) next_signal = sig_idx + 1;
+            result.port_to_signal[result.signal_key_interner.intern(key)] = sig_idx;
         }
 
         // Structural bridge nodes are lowered away as runtime devices; only
@@ -191,15 +184,11 @@ JitBuildInput elaborate_for_jit(
         if (!comp.exposed_port_name.empty()) {
             const std::string exposed_key = exposed_key_for_component(comp, dev_id, interner);
             if (!exposed_key.empty()) {
-                // Find the ext port's signal to use for the exposed key
                 for (const auto& [port_iid, sig_idx] : comp.port_signals) {
                     const std::string pn(interner.resolve(port_iid));
                     if (pn == "ext") {
-                        auto [it, inserted] = signal_remap.emplace(sig_idx, next_signal);
-                        if (inserted) {
-                            next_signal++;
-                        }
-                        result.port_to_signal[result.signal_key_interner.intern(exposed_key)] = it->second;
+                        if (sig_idx >= next_signal) next_signal = sig_idx + 1;
+                        result.port_to_signal[result.signal_key_interner.intern(exposed_key)] = sig_idx;
                         break;
                     }
                 }
