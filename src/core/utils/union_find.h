@@ -22,8 +22,13 @@ public:
         return parent_[x];
     }
 
+    /// Const overload — safe path compression via mutable parent_.
+    /// No const_cast: the mutable keyword permits modification in const context.
     uint32_t find(uint32_t x) const {
-        return const_cast<UnionFind*>(this)->find(x);
+        if (parent_[x] != x) {
+            parent_[x] = find(parent_[x]);
+        }
+        return parent_[x];
     }
 
     void unite(uint32_t a, uint32_t b) {

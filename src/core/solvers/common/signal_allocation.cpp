@@ -11,18 +11,18 @@ std::unordered_map<std::string, uint32_t> finalize_signal_indices(
     const std::unordered_map<std::string, uint32_t>& port_to_idx,
     uint32_t& out_signal_count
 ) {
-    // Map each port to its UnionFind root
+    // Map each port to its UnionFind root (iterating ordered vector for determinism)
     std::unordered_map<std::string, uint32_t> port_to_signal;
+    port_to_signal.reserve(all_ports.size());
     for (const auto& port : all_ports) {
         port_to_signal[port] = uf.find(port_to_idx.at(port));
     }
 
-    // Collect unique roots in sorted order for deterministic signal assignment
+    // Collect unique roots in port-encounter order, then sort for stable signal assignment
     std::vector<uint32_t> unique_roots;
-    unique_roots.reserve(port_to_signal.size());
-    for (const auto& [port, root] : port_to_signal) {
-        (void)port;
-        unique_roots.push_back(root);
+    unique_roots.reserve(all_ports.size());
+    for (const auto& port : all_ports) {
+        unique_roots.push_back(port_to_signal[port]);
     }
     std::sort(unique_roots.begin(), unique_roots.end());
     unique_roots.erase(std::unique(unique_roots.begin(), unique_roots.end()), unique_roots.end());

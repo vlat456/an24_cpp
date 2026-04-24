@@ -1,7 +1,6 @@
 #include "sim_export.h"
 
 #include "blueprint_v2/blueprint/blueprint.h"
-#include "blueprint_v2/interface/node_port_projection.h"
 #include "core/solvers/common/signal_key.h"
 #include "core/solvers/jit/jit_solver.h"
 #include "core/model/component_kind.h"
@@ -12,8 +11,6 @@
 #include <vector>
 
 namespace bp2::elaboration {
-
-namespace {
 
 std::string node_id_from_path(Path node_path, PathArena& arena, const ui::StringInterner& interner) {
     std::vector<std::string> segments;
@@ -32,6 +29,8 @@ std::string node_id_from_path(Path node_path, PathArena& arena, const ui::String
     }
     return out;
 }
+
+namespace {
 
 std::string exposed_key_for_component(const FlatNetlist::Component& comp,
                                       std::string_view dev_id,

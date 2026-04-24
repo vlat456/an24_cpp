@@ -1761,3 +1761,22 @@ target_link_libraries(elaborate_jit_parity_tests PRIVATE
 gtest_discover_tests(elaborate_jit_parity_tests
     PROPERTIES LABELS "production_path"
 )
+
+# Cross-path signal allocation equivalence tests (Issue #227)
+add_executable(cross_path_signal_equivalence_tests
+    test_cross_path_signal_equivalence.cpp
+)
+target_include_directories(cross_path_signal_equivalence_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(cross_path_signal_equivalence_tests PRIVATE
+    blueprint_v2
+    jit_solver
+    json_io
+    signal_allocation
+    GTest::gtest_main
+)
+gtest_discover_tests(cross_path_signal_equivalence_tests
+    PROPERTIES LABELS "production_path"
+)

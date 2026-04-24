@@ -4,6 +4,7 @@
 ///
 /// Given a set of devices, bridge ports, and connections, assigns compact
 /// signal indices such that connected ports share an index. Used by:
+///   - JIT JSON production path (jit_solver.cpp::compute_signal_mapping)
 ///   - AOT codegen (codegen_composite.cpp)
 ///   - JIT test infrastructure (jit_build_input_test_helper.h)
 ///   - AOT↔JIT parity tests (test_electrical_parity_fixtures.cpp, etc.)
