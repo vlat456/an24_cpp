@@ -1,3 +1,9 @@
+// Test-only PrimitiveSpec factories for building minimal component registries.
+//
+// New tests should prefer jit_build_input_test_helper.h + test_registry()
+// which loads from library/ and gets the authoritative type definitions.
+// Only use these factories when you need a minimal registry with specific
+// solver roles not available in the library, or for isolated unit tests.
 #pragma once
 
 #include "core/model/component_registry.h"
