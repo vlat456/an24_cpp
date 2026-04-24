@@ -186,7 +186,7 @@ inline PrimitiveSpec make_value_type() {
     
     td.ports["o"] = Port{bp2::Direction::Output, PortType::Any, std::nullopt};
     td.domains = {Domain::Logical};
-    td.solver.execution = {.electrical_observer = true};
+    td.solver.execution = {.logical = true};
     return td;
 }
 
