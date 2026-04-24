@@ -70,13 +70,17 @@ void build_port_index_map(
 
 /// Phase 2: Apply all union rules — wires, bridges, aliases.
 /// After this, `uf.find(i)` gives the canonical root for each port index.
-template <typename DeviceT>
+/// ConnectionT: any type with connection_from()/connection_to() overloads
+///   (Connection, std::pair<std::string,string>, etc.)
+/// OnMissingFn: callback for unresolved wire endpoints.
+template <typename DeviceT, typename ConnectionT = Connection, typename OnMissingFn = decltype([](const std::string&, const std::string&, bool, bool) {})>
 void apply_signal_allocation_rules(
     UnionFind& uf,
     const std::vector<DeviceT>& devices,
     const std::vector<BridgePortDefinition>& bridge_ports,
-    const std::vector<Connection>& connections,
-    const std::unordered_map<std::string, uint32_t>& port_to_idx
+    const std::vector<ConnectionT>& connections,
+    const std::unordered_map<std::string, uint32_t>& port_to_idx,
+    OnMissingFn&& on_missing = {}
 ) {
     signal_union_rules::apply_structural_bridge_unions(uf, bridge_ports, port_to_idx);
     signal_union_rules::apply_signal_union_rules(
@@ -84,7 +88,7 @@ void apply_signal_allocation_rules(
         devices,
         connections,
         port_to_idx,
-        [](const std::string&, const std::string&, bool, bool) {}
+        std::forward<OnMissingFn>(on_missing)
     );
 }
 

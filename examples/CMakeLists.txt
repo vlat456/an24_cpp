@@ -4,14 +4,13 @@ add_library(an24_codegen STATIC
     ${CMAKE_SOURCE_DIR}/src/core/solvers/aot/codegen_source.cpp
     ${CMAKE_SOURCE_DIR}/src/core/solvers/aot/codegen_registry.cpp
     ${CMAKE_SOURCE_DIR}/src/core/solvers/aot/codegen_composite.cpp
-    ${CMAKE_SOURCE_DIR}/src/core/solvers/common/signal_allocation.cpp
     ${CMAKE_SOURCE_DIR}/src/core/solvers/aot/electrical_codegen.cpp
 )
 target_include_directories(an24_codegen PUBLIC
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
-target_link_libraries(an24_codegen PRIVATE spdlog::spdlog json_io)
+target_link_libraries(an24_codegen PRIVATE spdlog::spdlog json_io signal_allocation)
 
 # Disabled for AOT-only refactor - needs template component instantiation
 # add_executable(test_generated

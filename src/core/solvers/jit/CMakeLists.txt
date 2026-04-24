@@ -97,4 +97,5 @@ target_include_directories(jit_solver PUBLIC
 target_link_libraries(jit_solver PRIVATE
     spdlog::spdlog
     json_io
+    signal_allocation
 )
