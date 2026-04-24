@@ -199,4 +199,7 @@ private:
     std::unordered_map<editor::DocumentId, HoverState> hover_states_;
 
     static uint32_t color_for_index(size_t i);
+
+    // Test access for behavioral verification (avoids full Document harness).
+    friend class OscilloscopeModelTest;
 };
