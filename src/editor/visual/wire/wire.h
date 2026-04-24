@@ -2,6 +2,7 @@
 #include "visual/widget.h"
 #include "visual/render_context.h"
 #include "router/crossings.h"
+#include "ui/core/interned_id.h"
 #include "ui/core/small_vector.h"
 #include <vector>
 #include <string_view>
@@ -32,12 +33,14 @@ struct WireEndpoint {
 /// They remain valid for the lifetime of the Blueprint that owns the interner.
 class Wire : public Widget {
 public:
-    Wire(std::string_view id,
+    Wire(ui::InternedId iid,
+         std::string_view id,
          std::string_view start_node, std::string_view start_port,
          std::string_view end_node, std::string_view end_port);
     ~Wire() override = default;
 
     std::string_view id() const override { return id_; }
+    ui::InternedId iid() const { return iid_; }
     bool isClickable() const override { return true; }
     RenderLayer renderLayer() const override { return RenderLayer::Wire; }
 
@@ -70,6 +73,7 @@ public:
     static constexpr float WIRE_THICKNESS = 1.5f;
 
 private:
+    ui::InternedId iid_;
     std::string_view id_;
     WireEndpoint start_;
     WireEndpoint end_;

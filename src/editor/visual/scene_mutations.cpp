@@ -80,6 +80,7 @@ static visual::Wire* create_wire_widget(Scene& scene,
     std::string_view end_port_sv   = interner.resolve(tgt_port);
 
     auto wire_widget = std::make_unique<visual::Wire>(
+        w.id,
         wire_id_sv,
         start_node_sv, start_port_sv,
         end_node_sv,   end_port_sv);

@@ -158,7 +158,7 @@ void CanvasInput::update_hover(Pt world_pos) {
         hovered_rp_id_ = {};
     } else if (auto* h = std::get_if<visual::HitRoutingPoint>(&hit)) {
         hovered_wire_id_ = h->wire_id;
-        hovered_rp_id_ = {interner_->resolve(hovered_wire_id_), h->index};
+        hovered_rp_id_ = {h->wire_id, h->index};
     } else {
         hovered_wire_id_ = {};
         hovered_rp_id_ = {};

@@ -99,7 +99,7 @@ void project_widget_recursive(const visual::Widget& widget,
                 max_y = std::max(max_y, pt.y);
             }
             constexpr float BBOX_PADDING = 4.0f;
-            const ui::InternedId wire_iid = interner.intern(wire->id());
+            const ui::InternedId wire_iid = wire->iid();
 
             snapshot.render_objects.push_back(CanvasRenderObject{
                 .id = SceneObjectId(next_id++),
@@ -143,7 +143,7 @@ void project_widget_recursive(const visual::Widget& widget,
         size_t rp_idx = 0;
         if (auto* parent_widget = rp->parent()) {
             if (auto* wire = dynamic_cast<const visual::Wire*>(parent_widget)) {
-                wire_iid = interner.intern(wire->id());
+                wire_iid = wire->iid();
                 for (size_t i = 0; i < wire->children().size(); ++i) {
                     if (wire->children()[i].get() == rp) { rp_idx = i; break; }
                 }

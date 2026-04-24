@@ -17,10 +17,11 @@
 
 namespace visual {
 
-Wire::Wire(std::string_view id,
+Wire::Wire(ui::InternedId iid,
+           std::string_view id,
            std::string_view start_node, std::string_view start_port,
            std::string_view end_node, std::string_view end_port)
-    : id_(id)
+    : iid_(iid), id_(id)
 {
     start_.node_id = start_node;
     start_.port_name = start_port;
@@ -388,7 +389,7 @@ void Wire::render(IDrawList* dl, const RenderContext& ctx) const {
         (!ctx.hovered_wire_id.empty() && ctx.hovered_wire_id == id_)) {
         float rp_radius = 4.0f * ctx.zoom;
         const bool match_wire = !ctx.hovered_routing_point.empty()
-                             && ctx.hovered_routing_point.wire_id == id_;
+                             && ctx.hovered_routing_point.wire_iid == iid_;
         for (size_t ci = 0; ci < children().size(); ++ci) {
             Pt screen_rp = ctx.world_to_screen(children()[ci]->worldPos());
             uint32_t rp_color = (match_wire && ctx.hovered_routing_point.index == ci)
