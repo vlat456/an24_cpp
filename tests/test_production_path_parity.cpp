@@ -1,8 +1,11 @@
 #include <gtest/gtest.h>
-#include "core/registry/composite_expansion.h"
 #include "core/solvers/jit/jit_solver.h"
 #include "core/solvers/aot/codegen.h"
 #include "core/model/component_registry.h"
+#include "blueprint_v2/flattener/flattener.h"
+#include "blueprint_v2/library/blueprint_library.h"
+#include "blueprint_v2/library/type_def_to_blueprint.h"
+#include "blueprint_v2/elaboration/sim_export.h"
 #include "test_fixtures.h"
 #include "jit_build_input_test_helper.h"
 #include "ui/core/interned_id.h"
@@ -19,6 +22,7 @@ ComponentRegistry build_registry_for_lamp() {
     DeviceInstance d_lamp;
     d_lamp.name = "lamp";
     d_lamp.classname = "IndicatorLight";
+    d_lamp.params["conductance"] = "0.002";  // Required param for ConductanceBranch solver role
     lamp.devices.push_back(d_lamp);
     lamp.bridge_ports = {
         BridgePortDefinition{"vin", "vin", bp2::BridgeDirection::Input, PortType::V},
@@ -46,10 +50,21 @@ TEST(ProductionPathParity, CompositeAotJitTopologyParity) {
     ASSERT_FALSE(aot_result.header.empty());
     ASSERT_FALSE(aot_result.source.empty());
 
-    std::set<std::string> loading_stack;
-    auto expanded = expand_sub_blueprint_references(lamp, registry, loading_stack);
-
-     BuildResult jit_result = build_systems_dev(make_jit_input_from_composite(expanded.devices, expanded.bridge_ports, expanded.connections));
+    // JIT path: Flattener path
+    ui::StringInterner jit_interner;
+    bp2::BlueprintLibrary jit_library;
+    for (const auto& [name, spec] : registry.all_types()) {
+        if (is_composite(spec)) {
+            auto bp = bp2::blueprint_from_type_definition(spec, jit_interner, registry);
+            jit_library.add(jit_interner.intern(name), std::move(bp));
+        }
+    }
+    auto jit_bp = bp2::blueprint_from_type_definition(ComponentSpec{lamp}, jit_interner, registry);
+    bp2::PathArena jit_arena(jit_interner);
+    bp2::Flattener jit_flattener(jit_library);
+    auto jit_netlist = jit_flattener.flatten(jit_bp, jit_arena);
+    auto jit_input = bp2::elaboration::elaborate_for_jit(jit_netlist, jit_arena, jit_interner, registry);
+    BuildResult jit_result = build_systems_dev(jit_input);
 
      auto jit_sig = [&](const std::string& port) -> uint32_t {
         auto it = jit_result.port_to_signal.find(jit_result.signal_key_interner.lookup(port));
@@ -131,10 +146,21 @@ TEST(ProductionPathParity, MultiIslandDebugAndPlanParity) {
     ASSERT_FALSE(aot_result.header.empty());
     ASSERT_FALSE(aot_result.source.empty());
 
-    std::set<std::string> loading_stack;
-    auto expanded = expand_sub_blueprint_references(circuit, registry, loading_stack);
-
-      BuildResult jit_result = build_systems_dev(make_jit_input_from_composite(expanded.devices, expanded.bridge_ports, expanded.connections));
+    // JIT path: Flattener path
+    ui::StringInterner jit_interner2;
+    bp2::BlueprintLibrary jit_library2;
+    for (const auto& [name, spec] : registry.all_types()) {
+        if (is_composite(spec)) {
+            auto bp = bp2::blueprint_from_type_definition(spec, jit_interner2, registry);
+            jit_library2.add(jit_interner2.intern(name), std::move(bp));
+        }
+    }
+    auto jit_bp2 = bp2::blueprint_from_type_definition(ComponentSpec{circuit}, jit_interner2, registry);
+    bp2::PathArena jit_arena2(jit_interner2);
+    bp2::Flattener jit_flattener2(jit_library2);
+    auto jit_netlist2 = jit_flattener2.flatten(jit_bp2, jit_arena2);
+    auto jit_input2 = bp2::elaboration::elaborate_for_jit(jit_netlist2, jit_arena2, jit_interner2, registry);
+    BuildResult jit_result = build_systems_dev(jit_input2);
 
      EXPECT_EQ(jit_result.electrical_plan.islands.size(), 2u)
         << "JIT must detect two electrical islands";

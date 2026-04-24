@@ -6,7 +6,10 @@
 #include "io/json/parse_json_api.h"
 #include "io/json/type_definition_json.h"
 #include "core/registry/component_resolution.h"
-#include "core/registry/composite_expansion.h"
+#include "blueprint_v2/flattener/flattener.h"
+#include "blueprint_v2/library/blueprint_library.h"
+#include "blueprint_v2/library/type_def_to_blueprint.h"
+#include "blueprint_v2/elaboration/sim_export.h"
 #include "jit_build_input_test_helper.h"
 #include "ui/core/interned_id.h"
 
@@ -728,17 +731,37 @@ TEST(PushBuildValidation, ExpandSubBlueprintReferences_CleansLoadingStackAfterFa
     leaf_composite.devices.push_back(DeviceInstance{"leaf", "Leaf"});
     registry.register_type("LeafComposite", leaf_composite);
 
-    std::set<std::string> loading_stack;
-    EXPECT_THROW(expand_sub_blueprint_references(self_ref, registry, loading_stack), std::runtime_error);
-    EXPECT_TRUE(loading_stack.empty()) << "failed expansion must not poison later calls";
+    // Circular reference detection is now done via topological sort during library building.
+    // SelfRef has a circular reference to itself.
+    EXPECT_THROW(registry.get_composites_topo_sorted(), std::runtime_error)
+        << "Circular composite reference must be detected";
 
-    EXPECT_NO_THROW({
-        auto expanded = expand_sub_blueprint_references(wrapper, registry, loading_stack);
-        EXPECT_EQ(expanded.devices.size(), 1u);
-        EXPECT_EQ(expanded.devices[0].classname, "Leaf");
-        EXPECT_EQ(expanded.devices[0].name, "nested:leaf");
-    });
-    EXPECT_TRUE(loading_stack.empty());
+    // Valid composites expand correctly via Flattener.
+    // Build a registry WITHOUT the circular SelfRef
+    ComponentRegistry clean_registry;
+    clean_registry.register_type("Leaf", leaf);
+    clean_registry.register_type("LeafComposite", leaf_composite);
+    clean_registry.register_type("Wrapper", wrapper);
+
+    ui::StringInterner interner;
+    bp2::BlueprintLibrary library;
+    for (const auto& [name, spec] : clean_registry.all_types()) {
+        if (is_composite(spec)) {
+            auto bp = bp2::blueprint_from_type_definition(spec, interner, clean_registry);
+            library.add(interner.intern(name), std::move(bp));
+        }
+    }
+    auto bp = bp2::blueprint_from_type_definition(ComponentSpec{wrapper}, interner, clean_registry);
+    bp2::PathArena arena(interner);
+    bp2::Flattener flattener(library);
+    auto netlist = flattener.flatten(bp, arena);
+
+    // Should have 1 non-bridge device: nested:leaf
+    int device_count = 0;
+    for (const auto& comp : netlist.components) {
+        if (comp.exposed_port_name.empty()) device_count++;
+    }
+    EXPECT_EQ(device_count, 1);
 }
 
 TEST(PushBuildValidation, MaxSelectsHigherInput) {

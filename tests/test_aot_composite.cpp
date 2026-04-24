@@ -1,8 +1,12 @@
 #include <gtest/gtest.h>
 #include "core/solvers/aot/codegen.h"
-#include "core/registry/composite_expansion.h"
 #include "core/solvers/jit/jit_solver.h"
 #include "core/model/component_registry.h"
+#include "blueprint_v2/flattener/flattener.h"
+#include "blueprint_v2/library/blueprint_library.h"
+#include "blueprint_v2/library/type_def_to_blueprint.h"
+#include "blueprint_v2/elaboration/sim_export.h"
+#include "ui/core/interned_id.h"
 #include "test_fixtures.h"
 #include "jit_build_input_test_helper.h"
 #include <regex>
@@ -238,6 +242,7 @@ TEST(AotComposite, OutputMatchesJitExpansion) {
     DeviceInstance d_lamp;
     d_lamp.name = "lamp";
     d_lamp.classname = "IndicatorLight";
+    d_lamp.params["conductance"] = "0.002";  // Required param for ConductanceBranch solver role
     lamp.devices.push_back(d_lamp);
     lamp.bridge_ports = {
         make_bridge_port_def("vin", bp2::BridgeDirection::Input, PortType::V),
@@ -264,12 +269,22 @@ TEST(AotComposite, OutputMatchesJitExpansion) {
         << "AOT header should contain SIGNAL_COUNT";
     uint32_t aot_signal_count = static_cast<uint32_t>(std::stoul(match[1].str()));
 
-    // ---- JIT path: expand + merge + build_systems_dev ----
+    // ---- JIT path: Flattener path ----
 
-    std::set<std::string> loading_stack;
-    auto expanded = expand_sub_blueprint_references(lamp, registry, loading_stack);
-
-    BuildResult jit_result = build_systems_dev(make_jit_input_from_composite(expanded.devices, expanded.bridge_ports, expanded.connections));
+    ui::StringInterner jit_interner;
+    bp2::BlueprintLibrary jit_library;
+    for (const auto& [name, spec] : registry.all_types()) {
+        if (is_composite(spec)) {
+            auto bp = bp2::blueprint_from_type_definition(spec, jit_interner, registry);
+            jit_library.add(jit_interner.intern(name), std::move(bp));
+        }
+    }
+    auto jit_bp = bp2::blueprint_from_type_definition(ComponentSpec{lamp}, jit_interner, registry);
+    bp2::PathArena jit_arena(jit_interner);
+    bp2::Flattener jit_flattener(jit_library);
+    auto jit_netlist = jit_flattener.flatten(jit_bp, jit_arena);
+    auto jit_input = bp2::elaboration::elaborate_for_jit(jit_netlist, jit_arena, jit_interner, registry);
+    BuildResult jit_result = build_systems_dev(jit_input);
 
     // ---- Compare signal topologies ----
 
@@ -279,17 +294,17 @@ TEST(AotComposite, OutputMatchesJitExpansion) {
         << "JIT and AOT signal counts must match exactly (same allocation source)";
 
     // Runtime build/codegen lower bridge nodes before component instantiation.
-    // Compare runtime-visible device sets (bridges excluded).
-    std::set<std::string> aot_device_names;
-    for (const auto& dev : expanded.devices) {
-        aot_device_names.insert(dev.name);
+    // Compare device sets from elaboration vs build (bridges excluded).
+    std::set<std::string> elaborated_device_names;
+    for (const auto& dev : jit_input.devices) {
+        elaborated_device_names.insert(dev.name);
     }
-    std::set<std::string> jit_device_names;
+    std::set<std::string> built_device_names;
     for (const auto& [name, _] : jit_result.devices) {
-        jit_device_names.insert(name);
+        built_device_names.insert(name);
     }
-    EXPECT_EQ(aot_device_names, jit_device_names)
-        << "AOT and JIT should expand to the same device names";
+    EXPECT_EQ(elaborated_device_names, built_device_names)
+        << "Elaboration and build must produce the same device names";
 
     // Verify connected ports land on the same signal (equivalence class check).
     // vin.port and lamp.v_in should share a signal (they are connected).
@@ -984,6 +999,7 @@ TEST(AotComposite, BridgeNodeExtPortUnification) {
     DeviceInstance d_lamp;
     d_lamp.name = "lamp";
     d_lamp.classname = "IndicatorLight";
+    d_lamp.params["conductance"] = "0.002";  // Required param for ConductanceBranch solver role
     composite.devices.push_back(d_lamp);
     composite.bridge_ports = {
         make_bridge_port_def("vin", bp2::BridgeDirection::Input, PortType::V),
@@ -1008,10 +1024,21 @@ TEST(AotComposite, BridgeNodeExtPortUnification) {
         << "AOT header should contain SIGNAL_COUNT";
     uint32_t aot_signal_count = static_cast<uint32_t>(std::stoul(match[1].str()));
 
-    // Also run through JIT path
-    std::set<std::string> loading_stack;
-    auto expanded = expand_sub_blueprint_references(composite, registry, loading_stack);
-    BuildResult jit_result = build_systems_dev(make_jit_input_from_composite(expanded.devices, expanded.bridge_ports, expanded.connections));
+    // Also run through JIT path (Flattener)
+    ui::StringInterner jit_interner2;
+    bp2::BlueprintLibrary jit_library2;
+    for (const auto& [name, spec] : registry.all_types()) {
+        if (is_composite(spec)) {
+            auto bp = bp2::blueprint_from_type_definition(spec, jit_interner2, registry);
+            jit_library2.add(jit_interner2.intern(name), std::move(bp));
+        }
+    }
+    auto jit_bp2 = bp2::blueprint_from_type_definition(ComponentSpec{composite}, jit_interner2, registry);
+    bp2::PathArena jit_arena2(jit_interner2);
+    bp2::Flattener jit_flattener2(jit_library2);
+    auto jit_netlist2 = jit_flattener2.flatten(jit_bp2, jit_arena2);
+    auto jit_input2 = bp2::elaboration::elaborate_for_jit(jit_netlist2, jit_arena2, jit_interner2, registry);
+    BuildResult jit_result = build_systems_dev(jit_input2);
 
     // Key assertion: vin.ext and vin.port MUST share a signal in JIT
     auto jit_sig = [&](const std::string& port) -> uint32_t {

@@ -111,7 +111,7 @@ add_sim_test(push_state_tests SOURCES test_push_state.cpp LINKS jit_solver)
 
 add_sim_test(push_scheduler_tests SOURCES test_push_scheduler.cpp LINKS jit_solver)
 
-add_sim_test(push_build_validation_tests SOURCES test_push_build_validation.cpp LINKS jit_solver)
+add_sim_test(push_build_validation_tests SOURCES test_push_build_validation.cpp LINKS jit_solver blueprint_v2)
 
 add_sim_test(push_runtime_regression_tests SOURCES test_push_runtime_regression.cpp LINKS blueprint_v2 jit_solver)
 
@@ -619,7 +619,7 @@ add_sim_test(codegen_accumulator_tests SOURCES test_codegen_accumulator.cpp LINK
 # ==...== AOT Composite Tests ==...==
 
 # AOT Composite codegen tests (Phase 7: hierarchical AOT codegen)
-add_sim_test(aot_composite_tests SOURCES test_aot_composite.cpp LINKS an24_codegen jit_solver LABELS "production_path;electrical")
+add_sim_test(aot_composite_tests SOURCES test_aot_composite.cpp LINKS an24_codegen jit_solver blueprint_v2 LABELS "production_path;electrical")
 
 # ==...== JIT-AOT Bridge Equivalence Tests ==...==
 
@@ -628,7 +628,7 @@ add_sim_test(jit_aot_bridge_equivalence_tests SOURCES test_jit_aot_bridge_equiva
 
 # ==...== Production Path Parity Tests ==...==
 
-add_sim_test(production_path_parity_tests SOURCES test_production_path_parity.cpp LINKS an24_codegen jit_solver LABELS "production_path;electrical")
+add_sim_test(production_path_parity_tests SOURCES test_production_path_parity.cpp LINKS an24_codegen jit_solver blueprint_v2 LABELS "production_path;electrical")
 
 add_sim_test(production_path_port_map_tests SOURCES test_production_path_port_map.cpp LINKS jit_solver LABELS "production_path")
 

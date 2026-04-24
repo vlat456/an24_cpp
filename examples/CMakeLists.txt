@@ -10,7 +10,7 @@ target_include_directories(an24_codegen PUBLIC
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
-target_link_libraries(an24_codegen PRIVATE spdlog::spdlog json_io signal_allocation blueprint_v2)
+target_link_libraries(an24_codegen PRIVATE spdlog::spdlog json_io blueprint_v2)
 
 # Disabled for AOT-only refactor - needs template component instantiation
 # add_executable(test_generated
