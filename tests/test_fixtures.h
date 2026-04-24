@@ -1,7 +1,6 @@
 #pragma once
 
 #include "core/model/component_registry.h"
-#include "test_helpers.h"
 
 inline BridgePortDefinition make_bridge_port_def(const std::string& id,
                                                  bp2::BridgeDirection direction,

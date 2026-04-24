@@ -6,7 +6,7 @@
 #include "core/registry/component_resolution.h"
 #include "jit_build_input_test_helper.h"
 #include "test_fixtures.h"
-#include "test_helpers.h"
+#include "core/model/component_registry.h"
 
 namespace {
 

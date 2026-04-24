@@ -2,7 +2,7 @@
 #include "core/solvers/aot/codegen.h"
 #include "core/registry/composite_expansion.h"
 #include "core/solvers/jit/jit_solver.h"
-#include "test_helpers.h"
+#include "core/model/component_registry.h"
 #include "test_fixtures.h"
 #include "jit_build_input_test_helper.h"
 #include <regex>

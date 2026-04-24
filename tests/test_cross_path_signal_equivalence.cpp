@@ -28,7 +28,6 @@
 #include "bp2_test_helpers.h"
 #include "jit_build_input_test_helper.h"
 #include "test_fixtures.h"
-#include "test_helpers.h"
 
 #include <algorithm>
 #include <fstream>
