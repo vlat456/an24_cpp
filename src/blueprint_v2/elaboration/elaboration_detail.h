@@ -5,6 +5,7 @@
 /// elaborate_for_codegen(). Internal — not a public API.
 
 #include "blueprint_v2/flattener/flat_netlist.h"
+#include "blueprint_v2/path/path.h"
 #include "core/model/component_registry.h"
 #include "core/model/component_kind.h"
 #include "core/model/resolved_device.h"
@@ -18,6 +19,7 @@ namespace bp2::elaboration::detail {
 ///
 /// @param comp       The flattened component
 /// @param dev_id     Colon-separated node ID (from node_id_from_path)
+/// @param classname  Resolved classname string (avoids redundant interner.resolve)
 /// @param type_def   ComponentSpec from registry
 /// @param interner   String interner for port name resolution
 /// @param registry   Type registry (for presentation metadata)
@@ -26,12 +28,12 @@ namespace bp2::elaboration::detail {
 inline std::optional<ResolvedDevice> build_resolved_device(
     const FlatNetlist::Component& comp,
     const std::string& dev_id,
+    const std::string& classname,
     const ComponentSpec& type_def,
     const ui::StringInterner& interner,
     const ComponentRegistry& registry,
     bool fill_defaults)
 {
-    const std::string classname(interner.resolve(comp.type));
 
     // Skip visual-only types — they don't participate in simulation
     if (const auto* pres = registry.get_presentation(classname)) {

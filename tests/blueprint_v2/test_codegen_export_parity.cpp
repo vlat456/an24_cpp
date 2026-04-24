@@ -357,3 +357,57 @@ TEST(CodegenExportParity, DefaultParamsAreFilled) {
         << "Default param 'resistance' should be filled from spec";
     EXPECT_EQ(cg.devices[0].params.at("resistance"), "100.0");
 }
+
+
+// ==============================================================================
+// Visual-only components must be filtered out of codegen output.
+// A component marked visual_only=true in its TypePresentation must not appear
+// in the device list or signal map.
+// ==============================================================================
+
+TEST(CodegenExportParity, VisualOnlyComponentFilteredOut) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+    bp2::BlueprintLibrary library;
+
+    ComponentRegistry reg;
+
+    // Register a real component
+    reg.register_type("Battery", make_primitive_spec(
+        "Battery",
+        {
+            {"v_out", Port{bp2::Direction::Output, PortType::V, Domain::Electrical, false}},
+        },
+        {Domain::Electrical}));
+
+    // Register a visual-only component
+    PrimitiveSpec label_spec;
+    label_spec.classname = "Label";
+    label_spec.domains = {Domain::Electrical};
+    label_spec.solver.execution = ExecutionPhases{.logical = true};
+    TypePresentation label_pres;
+    label_pres.visual_only = true;
+    reg.register_type("Label", std::move(label_spec), label_pres);
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(make_node(I, "bat", "Battery", {
+        out_port(I, "v_out"),
+    }));
+    bp = bp.with_node(make_node(I, "lbl", "Label", {}));
+
+    bp2::Flattener flattener(library);
+    bp2::FlatNetlist netlist = flattener.flatten(bp, arena);
+
+    auto jit = bp2::elaboration::elaborate_for_jit(netlist, arena, I, reg);
+    auto cg  = bp2::elaboration::elaborate_for_codegen(netlist, arena, I, reg);
+
+    // Both paths must exclude the visual-only "Label" component
+    auto jit_devs = collect_device_names(jit);
+    auto cg_devs  = collect_device_names(cg);
+
+    EXPECT_EQ(jit_devs, cg_devs);
+    EXPECT_TRUE(cg_devs.count("bat"));
+    EXPECT_FALSE(cg_devs.count("lbl"))
+        << "Visual-only component 'lbl' must not appear in codegen devices";
+    EXPECT_EQ(cg.devices.size(), 1u);
+}

@@ -41,7 +41,7 @@ CodegenBuildInput elaborate_for_codegen(
         }
 
         auto dev = detail::build_resolved_device(
-            comp, dev_id, *type_def, interner, type_registry,
+            comp, dev_id, classname, *type_def, interner, type_registry,
             /*fill_defaults=*/true);
         if (!dev.has_value()) continue;
 
