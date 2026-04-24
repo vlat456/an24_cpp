@@ -30,6 +30,41 @@ std::string node_id_from_path(Path node_path, PathArena& arena, const ui::String
     return out;
 }
 
+std::vector<BridgePortDefinition> extract_bridge_definitions(
+    const FlatNetlist& netlist,
+    PathArena& arena,
+    const ui::StringInterner& interner)
+{
+    std::vector<BridgePortDefinition> bridges;
+    for (const auto& comp : netlist.components) {
+        if (comp.exposed_port_name.empty()) continue;
+
+        const std::string node_id = node_id_from_path(comp.path, arena, interner);
+
+        // Determine direction and type from the "ext" port descriptor
+        bp2::BridgeDirection dir = bp2::BridgeDirection::Input;
+        PortType ptype = PortType::Signal;
+        for (const auto& pd : comp.ports) {
+            const std::string pname(interner.resolve(pd.name));
+            if (pname == "ext") {
+                dir = (pd.direction == bp2::Direction::Input)
+                    ? bp2::BridgeDirection::Input
+                    : bp2::BridgeDirection::Output;
+                ptype = pd.port_type;
+                break;
+            }
+        }
+
+        BridgePortDefinition bridge;
+        bridge.id = node_id;
+        bridge.exposed_port = std::string(interner.resolve(comp.exposed_port_name));
+        bridge.direction = dir;
+        bridge.type = ptype;
+        bridges.push_back(std::move(bridge));
+    }
+    return bridges;
+}
+
 namespace {
 
 std::string exposed_key_for_component(const FlatNetlist::Component& comp,

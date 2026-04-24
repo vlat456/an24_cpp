@@ -22,9 +22,11 @@
 #include "blueprint_v2/path/path.h"
 #include "core/solvers/common/signal_allocation.h"
 #include "core/solvers/jit/jit_solver.h"
+#include "core/registry/component_resolution.h"
 #include "io/json/component_registry_json_loader.h"
 #include "ui/core/interned_id.h"
 #include "bp2_test_helpers.h"
+#include "jit_build_input_test_helper.h"
 #include "test_fixtures.h"
 #include "test_helpers.h"
 
@@ -102,43 +104,6 @@ std::vector<Connection> reconstruct_connections(
         }
     }
     return connections;
-}
-
-/// Extract BridgePortDefinitions from a FlatNetlist.
-/// Bridge components have non-empty `exposed_port_name`.
-std::vector<BridgePortDefinition> extract_bridge_defs(
-    const bp2::FlatNetlist& netlist,
-    bp2::PathArena& arena,
-    const ui::StringInterner& interner)
-{
-    std::vector<BridgePortDefinition> bridges;
-    for (const auto& comp : netlist.components) {
-        if (comp.exposed_port_name.empty()) continue;
-
-        std::string node_id = bp2::elaboration::node_id_from_path(comp.path, arena, interner);
-
-        // Determine direction and type from port descriptors
-        bp2::BridgeDirection dir = bp2::BridgeDirection::Input;
-        PortType ptype = PortType::Signal;
-        for (const auto& pd : comp.ports) {
-            const std::string pname(interner.resolve(pd.name));
-            if (pname == "ext") {
-                dir = (pd.direction == bp2::Direction::Input)
-                    ? bp2::BridgeDirection::Input
-                    : bp2::BridgeDirection::Output;
-                ptype = pd.port_type;
-                break;
-            }
-        }
-
-        BridgePortDefinition bridge;
-        bridge.id = node_id;
-        bridge.exposed_port = std::string(interner.resolve(comp.exposed_port_name));
-        bridge.direction = dir;
-        bridge.type = ptype;
-        bridges.push_back(std::move(bridge));
-    }
-    return bridges;
 }
 
 /// Run the signal_alloc pipeline directly (Path B: JIT UnionFind path).
@@ -396,7 +361,7 @@ TEST(CrossPathSignalEquivalence, SimpleChainThreeNodes) {
 
     // Path B: signal_alloc pipeline directly
     auto connections = reconstruct_connections(input_a.port_to_signal, input_a.signal_key_interner);
-    auto bridges = extract_bridge_defs(netlist, arena, I);
+    auto bridges = bp2::elaboration::extract_bridge_definitions(netlist, arena, I);
 
     uint32_t signal_count_b = 0;
     auto p2s_b = run_signal_alloc_pipeline(input_a.devices, bridges, connections, signal_count_b);
@@ -522,7 +487,7 @@ TEST(CrossPathSignalEquivalence, NestedCompositeWithBridges) {
 
     // Path B: signal_alloc pipeline directly
     auto connections = reconstruct_connections(input_a.port_to_signal, input_a.signal_key_interner);
-    auto bridges = extract_bridge_defs(netlist, arena, I);
+    auto bridges = bp2::elaboration::extract_bridge_definitions(netlist, arena, I);
 
     uint32_t signal_count_b = 0;
     auto p2s_b = run_signal_alloc_pipeline(input_a.devices, bridges, connections, signal_count_b);
@@ -582,7 +547,7 @@ TEST(CrossPathSignalEquivalence, ClosedCircuitBlueprint) {
 
     // Path B: signal_alloc pipeline directly
     auto connections = reconstruct_connections(input_a.port_to_signal, input_a.signal_key_interner);
-    auto bridges = extract_bridge_defs(netlist, arena, I);
+    auto bridges = bp2::elaboration::extract_bridge_definitions(netlist, arena, I);
 
     uint32_t signal_count_b = 0;
     auto p2s_b = run_signal_alloc_pipeline(input_a.devices, bridges, connections, signal_count_b);
@@ -596,4 +561,127 @@ TEST(CrossPathSignalEquivalence, ClosedCircuitBlueprint) {
 
     // Sanity: the complex blueprint should have many signal groups
     EXPECT_GT(topo_a.size(), 10u) << "closed_circuit.blueprint should have significant connectivity";
+
+    // --- Structural sanity checks (independent of either path) ---
+
+    // 1. Every non-bridge device's ports appear in the signal map
+    for (const auto& dev : input_a.devices) {
+        for (const auto& [port_name, _port] : dev.ports) {
+            const std::string key = dev.name + "." + port_name;
+            auto iid = input_a.signal_key_interner.lookup(key);
+            EXPECT_NE(iid, ui::InternedId{})
+                << "Device port '" << key << "' missing from signal map";
+            if (iid != ui::InternedId{}) {
+                EXPECT_NE(input_a.port_to_signal.count(iid), 0u)
+                    << "Device port '" << key << "' has no signal assignment";
+            }
+        }
+    }
+
+    // 2. Signal count is positive and reasonable
+    EXPECT_GT(input_a.signal_count, 1u) << "Signal count should include at least one signal + sentinel";
+
+    // 3. No empty signal groups — every group has at least 2 ports
+    for (const auto& group : topo_a) {
+        EXPECT_GE(group.size(), 2u) << "Topology group should have at least 2 ports";
+    }
+
+    // 4. FlatNetlist component count matches device count (+ bridge components)
+    size_t non_bridge_components = 0;
+    for (const auto& comp : netlist.components) {
+        if (comp.exposed_port_name.empty()) {
+            non_bridge_components++;
+        }
+    }
+    EXPECT_EQ(input_a.devices.size(), non_bridge_components)
+        << "Every non-bridge FlatNetlist component should become a device";
+
+    // 5. Every port key references either a known device or a known blueprint instance
+    //     (exposed keys like "extract_inst_1.feedback" reference parent instances)
+    std::set<std::string> device_names;
+    for (const auto& dev : input_a.devices) {
+        device_names.insert(dev.name);
+    }
+    // Collect blueprint instance names from the blueprint's top-level nodes
+    std::set<std::string> instance_names;
+    for (const auto& node : bp->nodes()) {
+        if (node.is_blueprint_instance()) {
+            instance_names.insert(std::string(I.resolve(node.semantic.id)));
+        }
+    }
+    for (const auto& [port_id, _sig] : input_a.port_to_signal) {
+        const std::string port_str(input_a.signal_key_interner.resolve(port_id));
+        const size_t dot = port_str.rfind('.');
+        ASSERT_NE(dot, std::string::npos) << "Port key '" << port_str << "' has no dot separator";
+        const std::string dev_name = port_str.substr(0, dot);
+        const bool is_device = device_names.count(dev_name);
+        const bool is_instance = instance_names.count(dev_name);
+        // Nested devices use colon separator (e.g., "inst:r1")
+        const bool is_nested = dev_name.find(':') != std::string::npos;
+        EXPECT_TRUE(is_device || is_instance || is_nested)
+            << "Port key '" << port_str << "' references unknown entity '" << dev_name << "'";
+    }
+}
+
+// ==================================================================
+// Fixture 4: Port alias union — device with port.alias
+//   Proves that apply_alias_unions correctly unites aliased ports.
+//   Uses a device where port "v_out" has alias "v_bus", so both must
+//   share the same signal.
+// ==================================================================
+
+TEST(CrossPathSignalEquivalence, PortAliasUnion) {
+    // Proves that apply_alias_unions correctly unites aliased ports.
+    // The Flattener path doesn't carry aliases through FlatNetlist
+    // (PortDescriptors don't have alias fields), so this test validates
+    // the signal_alloc pipeline's alias union rule directly.
+
+    // Source: outputs voltage
+    ResolvedDevice src;
+    src.name = "src";
+    src.classname = "Source";
+    src.domains = {Domain::Electrical};
+    src.ports["v"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
+
+    // Load: has mutually-aliased ports — "v_in" aliases "v_bus" and vice versa
+    ResolvedDevice load;
+    load.name = "load";
+    load.classname = "Load";
+    load.domains = {Domain::Electrical};
+    load.ports["v_in"] = Port{bp2::Direction::Input, PortType::V, "v_bus"};
+    load.ports["v_bus"] = Port{bp2::Direction::Output, PortType::V, "v_in"};
+
+    std::vector<ResolvedDevice> devices = {src, load};
+
+    // Wire: src.v → load.v_in (which is aliased to load.v_bus)
+    std::vector<Connection> connections = {
+        {"src.v", "load.v_in"},
+    };
+
+    // Run signal_alloc pipeline
+    uint32_t signal_count = 0;
+    auto p2s = run_signal_alloc_pipeline(devices, {}, connections, signal_count);
+
+    // Hand-crafted expected topology:
+    // src.v ↔ load.v_in ↔ load.v_bus
+    // (wire unites src.v and load.v_in; alias unites load.v_in and load.v_bus)
+    ASSERT_TRUE(p2s.count("src.v")) << "Missing port src.v";
+    ASSERT_TRUE(p2s.count("load.v_in")) << "Missing port load.v_in";
+    ASSERT_TRUE(p2s.count("load.v_bus")) << "Missing port load.v_bus";
+
+    EXPECT_EQ(p2s.at("src.v"), p2s.at("load.v_in"))
+        << "Wire connection must unite src.v and load.v_in";
+    EXPECT_EQ(p2s.at("load.v_in"), p2s.at("load.v_bus"))
+        << "Port alias must unite load.v_in and load.v_bus";
+    EXPECT_EQ(p2s.at("src.v"), p2s.at("load.v_bus"))
+        << "Transitive: src.v, load.v_in, load.v_bus all on same signal";
+
+    // Verify: only one signal group (all 3 ports united)
+    auto topo = extract_topology_from_string_map(p2s);
+    ASSERT_EQ(topo.size(), 1u) << "Should have exactly one signal group";
+    const auto& group = *topo.begin();
+    EXPECT_EQ(group.size(), 3u) << "Group should contain all 3 ports";
+    EXPECT_TRUE(group.count("src.v"));
+    EXPECT_TRUE(group.count("load.v_in"));
+    EXPECT_TRUE(group.count("load.v_bus"));
 }
