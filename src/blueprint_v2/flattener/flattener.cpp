@@ -12,15 +12,14 @@ Flattener::Flattener(BlueprintLibrary const& library)
     : library_(library) {}
 
 FlatNetlist Flattener::flatten(Blueprint const& root, PathArena& arena) {
-    arena_ = &arena;
     FlatNetlist out;
     std::unordered_map<Path, SignalIndex> signals;
 
     // UnionFind is scoped to a single flatten() call — no stale state on reuse.
     core::utils::UnionFind uf{0};
 
-    process_wires(root, arena_->root(), signals, uf, out);
-    visit_blueprint(root, arena_->root(), signals, uf, out);
+    process_wires(root, arena.root(), signals, uf, out, arena);
+    visit_blueprint(root, arena.root(), signals, uf, out, arena);
 
     compact_signals(uf, out);
 
@@ -32,10 +31,10 @@ FlatNetlist Flattener::flatten(Blueprint const& root, PathArena& arena) {
 // ==================================================================
 
 [[noreturn]] void Flattener::throw_unresolved_blueprint_instance(
-    Blueprint::Node const& node, Path prefix) const {
-    const std::string instance_path = arena_->to_string(arena_->make_node(prefix, node.semantic.id));
+    Blueprint::Node const& node, Path prefix, PathArena& arena) const {
+    const std::string instance_path = arena.to_string(arena.make_node(prefix, node.semantic.id));
     const auto bp_id = node.blueprint_instance().source.blueprint_id();
-    const auto bp_name = arena_->resolve_id(bp_id);
+    const auto bp_name = arena.resolve_id(bp_id);
     const std::string blueprint_id = bp_name.empty()
         ? std::string{"<empty>"}
         : std::string{bp_name};
@@ -46,16 +45,16 @@ FlatNetlist Flattener::flatten(Blueprint const& root, PathArena& arena) {
 
 [[noreturn]] void Flattener::throw_invalid_endpoint(Blueprint const& scope_bp,
                                                     WireEndpoint const& ep,
-                                                    const char* reason) const {
-    const std::string scope_path = arena_->to_string(scope_bp.id().empty()
-        ? arena_->root()
-        : arena_->make_node(arena_->root(), scope_bp.id()));
+                                                    const char* reason, PathArena& arena) const {
+    const std::string scope_path = arena.to_string(scope_bp.id().empty()
+        ? arena.root()
+        : arena.make_node(arena.root(), scope_bp.id()));
     const std::string node_name = ep.node.empty()
         ? std::string{"<empty>"}
-        : std::string{arena_->resolve_id(ep.node)};
+        : std::string{arena.resolve_id(ep.node)};
     const std::string port_name = ep.port.empty()
         ? std::string{"<empty>"}
-        : std::string{arena_->resolve_id(ep.port)};
+        : std::string{arena.resolve_id(ep.port)};
     throw std::logic_error(
         "Flattener: invalid endpoint '" + node_name + "." + port_name
         + "' in blueprint '" + scope_path + "': " + reason);
@@ -91,27 +90,28 @@ Blueprint::Node const* Flattener::find_bridge_for_port(
 Path Flattener::resolve_endpoint(
     Blueprint const& scope_bp,
     Path scope_prefix,
-    WireEndpoint const& ep) {
+    WireEndpoint const& ep,
+    PathArena& arena) {
 
     if (ep.node.empty()) {
-        throw_invalid_endpoint(scope_bp, ep, "missing node id");
+        throw_invalid_endpoint(scope_bp, ep, "missing node id", arena);
     }
     if (ep.port.empty()) {
-        throw_invalid_endpoint(scope_bp, ep, "missing port id");
+        throw_invalid_endpoint(scope_bp, ep, "missing port id", arena);
     }
 
     auto const* node = scope_bp.find_node(ep.node);
     if (!node) {
-        throw_invalid_endpoint(scope_bp, ep, "node not found");
+        throw_invalid_endpoint(scope_bp, ep, "node not found", arena);
     }
     if (!node->is_blueprint_instance()) {
         // Leaf component — straightforward path
-        Path node_path = arena_->make_node(scope_prefix, ep.node);
-        return arena_->make_port(node_path, ep.port);
+        Path node_path = arena.make_node(scope_prefix, ep.node);
+        return arena.make_port(node_path, ep.port);
     }
 
     // Blueprint instance — resolve through to bridge's ext port
-    Path instance_path = arena_->make_node(scope_prefix, ep.node);
+    Path instance_path = arena.make_node(scope_prefix, ep.node);
 
     Blueprint const* inner = nullptr;
     if (auto* def = node->blueprint_instance().source.inline_def()) {
@@ -120,36 +120,36 @@ Path Flattener::resolve_endpoint(
         inner = library_.find(node->blueprint_instance().source.blueprint_id());
     }
     if (!inner) {
-        throw_unresolved_blueprint_instance(*node, scope_prefix);
+        throw_unresolved_blueprint_instance(*node, scope_prefix, arena);
     }
 
     Blueprint::Node const* bridge = find_bridge_for_port(*inner, ep.port);
     if (!bridge) {
-        std::string inst_str(arena_->resolve_id(ep.node));
-        std::string port_str(arena_->resolve_id(ep.port));
+        std::string inst_str(arena.resolve_id(ep.node));
+        std::string port_str(arena.resolve_id(ep.port));
         throw std::logic_error(
             "Flattener: no bridge node found for interface port '" + port_str
             + "' in blueprint instance '" + inst_str + "'");
     }
 
-    Path bridge_path = arena_->make_node(instance_path, bridge->semantic.id);
+    Path bridge_path = arena.make_node(instance_path, bridge->semantic.id);
 
     // Find the "ext" port ID from the bridge node's interface
     ui::InternedId ext_port_id{};
-    for (auto const& p : inner->resolve_node_iface(*bridge, Blueprint::NodeIfaceAuthority{arena_->interner()})) {
-        std::string_view pname = arena_->resolve_id(p.name);
+    for (auto const& p : inner->resolve_node_iface(*bridge, Blueprint::NodeIfaceAuthority{arena.interner()})) {
+        std::string_view pname = arena.resolve_id(p.name);
         if (pname == "ext") {
             ext_port_id = p.name;
             break;
         }
     }
     if (ext_port_id == ui::InternedId{}) {
-        std::string bridge_str(arena_->resolve_id(bridge->semantic.id));
+        std::string bridge_str(arena.resolve_id(bridge->semantic.id));
         throw std::logic_error(
             "Flattener: bridge node '" + bridge_str + "' has no 'ext' port");
     }
 
-    return arena_->make_port(bridge_path, ext_port_id);
+    return arena.make_port(bridge_path, ext_port_id);
 }
 
 // ==================================================================
@@ -161,13 +161,14 @@ void Flattener::visit_blueprint(
     Path prefix,
     std::unordered_map<Path, SignalIndex>& signals,
     core::utils::UnionFind& uf,
-    FlatNetlist& out) {
+    FlatNetlist& out,
+    PathArena& arena) {
 
     for (auto const& node : bp.nodes()) {
         if (node.is_blueprint_instance()) {
-            visit_blueprint_instance(node, prefix, signals, uf, out);
+            visit_blueprint_instance(node, prefix, signals, uf, out, arena);
         } else {
-            emit_component(bp, node, prefix, signals, uf, out);
+            emit_component(bp, node, prefix, signals, uf, out, arena);
         }
     }
 }
@@ -186,9 +187,10 @@ void Flattener::emit_component(
     Path prefix,
     std::unordered_map<Path, SignalIndex>& signals,
     core::utils::UnionFind& uf,
-    FlatNetlist& out) {
+    FlatNetlist& out,
+    PathArena& arena) {
 
-    Path node_path = arena_->make_node(prefix, node.semantic.id);
+    Path node_path = arena.make_node(prefix, node.semantic.id);
 
     FlatNetlist::Component comp;
     comp.path = node_path;
@@ -204,14 +206,14 @@ void Flattener::emit_component(
     SignalIndex ext_sig = UINT32_MAX;
     SignalIndex port_sig = UINT32_MAX;
 
-    for (auto const& port : bp.resolve_node_iface(node, Blueprint::NodeIfaceAuthority{arena_->interner()})) {
-        Path port_path = arena_->make_port(node_path, port.name);
+    for (auto const& port : bp.resolve_node_iface(node, Blueprint::NodeIfaceAuthority{arena.interner()})) {
+        Path port_path = arena.make_port(node_path, port.name);
         SignalIndex sig = get_or_create_signal(
             port_path, port.domain, signals, uf, out);
         comp.ports.push_back(port);
         comp.port_signals.push_back({port.name, sig});
 
-        std::string_view pname = arena_->resolve_id(port.name);
+        std::string_view pname = arena.resolve_id(port.name);
         if (pname == "ext") ext_sig = sig;
         else if (pname == "port") port_sig = sig;
     }
@@ -235,14 +237,15 @@ void Flattener::process_wires(
     Path prefix,
     std::unordered_map<Path, SignalIndex>& signals,
     core::utils::UnionFind& uf,
-    FlatNetlist& out) {
+    FlatNetlist& out,
+    PathArena& arena) {
 
     for (auto const& wire : bp.wires()) {
         SignalIndex src_sig = get_or_create_signal(
-            resolve_endpoint(bp, prefix, wire.source),
+            resolve_endpoint(bp, prefix, wire.source, arena),
             wire.domain, signals, uf, out);
         SignalIndex tgt_sig = get_or_create_signal(
-            resolve_endpoint(bp, prefix, wire.target),
+            resolve_endpoint(bp, prefix, wire.target, arena),
             wire.domain, signals, uf, out);
 
         if (src_sig != tgt_sig) {
@@ -260,9 +263,10 @@ void Flattener::visit_blueprint_instance(
     Path prefix,
     std::unordered_map<Path, SignalIndex>& signals,
     core::utils::UnionFind& uf,
-    FlatNetlist& out) {
+    FlatNetlist& out,
+    PathArena& arena) {
 
-    Path node_path = arena_->make_node(prefix, node.semantic.id);
+    Path node_path = arena.make_node(prefix, node.semantic.id);
 
     Blueprint const* inner = nullptr;
     if (auto* def = node.blueprint_instance().source.inline_def()) {
@@ -271,7 +275,7 @@ void Flattener::visit_blueprint_instance(
         inner = library_.find(node.blueprint_instance().source.blueprint_id());
     }
     if (!inner) {
-        throw_unresolved_blueprint_instance(node, prefix);
+        throw_unresolved_blueprint_instance(node, prefix, arena);
     }
 
     // Seed boundary signals: for each interface port, find the bridge node
@@ -281,11 +285,11 @@ void Flattener::visit_blueprint_instance(
         Blueprint::Node const* bridge = find_bridge_for_port(*inner, port.name);
         if (!bridge) continue;
 
-        Path bridge_path = arena_->make_node(node_path, bridge->semantic.id);
+        Path bridge_path = arena.make_node(node_path, bridge->semantic.id);
 
         ui::InternedId ext_id{};
-        for (auto const& p : inner->resolve_node_iface(*bridge, Blueprint::NodeIfaceAuthority{arena_->interner()})) {
-            std::string_view pname = arena_->resolve_id(p.name);
+        for (auto const& p : inner->resolve_node_iface(*bridge, Blueprint::NodeIfaceAuthority{arena.interner()})) {
+            std::string_view pname = arena.resolve_id(p.name);
             if (pname == "ext") {
                 ext_id = p.name;
                 break;
@@ -293,7 +297,7 @@ void Flattener::visit_blueprint_instance(
         }
         if (ext_id == ui::InternedId{}) continue;
 
-        Path ext_path = arena_->make_port(bridge_path, ext_id);
+        Path ext_path = arena.make_port(bridge_path, ext_id);
         auto it = signals.find(ext_path);
         if (it != signals.end()) {
             nested_signals[ext_path] = it->second;
@@ -302,8 +306,8 @@ void Flattener::visit_blueprint_instance(
 
     // Process inner wires with paths resolved under node_path.
     for (auto const& wire : inner->wires()) {
-        Path src = resolve_endpoint(*inner, node_path, wire.source);
-        Path tgt = resolve_endpoint(*inner, node_path, wire.target);
+        Path src = resolve_endpoint(*inner, node_path, wire.source, arena);
+        Path tgt = resolve_endpoint(*inner, node_path, wire.target, arena);
 
         SignalIndex src_sig = get_or_create_signal(
             src, wire.domain, nested_signals, uf, out);
@@ -322,7 +326,7 @@ void Flattener::visit_blueprint_instance(
     }
 
     // Emit inner leaf nodes and recurse into inner blueprint instances
-    visit_blueprint(*inner, node_path, nested_signals, uf, out);
+    visit_blueprint(*inner, node_path, nested_signals, uf, out, arena);
 }
 
 // ==================================================================
