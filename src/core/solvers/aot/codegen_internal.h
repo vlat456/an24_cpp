@@ -10,9 +10,7 @@
 
 namespace codegen_detail {
 
-inline std::string sanitize_name(const std::string& s) {
-    return sanitize_codegen_name(s);
-}
+// sanitize_name() is defined in codegen_utils.h (same namespace).
 
 inline std::string to_upper(const std::string& s) {
     std::string result = s;

@@ -412,7 +412,7 @@ void build_device_bindings(
         const auto& re = raw_elements[raw_it->second];
         if (wrapper_classnames.count(re.device_classname) > 0) {
             tmp_bindings.push_back({
-                sanitize_codegen_name(re.device_name),
+                codegen_detail::sanitize_name(re.device_name),
                 pos.first,
                 pos.second,
                 element_id
