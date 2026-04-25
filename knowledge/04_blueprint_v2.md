@@ -131,7 +131,8 @@ Converts hierarchical blueprints to flat netlist:
 ```cpp
 class Flattener {
 public:
-    FlatNetlist flatten(Blueprint const& bp, TypeRegistry const& reg);
+    Flattener(const BlueprintLibrary& library);
+    FlatNetlist flatten(const Blueprint& bp, PathArena& arena);
 };
 ```
 
@@ -140,19 +141,63 @@ public:
 ```cpp
 struct FlatNetlist {
     struct Component {
-        std::string type;
-        std::string instance_id;
-        std::map<std::string, float> params;
-    };
-    
-    struct Signal {
-        std::string name;
-        std::vector<std::pair<std::string, std::string>> connections; // (instance, port)
+        Path path;                          // Hierarchical path to this component
+        ui::InternedId type;                // Component classname
+        std::vector<PortDescriptor> ports;  // Resolved port descriptors
+        std::map<ui::InternedId, float> params;
+        std::map<std::string, std::string> string_params;
+        std::map<ui::InternedId, uint32_t> port_signals; // port → signal index
+        ui::InternedId exposed_port_name;   // Non-empty for bridge nodes
     };
     
     std::vector<Component> components;
-    std::vector<Signal> signals;
+    // Signal allocation done by compact_signals() using UnionFind
 };
+```
+
+## Elaboration Layer
+
+Converts FlatNetlist to runtime-ready build inputs. Two paths sharing core logic:
+
+```
+FlatNetlist ──┬─→ elaborate_for_jit()     → JitBuildInput (InternedId keys)
+              └─→ elaborate_for_codegen() → CodegenBuildInput (string keys)
+```
+
+### Shared Infrastructure
+
+- `elaboration_utils.h` — Lightweight shared utils (no jit_solver.h dependency):
+  - `node_id_from_path()` — Path → colon-separated node_id string
+  - `exposed_key_for_bridge()` — Bridge parent-facing signal key
+- `elaboration_detail.h` — Shared device-building logic:
+  - `build_resolved_device()` — Per-component ResolvedDevice builder
+  - `collect_devices()` — Phase 1: device list from FlatNetlist
+  - `collect_port_signals()` — Phase 2: port-to-signal map
+
+### JIT Path (`sim_export.h`)
+
+```cpp
+JitBuildInput elaborate_for_jit(
+    const FlatNetlist& netlist,
+    PathArena& arena,
+    const ui::StringInterner& interner,
+    const ComponentRegistry& type_registry);
+```
+
+### Codegen Path (`codegen_export.h`)
+
+```cpp
+struct CodegenBuildInput {
+    std::vector<ResolvedDevice> devices;
+    std::unordered_map<std::string, uint32_t> port_to_signal; // string keys
+    uint32_t signal_count = 0;
+};
+
+CodegenBuildInput elaborate_for_codegen(
+    const FlatNetlist& netlist,
+    PathArena& arena,
+    const ui::StringInterner& interner,
+    const ComponentRegistry& type_registry);
 ```
 
 ## EditorModel

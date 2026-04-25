@@ -66,6 +66,7 @@ using ComponentVariant = std::variant<
 ```
 src/
 ├── core/                    # Core simulation engine
+│   ├── model/               # ComponentSpec, ComponentRegistry, TypePresentation
 │   ├── solvers/
 │   │   ├── jit/             # Runtime solver + components
 │   │   │   ├── jit_solver.h # Build system, ComponentVariant
@@ -78,15 +79,22 @@ src/
 │   │   │   └── subsolvers/  # Electrical subsolver
 │   │   ├── aot/             # AOT code generation
 │   │   │   ├── codegen.h
-│   │   │   ├── codegen.cpp
+│   │   │   ├── codegen_composite.cpp  # Composite codegen (Flattener pipeline)
+│   │   │   ├── codegen_header.cpp
+│   │   │   ├── codegen_source.cpp
 │   │   │   └── electrical_codegen.cpp
-│   │   └── shared/          # Shared types (reserved for future)
-│   │       └──              # (empty - state.h, subsolver_types.h could move here)
-│   └── simulator.cpp
+│   │   └── common/          # Shared types (signal_allocation, signal_union_rules, port_registry)
+│   ├── registry/            # Component resolution (DELETED: composite_expansion)
+│   └── utils/               # UnionFind, shared utilities
 ├── blueprint_v2/            # Modern blueprint data model
 │   ├── blueprint/           # Core Blueprint class
-│   ├── library/             # BlueprintLibrary (loaded blueprint instances)
-│   ├── flattener/           # Blueprint flattening
+│   ├── library/             # BlueprintLibrary, type_def_to_blueprint
+│   ├── flattener/           # Blueprint flattening + FlatNetlist
+│   ├── elaboration/         # FlatNetlist → BuildInput conversion
+│   │   ├── elaboration_utils.h/.cpp    # Lightweight shared utils (no JIT dep)
+│   │   ├── elaboration_detail.h        # Shared device builder (JIT+codegen)
+│   │   ├── codegen_export.h/.cpp       # CodegenBuildInput + elaborate_for_codegen
+│   │   └── sim_export.h/.cpp           # JitBuildInput + elaborate_for_jit
 │   ├── interface/           # Port descriptors
 │   └── validation/          # Invariant checking
 ├── editor/                  # Visual blueprint editor

@@ -41,6 +41,10 @@ cd build && ctest
 | AOT common utilities | `src/core/solvers/common/signal_union_rules.h` |
 | Signal Allocation | `src/core/solvers/common/signal_allocation.h` |
 | UnionFind (shared) | `src/core/utils/union_find.h` |
+| Elaboration Utils | `src/blueprint_v2/elaboration/elaboration_utils.h` |
+| Elaboration Detail | `src/blueprint_v2/elaboration/elaboration_detail.h` |
+| Codegen Elaboration | `src/blueprint_v2/elaboration/codegen_export.h` |
+| JIT Elaboration | `src/blueprint_v2/elaboration/sim_export.h` |
 | Document | `src/editor/document.h` |
 | Document I/O | `src/editor/document_io.cpp` |
 | Document simulation | `src/editor/document_simulation.cpp` |
@@ -59,7 +63,7 @@ cd build && ctest
 | `src/core/solvers/common/port_registry.h` | Auto-generated from library blueprints |
 | `src/core/solvers/jit/build_factory.cpp` | Auto-generated component factory from library blueprints |
 | `src/core/solvers/common/port_names.h` | Auto-generated port enum from library blueprints |
-| `src/core/solvers/common/signal_allocation.h` | UnionFind signal allocation (shared by JIT/AOT/tests) |
+| `src/core/solvers/common/signal_allocation.h` | UnionFind signal allocation (shared by JIT/tests) |
 | `generated/*.cpp, generated/*.h` | AOT-generated outputs |
 | `build*/`, `Testing/Temporary/*`, `.cache/clangd/*` | Build/cache artifacts, never hand-edit/commit |
 
@@ -78,12 +82,23 @@ cd build && ctest
 
 ## Code Generation
 
-The code generator (`src/core/solvers/aot/codegen_registry.cpp`) produces C++ from library blueprints:
+The code generator produces C++ from library blueprints:
 
 - `component_kind.h` — ComponentKind enum, parse_component_kind(), component_kind_classname(), family predicates
 - `port_registry.h` — ComponentVariant, port metadata, trait lookups
 - `port_names.h` — PortNames enum
 - `build_factory.cpp` — Component construction factory (switch on ComponentKind)
+
+### Composite Codegen Pipeline
+
+```
+CompositeSpec → blueprint_from_type_definition() → Flattener::flatten()
+  → elaborate_for_codegen() → extract_electrical_plan() → generate_header/source
+```
+
+Both JIT and AOT share the same Flattener + FlatNetlist path:
+- JIT: `FlatNetlist → elaborate_for_jit() → JitBuildInput`
+- AOT: `FlatNetlist → elaborate_for_codegen() → CodegenBuildInput`
 
 Run codegen after ANY library blueprint change:
 ```bash

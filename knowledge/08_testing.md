@@ -99,10 +99,18 @@ Test the new blueprint system:
 - `test_bake.cpp` - Bake/unbake
 - `test_validation.cpp` - Validation
 
+### Elaboration Parity Tests
+Test JIT/AOT elaboration equivalence:
+- `tests/blueprint_v2/test_codegen_export_parity.cpp` - Codegen vs JIT device/signal parity
+- `tests/blueprint_v2/test_export_flattener_parity.cpp` - Flattener bridge resolution parity
+- `tests/test_cross_path_signal_equivalence.cpp` - Cross-path signal allocation equivalence
+- `tests/blueprint_v2/elaboration_parity_fixtures.h` - Shared test fixtures
+
 ### Codegen Tests
 Test AOT generation:
 - `test_codegen_sanitize.cpp`
 - `test_aot_composite.cpp`
+- `test_jit_aot_bridge_equivalence.cpp`
 
 ## Test Naming Convention
 
@@ -146,12 +154,14 @@ static void run_steps(SimulationState& st, std::vector<ComponentVariant>& comps,
 ## Adding New Tests
 
 1. Create `tests/test_<feature>.cpp`
-2. Add to CMakeLists.txt:
+2. Add to `tests/CMakeLists.txt` using the `add_sim_test()` helper:
 ```cmake
-add_executable(test_<feature> tests/test_<feature>.cpp)
-target_link_libraries(test_<feature> gtest gtest_main ...)
-add_test(NAME test_<feature> COMMAND test_<feature>)
+add_sim_test(test_<feature>
+    SOURCES tests/test_<feature>.cpp
+    LINK_LIBS <additional_libs>
+)
 ```
+The helper handles: include dirs, gtest linking, `gtest_discover_tests()`, optional labels.
 3. Run `cmake -B build` to regenerate
 
 ## Test File Index
@@ -163,4 +173,5 @@ add_test(NAME test_<feature> COMMAND test_<feature>)
 | Editor | `test_commands.cpp`, `test_visual_*.cpp`, `test_blueprint_loading.cpp` |
 | UI | `test_ui_*.cpp` |
 | Blueprint V2 | `tests/blueprint_v2/test_*.cpp` |
-| Codegen | `test_aot_composite.cpp`, `test_codegen_sanitize.cpp` |
+| Elaboration Parity | `tests/blueprint_v2/test_codegen_export_parity.cpp`, `tests/blueprint_v2/test_export_flattener_parity.cpp`, `tests/test_cross_path_signal_equivalence.cpp` |
+| Codegen | `test_aot_composite.cpp`, `test_codegen_sanitize.cpp`, `test_jit_aot_bridge_equivalence.cpp`, `test_lut_codegen.cpp` |

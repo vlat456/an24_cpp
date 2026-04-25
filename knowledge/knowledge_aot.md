@@ -74,19 +74,13 @@ AOT code generator applies NASA C++ coding standards with strategic refactoring 
 
 #### 5. codegen.cpp - generate_composite_systems() ✅ REFACTORED (P4)
 
-**Before**: 129 LOC, cyclomatic complexity ~12-15  
-**After**: 3 focused helpers + 50 LOC orchestrator
+**Before**: 129 LOC with inline UnionFind + expand_sub_blueprint_references
+**After**: 79 LOC with shared `flatten_and_generate()` helper using Flattener pipeline
 
-**New Functions** (all 20-50 LOC):
-- `build_port_index_map()` — 18 LOC, Create initial port→index mapping from expanded devices
-- `UnionFind` struct — 22 LOC, Encapsulate UF with path compression and rank-based union
-- `apply_signal_allocation_rules()` — 48 LOC, BlueprintInput/Output bridge union + connection unification + alias unification
-- `finalize_signal_indices()` — 28 LOC, Remap UF roots to sequential signal indices
-- `generate_composite_systems()` — 50 LOC, Clean 5-phase orchestrator (expand → merge → port map → UF rules → signal remap → electrical plan → generate)
+Pipeline: CompositeSpec → `blueprint_from_type_definition()` → `Flattener::flatten()` → `elaborate_for_codegen()` → `extract_electrical_plan()` → `generate_header/source()`
 
-**Complexity Reduction**: Cyclomatic complexity per function now 3-8 (was 12-15 monolithic)
-
-**Key Constraint**: Signal allocation logic mirrors JIT solver's bridge unification (PARITY GUARD maintained in `apply_signal_allocation_rules()`)
+Signal allocation is unified in FlatNetlist::compact_signals() (shared with JIT).
+No separate UnionFind, no expand_sub_blueprint_references, no signal_alloc dependency.
 
 ### Compliance Status by File
 
@@ -117,7 +111,7 @@ AOT code generator applies NASA C++ coding standards with strategic refactoring 
 
 **Build & Tests**:
 - ✅ Full build passes with no compilation errors
-- ✅ All 1461 tests pass (0 failures)
+- ✅ All 1850 tests pass (0 failures)
 - ✅ Generated code output verified identical (byte-for-byte)
 
 ### Test Fixes (Post-Refactoring)
@@ -203,10 +197,12 @@ Generated code is **explicitly exempt** from refactoring due to:
 ## Overview
 
 ```
-Blueprint JSON → expand_sub_blueprint_refs → signal allocation → generate C++
-                                               (union-find)
+Blueprint JSON → Flattener → FlatNetlist → elaborate_for_codegen() → generate C++
+                               (UnionFind)
 ```
 
+Pipeline is unified: both JIT and AOT use Flattener → FlatNetlist → elaboration.
+No separate expansion path. Signal allocation happens in FlatNetlist::compact_signals().
 
 ## Key Classes
 
@@ -217,8 +213,7 @@ public:
     // Generate header/source for flat device list
     static std::string generate_header(
         const std::string& source_file,
-        const std::vector<DeviceInstance>& devices,
-        const std::vector<Connection>& connections,
+        const std::vector<ResolvedDevice>& devices,
         const std::unordered_map<std::string, uint32_t>& port_to_signal,
         uint32_t signal_count,
         const std::string& class_name = "Systems",
@@ -229,13 +224,13 @@ public:
 
     // Generate for composite blueprints (hierarchical)
     static CompositeCodegenResult generate_composite_systems(
-        const TypeDefinition& td,
-        const TypeRegistry& registry);
+        const CompositeSpec& td,
+        const ComponentRegistry& registry);
 
     static std::map<std::string, CompositeCodegenResult> generate_all_composites(
-        const TypeRegistry& registry);
+        const ComponentRegistry& registry);
 
-    static void generate_port_registry(const TypeRegistry& registry, const std::string& output_path);
+    static void generate_port_registry(const ComponentRegistry& registry, const std::string& output_path);
 };
 ```
 
@@ -347,21 +342,27 @@ struct ElectricalPlanCodegen {
 
 ## Composite Codegen
 
-Hierarchical codegen for nested blueprints:
+Hierarchical codegen for nested blueprints — unified through the Flattener:
 
-1. **Expand** — `expand_sub_blueprint_references()` flattens nested blueprints
-2. **Merge** — merge device instances with type definitions (ports, params, domains)
-3. **Allocate** — union-find signal allocation
+1. **Convert** — `blueprint_from_type_definition()` converts CompositeSpec → Blueprint
+2. **Flatten** — `Flattener::flatten()` produces FlatNetlist with UnionFind signal allocation
+3. **Elaborate** — `elaborate_for_codegen()` produces CodegenBuildInput (devices + string-keyed port_to_signal)
 4. **Generate** — emit C++ header/source
 
-### BlueprintInput/Output Bridge Union
+### Architecture
 
-Critical: Must match JIT solver's wire unification logic:
-```cpp
-// Both paths must unify ".ext" and ".port" identically
-// JIT: jit_solver.cpp bridge unification
-// AOT: here, for composite blueprints
 ```
+Blueprint ──→ Flattener::flatten() ──→ FlatNetlist ──┬─→ elaborate_for_jit()     → JitBuildInput
+                                                        └─→ elaborate_for_codegen() → CodegenBuildInput
+```
+
+- **Single expansion algorithm** — Flattener is the only path
+- **Single signal allocation** — `compact_signals()` in FlatNetlist
+- **Clean layering** — codegen doesn't depend on jit_solver.h
+  - `elaboration_utils.h` — lightweight shared utils (node_id_from_path, exposed_key_for_bridge)
+  - `elaboration_detail.h` — shared device-building logic (build_resolved_device, collect_devices, collect_port_signals)
+  - `codegen_export.h` — CodegenBuildInput + elaborate_for_codegen()
+  - `sim_export.h` — JitBuildInput + elaborate_for_jit()
 
 ## Build Targets
 
@@ -378,6 +379,15 @@ cmake --build build
 
 ## Files
 
-- `src/codegen/codegen.h` — API declarations
-- `src/codegen/codegen.cpp` — Implementation
+- `src/core/solvers/aot/codegen.h` — API declarations
+- `src/core/solvers/aot/codegen_composite.cpp` — Composite codegen (Flattener pipeline)
+- `src/core/solvers/aot/codegen_header.cpp` — Header generation
+- `src/core/solvers/aot/codegen_source.cpp` — Source generation
+- `src/core/solvers/aot/codegen_registry.cpp` — Registry generation, write_files
+- `src/core/solvers/aot/electrical_codegen.cpp` — Electrical plan extraction
+- `src/blueprint_v2/elaboration/elaboration_utils.h` — Shared lightweight utils (no JIT dep)
+- `src/blueprint_v2/elaboration/elaboration_utils.cpp` — node_id_from_path, exposed_key_for_bridge
+- `src/blueprint_v2/elaboration/elaboration_detail.h` — Shared device builder (JIT+codegen)
+- `src/blueprint_v2/elaboration/codegen_export.h/.cpp` — CodegenBuildInput + elaborate_for_codegen
+- `src/blueprint_v2/elaboration/sim_export.h/.cpp` — JitBuildInput + elaborate_for_jit
 - `src/core/solvers/common/port_registry.h` — Auto-generated from library
