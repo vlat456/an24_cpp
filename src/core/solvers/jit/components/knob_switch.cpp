@@ -1,5 +1,5 @@
 #include "knob_switch.h"
-#include "core/solvers/common/port_registry.h"
+#include "core/solvers/common/port_names.h"
 #include <cmath>
 #include <algorithm>
 

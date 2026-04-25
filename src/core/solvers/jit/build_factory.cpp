@@ -10,27 +10,498 @@
 
 namespace jit_solver_impl {
 
-/// Template helper for KnobSwitch-family components.
-/// Generated because multiple ComponentKinds share identical params.
-template <typename CompType>
-static void build_knob_switch_impl(
-    BuildResult& result, const ResolvedDevice& dev, ParamReader& param_reader)
-{
-    CompType comp;
+enum class SchedulerRole { Consumer, Source, None };
+
+// Per-component param consumers — the "data" in data-driven.
+// Each overload is selected by the generic template via overload resolution.
+
+static void consume_params(AND<JitProvider>& comp, ParamReader& param_reader) {
+    (void)comp; (void)param_reader;  // no params
+}
+
+static void consume_params(AZS<JitProvider>& comp, ParamReader& param_reader) {
+    comp.closed = param_reader.consume_bool_optional("closed", false);
+    comp.g_closed = param_reader.consume_float_optional("g_closed", 1000.0f);
+    comp.g_open = param_reader.consume_float_optional("g_open", 1e-6f);
+    comp.i_nominal = param_reader.consume_float_optional("i_nominal", 20.0f);
+    comp.k_cool = param_reader.consume_float_optional("k_cool", 1.0f);
+}
+
+static void consume_params(Accumulator<JitProvider>& comp, ParamReader& param_reader) {
+    comp.initial_val = param_reader.consume_float_optional("initial_val", 0.0f);
+}
+
+static void consume_params(Add<JitProvider>& comp, ParamReader& param_reader) {
+    (void)comp; (void)param_reader;  // no params
+}
+
+static void consume_params(Any_V_to_Bool<JitProvider>& comp, ParamReader& param_reader) {
+    (void)comp; (void)param_reader;  // no params
+}
+
+static void consume_params(AsymSlewRate<JitProvider>& comp, ParamReader& param_reader) {
+    comp.deadzone = param_reader.consume_float_optional("deadzone", 0.0001f);
+    comp.rate_down = param_reader.consume_float_optional("rate_down", 0.5f);
+    comp.rate_up = param_reader.consume_float_optional("rate_up", 1.0f);
+}
+
+static void consume_params(AsymTMO<JitProvider>& comp, ParamReader& param_reader) {
+    comp.deadzone = param_reader.consume_float_optional("deadzone", 0.001f);
+    comp.tau_down = param_reader.consume_float_optional("tau_down", 0.5f);
+    comp.tau_up = param_reader.consume_float_optional("tau_up", 0.1f);
+}
+
+static void consume_params(Bus<JitProvider>& comp, ParamReader& param_reader) {
+    (void)comp; (void)param_reader;  // no params
+}
+
+static void consume_params(Clamp<JitProvider>& comp, ParamReader& param_reader) {
+    (void)comp; (void)param_reader;  // no params
+}
+
+static void consume_params(Comparator<JitProvider>& comp, ParamReader& param_reader) {
+    comp.Voff = param_reader.consume_float_optional("Voff", 2.0f);
+    comp.Von = param_reader.consume_float_optional("Von", 5.0f);
+}
+
+static void consume_params(ControlledCurrentSource<JitProvider>& comp, ParamReader& param_reader) {
+    comp.g_shunt = param_reader.consume_float_optional("g_shunt", 0.001f);
+    comp.gain = param_reader.consume_float_optional("gain", 1.0f);
+    comp.max_i = param_reader.consume_float_optional("max_i", 100.0f);
+    comp.min_i = param_reader.consume_float_optional("min_i", 0.0f);
+}
+
+static void consume_params(ControlledVoltageSource<JitProvider>& comp, ParamReader& param_reader) {
+    comp.r_internal = param_reader.consume_float_optional("r_internal", 0.1f);
+}
+
+static void consume_params(CurrentSense<JitProvider>& comp, ParamReader& param_reader) {
+    comp.conductance = param_reader.consume_float_optional("conductance", 0.05f);
+}
+
+static void consume_params(Divide<JitProvider>& comp, ParamReader& param_reader) {
+    (void)comp; (void)param_reader;  // no params
+}
+
+static void consume_params(ElectricHeater<JitProvider>& comp, ParamReader& param_reader) {
+    comp.efficiency = param_reader.consume_float_optional("efficiency", 0.9f);
+    comp.max_power = param_reader.consume_float_optional("max_power", 1000.0f);
+}
+
+static void consume_params(ElectricPump<JitProvider>& comp, ParamReader& param_reader) {
+    comp.max_pressure = param_reader.consume_float_optional("max_pressure", 1000.0f);
+}
+
+static void consume_params(ElectricalConductance<JitProvider>& comp, ParamReader& param_reader) {
+    comp.conductance = param_reader.consume_float_optional("conductance", 0.1f);
+}
+
+static void consume_params(ElectricalSource<JitProvider>& comp, ParamReader& param_reader) {
+    comp.resistance = param_reader.consume_float_optional("resistance", 0.01f);
+    comp.voltage = param_reader.consume_float_optional("voltage", 28.0f);
+}
+
+static void consume_params(FastTMO<JitProvider>& comp, ParamReader& param_reader) {
+    comp.deadzone = param_reader.consume_float_optional("deadzone", 0.001f);
+    comp.tau = param_reader.consume_float_optional("tau", 0.1f);
+}
+
+static void consume_params(FuelTank<JitProvider>& comp, ParamReader& param_reader) {
+    comp.capacity = param_reader.consume_float_optional("capacity", 1000.0f);
+    comp.consumption_rate = param_reader.consume_float_optional("consumption_rate", 0.0f);
+    comp.density = param_reader.consume_float_optional("density", 0.78f);
+    comp.level = param_reader.consume_float_optional("level", 1000.0f);
+}
+
+static void consume_params(Generator<JitProvider>& comp, ParamReader& param_reader) {
+    comp.internal_r = param_reader.consume_float_optional("internal_r", 0.005f);
+    comp.v_nominal = param_reader.consume_float_optional("v_nominal", 28.5f);
+}
+
+static void consume_params(GidroAccumulator<JitProvider>& comp, ParamReader& param_reader) {
+    comp.precharge_pressure = param_reader.consume_float_optional("precharge_pressure", 50.0f);
+    comp.volume = param_reader.consume_float_optional("volume", 10.0f);
+}
+
+static void consume_params(Greater<JitProvider>& comp, ParamReader& param_reader) {
+    (void)comp; (void)param_reader;  // no params
+}
+
+static void consume_params(GreaterEq<JitProvider>& comp, ParamReader& param_reader) {
+    (void)comp; (void)param_reader;  // no params
+}
+
+static void consume_params(Gyroscope<JitProvider>& comp, ParamReader& param_reader) {
+    comp.conductance = param_reader.consume_float_optional("conductance", 0.035f);
+}
+
+static void consume_params(HoldButton<JitProvider>& comp, ParamReader& param_reader) {
+    comp.g_closed = param_reader.consume_float_optional("g_closed", 1000.0f);
+    comp.g_open = param_reader.consume_float_optional("g_open", 1e-6f);
+    comp.idle = param_reader.consume_float_optional("idle", 0.0f);
+}
+
+static void consume_params(IndicatorLight<JitProvider>& comp, ParamReader& param_reader) {
+    comp.conductance = param_reader.consume_float_optional("conductance", 0.002f);
+    comp.rated_voltage = param_reader.consume_float_optional("rated_voltage", 28.0f);
+}
+
+static void consume_params(InertiaNode<JitProvider>& comp, ParamReader& param_reader) {
+    comp.initial_rpm = param_reader.consume_float_optional("initial_rpm", 1.0f);
+}
+
+static void consume_params(Integrator<JitProvider>& comp, ParamReader& param_reader) {
+    comp.initial_val = param_reader.consume_float_optional("initial_val", 0.0f);
+}
+
+static void consume_params(Inverter<JitProvider>& comp, ParamReader& param_reader) {
+    comp.efficiency = param_reader.consume_float_optional("efficiency", 0.95f);
+    comp.frequency = param_reader.consume_float_optional("frequency", 400.0f);
+}
+
+static void consume_params(KnobSwitch<JitProvider>& comp, ParamReader& param_reader) {
     comp.g_closed = param_reader.consume_float_optional("g_closed", 1000.0f);
     comp.g_open = param_reader.consume_float_optional("g_open", 1e-6f);
     comp.selected = static_cast<int>(param_reader.consume_float_optional("initial_position", 0.0f));
     comp.positions = static_cast<int>(param_reader.consume_float_optional("positions", 2.0f));
+}
+
+static void consume_params(LUT<JitProvider>& comp, ParamReader& param_reader) {
+    (void)comp; (void)param_reader;  // no params
+}
+
+static void consume_params(LerpNode<JitProvider>& comp, ParamReader& param_reader) {
+    comp.deadzone = param_reader.consume_float_optional("deadzone", 0.001f);
+    comp.factor = param_reader.consume_float_optional("factor", 0.05f);
+}
+
+static void consume_params(Lesser<JitProvider>& comp, ParamReader& param_reader) {
+    (void)comp; (void)param_reader;  // no params
+}
+
+static void consume_params(LesserEq<JitProvider>& comp, ParamReader& param_reader) {
+    (void)comp; (void)param_reader;  // no params
+}
+
+static void consume_params(Max<JitProvider>& comp, ParamReader& param_reader) {
+    (void)comp; (void)param_reader;  // no params
+}
+
+static void consume_params(Merger<JitProvider>& comp, ParamReader& param_reader) {
+    (void)comp; (void)param_reader;  // no params
+}
+
+static void consume_params(Min<JitProvider>& comp, ParamReader& param_reader) {
+    (void)comp; (void)param_reader;  // no params
+}
+
+static void consume_params(Monostable<JitProvider>& comp, ParamReader& param_reader) {
+    comp.duration = param_reader.consume_float_optional("duration", 30.0f);
+}
+
+static void consume_params(Multiply<JitProvider>& comp, ParamReader& param_reader) {
+    (void)comp; (void)param_reader;  // no params
+}
+
+static void consume_params(NAND<JitProvider>& comp, ParamReader& param_reader) {
+    (void)comp; (void)param_reader;  // no params
+}
+
+static void consume_params(NOT<JitProvider>& comp, ParamReader& param_reader) {
+    (void)comp; (void)param_reader;  // no params
+}
+
+static void consume_params(Normalize<JitProvider>& comp, ParamReader& param_reader) {
+    (void)comp; (void)param_reader;  // no params
+}
+
+static void consume_params(OR<JitProvider>& comp, ParamReader& param_reader) {
+    (void)comp; (void)param_reader;  // no params
+}
+
+static void consume_params(P<JitProvider>& comp, ParamReader& param_reader) {
+    comp.Kp = param_reader.consume_float_optional("Kp", 1.0f);
+    comp.output_max = param_reader.consume_float_optional("output_max", 1000.0f);
+    comp.output_min = param_reader.consume_float_optional("output_min", -1000.0f);
+}
+
+static void consume_params(PD<JitProvider>& comp, ParamReader& param_reader) {
+    comp.Kd = param_reader.consume_float_optional("Kd", 0.0f);
+    comp.Kp = param_reader.consume_float_optional("Kp", 1.0f);
+    comp.filter_alpha = param_reader.consume_float_optional("filter_alpha", 0.2f);
+    comp.output_max = param_reader.consume_float_optional("output_max", 1000.0f);
+    comp.output_min = param_reader.consume_float_optional("output_min", -1000.0f);
+}
+
+static void consume_params(PI<JitProvider>& comp, ParamReader& param_reader) {
+    (void)comp; (void)param_reader;  // no params
+}
+
+static void consume_params(PID<JitProvider>& comp, ParamReader& param_reader) {
+    comp.Kd = param_reader.consume_float_optional("Kd", 0.0f);
+    comp.Ki = param_reader.consume_float_optional("Ki", 0.0f);
+    comp.Kp = param_reader.consume_float_optional("Kp", 1.0f);
+    comp.filter_alpha = param_reader.consume_float_optional("filter_alpha", 0.2f);
+    comp.output_max = param_reader.consume_float_optional("output_max", 1000.0f);
+    comp.output_min = param_reader.consume_float_optional("output_min", -1000.0f);
+}
+
+static void consume_params(Positive_V_to_Bool<JitProvider>& comp, ParamReader& param_reader) {
+    (void)comp; (void)param_reader;  // no params
+}
+
+static void consume_params(Radiator<JitProvider>& comp, ParamReader& param_reader) {
+    comp.cooling_capacity = param_reader.consume_float_optional("cooling_capacity", 1000.0f);
+}
+
+static void consume_params(RefNode<JitProvider>& comp, ParamReader& param_reader) {
+    comp.value = param_reader.consume_float_optional("value", 0.0f);
+}
+
+static void consume_params(Relay<JitProvider>& comp, ParamReader& param_reader) {
+    comp.closed = param_reader.consume_bool_optional("closed", false);
+    comp.g_closed = param_reader.consume_float_optional("g_closed", 1000.0f);
+    comp.g_open = param_reader.consume_float_optional("g_open", 1e-6f);
+}
+
+static void consume_params(Resistor<JitProvider>& comp, ParamReader& param_reader) {
+    comp.conductance = param_reader.consume_float_optional("conductance", 0.1f);
+}
+
+static void consume_params(RotarySwitch1ToN<JitProvider>& comp, ParamReader& param_reader) {
+    comp.g_closed = param_reader.consume_float_optional("g_closed", 1000.0f);
+    comp.g_open = param_reader.consume_float_optional("g_open", 1e-6f);
+    comp.selected = static_cast<int>(param_reader.consume_float_optional("initial_position", 0.0f));
+    comp.positions = static_cast<int>(param_reader.consume_float_optional("positions", 2.0f));
+}
+
+static void consume_params(RotarySwitchNTo1<JitProvider>& comp, ParamReader& param_reader) {
+    comp.g_closed = param_reader.consume_float_optional("g_closed", 1000.0f);
+    comp.g_open = param_reader.consume_float_optional("g_open", 1e-6f);
+    comp.selected = static_cast<int>(param_reader.consume_float_optional("initial_position", 0.0f));
+    comp.positions = static_cast<int>(param_reader.consume_float_optional("positions", 2.0f));
+}
+
+static void consume_params(SampleHold<JitProvider>& comp, ParamReader& param_reader) {
+    (void)comp; (void)param_reader;  // no params
+}
+
+static void consume_params(SlewRate<JitProvider>& comp, ParamReader& param_reader) {
+    comp.deadzone = param_reader.consume_float_optional("deadzone", 0.0001f);
+    comp.max_rate = param_reader.consume_float_optional("max_rate", 1.0f);
+}
+
+static void consume_params(Slider<JitProvider>& comp, ParamReader& param_reader) {
+    comp.max = param_reader.consume_float_optional("max", 1.0f);
+    comp.min = param_reader.consume_float_optional("min", 0.0f);
+}
+
+static void consume_params(SolenoidValve<JitProvider>& comp, ParamReader& param_reader) {
+    comp.normally_closed = param_reader.consume_bool_optional("normally_closed", true);
+}
+
+static void consume_params(Splitter<JitProvider>& comp, ParamReader& param_reader) {
+    (void)comp; (void)param_reader;  // no params
+}
+
+static void consume_params(Spring<JitProvider>& comp, ParamReader& param_reader) {
+    comp.c = param_reader.consume_float_optional("c", 10.0f);
+    comp.compression_only = param_reader.consume_bool_optional("compression_only", true);
+    comp.k = param_reader.consume_float_optional("k", 1000.0f);
+    comp.rest_length = param_reader.consume_float_optional("rest_length", 0.1f);
+}
+
+static void consume_params(Subtract<JitProvider>& comp, ParamReader& param_reader) {
+    (void)comp; (void)param_reader;  // no params
+}
+
+static void consume_params(Switch<JitProvider>& comp, ParamReader& param_reader) {
+    comp.closed = param_reader.consume_bool_optional("closed", false);
+}
+
+static void consume_params(TempSensor<JitProvider>& comp, ParamReader& param_reader) {
+    comp.sensitivity = param_reader.consume_float_optional("sensitivity", 1.0f);
+}
+
+static void consume_params(TimeDelay<JitProvider>& comp, ParamReader& param_reader) {
+    comp.delay_off = param_reader.consume_float_optional("delay_off", 0.1f);
+    comp.delay_on = param_reader.consume_float_optional("delay_on", 0.5f);
+}
+
+static void consume_params(Transformer<JitProvider>& comp, ParamReader& param_reader) {
+    comp.ratio = param_reader.consume_float_optional("ratio", 1.0f);
+}
+
+static void consume_params(Value<JitProvider>& comp, ParamReader& param_reader) {
+    comp.value = param_reader.consume_float_optional("value", 0.0f);
+}
+
+static void consume_params(VariableConductance<JitProvider>& comp, ParamReader& param_reader) {
+    (void)comp; (void)param_reader;  // no params
+}
+
+static void consume_params(VoltageSense<JitProvider>& comp, ParamReader& param_reader) {
+    (void)comp; (void)param_reader;  // no params
+}
+
+static void consume_params(Voltmeter<JitProvider>& comp, ParamReader& param_reader) {
+    comp.max = param_reader.consume_float_optional("max", 28.0f);
+    comp.min = param_reader.consume_float_optional("min", 0.0f);
+}
+
+static void consume_params(XOR<JitProvider>& comp, ParamReader& param_reader) {
+    (void)comp; (void)param_reader;  // no params
+}
+
+/// Generic builder template: construct → consume_params → build_finish.
+/// Handles 69/71 components — only LUT (arena) and RefNode (fixed signals) need custom builders.
+template <typename CompType, SchedulerRole Role>
+static void build_generic(BuildResult& result, const ResolvedDevice& dev, ParamReader& param_reader) {
+    CompType comp;
+    consume_params(comp, param_reader);
     comp.pre_load();
     setup_component_ports(result, dev, comp);
     param_reader.validate_all_consumed();
     result.devices[dev.name] = std::move(comp);
+    if constexpr (Role == SchedulerRole::Consumer)
+        result.scheduler.add_consumer(&std::get<CompType>(result.devices[dev.name]));
+    else if constexpr (Role == SchedulerRole::Source)
+        result.scheduler.add_source(&std::get<CompType>(result.devices[dev.name]));
 }
+
+/// Special builder: LUT — table arena allocation before pre_load.
+static void build_LUT(BuildResult& result, const ResolvedDevice& dev, ParamReader& param_reader) {
+    LUT<JitProvider> comp;
+    consume_params(comp, param_reader);
+    if (auto it = dev.params.find("table"); it != dev.params.end()) {
+        const std::string table_str = param_reader.consume_string_optional("table", "");
+        std::vector<float> keys, vals;
+        if (LUT<JitProvider>::parse_table(table_str, keys, vals)) {
+            comp.table_offset = static_cast<uint32_t>(result.lut_keys.size());
+            comp.table_size = static_cast<uint16_t>(keys.size());
+            result.lut_keys.insert(result.lut_keys.end(), keys.begin(), keys.end());
+            result.lut_values.insert(result.lut_values.end(), vals.begin(), vals.end());
+        }
+    }
+    comp.pre_load();
+    setup_component_ports(result, dev, comp);
+    param_reader.validate_all_consumed();
+    result.devices[dev.name] = std::move(comp);
+    result.scheduler.add_consumer(&std::get<LUT<JitProvider>>(result.devices[dev.name]));
+}
+
+/// Special builder: RefNode — fixed signal registration after scheduler add.
+static void build_RefNode(BuildResult& result, const ResolvedDevice& dev, ParamReader& param_reader) {
+    RefNode<JitProvider> comp;
+    consume_params(comp, param_reader);
+    comp.pre_load();
+    setup_component_ports(result, dev, comp);
+    param_reader.validate_all_consumed();
+    result.devices[dev.name] = std::move(comp);
+    result.scheduler.add_source(&std::get<RefNode<JitProvider>>(result.devices[dev.name]));
+    {
+        const std::string key = dev.name + ".v";
+        const ui::InternedId iid = result.signal_key_interner.lookup(key);
+        auto it_sig = result.port_to_signal.find(iid);
+        if (it_sig != result.port_to_signal.end()) {
+            result.fixed_signals.push_back(it_sig->second);
+        }
+    }
+}
+
+/// Dispatch table — one entry per ComponentKind, indexed by enum value.
+using BuildFn = void(*)(BuildResult&, const ResolvedDevice&, ParamReader&);
+
+/// Sentinel for unsupported ComponentKind values (Unknown).
+/// Should never be called — guarded by has_component_metadata() check in the main loop.
+[[noreturn]] static void build_unsupported(BuildResult&, const ResolvedDevice& dev, ParamReader&) {
+    throw std::runtime_error("No factory handler for component '" + dev.classname + "'");
+}
+
+static const BuildFn BUILD_TABLE[] = {
+    build_generic<AND<JitProvider>, SchedulerRole::Consumer>,  // AND
+    build_generic<AZS<JitProvider>, SchedulerRole::None>,  // AZS
+    build_generic<Accumulator<JitProvider>, SchedulerRole::Consumer>,  // Accumulator
+    build_generic<Add<JitProvider>, SchedulerRole::Consumer>,  // Add
+    build_generic<Any_V_to_Bool<JitProvider>, SchedulerRole::Consumer>,  // Any_V_to_Bool
+    build_generic<AsymSlewRate<JitProvider>, SchedulerRole::Consumer>,  // AsymSlewRate
+    build_generic<AsymTMO<JitProvider>, SchedulerRole::Consumer>,  // AsymTMO
+    build_generic<Bus<JitProvider>, SchedulerRole::Consumer>,  // Bus
+    build_generic<Clamp<JitProvider>, SchedulerRole::Consumer>,  // Clamp
+    build_generic<Comparator<JitProvider>, SchedulerRole::Consumer>,  // Comparator
+    build_generic<ControlledCurrentSource<JitProvider>, SchedulerRole::Consumer>,  // ControlledCurrentSource
+    build_generic<ControlledVoltageSource<JitProvider>, SchedulerRole::None>,  // ControlledVoltageSource
+    build_generic<CurrentSense<JitProvider>, SchedulerRole::Consumer>,  // CurrentSense
+    build_generic<Divide<JitProvider>, SchedulerRole::Consumer>,  // Divide
+    build_generic<ElectricHeater<JitProvider>, SchedulerRole::Consumer>,  // ElectricHeater
+    build_generic<ElectricPump<JitProvider>, SchedulerRole::Consumer>,  // ElectricPump
+    build_generic<ElectricalConductance<JitProvider>, SchedulerRole::None>,  // ElectricalConductance
+    build_generic<ElectricalSource<JitProvider>, SchedulerRole::None>,  // ElectricalSource
+    build_generic<FastTMO<JitProvider>, SchedulerRole::Consumer>,  // FastTMO
+    build_generic<FuelTank<JitProvider>, SchedulerRole::Consumer>,  // FuelTank
+    build_generic<Generator<JitProvider>, SchedulerRole::None>,  // Generator
+    build_generic<GidroAccumulator<JitProvider>, SchedulerRole::Consumer>,  // GidroAccumulator
+    build_generic<Greater<JitProvider>, SchedulerRole::Consumer>,  // Greater
+    build_generic<GreaterEq<JitProvider>, SchedulerRole::Consumer>,  // GreaterEq
+    build_generic<Gyroscope<JitProvider>, SchedulerRole::Consumer>,  // Gyroscope
+    build_generic<HoldButton<JitProvider>, SchedulerRole::None>,  // HoldButton
+    build_generic<IndicatorLight<JitProvider>, SchedulerRole::Consumer>,  // IndicatorLight
+    build_generic<InertiaNode<JitProvider>, SchedulerRole::Consumer>,  // InertiaNode
+    build_generic<Integrator<JitProvider>, SchedulerRole::Consumer>,  // Integrator
+    build_generic<Inverter<JitProvider>, SchedulerRole::Consumer>,  // Inverter
+    build_generic<KnobSwitch<JitProvider>, SchedulerRole::None>,  // KnobSwitch
+    build_LUT,  // LUT (special: table arena)
+    build_generic<LerpNode<JitProvider>, SchedulerRole::Consumer>,  // LerpNode
+    build_generic<Lesser<JitProvider>, SchedulerRole::Consumer>,  // Lesser
+    build_generic<LesserEq<JitProvider>, SchedulerRole::Consumer>,  // LesserEq
+    build_generic<Max<JitProvider>, SchedulerRole::Consumer>,  // Max
+    build_generic<Merger<JitProvider>, SchedulerRole::Consumer>,  // Merger
+    build_generic<Min<JitProvider>, SchedulerRole::Consumer>,  // Min
+    build_generic<Monostable<JitProvider>, SchedulerRole::Consumer>,  // Monostable
+    build_generic<Multiply<JitProvider>, SchedulerRole::Consumer>,  // Multiply
+    build_generic<NAND<JitProvider>, SchedulerRole::Consumer>,  // NAND
+    build_generic<NOT<JitProvider>, SchedulerRole::Consumer>,  // NOT
+    build_generic<Normalize<JitProvider>, SchedulerRole::Consumer>,  // Normalize
+    build_generic<OR<JitProvider>, SchedulerRole::Consumer>,  // OR
+    build_generic<P<JitProvider>, SchedulerRole::Consumer>,  // P
+    build_generic<PD<JitProvider>, SchedulerRole::Consumer>,  // PD
+    build_generic<PI<JitProvider>, SchedulerRole::Consumer>,  // PI
+    build_generic<PID<JitProvider>, SchedulerRole::Consumer>,  // PID
+    build_generic<Positive_V_to_Bool<JitProvider>, SchedulerRole::Consumer>,  // Positive_V_to_Bool
+    build_generic<Radiator<JitProvider>, SchedulerRole::Consumer>,  // Radiator
+    build_RefNode,  // RefNode (special: fixed signals)
+    build_generic<Relay<JitProvider>, SchedulerRole::None>,  // Relay
+    build_generic<Resistor<JitProvider>, SchedulerRole::None>,  // Resistor
+    build_generic<RotarySwitch1ToN<JitProvider>, SchedulerRole::None>,  // RotarySwitch1ToN
+    build_generic<RotarySwitchNTo1<JitProvider>, SchedulerRole::None>,  // RotarySwitchNTo1
+    build_generic<SampleHold<JitProvider>, SchedulerRole::Consumer>,  // SampleHold
+    build_generic<SlewRate<JitProvider>, SchedulerRole::Consumer>,  // SlewRate
+    build_generic<Slider<JitProvider>, SchedulerRole::Consumer>,  // Slider
+    build_generic<SolenoidValve<JitProvider>, SchedulerRole::Consumer>,  // SolenoidValve
+    build_generic<Splitter<JitProvider>, SchedulerRole::Consumer>,  // Splitter
+    build_generic<Spring<JitProvider>, SchedulerRole::Consumer>,  // Spring
+    build_generic<Subtract<JitProvider>, SchedulerRole::Consumer>,  // Subtract
+    build_generic<Switch<JitProvider>, SchedulerRole::Consumer>,  // Switch
+    build_generic<TempSensor<JitProvider>, SchedulerRole::Consumer>,  // TempSensor
+    build_generic<TimeDelay<JitProvider>, SchedulerRole::Consumer>,  // TimeDelay
+    build_generic<Transformer<JitProvider>, SchedulerRole::Consumer>,  // Transformer
+    build_generic<Value<JitProvider>, SchedulerRole::Source>,  // Value
+    build_generic<VariableConductance<JitProvider>, SchedulerRole::None>,  // VariableConductance
+    build_generic<VoltageSense<JitProvider>, SchedulerRole::Consumer>,  // VoltageSense
+    build_generic<Voltmeter<JitProvider>, SchedulerRole::Consumer>,  // Voltmeter
+    build_generic<XOR<JitProvider>, SchedulerRole::Consumer>,  // XOR
+    build_unsupported,  // Unknown (sentinel — guarded by has_component_metadata)
+};
+
+static_assert(sizeof(BUILD_TABLE) / sizeof(BUILD_TABLE[0]) == static_cast<size_t>(ComponentKind::_COUNT),
+    "BUILD_TABLE size must match ComponentKind count");
 
 void build_and_register_components(
     BuildResult& result,
     const std::vector<ResolvedDevice>& devices)
 {
+    result.devices.reserve(devices.size());  // Prevent rehash invalidating scheduler pointers
+
     std::vector<std::string> consumer_device_names;
 
     for (const auto& dev : devices) {
@@ -47,730 +518,7 @@ void build_and_register_components(
 
         ParamReader param_reader(dev.params, dev);
 
-        switch (dev.kind) {
-        case ComponentKind::AND: {
-            AND<JitProvider> comp;
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<AND<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::AZS: {
-            AZS<JitProvider> comp;
-            comp.closed = param_reader.consume_bool_optional("closed", false);
-            comp.g_closed = param_reader.consume_float_optional("g_closed", 1000.0f);
-            comp.g_open = param_reader.consume_float_optional("g_open", 1e-6f);
-            comp.i_nominal = param_reader.consume_float_optional("i_nominal", 20.0f);
-            comp.k_cool = param_reader.consume_float_optional("k_cool", 1.0f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            break;
-        }
-        case ComponentKind::Accumulator: {
-            Accumulator<JitProvider> comp;
-            comp.initial_val = param_reader.consume_float_optional("initial_val", 0.0f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<Accumulator<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::Add: {
-            Add<JitProvider> comp;
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<Add<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::Any_V_to_Bool: {
-            Any_V_to_Bool<JitProvider> comp;
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<Any_V_to_Bool<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::AsymSlewRate: {
-            AsymSlewRate<JitProvider> comp;
-            comp.deadzone = param_reader.consume_float_optional("deadzone", 0.0001f);
-            comp.rate_down = param_reader.consume_float_optional("rate_down", 0.5f);
-            comp.rate_up = param_reader.consume_float_optional("rate_up", 1.0f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<AsymSlewRate<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::AsymTMO: {
-            AsymTMO<JitProvider> comp;
-            comp.deadzone = param_reader.consume_float_optional("deadzone", 0.001f);
-            comp.tau_down = param_reader.consume_float_optional("tau_down", 0.5f);
-            comp.tau_up = param_reader.consume_float_optional("tau_up", 0.1f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<AsymTMO<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::Bus: {
-            Bus<JitProvider> comp;
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<Bus<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::Clamp: {
-            Clamp<JitProvider> comp;
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<Clamp<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::Comparator: {
-            Comparator<JitProvider> comp;
-            comp.Voff = param_reader.consume_float_optional("Voff", 2.0f);
-            comp.Von = param_reader.consume_float_optional("Von", 5.0f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<Comparator<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::ControlledCurrentSource: {
-            ControlledCurrentSource<JitProvider> comp;
-            comp.g_shunt = param_reader.consume_float_optional("g_shunt", 0.001f);
-            comp.gain = param_reader.consume_float_optional("gain", 1.0f);
-            comp.max_i = param_reader.consume_float_optional("max_i", 100.0f);
-            comp.min_i = param_reader.consume_float_optional("min_i", 0.0f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<ControlledCurrentSource<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::ControlledVoltageSource: {
-            ControlledVoltageSource<JitProvider> comp;
-            comp.r_internal = param_reader.consume_float_optional("r_internal", 0.1f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            break;
-        }
-        case ComponentKind::CurrentSense: {
-            CurrentSense<JitProvider> comp;
-            comp.conductance = param_reader.consume_float_optional("conductance", 0.05f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<CurrentSense<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::Divide: {
-            Divide<JitProvider> comp;
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<Divide<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::ElectricHeater: {
-            ElectricHeater<JitProvider> comp;
-            comp.efficiency = param_reader.consume_float_optional("efficiency", 0.9f);
-            comp.max_power = param_reader.consume_float_optional("max_power", 1000.0f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<ElectricHeater<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::ElectricPump: {
-            ElectricPump<JitProvider> comp;
-            comp.max_pressure = param_reader.consume_float_optional("max_pressure", 1000.0f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<ElectricPump<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::ElectricalConductance: {
-            ElectricalConductance<JitProvider> comp;
-            comp.conductance = param_reader.consume_float_optional("conductance", 0.1f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            break;
-        }
-        case ComponentKind::ElectricalSource: {
-            ElectricalSource<JitProvider> comp;
-            comp.resistance = param_reader.consume_float_optional("resistance", 0.01f);
-            comp.voltage = param_reader.consume_float_optional("voltage", 28.0f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            break;
-        }
-        case ComponentKind::FastTMO: {
-            FastTMO<JitProvider> comp;
-            comp.deadzone = param_reader.consume_float_optional("deadzone", 0.001f);
-            comp.tau = param_reader.consume_float_optional("tau", 0.1f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<FastTMO<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::FuelTank: {
-            FuelTank<JitProvider> comp;
-            comp.capacity = param_reader.consume_float_optional("capacity", 1000.0f);
-            comp.consumption_rate = param_reader.consume_float_optional("consumption_rate", 0.0f);
-            comp.density = param_reader.consume_float_optional("density", 0.78f);
-            comp.level = param_reader.consume_float_optional("level", 1000.0f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<FuelTank<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::Generator: {
-            Generator<JitProvider> comp;
-            comp.internal_r = param_reader.consume_float_optional("internal_r", 0.005f);
-            comp.v_nominal = param_reader.consume_float_optional("v_nominal", 28.5f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            break;
-        }
-        case ComponentKind::GidroAccumulator: {
-            GidroAccumulator<JitProvider> comp;
-            comp.precharge_pressure = param_reader.consume_float_optional("precharge_pressure", 50.0f);
-            comp.volume = param_reader.consume_float_optional("volume", 10.0f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<GidroAccumulator<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::Greater: {
-            Greater<JitProvider> comp;
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<Greater<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::GreaterEq: {
-            GreaterEq<JitProvider> comp;
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<GreaterEq<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::Gyroscope: {
-            Gyroscope<JitProvider> comp;
-            comp.conductance = param_reader.consume_float_optional("conductance", 0.035f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<Gyroscope<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::HoldButton: {
-            HoldButton<JitProvider> comp;
-            comp.g_closed = param_reader.consume_float_optional("g_closed", 1000.0f);
-            comp.g_open = param_reader.consume_float_optional("g_open", 1e-6f);
-            comp.idle = param_reader.consume_float_optional("idle", 0.0f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            break;
-        }
-        case ComponentKind::IndicatorLight: {
-            IndicatorLight<JitProvider> comp;
-            comp.conductance = param_reader.consume_float_optional("conductance", 0.002f);
-            comp.rated_voltage = param_reader.consume_float_optional("rated_voltage", 28.0f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<IndicatorLight<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::InertiaNode: {
-            InertiaNode<JitProvider> comp;
-            comp.initial_rpm = param_reader.consume_float_optional("initial_rpm", 1.0f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<InertiaNode<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::Integrator: {
-            Integrator<JitProvider> comp;
-            comp.initial_val = param_reader.consume_float_optional("initial_val", 0.0f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<Integrator<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::Inverter: {
-            Inverter<JitProvider> comp;
-            comp.efficiency = param_reader.consume_float_optional("efficiency", 0.95f);
-            comp.frequency = param_reader.consume_float_optional("frequency", 400.0f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<Inverter<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::KnobSwitch: {
-            build_knob_switch_impl<KnobSwitch<JitProvider>>(result, dev, param_reader);
-            break;
-        }
-        case ComponentKind::LUT: {
-            LUT<JitProvider> comp;
-            if (auto it = dev.params.find("table"); it != dev.params.end()) {
-                const std::string table_str = param_reader.consume_string_optional("table", "");
-                std::vector<float> keys, vals;
-                if (LUT<JitProvider>::parse_table(table_str, keys, vals)) {
-                    comp.table_offset = static_cast<uint32_t>(result.lut_keys.size());
-                    comp.table_size = static_cast<uint16_t>(keys.size());
-                    result.lut_keys.insert(result.lut_keys.end(), keys.begin(), keys.end());
-                    result.lut_values.insert(result.lut_values.end(), vals.begin(), vals.end());
-                }
-            }
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<LUT<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::LerpNode: {
-            LerpNode<JitProvider> comp;
-            comp.deadzone = param_reader.consume_float_optional("deadzone", 0.001f);
-            comp.factor = param_reader.consume_float_optional("factor", 0.05f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<LerpNode<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::Lesser: {
-            Lesser<JitProvider> comp;
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<Lesser<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::LesserEq: {
-            LesserEq<JitProvider> comp;
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<LesserEq<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::Max: {
-            Max<JitProvider> comp;
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<Max<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::Merger: {
-            Merger<JitProvider> comp;
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<Merger<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::Min: {
-            Min<JitProvider> comp;
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<Min<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::Monostable: {
-            Monostable<JitProvider> comp;
-            comp.duration = param_reader.consume_float_optional("duration", 30.0f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<Monostable<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::Multiply: {
-            Multiply<JitProvider> comp;
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<Multiply<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::NAND: {
-            NAND<JitProvider> comp;
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<NAND<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::NOT: {
-            NOT<JitProvider> comp;
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<NOT<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::Normalize: {
-            Normalize<JitProvider> comp;
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<Normalize<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::OR: {
-            OR<JitProvider> comp;
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<OR<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::P: {
-            P<JitProvider> comp;
-            comp.Kp = param_reader.consume_float_optional("Kp", 1.0f);
-            comp.output_max = param_reader.consume_float_optional("output_max", 1000.0f);
-            comp.output_min = param_reader.consume_float_optional("output_min", -1000.0f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<P<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::PD: {
-            PD<JitProvider> comp;
-            comp.Kd = param_reader.consume_float_optional("Kd", 0.0f);
-            comp.Kp = param_reader.consume_float_optional("Kp", 1.0f);
-            comp.filter_alpha = param_reader.consume_float_optional("filter_alpha", 0.2f);
-            comp.output_max = param_reader.consume_float_optional("output_max", 1000.0f);
-            comp.output_min = param_reader.consume_float_optional("output_min", -1000.0f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<PD<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::PI: {
-            PI<JitProvider> comp;
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<PI<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::PID: {
-            PID<JitProvider> comp;
-            comp.Kd = param_reader.consume_float_optional("Kd", 0.0f);
-            comp.Ki = param_reader.consume_float_optional("Ki", 0.0f);
-            comp.Kp = param_reader.consume_float_optional("Kp", 1.0f);
-            comp.filter_alpha = param_reader.consume_float_optional("filter_alpha", 0.2f);
-            comp.output_max = param_reader.consume_float_optional("output_max", 1000.0f);
-            comp.output_min = param_reader.consume_float_optional("output_min", -1000.0f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<PID<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::Positive_V_to_Bool: {
-            Positive_V_to_Bool<JitProvider> comp;
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<Positive_V_to_Bool<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::Radiator: {
-            Radiator<JitProvider> comp;
-            comp.cooling_capacity = param_reader.consume_float_optional("cooling_capacity", 1000.0f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<Radiator<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::RefNode: {
-            RefNode<JitProvider> comp;
-            comp.value = param_reader.consume_float_optional("value", 0.0f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_source(&std::get<RefNode<JitProvider>>(result.devices[dev.name]));
-            {
-                const std::string key = dev.name + ".v";
-                const ui::InternedId iid = result.signal_key_interner.lookup(key);
-                auto it_sig = result.port_to_signal.find(iid);
-                if (it_sig != result.port_to_signal.end()) {
-                    result.fixed_signals.push_back(it_sig->second);
-                }
-            }
-            break;
-        }
-        case ComponentKind::Relay: {
-            Relay<JitProvider> comp;
-            comp.closed = param_reader.consume_bool_optional("closed", false);
-            comp.g_closed = param_reader.consume_float_optional("g_closed", 1000.0f);
-            comp.g_open = param_reader.consume_float_optional("g_open", 1e-6f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            break;
-        }
-        case ComponentKind::Resistor: {
-            Resistor<JitProvider> comp;
-            comp.conductance = param_reader.consume_float_optional("conductance", 0.1f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            break;
-        }
-        case ComponentKind::RotarySwitch1ToN: {
-            build_knob_switch_impl<RotarySwitch1ToN<JitProvider>>(result, dev, param_reader);
-            break;
-        }
-        case ComponentKind::RotarySwitchNTo1: {
-            build_knob_switch_impl<RotarySwitchNTo1<JitProvider>>(result, dev, param_reader);
-            break;
-        }
-        case ComponentKind::SampleHold: {
-            SampleHold<JitProvider> comp;
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<SampleHold<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::SlewRate: {
-            SlewRate<JitProvider> comp;
-            comp.deadzone = param_reader.consume_float_optional("deadzone", 0.0001f);
-            comp.max_rate = param_reader.consume_float_optional("max_rate", 1.0f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<SlewRate<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::Slider: {
-            Slider<JitProvider> comp;
-            comp.max = param_reader.consume_float_optional("max", 1.0f);
-            comp.min = param_reader.consume_float_optional("min", 0.0f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<Slider<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::SolenoidValve: {
-            SolenoidValve<JitProvider> comp;
-            comp.normally_closed = param_reader.consume_bool_optional("normally_closed", true);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<SolenoidValve<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::Splitter: {
-            Splitter<JitProvider> comp;
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<Splitter<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::Spring: {
-            Spring<JitProvider> comp;
-            comp.c = param_reader.consume_float_optional("c", 10.0f);
-            comp.compression_only = param_reader.consume_bool_optional("compression_only", true);
-            comp.k = param_reader.consume_float_optional("k", 1000.0f);
-            comp.rest_length = param_reader.consume_float_optional("rest_length", 0.1f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<Spring<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::Subtract: {
-            Subtract<JitProvider> comp;
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<Subtract<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::Switch: {
-            Switch<JitProvider> comp;
-            comp.closed = param_reader.consume_bool_optional("closed", false);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<Switch<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::TempSensor: {
-            TempSensor<JitProvider> comp;
-            comp.sensitivity = param_reader.consume_float_optional("sensitivity", 1.0f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<TempSensor<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::TimeDelay: {
-            TimeDelay<JitProvider> comp;
-            comp.delay_off = param_reader.consume_float_optional("delay_off", 0.1f);
-            comp.delay_on = param_reader.consume_float_optional("delay_on", 0.5f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<TimeDelay<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::Transformer: {
-            Transformer<JitProvider> comp;
-            comp.ratio = param_reader.consume_float_optional("ratio", 1.0f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<Transformer<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::Value: {
-            Value<JitProvider> comp;
-            comp.value = param_reader.consume_float_optional("value", 0.0f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_source(&std::get<Value<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::VariableConductance: {
-            VariableConductance<JitProvider> comp;
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            break;
-        }
-        case ComponentKind::VoltageSense: {
-            VoltageSense<JitProvider> comp;
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<VoltageSense<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::Voltmeter: {
-            Voltmeter<JitProvider> comp;
-            comp.max = param_reader.consume_float_optional("max", 28.0f);
-            comp.min = param_reader.consume_float_optional("min", 0.0f);
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<Voltmeter<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        case ComponentKind::XOR: {
-            XOR<JitProvider> comp;
-            comp.pre_load();
-            setup_component_ports(result, dev, comp);
-            param_reader.validate_all_consumed();
-            result.devices[dev.name] = std::move(comp);
-            result.scheduler.add_consumer(&std::get<XOR<JitProvider>>(result.devices[dev.name]));
-            break;
-        }
-        default:
-            throw std::runtime_error("Unknown component class '" + std::string(dev.classname)
-                + "' for device '" + dev.name + "'. No factory handler registered.");
-        }
+        BUILD_TABLE[static_cast<size_t>(dev.kind)](result, dev, param_reader);
     }
 
     // Post-registration pass: Deduplicate fixed signals

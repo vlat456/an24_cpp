@@ -1,5 +1,5 @@
 #include "subtract.h"
-#include "core/solvers/common/port_registry.h"
+#include "core/solvers/common/port_names.h"
 
 template <typename Provider>
 void Subtract<Provider>::execute(SimulationState& st, double /*dt*/) {

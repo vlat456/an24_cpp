@@ -3,6 +3,7 @@
 #include "parse_number.h"
 
 #include <optional>
+#include <set>
 
 namespace {
 
@@ -161,13 +162,68 @@ void emit_constructor_params(
         oss << "      electrical_plan_.islands = std::move(aot_plan.islands); }\n";
         oss << "    electrical_rt_.reserve(ELECTRICAL_MAX_ISLAND_NODES, "
             << "ELECTRICAL_MAX_ISLAND_ELEMENTS, ELECTRICAL_MAX_ELEMENT_ID);\n";
+
+        // == KnobSwitch multi-handle binding setup ==
+        // Identify KnobSwitch devices by their sanitized field names and group
+        // indexed bindings (basename_0, basename_1, ...) per device.
+        std::set<std::string> knob_field_names;
+        for (const auto& dev : devices) {
+            if (is_knob_switch_kind(dev.kind)) {
+                knob_field_names.insert(codegen_detail::sanitize_name(dev.name));
+            }
+        }
+
+        // Map: knob_field_name → sorted list of (index, binding*)
+        std::map<std::string, std::vector<std::pair<int, const ElectricalPlanCodegen::DeviceBinding*>>> knob_indexed;
         for (const auto& binding : electrical_plan.device_bindings) {
+            for (const auto& knob_name : knob_field_names) {
+                const std::string& name = binding.device_field_name;
+                // Match "knobname_N" where N is a non-negative integer
+                if (name.size() > knob_name.size() + 1 &&
+                    name.compare(0, knob_name.size(), knob_name) == 0 &&
+                    name[knob_name.size()] == '_') {
+                    std::string suffix = name.substr(knob_name.size() + 1);
+                    if (!suffix.empty() &&
+                        suffix.find_first_not_of("0123456789") == std::string::npos) {
+                        knob_indexed[knob_name].push_back(
+                            {std::stoi(suffix), &binding});
+                    }
+                }
+            }
+        }
+
+        // Build set of binding field names that belong to KnobSwitch indexed bindings
+        std::set<std::string> indexed_binding_names;
+        for (const auto& [knob_name, bindings] : knob_indexed) {
+            for (const auto& [idx, binding] : bindings) {
+                indexed_binding_names.insert(binding->device_field_name);
+            }
+        }
+
+        // == Single-handle init for non-KnobSwitch wrapper components ==
+        for (const auto& binding : electrical_plan.device_bindings) {
+            if (indexed_binding_names.count(binding.device_field_name)) {
+                continue;  // KnobSwitch indexed — handled below
+            }
             oss << "    " << binding.device_field_name << ".electrical_handle.island_index = "
                 << "ElectricalBindings::" << binding.device_field_name << "_island;\n";
             oss << "    " << binding.device_field_name << ".electrical_handle.element_index = "
                 << "ElectricalBindings::" << binding.device_field_name << "_element;\n";
             oss << "    " << binding.device_field_name << ".electrical_handle.element_id = "
                 << "ElectricalBindings::" << binding.device_field_name << "_element_id;\n";
+        }
+
+        // == Multi-handle init for KnobSwitch devices ==
+        for (auto& [knob_name, bindings] : knob_indexed) {
+            std::sort(bindings.begin(), bindings.end(),
+                [](const auto& a, const auto& b) { return a.first < b.first; });
+            for (const auto& [idx, binding] : bindings) {
+                oss << "    " << knob_name << ".electrical_handles[" << idx << "] = { "
+                    << "ElectricalBindings::" << binding->device_field_name << "_island, "
+                    << "ElectricalBindings::" << binding->device_field_name << "_element, "
+                    << "ElectricalBindings::" << binding->device_field_name << "_element_id };\n";
+            }
+            oss << "    " << knob_name << ".num_handles = " << bindings.size() << ";\n";
         }
     }
 }

@@ -1,5 +1,5 @@
 #include "controlled_current_source.h"
-#include "core/solvers/common/port_registry.h"
+#include "core/solvers/common/port_names.h"
 #include "../state.h"
 #include <cmath>
 

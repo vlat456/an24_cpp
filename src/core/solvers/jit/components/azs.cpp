@@ -1,5 +1,5 @@
 #include "azs.h"
-#include "core/solvers/common/port_registry.h"
+#include "core/solvers/common/port_names.h"
 #include "../subsolvers/subsolver_types.h"
 #include <cmath>
 

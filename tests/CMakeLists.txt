@@ -131,6 +131,9 @@ add_sim_test(electrical_subsolver_tests SOURCES test_electrical_subsolver.cpp LI
 # Architecture regression tests (E-001, E-002, E-003, E-004)
 add_sim_test(architecture_regression_tests SOURCES test_architecture_regression.cpp LINKS jit_solver json_io)
 
+# Port queries self-containment test — verifies port_queries.h can be included alone
+add_sim_test(port_queries_self_contained_tests SOURCES test_port_queries_self_contained.cpp LINKS jit_solver)
+
 # ==...== Migrated Push-State API Tests ==...==
 
 # Migrated tests - now using push-state API (SimulationState.values)

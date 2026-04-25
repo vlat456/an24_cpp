@@ -1,5 +1,5 @@
 #include "hold_button.h"
-#include "core/solvers/common/port_registry.h"
+#include "core/solvers/common/port_names.h"
 #include <cmath>
 
 template <typename Provider>

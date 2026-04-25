@@ -1,5 +1,5 @@
 #include "xor_gate.h"
-#include "core/solvers/common/port_registry.h"
+#include "core/solvers/common/port_names.h"
 
 template <typename Provider>
 void XOR<Provider>::execute(SimulationState& st, double /*dt*/) {

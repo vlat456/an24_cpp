@@ -1,5 +1,5 @@
 #include "positive_v_to_bool.h"
-#include "core/solvers/common/port_registry.h"
+#include "core/solvers/common/port_names.h"
 
 template <typename Provider>
 void Positive_V_to_Bool<Provider>::execute(SimulationState& st, double /*dt*/) {

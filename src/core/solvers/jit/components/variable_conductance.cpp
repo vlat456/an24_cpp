@@ -1,5 +1,5 @@
 #include "variable_conductance.h"
-#include "core/solvers/common/port_registry.h"
+#include "core/solvers/common/port_names.h"
 #include "../state.h"
 
 /// Execute: no-op. VariableConductance is solver-owned — node voltages (v_in, v_out)

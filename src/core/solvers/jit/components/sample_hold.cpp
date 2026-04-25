@@ -1,5 +1,5 @@
 #include "sample_hold.h"
-#include "core/solvers/common/port_registry.h"
+#include "core/solvers/common/port_names.h"
 
 template <typename Provider>
 void SampleHold<Provider>::execute(SimulationState& st, double /*dt*/) {

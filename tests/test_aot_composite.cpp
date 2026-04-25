@@ -1018,3 +1018,130 @@ TEST(AotComposite, DynamicSourcePatchingGeneratedForElectricalWrappers) {
     EXPECT_NE(result.source.find("g_min + (g_max - g_min) * t"), std::string::npos)
         << "VariableConductance lerp patch expression should be generated";
 }
+
+// =============================================================================
+// Regression: KnobSwitch AOT codegen — multi-handle electrical_bindings
+// Verifies that KnobSwitchBranches extraction produces N ConductanceBranch
+// elements, indexed bindings, and correct constructor initialization.
+// =============================================================================
+TEST(AotComposite, KnobSwitch_ProducesIndexedBindingsAndHandleInit) {
+    ComponentRegistry registry;
+    register_from_library(registry, {"Generator", "KnobSwitch", "RefNode"});
+
+    CompositeSpec circuit;
+    circuit.classname = "knob_circuit";
+
+    DeviceInstance d_bat;
+    d_bat.name = "bat";
+    d_bat.classname = "Generator";
+    d_bat.params["v_nominal"] = "28.0";
+    d_bat.params["internal_r"] = "0.01";
+
+    DeviceInstance d_knob;
+    d_knob.name = "knob";
+    d_knob.classname = "KnobSwitch";
+    d_knob.params["positions"] = "3";
+    d_knob.params["initial_position"] = "0";
+    d_knob.params["g_open"] = "1e-6";
+    d_knob.params["g_closed"] = "1000.0";
+
+    DeviceInstance d_gnd;
+    d_gnd.name = "gnd";
+    d_gnd.classname = "RefNode";
+    d_gnd.params["value"] = "0.0";
+
+    circuit.devices.push_back(d_bat);
+    circuit.devices.push_back(d_knob);
+    circuit.devices.push_back(d_gnd);
+    circuit.connections = {
+        {"bat.v_out", "knob.wiper", {}},
+        {"knob.throw1", "gnd.v", {}},
+        {"knob.throw2", "gnd.v", {}},
+        {"knob.throw3", "gnd.v", {}},
+        {"bat.v_in", "gnd.v", {}}
+    };
+    registry.register_type("knob_circuit", circuit);
+
+    auto result = CodeGen::generate_composite_systems(circuit, registry);
+
+    ASSERT_FALSE(result.header.empty());
+    ASSERT_FALSE(result.source.empty());
+
+    // Header must contain indexed binding constants for 3 positions
+    EXPECT_NE(result.header.find("knob_0_island"), std::string::npos)
+        << "Header must contain knob_0_island binding constant";
+    EXPECT_NE(result.header.find("knob_1_island"), std::string::npos)
+        << "Header must contain knob_1_island binding constant";
+    EXPECT_NE(result.header.find("knob_2_island"), std::string::npos)
+        << "Header must contain knob_2_island binding constant";
+    EXPECT_NE(result.header.find("knob_0_element_id"), std::string::npos)
+        << "Header must contain knob_0_element_id constant";
+
+    // Constructor must initialize electrical_handles[0..2] from indexed bindings
+    EXPECT_NE(result.source.find("knob.electrical_handles[0] = {"), std::string::npos)
+        << "Constructor must init knob.electrical_handles[0]";
+    EXPECT_NE(result.source.find("knob.electrical_handles[1] = {"), std::string::npos)
+        << "Constructor must init knob.electrical_handles[1]";
+    EXPECT_NE(result.source.find("knob.electrical_handles[2] = {"), std::string::npos)
+        << "Constructor must init knob.electrical_handles[2]";
+
+    // Constructor must set num_handles = 3
+    EXPECT_NE(result.source.find("knob.num_handles = 3"), std::string::npos)
+        << "Constructor must set knob.num_handles = 3";
+
+    // Source must contain dynamic patching loop for knob
+    EXPECT_NE(result.source.find("knob.num_handles"), std::string::npos)
+        << "Source must reference knob.num_handles in dynamic patch loop";
+    EXPECT_NE(result.source.find("knob.electrical_handles[i].element_id"), std::string::npos)
+        << "Source must iterate knob.electrical_handles in dynamic patch loop";
+}
+
+// Regression: Device names ending in _N must not be misidentified as KnobSwitch bindings.
+TEST(AotComposite, NonKnobDeviceWithDigitSuffix_GetsSingleHandleInit) {
+    ComponentRegistry registry;
+    register_from_library(registry, {"Generator", "Resistor", "RefNode"});
+
+    CompositeSpec circuit;
+    circuit.classname = "suffix_test";
+
+    // Name a Generator with _N suffix — must NOT be confused with indexed KnobSwitch binding
+    DeviceInstance d_bat;
+    d_bat.name = "gen_2";
+    d_bat.classname = "Generator";
+    d_bat.params["v_nominal"] = "28.0";
+    d_bat.params["internal_r"] = "0.01";
+
+    DeviceInstance d_res;
+    d_res.name = "load";
+    d_res.classname = "Resistor";
+    d_res.params["conductance"] = "1.0";
+
+    DeviceInstance d_ref;
+    d_ref.name = "gnd";
+    d_ref.classname = "RefNode";
+    d_ref.params["value"] = "0.0";
+
+    circuit.devices.push_back(d_bat);
+    circuit.devices.push_back(d_res);
+    circuit.devices.push_back(d_ref);
+    circuit.connections = {
+        {"gen_2.v_out", "load.v_in", {}},
+        {"load.v_out", "gnd.v", {}},
+        {"gen_2.v_in", "gnd.v", {}}
+    };
+    registry.register_type("suffix_test", circuit);
+
+    auto result = CodeGen::generate_composite_systems(circuit, registry);
+
+    ASSERT_FALSE(result.header.empty());
+
+    // gen_2 must have binding constants (not silently dropped by suffix heuristic)
+    EXPECT_NE(result.header.find("gen_2_element_id"), std::string::npos)
+        << "Device named 'gen_2' must get electrical binding constants";
+
+    // Constructor must init gen_2.electrical_handle (single-handle init, not skipped)
+    EXPECT_NE(result.source.find("gen_2.electrical_handle.island_index = ElectricalBindings::gen_2_island"), std::string::npos)
+        << "Device named 'gen_2' must get single-handle initialization in constructor";
+    EXPECT_NE(result.source.find("gen_2.electrical_handle.element_id = ElectricalBindings::gen_2_element_id"), std::string::npos)
+        << "Device named 'gen_2' must get element_id initialization in constructor";
+}

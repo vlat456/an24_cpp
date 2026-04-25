@@ -1,5 +1,5 @@
 #include "and_gate.h"
-#include "core/solvers/common/port_registry.h"
+#include "core/solvers/common/port_names.h"
 
 template <typename Provider>
 void AND<Provider>::execute(SimulationState& st, double /*dt*/) {

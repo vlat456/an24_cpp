@@ -232,6 +232,48 @@ TEST(FactoryValidationTest, MissingReferenceNode_WarnsButBuilds) {
     EXPECT_NO_THROW(build_systems_dev(make_jit_input(devices, {})));
 }
 
+// ---------------------------------------------------------------------------
+// Regression: Special builders (LUT, RefNode) must use scheduler role from
+// metadata, not hardcoded assumptions. Previously, emit_build_LUT hard-coded
+// add_consumer and emit_build_RefNode hard-coded add_source, ignoring the
+// scheduler_source / solver_owned_electrical metadata. If those values ever
+// change, this test catches the mismatch.
+// ---------------------------------------------------------------------------
+TEST(FactoryValidationTest, SpecialBuilderSchedulerRolesMatchMetadata) {
+    // Build a system with LUT (Consumer), RefNode (Source), and Value (Source)
+    DeviceInstance lut_dev;
+    lut_dev.name = "lut1";
+    lut_dev.classname = "LUT";
+    lut_dev.params = {{"table", "0:0; 100:100"}};
+    for (const auto& port_name : get_component_ports(ComponentKind::LUT)) {
+        lut_dev.ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
+    }
+
+    DeviceInstance ref_dev;
+    ref_dev.name = "gnd";
+    ref_dev.classname = "RefNode";
+    ref_dev.params = {{"value", "0"}};
+    for (const auto& port_name : get_component_ports(ComponentKind::RefNode)) {
+        ref_dev.ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
+    }
+
+    DeviceInstance val_dev;
+    val_dev.name = "val1";
+    val_dev.classname = "Value";
+    val_dev.params = {{"value", "5.0"}};
+    for (const auto& port_name : get_component_ports(ComponentKind::Value)) {
+        val_dev.ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
+    }
+
+    auto result = build_systems_dev(make_jit_input({lut_dev, ref_dev, val_dev}, {}));
+
+    // RefNode and Value are sources; LUT is a consumer
+    EXPECT_GE(result.scheduler.source_count(), 2u)
+        << "RefNode and Value should both be scheduler sources";
+    EXPECT_GE(result.scheduler.consumer_count(), 1u)
+        << "LUT should be a scheduler consumer";
+}
+
 // Regression: register_from_library must throw (not silently skip) on missing specs.
 // Previously used ASSERT_NE in a void helper, which silently returned on failure,
 // leaving tests to run with incomplete registries and produce confusing downstream errors.

@@ -1,5 +1,5 @@
 #include "min.h"
-#include "core/solvers/common/port_registry.h"
+#include "core/solvers/common/port_names.h"
 #include <algorithm>
 
 template <typename Provider>

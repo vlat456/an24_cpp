@@ -1,5 +1,5 @@
 #include "relay.h"
-#include "core/solvers/common/port_registry.h"
+#include "core/solvers/common/port_names.h"
 
 template <typename Provider>
 void Relay<Provider>::execute(SimulationState& st, double /*dt*/) {

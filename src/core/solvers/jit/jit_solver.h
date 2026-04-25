@@ -113,6 +113,7 @@ public:
         }
     }
 
+    void reserve(size_t n) { devices_.reserve(n); }
     void seal() { sealed_ = true; }
     bool sealed() const { return sealed_; }
 

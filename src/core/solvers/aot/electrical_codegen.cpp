@@ -8,10 +8,19 @@
 #include <map>
 #include <optional>
 #include <set>
+#include <vector>
 #include <unordered_map>
 #include <unordered_set>
 
 namespace {
+
+/// Maximum throw positions a KnobSwitch can have (must match component definition).
+static constexpr size_t KNOB_SWITCH_MAX_POSITIONS = 5;
+
+/// Terminal names indexed by throw index (0-based).
+static constexpr const char* KNOB_SWITCH_TERMINAL_NAMES[] = {
+    "throw1", "throw2", "throw3", "throw4", "throw5"
+};
 
 float parse_float_codegen(const std::string& value, float default_val) {
     if (value.empty()) {
@@ -117,23 +126,26 @@ std::string kind_to_role(ElectricalElementKindCodegen k) {
 }
 
 // ===== Section 2: Raw Element Collection (solver_role path) =====
-// Extract electrical element from device with explicit solver_role.
+// Extract electrical elements from device with explicit solver_role.
 // Handles three element kinds: FixedVoltageNode, TheveninSource, ConductanceBranch.
-std::optional<RawElement> extract_solver_role_element(
+// Returns N elements for KnobSwitchBranches (one per throw terminal).
+std::vector<RawElement> extract_solver_role_element(
     const ResolvedDevice& dev,
     const std::unordered_map<std::string, uint32_t>& port_to_signal,
     const ElectricalExtractOptions& options,
     size_t& element_idx
 ) {
-    if (!dev.solver_role.has_value()) return std::nullopt;
+    std::vector<RawElement> result;
+    if (!dev.solver_role.has_value()) return result;
     const auto& role = *dev.solver_role;
 
     if (role.kind == "FixedVoltageNode") {
         float value = read_role_param(role, dev, "voltage", 0.0f);
         auto node = resolve_port_optional(dev.name, dev.classname, role.port_map.at("node"), port_to_signal, options);
-        if (!node.has_value()) return std::nullopt;
-        return RawElement{ ElectricalElementKindCodegen::FixedVoltageNode,
-            *node, UINT32_MAX, value, 0.0f, element_idx++, dev.name, dev.classname };
+        if (!node.has_value()) return result;
+        result.push_back({ ElectricalElementKindCodegen::FixedVoltageNode,
+            *node, UINT32_MAX, value, 0.0f, element_idx++, dev.name, dev.classname });
+        return result;
     }
 
     if (role.kind == "TheveninSource") {
@@ -141,18 +153,39 @@ std::optional<RawElement> extract_solver_role_element(
         float resistance = read_role_param(role, dev, "resistance", 0.01f);
         auto pos = resolve_port_optional(dev.name, dev.classname, role.port_map.at("pos"), port_to_signal, options);
         auto neg = resolve_port_optional(dev.name, dev.classname, role.port_map.at("neg"), port_to_signal, options);
-        if (!pos.has_value() || !neg.has_value()) return std::nullopt;
-        return RawElement{ ElectricalElementKindCodegen::TheveninSource,
-            *pos, *neg, voltage, resistance, element_idx++, dev.name, dev.classname };
+        if (!pos.has_value() || !neg.has_value()) return result;
+        result.push_back({ ElectricalElementKindCodegen::TheveninSource,
+            *pos, *neg, voltage, resistance, element_idx++, dev.name, dev.classname });
+        return result;
     }
 
     if (role.kind == "ConductanceBranch") {
         float g = read_role_param(role, dev, "g", 0.1f);
         auto a = resolve_port_optional(dev.name, dev.classname, role.port_map.at("a"), port_to_signal, options);
         auto b = resolve_port_optional(dev.name, dev.classname, role.port_map.at("b"), port_to_signal, options);
-        if (!a.has_value() || !b.has_value()) return std::nullopt;
-        return RawElement{ ElectricalElementKindCodegen::ConductanceBranch,
-            *a, *b, g, 0.0f, element_idx++, dev.name, dev.classname };
+        if (!a.has_value() || !b.has_value()) return result;
+        result.push_back({ ElectricalElementKindCodegen::ConductanceBranch,
+            *a, *b, g, 0.0f, element_idx++, dev.name, dev.classname });
+        return result;
+    }
+
+    if (role.kind == "KnobSwitchBranches") {
+        int positions = static_cast<int>(read_role_param(role, dev, "positions", 3.0f));
+        positions = std::clamp(positions, 2, static_cast<int>(KNOB_SWITCH_MAX_POSITIONS));
+        int initial_pos = static_cast<int>(read_role_param(role, dev, "initial_position", 0.0f));
+        initial_pos = std::clamp(initial_pos, 0, positions - 1);
+        float g_open_val = read_role_param(role, dev, "g_open", 1e-9f);
+        float g_closed_val = read_role_param(role, dev, "g_closed", 0.1f);
+        auto node_wiper = resolve_port_optional(dev.name, dev.classname, role.port_map.at("wiper"), port_to_signal, options);
+        if (!node_wiper.has_value()) return result;
+        for (int i = 0; i < positions; ++i) {
+            auto node_t = resolve_port_optional(dev.name, dev.classname, role.port_map.at(KNOB_SWITCH_TERMINAL_NAMES[i]), port_to_signal, options);
+            if (!node_t.has_value()) continue;
+            float g = (i == initial_pos) ? g_closed_val : g_open_val;
+            result.push_back({ ElectricalElementKindCodegen::ConductanceBranch,
+                *node_wiper, *node_t, g, 0.0f, element_idx++, dev.name, dev.classname });
+        }
+        return result;
     }
 
     throw std::runtime_error(
@@ -308,18 +341,15 @@ void build_electrical_islands(
 
 // ===== Section 6: Device Bindings for Wrapper Components =====
 // Build stable symbolic binding list mapping wrapper components to electrical islands.
-// LOC: ~60 (filtering + sorting + dedup)
+// For KnobSwitch: produces N indexed bindings (device_0, device_1, ...) since
+// one KnobSwitch generates N ConductanceBranch elements (one per throw terminal).
+// LOC: ~80
 void build_device_bindings(
     const std::vector<RawElement>& raw_elements,
     const ElectricalPlanCodegen& plan,
     std::vector<ElectricalPlanCodegen::DeviceBinding>& bindings
 ) {
-    // Map wrapper components to electrical island positions
-    std::unordered_map<uint32_t, size_t> element_to_raw_idx;
-    for (size_t i = 0; i < raw_elements.size(); ++i) {
-        element_to_raw_idx[static_cast<uint32_t>(raw_elements[i].element_id)] = i;
-    }
-
+    // Map element_id -> (island_index, element_index)
     std::unordered_map<uint32_t, std::pair<uint32_t, uint32_t>> element_to_island_elem;
     for (size_t island_i = 0; island_i < plan.islands.size(); ++island_i) {
         const auto& island = plan.islands[island_i];
@@ -332,24 +362,52 @@ void build_device_bindings(
         }
     }
 
-    // Wrapper components that need electrical handles
+    // Wrapper components that need electrical handles (non-KnobSwitch: single binding)
     static const std::set<std::string> wrapper_classnames{
         "Generator", "IndicatorLight", "CurrentSense",
         "ControlledVoltageSource", "VariableConductance",
         "AZS", "HoldButton"
     };
 
+    // Group raw elements by sanitized device name for KnobSwitch multi-handle support
+    std::unordered_map<std::string, std::vector<size_t>> device_elements;
+    for (size_t i = 0; i < raw_elements.size(); ++i) {
+        const auto& re = raw_elements[i];
+        device_elements[codegen_detail::sanitize_name(re.device_name)].push_back(i);
+    }
+
     std::vector<ElectricalPlanCodegen::DeviceBinding> tmp_bindings;
     tmp_bindings.reserve(element_to_island_elem.size());
+
     for (const auto& [element_id, pos] : element_to_island_elem) {
-        auto raw_it = element_to_raw_idx.find(element_id);
-        if (raw_it == element_to_raw_idx.end()) {
-            continue;
-        }
-        const auto& re = raw_elements[raw_it->second];
-        if (wrapper_classnames.count(re.device_classname) > 0) {
+        auto raw_it = std::find_if(raw_elements.begin(), raw_elements.end(),
+            [element_id](const RawElement& re) { return re.element_id == element_id; });
+        if (raw_it == raw_elements.end()) continue;
+        const auto& re = *raw_it;
+
+        const std::string base_name = codegen_detail::sanitize_name(re.device_name);
+        const auto kind_opt = parse_component_kind(re.device_classname);
+        if (!kind_opt.has_value()) continue;  // unknown classname — skip binding
+        const bool is_knob_switch = is_knob_switch_kind(*kind_opt);
+
+        if (is_knob_switch) {
+            // Count how many elements this device has produced (for 0-based indexing)
+            const auto& indices = device_elements.at(base_name);
+            size_t elem_position = 0;
+            for (size_t idx : indices) {
+                if (raw_elements[idx].element_id == element_id) break;
+                ++elem_position;
+            }
+            std::string indexed_name = base_name + "_" + std::to_string(elem_position);
             tmp_bindings.push_back({
-                codegen_detail::sanitize_name(re.device_name),
+                indexed_name,
+                pos.first,
+                pos.second,
+                element_id
+            });
+        } else if (wrapper_classnames.count(re.device_classname) > 0) {
+            tmp_bindings.push_back({
+                base_name,
                 pos.first,
                 pos.second,
                 element_id
@@ -451,9 +509,9 @@ ElectricalPlanCodegen extract_electrical_plan(
         }
 
         if (dev.solver_role.has_value()) {
-            auto elem_opt = extract_solver_role_element(dev, port_to_signal, options, element_idx);
-            if (elem_opt.has_value()) {
-                raw_elements.push_back(std::move(*elem_opt));
+            auto elems = extract_solver_role_element(dev, port_to_signal, options, element_idx);
+            for (auto& elem : elems) {
+                raw_elements.push_back(std::move(elem));
             }
             continue;
         }
