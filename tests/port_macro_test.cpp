@@ -13,8 +13,16 @@ TEST(PortRegistryTest, CompileTimePortCountValidation) {
 }
 
 TEST(PortRegistryTest, AllComponentsHavePortCounts) {
+    // Every valid ComponentKind (excluding Unknown/_COUNT) must have accessible metadata.
+    // Spot-check a representative sample across the alphabet.
+    EXPECT_GT(AND_PORT_COUNT, 0);
+    EXPECT_GT(Accumulator_PORT_COUNT, 0);
     EXPECT_GT(ElectricalSource_PORT_COUNT, 0);
+    EXPECT_GT(Generator_PORT_COUNT, 0);
+    EXPECT_GT(Relay_PORT_COUNT, 0);
     EXPECT_GT(Switch_PORT_COUNT, 0);
+    EXPECT_GT(VariableConductance_PORT_COUNT, 0);
+    EXPECT_GT(XOR_PORT_COUNT, 0);
 }
 
 TEST(PortRegistryTest, GetPortNamesReturnsCorrectData) {
@@ -22,12 +30,12 @@ TEST(PortRegistryTest, GetPortNamesReturnsCorrectData) {
     EXPECT_EQ(es_ports.size(), ElectricalSource_PORT_COUNT);
 }
 
-// Verify output port filtering works for a known component
+// Verify output port filtering works for a known component.
+// ElectricalSource has ports {v_out, v_in}; only v_out is Output direction.
 TEST(PortRegistryTest, GetOutputPortsFiltersCorrectly) {
     auto outputs = get_output_ports(ComponentKind::ElectricalSource);
-    // ElectricalSource has exactly 2 ports; check the function returns something
-    EXPECT_GE(outputs.size(), 0u);
-    EXPECT_LE(outputs.size(), ElectricalSource_PORT_COUNT);
+    EXPECT_EQ(outputs.size(), 1u);
+    EXPECT_EQ(outputs[0], "v_out");
 }
 
 // ComponentKind — parse round-trip

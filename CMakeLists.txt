@@ -6,9 +6,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Release optimization flags.
-# Note: -ffast-math is NOT enabled globally — it breaks NaN propagation
-# used by spdlog/fmt diagnostics. Per-target -ffast-math is applied only
-# to the simulation hot path (jit_solver) where NaN is never expected.
+# -ffast-math is NOT enabled globally — it breaks NaN propagation used by
+# spdlog/fmt diagnostics. AOT-generated code uses #pragma GCC optimize("fast-math")
+# in the generated source; the JIT solver does not use -ffast-math at all.
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 
 # Options

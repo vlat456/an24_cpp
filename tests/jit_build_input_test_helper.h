@@ -17,6 +17,32 @@ inline const ComponentRegistry& test_registry() {
     return registry;
 }
 
+/// Copy type specs from the authoritative library registry into a custom registry.
+/// Throws on missing spec (unlike ASSERT_NE, which silently returns from void helpers).
+inline void register_from_library(ComponentRegistry& registry, std::initializer_list<const char*> classnames) {
+    for (const char* name : classnames) {
+        const ComponentSpec* spec = test_registry().get(name);
+        if (!spec) {
+            throw std::runtime_error(std::string("register_from_library: missing library spec: ") + name);
+        }
+        registry.register_type(name, *spec);
+    }
+}
+
+/// Construct a BridgePortDefinition for test composite wiring.
+inline BridgePortDefinition make_bridge_port_def(const std::string& id,
+                                                  bp2::BridgeDirection direction,
+                                                  PortType type = PortType::Any,
+                                                  const std::string& exposed_port = "") {
+    BridgePortDefinition bridge;
+    bridge.id = id;
+    bridge.exposed_port = exposed_port.empty() ? id : exposed_port;
+    bridge.direction = direction;
+    bridge.type = type;
+    bridge.label = bridge.exposed_port;
+    return bridge;
+}
+
 inline SimulationState make_state(uint32_t signal_count) {
     SimulationState st;
     for (uint32_t i = 0; i < signal_count; ++i) {

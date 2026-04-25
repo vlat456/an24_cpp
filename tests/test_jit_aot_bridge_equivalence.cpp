@@ -9,19 +9,6 @@
 
 namespace {
 
-BridgePortDefinition make_bridge_port_def(const std::string& id,
-                                           bp2::BridgeDirection direction,
-                                           PortType type = PortType::Any,
-                                           const std::string& exposed_port = "") {
-    BridgePortDefinition bridge;
-    bridge.id = id;
-    bridge.exposed_port = exposed_port.empty() ? id : exposed_port;
-    bridge.direction = direction;
-    bridge.type = type;
-    bridge.label = bridge.exposed_port;
-    return bridge;
-}
-
 std::vector<ResolvedDevice> resolve_all_devices(const std::vector<DeviceInstance>& devices,
                                                  const ComponentRegistry& registry) {
     std::vector<ResolvedDevice> resolved;
@@ -212,7 +199,7 @@ TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
 
 TEST(JitAotBridgeEquivalence, SignalAllocationParityForBridgeAndAliasRules) {
     ComponentRegistry registry;
-    registry.register_type("Resistor", *as_primitive(*test_registry().get("Resistor")));
+    register_from_library(registry, {"Resistor"});
 
     std::vector<DeviceInstance> devices;
     std::vector<BridgePortDefinition> bridges = {
@@ -276,7 +263,7 @@ TEST(JitAotBridgeEquivalence, SignalAllocationParityForBridgeAndAliasRules) {
 
 TEST(JitAotBridgeEquivalence, VisualOnlyDevicesIgnoredByBothPaths) {
     ComponentRegistry registry;
-    registry.register_type("Resistor", *as_primitive(*test_registry().get("Resistor")));
+    register_from_library(registry, {"Resistor"});
     PrimitiveSpec value_type = *as_primitive(*test_registry().get("Value"));
     // visual_only is now on TypePresentation - bundle with register_type
     registry.register_type("Value", value_type, TypePresentation{.visual_only = true});

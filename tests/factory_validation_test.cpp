@@ -231,3 +231,24 @@ TEST(FactoryValidationTest, MissingReferenceNode_WarnsButBuilds) {
 
     EXPECT_NO_THROW(build_systems_dev(make_jit_input(devices, {})));
 }
+
+// Regression: register_from_library must throw (not silently skip) on missing specs.
+// Previously used ASSERT_NE in a void helper, which silently returned on failure,
+// leaving tests to run with incomplete registries and produce confusing downstream errors.
+TEST(FactoryValidation, RegisterFromLibraryThrowsOnMissingSpec) {
+    ComponentRegistry registry;
+
+    // Valid type should not throw
+    EXPECT_NO_THROW(register_from_library(registry, {"Resistor"}));
+    EXPECT_NE(registry.get("Resistor"), nullptr);
+
+    // Invalid type must throw with descriptive message
+    EXPECT_THROW(
+        register_from_library(registry, {"NonexistentType_XYZ"}),
+        std::runtime_error);
+
+    // Mixed valid + invalid must also throw (stops at first missing)
+    EXPECT_THROW(
+        register_from_library(registry, {"Resistor", "AlsoMissing_ABC"}),
+        std::runtime_error);
+}

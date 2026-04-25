@@ -12,31 +12,6 @@
 #include <set>
 #include <unordered_map>
 
-namespace {
-/// Copy type specs from the authoritative library registry into a custom registry.
-void register_from_library(ComponentRegistry& registry, std::initializer_list<const char*> classnames) {
-    for (const char* name : classnames) {
-        const ComponentSpec* spec = test_registry().get(name);
-        ASSERT_NE(spec, nullptr) << "Missing library spec: " << name;
-        registry.register_type(name, *spec);
-    }
-}
-
-/// Construct a BridgePortDefinition for test composite wiring.
-BridgePortDefinition make_bridge_port_def(const std::string& id,
-                                          bp2::BridgeDirection direction,
-                                          PortType type = PortType::Any,
-                                          const std::string& exposed_port = "") {
-    BridgePortDefinition bridge;
-    bridge.id = id;
-    bridge.exposed_port = exposed_port.empty() ? id : exposed_port;
-    bridge.direction = direction;
-    bridge.type = type;
-    bridge.label = bridge.exposed_port;
-    return bridge;
-}
-} // namespace
-
 // ============================================================
 // Composite Systems generation
 // ============================================================
@@ -80,8 +55,7 @@ TEST(AotComposite, GeneratesSystemsForComposite) {
 
 TEST(AotComposite, NestedComposite_ContainsSubSystems) {
     ComponentRegistry registry;
-    registry.register_type("ElectricalSource", *as_primitive(*test_registry().get("ElectricalSource")));
-    registry.register_type("Bus", *as_primitive(*test_registry().get("Bus")));
+    register_from_library(registry, {"ElectricalSource", "Bus"});
 
     CompositeSpec inner;
     inner.classname = "battery_wrapper";
@@ -205,8 +179,7 @@ TEST(AotComposite, TopoSort_MissingSubBlueprintThrows) {
 
 TEST(AotComposite, PreLoad_CallsSubComposites) {
     ComponentRegistry registry;
-    registry.register_type("ElectricalSource", *as_primitive(*test_registry().get("ElectricalSource")));
-    registry.register_type("Bus", *as_primitive(*test_registry().get("Bus")));
+    register_from_library(registry, {"ElectricalSource", "Bus"});
 
     CompositeSpec inner;
     inner.classname = "inner_type";
@@ -386,9 +359,7 @@ TEST(AotComposite, OutputMatchesJitExpansion) {
 
 TEST(AotComposite, ElectricalPlan_BatteryAndResistor_GeneratesIslandArrays) {
     ComponentRegistry registry;
-    registry.register_type("Generator", *as_primitive(*test_registry().get("Generator")));
-    registry.register_type("Resistor", *as_primitive(*test_registry().get("Resistor")));
-    registry.register_type("RefNode", *as_primitive(*test_registry().get("RefNode")));
+    register_from_library(registry, {"Generator", "Resistor", "RefNode"});
 
     // Simple circuit: ElectricalSource -> Resistor -> RefNode (fixed voltage)
     CompositeSpec circuit;
@@ -448,8 +419,7 @@ TEST(AotComposite, ElectricalPlan_BatteryAndResistor_GeneratesIslandArrays) {
 
 TEST(AotComposite, ElectricalPlan_IndicatorLight_GeneratesConductanceBranch) {
     ComponentRegistry registry;
-    registry.register_type("ElectricalSource", *as_primitive(*test_registry().get("ElectricalSource")));
-    registry.register_type("IndicatorLight", *as_primitive(*test_registry().get("IndicatorLight")));
+    register_from_library(registry, {"ElectricalSource", "IndicatorLight"});
 
     CompositeSpec lamp_circuit;
     lamp_circuit.classname = "lamp_circuit";
@@ -508,11 +478,7 @@ TEST(AotComposite, ElectricalPlan_NoElectricalDevices_HasZeroIslands) {
 
 TEST(AotComposite, ElectricalBindings_WrapperHandlesGenerated) {
     ComponentRegistry registry;
-
-    registry.register_type("Generator", *as_primitive(*test_registry().get("Generator")));
-    registry.register_type("CurrentSense", *as_primitive(*test_registry().get("CurrentSense")));
-    registry.register_type("IndicatorLight", *as_primitive(*test_registry().get("IndicatorLight")));
-    registry.register_type("RefNode", *as_primitive(*test_registry().get("RefNode")));
+    register_from_library(registry, {"Generator", "CurrentSense", "IndicatorLight", "RefNode"});
 
     CompositeSpec circuit;
     circuit.classname = "wrapper_binding_circuit";
@@ -681,13 +647,7 @@ TEST(AotComposite, ElectricalBindings_AssignAllHandleFieldsFromConstants) {
 // binding construction must still map to the correct device name (not devices[element_idx]).
 TEST(AotComposite, ElectricalBindings_MixedDevicesCorrectMapping) {
     ComponentRegistry registry;
-    registry.register_type("Generator", *as_primitive(*test_registry().get("Generator")));
-
-    // Non-electrical device that sits between electrical devices in the list
-    registry.register_type("Any_V_to_Bool", *as_primitive(*test_registry().get("Any_V_to_Bool")));
-
-    registry.register_type("CurrentSense", *as_primitive(*test_registry().get("CurrentSense")));
-    registry.register_type("RefNode", *as_primitive(*test_registry().get("RefNode")));
+    register_from_library(registry, {"Generator", "Any_V_to_Bool", "CurrentSense", "RefNode"});
 
     CompositeSpec circuit;
     circuit.classname = "mixed_device_circuit";
@@ -750,9 +710,7 @@ TEST(AotComposite, ElectricalBindings_MixedDevicesCorrectMapping) {
 
 TEST(AotComposite, ElectricalDebugMap_ContainsRoleAndEndpoints) {
     ComponentRegistry registry;
-    registry.register_type("ElectricalSource", *as_primitive(*test_registry().get("ElectricalSource")));
-    registry.register_type("CurrentSense", *as_primitive(*test_registry().get("CurrentSense")));
-    registry.register_type("RefNode", *as_primitive(*test_registry().get("RefNode")));
+    register_from_library(registry, {"ElectricalSource", "CurrentSense", "RefNode"});
 
     CompositeSpec circuit;
     circuit.classname = "debug_map_circuit";
@@ -1018,7 +976,7 @@ TEST(AotComposite, GeneratedStepMethodsUseSourceConsumerOrdering) {
 }
 
 // =============================================================================
-    // Regression: AOT codegen must unify structural bridge ext↔port
+// Regression: AOT codegen must unify structural bridge ext↔port
 // signals via UnionFind, matching JIT solver behavior. Without this, composites
 // with bridge nodes have broken signal routing in AOT mode because ext and port
 // get allocated as separate signals instead of being unified.

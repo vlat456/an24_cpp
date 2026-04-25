@@ -206,7 +206,7 @@ ComponentRegistry make_minimal_registry() {
         registry.register_type("Battery", spec);
     }
 
-    // Resistor (from authoritative library spec, not test_fixtures.h)
+    // Resistor (from authoritative library spec)
     registry.register_type("Resistor", *as_primitive(*test_registry().get("Resistor")));
 
     // Ground (port name must match Blueprint interface "gnd")

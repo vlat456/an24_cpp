@@ -12,16 +12,6 @@
 
 namespace {
 
-/// Copy type specs from the authoritative library registry into a custom registry.
-/// Used by tests that need custom types alongside library types.
-void register_from_library(ComponentRegistry& registry, std::initializer_list<const char*> classnames) {
-    for (const char* name : classnames) {
-        const ComponentSpec* spec = test_registry().get(name);
-        ASSERT_NE(spec, nullptr) << "Missing library spec: " << name;
-        registry.register_type(name, *spec);
-    }
-}
-
 ComponentRegistry build_registry_for_lamp() {
     ComponentRegistry registry;
     register_from_library(registry, {"IndicatorLight"});
