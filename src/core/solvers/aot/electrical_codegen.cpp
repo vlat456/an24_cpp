@@ -28,6 +28,44 @@ float read_param_or(const ResolvedDevice& dev, const char* key, float default_va
     return parse_float_codegen(it->second, default_val);
 }
 
+/// Read a param through solver_role indirection: role.param_map[key] → dev.params[val] → float.
+float read_role_param(const SolverRole& role, const ResolvedDevice& dev,
+                      const char* key, float default_val) {
+    auto it = role.param_map.find(key);
+    if (it == role.param_map.end()) return default_val;
+    auto it_param = dev.params.find(it->second);
+    if (it_param == dev.params.end()) return default_val;
+    return parse_float_codegen(it_param->second, default_val);
+}
+
+/// Resolve a port name to its signal index. Returns std::nullopt if not found
+/// (throws in strict mode, warns in non-strict mode).
+std::optional<uint32_t> resolve_port_optional(
+    const std::string& device_name,
+    const std::string& classname,
+    const std::string& port_name,
+    const std::unordered_map<std::string, uint32_t>& port_to_signal,
+    const ElectricalExtractOptions& options)
+{
+    const std::string full_port = signal_key::make_node_port_key(device_name, port_name);
+    auto it = port_to_signal.find(full_port);
+    if (it == port_to_signal.end()) {
+        if (options.strict_port_resolution) {
+            throw std::runtime_error(
+                "[codegen] electrical port '" + full_port +
+                "' not found in signal map for device '" + device_name +
+                "' (classname: " + classname + ")"
+            );
+        }
+        if (options.warn_on_missing_ports) {
+            spdlog::warn("[codegen] electrical port '{}' not found in signal map for device '{}' (classname: {}). Element skipped from electrical plan.",
+                full_port, device_name, classname);
+        }
+        return std::nullopt;
+    }
+    return it->second;
+}
+
 struct ClassnameElectricalRule {
     const char* classname;
     ElectricalElementKindCodegen kind;
@@ -90,96 +128,35 @@ std::optional<RawElement> extract_solver_role_element(
     if (!dev.solver_role.has_value()) return std::nullopt;
     const auto& role = *dev.solver_role;
 
-    auto resolve_port = [&](const std::string& port_name) -> std::optional<uint32_t> {
-        const std::string full_port = signal_key::make_node_port_key(dev.name, port_name);
-        auto it = port_to_signal.find(full_port);
-        if (it == port_to_signal.end()) {
-            if (options.strict_port_resolution) {
-                throw std::runtime_error(
-                    "[codegen] electrical port '" + full_port +
-                    "' not found in signal map for device '" + dev.name +
-                    "' (classname: " + dev.classname + ")"
-                );
-            }
-            if (options.warn_on_missing_ports) {
-                spdlog::warn("[codegen] electrical port '{}' not found in signal map for device '{}' (classname: {}). Element skipped from electrical plan.",
-                    full_port, dev.name, dev.classname);
-            }
-            return std::nullopt;
-        }
-        return it->second;
-    };
-
     if (role.kind == "FixedVoltageNode") {
-        float value = 0.0f;
-        auto it_val = role.param_map.find("voltage");
-        if (it_val != role.param_map.end()) {
-            auto it_param = dev.params.find(it_val->second);
-            if (it_param != dev.params.end()) {
-                value = parse_float_codegen(it_param->second, 0.0f);
-            }
-        }
-        auto node_a_opt = resolve_port(role.port_map.at("node"));
-        if (!node_a_opt.has_value()) {
-            return std::nullopt;
-        }
-        return RawElement{
-            ElectricalElementKindCodegen::FixedVoltageNode,
-            *node_a_opt, UINT32_MAX, value, 0.0f, element_idx++,
-            dev.name, dev.classname
-        };
+        float value = read_role_param(role, dev, "voltage", 0.0f);
+        auto node = resolve_port_optional(dev.name, dev.classname, role.port_map.at("node"), port_to_signal, options);
+        if (!node.has_value()) return std::nullopt;
+        return RawElement{ ElectricalElementKindCodegen::FixedVoltageNode,
+            *node, UINT32_MAX, value, 0.0f, element_idx++, dev.name, dev.classname };
     }
 
     if (role.kind == "TheveninSource") {
-        float voltage = 28.0f;
-        float resistance = 0.01f;
-        auto it_v = role.param_map.find("voltage");
-        if (it_v != role.param_map.end()) {
-            auto it_param = dev.params.find(it_v->second);
-            if (it_param != dev.params.end()) {
-                voltage = parse_float_codegen(it_param->second, 28.0f);
-            }
-        }
-        auto it_r = role.param_map.find("resistance");
-        if (it_r != role.param_map.end()) {
-            auto it_param = dev.params.find(it_r->second);
-            if (it_param != dev.params.end()) {
-                resistance = parse_float_codegen(it_param->second, 0.01f);
-            }
-        }
-        auto node_pos_opt = resolve_port(role.port_map.at("pos"));
-        auto node_neg_opt = resolve_port(role.port_map.at("neg"));
-        if (!node_pos_opt.has_value() || !node_neg_opt.has_value()) {
-            return std::nullopt;
-        }
-        return RawElement{
-            ElectricalElementKindCodegen::TheveninSource,
-            *node_pos_opt, *node_neg_opt, voltage, resistance, element_idx++,
-            dev.name, dev.classname
-        };
+        float voltage = read_role_param(role, dev, "voltage", 28.0f);
+        float resistance = read_role_param(role, dev, "resistance", 0.01f);
+        auto pos = resolve_port_optional(dev.name, dev.classname, role.port_map.at("pos"), port_to_signal, options);
+        auto neg = resolve_port_optional(dev.name, dev.classname, role.port_map.at("neg"), port_to_signal, options);
+        if (!pos.has_value() || !neg.has_value()) return std::nullopt;
+        return RawElement{ ElectricalElementKindCodegen::TheveninSource,
+            *pos, *neg, voltage, resistance, element_idx++, dev.name, dev.classname };
     }
 
     if (role.kind == "ConductanceBranch") {
-        float conductance = 0.1f;
-        auto it_g = role.param_map.find("g");
-        if (it_g != role.param_map.end()) {
-            auto it_param = dev.params.find(it_g->second);
-            if (it_param != dev.params.end()) {
-                conductance = parse_float_codegen(it_param->second, 0.1f);
-            }
-        }
-        auto node_a_opt = resolve_port(role.port_map.at("a"));
-        auto node_b_opt = resolve_port(role.port_map.at("b"));
-        if (!node_a_opt.has_value() || !node_b_opt.has_value()) {
-            return std::nullopt;
-        }
-        return RawElement{
-            ElectricalElementKindCodegen::ConductanceBranch,
-            *node_a_opt, *node_b_opt, conductance, 0.0f, element_idx++,
-            dev.name, dev.classname
-        };
+        float g = read_role_param(role, dev, "g", 0.1f);
+        auto a = resolve_port_optional(dev.name, dev.classname, role.port_map.at("a"), port_to_signal, options);
+        auto b = resolve_port_optional(dev.name, dev.classname, role.port_map.at("b"), port_to_signal, options);
+        if (!a.has_value() || !b.has_value()) return std::nullopt;
+        return RawElement{ ElectricalElementKindCodegen::ConductanceBranch,
+            *a, *b, g, 0.0f, element_idx++, dev.name, dev.classname };
     }
 
+    spdlog::warn("[codegen] unrecognized solver_role kind '{}' for device '{}' — skipped",
+        role.kind, dev.name);
     return std::nullopt;
 }
 
@@ -191,68 +168,28 @@ std::optional<RawElement> extract_classname_rule_element(
     const ElectricalExtractOptions& options,
     size_t& element_idx
 ) {
-    auto resolve_port = [&](const std::string& port_name) -> std::optional<uint32_t> {
-        const std::string full_port = signal_key::make_node_port_key(dev.name, port_name);
-        auto it = port_to_signal.find(full_port);
-        if (it == port_to_signal.end()) {
-            if (options.strict_port_resolution) {
-                throw std::runtime_error(
-                    "[codegen] electrical port '" + full_port +
-                    "' not found in signal map for device '" + dev.name +
-                    "' (classname: " + dev.classname + ")"
-                );
-            }
-            if (options.warn_on_missing_ports) {
-                spdlog::warn("[codegen] electrical port '{}' not found in signal map for device '{}' (classname: {}). Element skipped from electrical plan.",
-                    full_port, dev.name, dev.classname);
-            }
-            return std::nullopt;
-        }
-        return it->second;
-    };
-
     for (const auto& rule : k_classname_rules) {
-        if (dev.classname != rule.classname) {
-            continue;
-        }
+        if (dev.classname != rule.classname) continue;
 
-        auto node_a_opt = resolve_port(rule.port_a);
-        if (!node_a_opt.has_value()) {
-            return std::nullopt;
-        }
+        auto node_a = resolve_port_optional(dev.name, dev.classname, rule.port_a, port_to_signal, options);
+        if (!node_a.has_value()) return std::nullopt;
 
         if (rule.kind == ElectricalElementKindCodegen::FixedVoltageNode) {
-            return RawElement{
-                rule.kind,
-                *node_a_opt,
-                UINT32_MAX,
+            return RawElement{ rule.kind,
+                *node_a, UINT32_MAX,
                 read_param_or(dev, rule.param_a, rule.param_a_default),
-                0.0f,
-                element_idx++,
-                dev.name, dev.classname
-            };
+                0.0f, element_idx++, dev.name, dev.classname };
         }
 
-        auto node_b_opt = resolve_port(rule.port_b);
-        if (!node_b_opt.has_value()) {
-            return std::nullopt;
-        }
+        auto node_b = resolve_port_optional(dev.name, dev.classname, rule.port_b, port_to_signal, options);
+        if (!node_b.has_value()) return std::nullopt;
 
         float value_a = read_param_or(dev, rule.param_a, rule.param_a_default);
-        float value_b = 0.0f;
-        if (rule.param_b != nullptr) {
-            value_b = read_param_or(dev, rule.param_b, rule.param_b_default);
-        }
+        float value_b = (rule.param_b != nullptr)
+            ? read_param_or(dev, rule.param_b, rule.param_b_default) : 0.0f;
 
-        return RawElement{
-            rule.kind,
-            *node_a_opt,
-            *node_b_opt,
-            value_a,
-            value_b,
-            element_idx++,
-            dev.name, dev.classname
-        };
+        return RawElement{ rule.kind,
+            *node_a, *node_b, value_a, value_b, element_idx++, dev.name, dev.classname };
     }
 
     return std::nullopt;
