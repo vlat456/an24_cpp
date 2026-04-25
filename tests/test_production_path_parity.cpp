@@ -6,16 +6,25 @@
 #include "blueprint_v2/library/blueprint_library.h"
 #include "blueprint_v2/library/type_def_to_blueprint.h"
 #include "blueprint_v2/elaboration/sim_export.h"
-#include "test_fixtures.h"
 #include "jit_build_input_test_helper.h"
 #include "ui/core/interned_id.h"
 #include <set>
 
 namespace {
 
+/// Copy type specs from the authoritative library registry into a custom registry.
+/// Used by tests that need custom types alongside library types.
+void register_from_library(ComponentRegistry& registry, std::initializer_list<const char*> classnames) {
+    for (const char* name : classnames) {
+        const ComponentSpec* spec = test_registry().get(name);
+        ASSERT_NE(spec, nullptr) << "Missing library spec: " << name;
+        registry.register_type(name, *spec);
+    }
+}
+
 ComponentRegistry build_registry_for_lamp() {
     ComponentRegistry registry;
-    register_lamp_composite_types(registry);
+    register_from_library(registry, {"IndicatorLight"});
 
     CompositeSpec lamp;
     lamp.classname = "voltage_indicator";
@@ -83,7 +92,7 @@ TEST(ProductionPathParity, CompositeAotJitTopologyParity) {
 
 TEST(ProductionPathParity, MultiIslandDebugAndPlanParity) {
     ComponentRegistry registry;
-    register_basic_electrical_types(registry);
+    register_from_library(registry, {"ElectricalSource", "ElectricalConductance", "RefNode"});
 
     CompositeSpec circuit;
     circuit.classname = "multi_island_circuit";

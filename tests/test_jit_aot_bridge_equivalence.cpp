@@ -5,13 +5,25 @@
 #include "core/solvers/jit/jit_solver.h"
 #include "core/registry/component_resolution.h"
 #include "jit_build_input_test_helper.h"
-#include "test_fixtures.h"
 #include "core/model/component_registry.h"
 
 namespace {
 
+BridgePortDefinition make_bridge_port_def(const std::string& id,
+                                           bp2::BridgeDirection direction,
+                                           PortType type = PortType::Any,
+                                           const std::string& exposed_port = "") {
+    BridgePortDefinition bridge;
+    bridge.id = id;
+    bridge.exposed_port = exposed_port.empty() ? id : exposed_port;
+    bridge.direction = direction;
+    bridge.type = type;
+    bridge.label = bridge.exposed_port;
+    return bridge;
+}
+
 std::vector<ResolvedDevice> resolve_all_devices(const std::vector<DeviceInstance>& devices,
-                                                const ComponentRegistry& registry) {
+                                                 const ComponentRegistry& registry) {
     std::vector<ResolvedDevice> resolved;
     resolved.reserve(devices.size());
     for (const auto& dev : devices) {
@@ -39,10 +51,23 @@ std::vector<ResolvedDevice> resolve_all_devices(const std::vector<DeviceInstance
 TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
     ComponentRegistry registry;
 
-    PrimitiveSpec gnd = make_refnode_type(bp2::Direction::Output);
+    PrimitiveSpec gnd;
+    gnd.classname = "RefNode";
+    gnd.ports["v"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
+    gnd.domains = {Domain::Electrical};
+    gnd.solver.execution = {.electrical_passive = true};
+    gnd.solver.scheduler_source = true;
+    gnd.params["value"] = ParamSpec{ParamSchemaType::Float, "0.0"};
+    SolverRole role;
+    role.kind = "FixedVoltageNode";
+    role.port_map["node"] = "v";
+    role.param_map["voltage"] = "value";
+    role.value_map["bind_handle"] = 1.0f;
+    gnd.solver.solver_role = role;
+    gnd.solver.solver_owned_electrical = false;
     registry.register_type("RefNode", gnd);
 
-    PrimitiveSpec cmd = make_any_v_to_bool_type();
+    PrimitiveSpec cmd = *as_primitive(*test_registry().get("Any_V_to_Bool"));
     cmd.ports["v_in"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
     registry.register_type("Any_V_to_Bool", cmd);
 
@@ -72,10 +97,10 @@ TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
     }
     registry.register_type("ControlledVoltageSource", src);
 
-    PrimitiveSpec val = make_value_type();
+    PrimitiveSpec val = *as_primitive(*test_registry().get("Value"));
     registry.register_type("Value", val);
 
-    PrimitiveSpec meter = make_voltmeter_type();
+    PrimitiveSpec meter = *as_primitive(*test_registry().get("Voltmeter"));
     registry.register_type("Voltmeter", meter);
 
     std::vector<DeviceInstance> devices;
@@ -187,7 +212,7 @@ TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
 
 TEST(JitAotBridgeEquivalence, SignalAllocationParityForBridgeAndAliasRules) {
     ComponentRegistry registry;
-    registry.register_type("Resistor", make_resistor_type());
+    registry.register_type("Resistor", *as_primitive(*test_registry().get("Resistor")));
 
     std::vector<DeviceInstance> devices;
     std::vector<BridgePortDefinition> bridges = {
@@ -251,8 +276,8 @@ TEST(JitAotBridgeEquivalence, SignalAllocationParityForBridgeAndAliasRules) {
 
 TEST(JitAotBridgeEquivalence, VisualOnlyDevicesIgnoredByBothPaths) {
     ComponentRegistry registry;
-    registry.register_type("Resistor", make_resistor_type());
-    PrimitiveSpec value_type = make_value_type();
+    registry.register_type("Resistor", *as_primitive(*test_registry().get("Resistor")));
+    PrimitiveSpec value_type = *as_primitive(*test_registry().get("Value"));
     // visual_only is now on TypePresentation - bundle with register_type
     registry.register_type("Value", value_type, TypePresentation{.visual_only = true});
 

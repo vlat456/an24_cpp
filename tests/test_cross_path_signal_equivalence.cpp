@@ -27,7 +27,6 @@
 #include "ui/core/interned_id.h"
 #include "bp2_test_helpers.h"
 #include "jit_build_input_test_helper.h"
-#include "test_fixtures.h"
 
 #include <algorithm>
 #include <fstream>
@@ -207,8 +206,8 @@ ComponentRegistry make_minimal_registry() {
         registry.register_type("Battery", spec);
     }
 
-    // Resistor
-    registry.register_type("Resistor", make_resistor_type());
+    // Resistor (from authoritative library spec, not test_fixtures.h)
+    registry.register_type("Resistor", *as_primitive(*test_registry().get("Resistor")));
 
     // Ground (port name must match Blueprint interface "gnd")
     {

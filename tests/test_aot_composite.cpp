@@ -7,11 +7,35 @@
 #include "blueprint_v2/library/type_def_to_blueprint.h"
 #include "blueprint_v2/elaboration/sim_export.h"
 #include "ui/core/interned_id.h"
-#include "test_fixtures.h"
 #include "jit_build_input_test_helper.h"
 #include <regex>
 #include <set>
 #include <unordered_map>
+
+namespace {
+/// Copy type specs from the authoritative library registry into a custom registry.
+void register_from_library(ComponentRegistry& registry, std::initializer_list<const char*> classnames) {
+    for (const char* name : classnames) {
+        const ComponentSpec* spec = test_registry().get(name);
+        ASSERT_NE(spec, nullptr) << "Missing library spec: " << name;
+        registry.register_type(name, *spec);
+    }
+}
+
+/// Construct a BridgePortDefinition for test composite wiring.
+BridgePortDefinition make_bridge_port_def(const std::string& id,
+                                          bp2::BridgeDirection direction,
+                                          PortType type = PortType::Any,
+                                          const std::string& exposed_port = "") {
+    BridgePortDefinition bridge;
+    bridge.id = id;
+    bridge.exposed_port = exposed_port.empty() ? id : exposed_port;
+    bridge.direction = direction;
+    bridge.type = type;
+    bridge.label = bridge.exposed_port;
+    return bridge;
+}
+} // namespace
 
 // ============================================================
 // Composite Systems generation
@@ -19,7 +43,7 @@
 
 TEST(AotComposite, GeneratesSystemsForComposite) {
     ComponentRegistry registry;
-    registry.register_type("IndicatorLight", make_indicator_light_type());
+    registry.register_type("IndicatorLight", *as_primitive(*test_registry().get("IndicatorLight")));
 
     CompositeSpec lamp;
     lamp.classname = "voltage_indicator";
@@ -56,8 +80,8 @@ TEST(AotComposite, GeneratesSystemsForComposite) {
 
 TEST(AotComposite, NestedComposite_ContainsSubSystems) {
     ComponentRegistry registry;
-    registry.register_type("ElectricalSource", make_electrical_source_type());
-    registry.register_type("Bus", make_bus_type());
+    registry.register_type("ElectricalSource", *as_primitive(*test_registry().get("ElectricalSource")));
+    registry.register_type("Bus", *as_primitive(*test_registry().get("Bus")));
 
     CompositeSpec inner;
     inner.classname = "battery_wrapper";
@@ -94,7 +118,7 @@ TEST(AotComposite, NestedComposite_ContainsSubSystems) {
 
 TEST(AotComposite, ThreeLevelsDeep_FullHierarchy) {
     ComponentRegistry registry;
-    registry.register_type("Resistor", make_resistor_type());
+    registry.register_type("Resistor", *as_primitive(*test_registry().get("Resistor")));
 
     CompositeSpec leaf;
     leaf.classname = "leaf_type";
@@ -181,8 +205,8 @@ TEST(AotComposite, TopoSort_MissingSubBlueprintThrows) {
 
 TEST(AotComposite, PreLoad_CallsSubComposites) {
     ComponentRegistry registry;
-    registry.register_type("ElectricalSource", make_electrical_source_type());
-    registry.register_type("Bus", make_bus_type());
+    registry.register_type("ElectricalSource", *as_primitive(*test_registry().get("ElectricalSource")));
+    registry.register_type("Bus", *as_primitive(*test_registry().get("Bus")));
 
     CompositeSpec inner;
     inner.classname = "inner_type";
@@ -233,7 +257,7 @@ TEST(AotComposite, OutputMatchesJitExpansion) {
     // ---- Build a registry with full type definitions (ports + params) ----
 
     ComponentRegistry registry;
-    register_lamp_composite_types(registry);
+    register_from_library(registry, {"IndicatorLight"});
 
     // Composite: voltage_indicator (vin→lamp→vout)
     CompositeSpec lamp;
@@ -362,9 +386,9 @@ TEST(AotComposite, OutputMatchesJitExpansion) {
 
 TEST(AotComposite, ElectricalPlan_BatteryAndResistor_GeneratesIslandArrays) {
     ComponentRegistry registry;
-    registry.register_type("Generator", make_generator_type());
-    registry.register_type("Resistor", make_resistor_type());
-    registry.register_type("RefNode", make_refnode_type());
+    registry.register_type("Generator", *as_primitive(*test_registry().get("Generator")));
+    registry.register_type("Resistor", *as_primitive(*test_registry().get("Resistor")));
+    registry.register_type("RefNode", *as_primitive(*test_registry().get("RefNode")));
 
     // Simple circuit: ElectricalSource -> Resistor -> RefNode (fixed voltage)
     CompositeSpec circuit;
@@ -424,8 +448,8 @@ TEST(AotComposite, ElectricalPlan_BatteryAndResistor_GeneratesIslandArrays) {
 
 TEST(AotComposite, ElectricalPlan_IndicatorLight_GeneratesConductanceBranch) {
     ComponentRegistry registry;
-    registry.register_type("ElectricalSource", make_electrical_source_type());
-    registry.register_type("IndicatorLight", make_indicator_light_type());
+    registry.register_type("ElectricalSource", *as_primitive(*test_registry().get("ElectricalSource")));
+    registry.register_type("IndicatorLight", *as_primitive(*test_registry().get("IndicatorLight")));
 
     CompositeSpec lamp_circuit;
     lamp_circuit.classname = "lamp_circuit";
@@ -459,8 +483,8 @@ TEST(AotComposite, ElectricalPlan_IndicatorLight_GeneratesConductanceBranch) {
 
 TEST(AotComposite, ElectricalPlan_NoElectricalDevices_HasZeroIslands) {
     ComponentRegistry registry;
-    // Use make_bus_type - visual_only is now on TypePresentation, not PrimitiveSpec
-    registry.register_type("Bus", make_bus_type());
+    // Bus is visual_only via TypePresentation, not PrimitiveSpec
+    registry.register_type("Bus", *as_primitive(*test_registry().get("Bus")));
 
     CompositeSpec no_elec;
     no_elec.classname = "no_electrical";
@@ -485,10 +509,10 @@ TEST(AotComposite, ElectricalPlan_NoElectricalDevices_HasZeroIslands) {
 TEST(AotComposite, ElectricalBindings_WrapperHandlesGenerated) {
     ComponentRegistry registry;
 
-    registry.register_type("Generator", make_generator_type());
-    registry.register_type("CurrentSense", make_currentsense_type());
-    registry.register_type("IndicatorLight", make_indicator_light_type());
-    registry.register_type("RefNode", make_refnode_type());
+    registry.register_type("Generator", *as_primitive(*test_registry().get("Generator")));
+    registry.register_type("CurrentSense", *as_primitive(*test_registry().get("CurrentSense")));
+    registry.register_type("IndicatorLight", *as_primitive(*test_registry().get("IndicatorLight")));
+    registry.register_type("RefNode", *as_primitive(*test_registry().get("RefNode")));
 
     CompositeSpec circuit;
     circuit.classname = "wrapper_binding_circuit";
@@ -537,7 +561,7 @@ TEST(AotComposite, ElectricalBindings_WrapperHandlesGenerated) {
 
 TEST(AotComposite, ElectricalBindings_StableAcrossConnectionReordering) {
     ComponentRegistry registry;
-    register_generator_sense_ref_types(registry);
+    register_from_library(registry, {"Generator", "CurrentSense", "RefNode"});
 
     auto make_circuit = [&](const std::vector<Connection>& conns, const std::string& name) {
         CompositeSpec td;
@@ -606,7 +630,7 @@ TEST(AotComposite, ElectricalBindings_StableAcrossConnectionReordering) {
 
 TEST(AotComposite, ElectricalBindings_AssignAllHandleFieldsFromConstants) {
     ComponentRegistry registry;
-    register_generator_sense_ref_types(registry);
+    register_from_library(registry, {"Generator", "CurrentSense", "RefNode"});
 
     CompositeSpec circuit;
     circuit.classname = "binding_fields_circuit";
@@ -657,13 +681,13 @@ TEST(AotComposite, ElectricalBindings_AssignAllHandleFieldsFromConstants) {
 // binding construction must still map to the correct device name (not devices[element_idx]).
 TEST(AotComposite, ElectricalBindings_MixedDevicesCorrectMapping) {
     ComponentRegistry registry;
-    registry.register_type("Generator", make_generator_type());
+    registry.register_type("Generator", *as_primitive(*test_registry().get("Generator")));
 
     // Non-electrical device that sits between electrical devices in the list
-    registry.register_type("Any_V_to_Bool", make_any_v_to_bool_type());
+    registry.register_type("Any_V_to_Bool", *as_primitive(*test_registry().get("Any_V_to_Bool")));
 
-    registry.register_type("CurrentSense", make_currentsense_type());
-    registry.register_type("RefNode", make_refnode_type());
+    registry.register_type("CurrentSense", *as_primitive(*test_registry().get("CurrentSense")));
+    registry.register_type("RefNode", *as_primitive(*test_registry().get("RefNode")));
 
     CompositeSpec circuit;
     circuit.classname = "mixed_device_circuit";
@@ -726,9 +750,9 @@ TEST(AotComposite, ElectricalBindings_MixedDevicesCorrectMapping) {
 
 TEST(AotComposite, ElectricalDebugMap_ContainsRoleAndEndpoints) {
     ComponentRegistry registry;
-    registry.register_type("ElectricalSource", make_electrical_source_type());
-    registry.register_type("CurrentSense", make_currentsense_type());
-    registry.register_type("RefNode", make_refnode_type());
+    registry.register_type("ElectricalSource", *as_primitive(*test_registry().get("ElectricalSource")));
+    registry.register_type("CurrentSense", *as_primitive(*test_registry().get("CurrentSense")));
+    registry.register_type("RefNode", *as_primitive(*test_registry().get("RefNode")));
 
     CompositeSpec circuit;
     circuit.classname = "debug_map_circuit";
@@ -774,7 +798,7 @@ TEST(AotComposite, ElectricalDebugMap_ContainsRoleAndEndpoints) {
 
 TEST(AotComposite, ElectricalDiagnostics_WarnPathGenerated) {
     ComponentRegistry registry;
-    register_basic_electrical_types(registry);
+    register_from_library(registry, {"ElectricalSource", "ElectricalConductance", "RefNode"});
 
     CompositeSpec circuit;
     circuit.classname = "diag_warn_circuit";
@@ -818,7 +842,7 @@ TEST(AotComposite, ElectricalDiagnostics_WarnPathGenerated) {
 
 TEST(AotComposite, ElectricalDebugMap_ContainsIslandAndElementIndices) {
     ComponentRegistry registry;
-    register_basic_electrical_types(registry);
+    register_from_library(registry, {"ElectricalSource", "ElectricalConductance", "RefNode"});
 
     CompositeSpec circuit;
     circuit.classname = "debug_idx_circuit";
@@ -935,7 +959,21 @@ TEST(AotComposite, GeneratedStepMethodsIncludeCommitCalls) {
 TEST(AotComposite, GeneratedStepMethodsUseSourceConsumerOrdering) {
     ComponentRegistry registry;
 
-    registry.register_type("RefNode", make_refnode_type(bp2::Direction::Output));
+    PrimitiveSpec refnode_out;
+    refnode_out.classname = "RefNode";
+    refnode_out.ports["v"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
+    refnode_out.domains = {Domain::Electrical};
+    refnode_out.solver.execution = {.electrical_passive = true};
+    refnode_out.solver.scheduler_source = true;
+    refnode_out.params["value"] = ParamSpec{ParamSchemaType::Float, "0.0"};
+    SolverRole role;
+    role.kind = "FixedVoltageNode";
+    role.port_map["node"] = "v";
+    role.param_map["voltage"] = "value";
+    role.value_map["bind_handle"] = 1.0f;
+    refnode_out.solver.solver_role = role;
+    refnode_out.solver.solver_owned_electrical = false;
+    registry.register_type("RefNode", refnode_out);
 
     PrimitiveSpec consumer_type;
     consumer_type.classname = "Voltmeter";
@@ -989,7 +1027,7 @@ TEST(AotComposite, BridgeNodeExtPortUnification) {
     ComponentRegistry registry;
 
     // IndicatorLight (simple pass-through component)
-    PrimitiveSpec light = make_indicator_light_type();
+    PrimitiveSpec light = *as_primitive(*test_registry().get("IndicatorLight"));
     registry.register_type("IndicatorLight", light);
 
     // Composite: vin→lamp→vout
@@ -1085,8 +1123,8 @@ TEST(AotComposite, DynamicSourcePatchingGeneratedForElectricalWrappers) {
     vc.solver.execution = {.electrical_passive = true};
     registry.register_type("VariableConductance", vc);
 
-    registry.register_type("RefNode", make_refnode_type());
-    registry.register_type("Value", make_value_type());
+    registry.register_type("RefNode", *as_primitive(*test_registry().get("RefNode")));
+    registry.register_type("Value", *as_primitive(*test_registry().get("Value")));
 
     CompositeSpec circuit;
     circuit.classname = "dynamic_patch_test";
