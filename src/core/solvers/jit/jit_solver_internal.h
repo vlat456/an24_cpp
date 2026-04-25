@@ -1,6 +1,6 @@
 #pragma once
 
-#include "jit_solver.h"
+#include "jit_solver_detail.h"
 #include <string>
 #include <string_view>
 #include <vector>

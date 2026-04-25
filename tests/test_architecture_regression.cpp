@@ -17,6 +17,7 @@
 #include "core/model/component_registry.h"
 #include "core/solvers/jit/simulator.h"
 #include "core/solvers/jit/jit_solver.h"
+#include "core/solvers/jit/jit_solver_detail.h"
 #include "core/solvers/common/provider.h"
 #include "core/solvers/common/port_names.h"
 #include "core/solvers/common/port_registry.h"
@@ -121,16 +122,16 @@ TEST(E002_SolverOwnedRefs, PopulatedAfterBuild) {
      auto br = build_systems_dev(make_jit_input(devices, signal_groups));
 
      // ElectricalSource pointer list should be populated
-     EXPECT_EQ(br.solver_owned.electrical_sources.size(), 1u);
-     EXPECT_NE(br.solver_owned.electrical_sources[0], nullptr);
+     EXPECT_EQ(br.solver_owned->electrical_sources.size(), 1u);
+     EXPECT_NE(br.solver_owned->electrical_sources[0], nullptr);
 
      // AZS pointer list should be populated
-     EXPECT_EQ(br.solver_owned.azs_switches.size(), 1u);
-     EXPECT_NE(br.solver_owned.azs_switches[0], nullptr);
+     EXPECT_EQ(br.solver_owned->azs_switches.size(), 1u);
+     EXPECT_NE(br.solver_owned->azs_switches[0], nullptr);
 
      // Relay pointer list should be populated
-     EXPECT_EQ(br.solver_owned.relays.size(), 1u);
-     EXPECT_NE(br.solver_owned.relays[0], nullptr);
+     EXPECT_EQ(br.solver_owned->relays.size(), 1u);
+     EXPECT_NE(br.solver_owned->relays[0], nullptr);
 }
 
 TEST(E002_SolverOwnedRefs, PointersMatchDeviceMap) {
@@ -147,7 +148,7 @@ TEST(E002_SolverOwnedRefs, PointersMatchDeviceMap) {
 
      auto br = build_systems_dev(make_jit_input(devices, signal_groups));
 
-     ASSERT_EQ(br.solver_owned.electrical_sources.size(), 1u);
+     ASSERT_EQ(br.solver_owned->electrical_sources.size(), 1u);
 
      // The pointer in solver_owned should point into the devices map
      auto it = br.devices.find("bat1");
@@ -155,7 +156,7 @@ TEST(E002_SolverOwnedRefs, PointersMatchDeviceMap) {
 
      const ElectricalSource<JitProvider>* from_map = std::get_if<ElectricalSource<JitProvider>>(&it->second);
      ASSERT_NE(from_map, nullptr);
-     EXPECT_EQ(br.solver_owned.electrical_sources[0], from_map);
+     EXPECT_EQ(br.solver_owned->electrical_sources[0], from_map);
 }
 
 TEST(E002_SolverOwnedRefs, DeviceStoreSealedAfterBuild) {
@@ -185,15 +186,15 @@ TEST(E002_SolverOwnedRefs, EmptyCircuitHasEmptyRefs) {
 
      auto br = build_systems_dev(make_jit_input(devices, signal_groups));
 
-     EXPECT_TRUE(br.solver_owned.generators.empty());
-     EXPECT_TRUE(br.solver_owned.controlled_voltage_sources.empty());
-     EXPECT_TRUE(br.solver_owned.variable_conductances.empty());
-     EXPECT_TRUE(br.solver_owned.azs_switches.empty());
-     EXPECT_TRUE(br.solver_owned.hold_buttons.empty());
-     EXPECT_TRUE(br.solver_owned.relays.empty());
-     EXPECT_TRUE(br.solver_owned.resistors.empty());
-     EXPECT_TRUE(br.solver_owned.electrical_conductances.empty());
-     EXPECT_TRUE(br.solver_owned.electrical_sources.empty());
+     EXPECT_TRUE(br.solver_owned->generators.empty());
+     EXPECT_TRUE(br.solver_owned->controlled_voltage_sources.empty());
+     EXPECT_TRUE(br.solver_owned->variable_conductances.empty());
+     EXPECT_TRUE(br.solver_owned->azs_switches.empty());
+     EXPECT_TRUE(br.solver_owned->hold_buttons.empty());
+     EXPECT_TRUE(br.solver_owned->relays.empty());
+     EXPECT_TRUE(br.solver_owned->resistors.empty());
+     EXPECT_TRUE(br.solver_owned->electrical_conductances.empty());
+     EXPECT_TRUE(br.solver_owned->electrical_sources.empty());
 }
 
 // =============================================================================

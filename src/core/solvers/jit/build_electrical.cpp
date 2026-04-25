@@ -351,7 +351,7 @@ void build_electrical_patch_ops(BuildResult& result)
         result.electrical_patch_ops.push_back(op);
     };
 
-    for (auto* comp : result.solver_owned.controlled_voltage_sources) {
+    for (auto* comp : result.solver_owned->controlled_voltage_sources) {
         if (!is_valid(comp->electrical_handle)) continue;
         ElectricalPatchOp op;
         op.kind = ElectricalPatchKind::AffineClamp;
@@ -364,7 +364,7 @@ void build_electrical_patch_ops(BuildResult& result)
         add_op(op);
     }
 
-    for (auto* comp : result.solver_owned.variable_conductances) {
+    for (auto* comp : result.solver_owned->variable_conductances) {
         if (!is_valid(comp->electrical_handle)) continue;
         ElectricalPatchOp op;
         op.kind = ElectricalPatchKind::LerpClamped01;
@@ -375,7 +375,7 @@ void build_electrical_patch_ops(BuildResult& result)
         add_op(op);
     }
 
-    for (auto* comp : result.solver_owned.azs_switches) {
+    for (auto* comp : result.solver_owned->azs_switches) {
         if (!is_valid(comp->electrical_handle)) continue;
         ElectricalPatchOp op;
         op.kind = ElectricalPatchKind::BoolSwitch;
@@ -386,7 +386,7 @@ void build_electrical_patch_ops(BuildResult& result)
         add_op(op);
     }
 
-    for (auto* comp : result.solver_owned.hold_buttons) {
+    for (auto* comp : result.solver_owned->hold_buttons) {
         if (!is_valid(comp->electrical_handle)) continue;
         ElectricalPatchOp op;
         op.kind = ElectricalPatchKind::BoolSwitch;
@@ -397,7 +397,7 @@ void build_electrical_patch_ops(BuildResult& result)
         add_op(op);
     }
 
-    for (auto* comp : result.solver_owned.relays) {
+    for (auto* comp : result.solver_owned->relays) {
         if (!is_valid(comp->electrical_handle)) continue;
         ElectricalPatchOp op;
         op.kind = ElectricalPatchKind::BoolSwitch;
@@ -408,7 +408,7 @@ void build_electrical_patch_ops(BuildResult& result)
         add_op(op);
     }
 
-    for (auto* comp : result.solver_owned.knob_switches) {
+    for (auto* comp : result.solver_owned->knob_switches) {
         for (int i = 0; i < comp->num_handles; ++i) {
             if (!is_valid(comp->electrical_handles[i])) continue;
             ElectricalPatchOp op;
@@ -431,27 +431,27 @@ void populate_solver_owned_refs(BuildResult& result)
         std::visit([&](auto& comp) {
             using T = std::decay_t<decltype(comp)>;
             if constexpr (std::is_same_v<T, ControlledVoltageSource<JitProvider>>) {
-                result.solver_owned.controlled_voltage_sources.push_back(&comp);
+                result.solver_owned->controlled_voltage_sources.push_back(&comp);
             } else if constexpr (std::is_same_v<T, VariableConductance<JitProvider>>) {
-                result.solver_owned.variable_conductances.push_back(&comp);
+                result.solver_owned->variable_conductances.push_back(&comp);
             } else if constexpr (std::is_same_v<T, AZS<JitProvider>>) {
-                result.solver_owned.azs_switches.push_back(&comp);
+                result.solver_owned->azs_switches.push_back(&comp);
             } else if constexpr (std::is_same_v<T, HoldButton<JitProvider>>) {
-                result.solver_owned.hold_buttons.push_back(&comp);
+                result.solver_owned->hold_buttons.push_back(&comp);
             } else if constexpr (std::is_same_v<T, Relay<JitProvider>>) {
-                result.solver_owned.relays.push_back(&comp);
+                result.solver_owned->relays.push_back(&comp);
             } else if constexpr (std::is_same_v<T, KnobSwitch<JitProvider>> ||
                                std::is_same_v<T, RotarySwitch1ToN<JitProvider>> ||
                                std::is_same_v<T, RotarySwitchNTo1<JitProvider>>) {
-                result.solver_owned.knob_switches.push_back(&comp);
+                result.solver_owned->knob_switches.push_back(&comp);
             } else if constexpr (std::is_same_v<T, Generator<JitProvider>>) {
-                result.solver_owned.generators.push_back(&comp);
+                result.solver_owned->generators.push_back(&comp);
             } else if constexpr (std::is_same_v<T, Resistor<JitProvider>>) {
-                result.solver_owned.resistors.push_back(&comp);
+                result.solver_owned->resistors.push_back(&comp);
             } else if constexpr (std::is_same_v<T, ElectricalConductance<JitProvider>>) {
-                result.solver_owned.electrical_conductances.push_back(&comp);
+                result.solver_owned->electrical_conductances.push_back(&comp);
             } else if constexpr (std::is_same_v<T, ElectricalSource<JitProvider>>) {
-                result.solver_owned.electrical_sources.push_back(&comp);
+                result.solver_owned->electrical_sources.push_back(&comp);
             }
         }, variant);
     });
@@ -481,16 +481,16 @@ void build_solver_step_ops(BuildResult& result)
         }
     };
 
-    if (!result.solver_owned.generators.empty()) add_group(result.solver_owned.generators);
-    if (!result.solver_owned.resistors.empty()) add_group(result.solver_owned.resistors);
-    if (!result.solver_owned.electrical_conductances.empty()) add_group(result.solver_owned.electrical_conductances);
-    if (!result.solver_owned.electrical_sources.empty()) add_group(result.solver_owned.electrical_sources);
-    if (!result.solver_owned.controlled_voltage_sources.empty()) add_group(result.solver_owned.controlled_voltage_sources);
-    if (!result.solver_owned.variable_conductances.empty()) add_group(result.solver_owned.variable_conductances);
-    if (!result.solver_owned.azs_switches.empty()) add_group(result.solver_owned.azs_switches);
-    if (!result.solver_owned.hold_buttons.empty()) add_group(result.solver_owned.hold_buttons);
-    if (!result.solver_owned.relays.empty()) add_group(result.solver_owned.relays);
-    if (!result.solver_owned.knob_switches.empty()) add_group(result.solver_owned.knob_switches);
+    if (!result.solver_owned->generators.empty()) add_group(result.solver_owned->generators);
+    if (!result.solver_owned->resistors.empty()) add_group(result.solver_owned->resistors);
+    if (!result.solver_owned->electrical_conductances.empty()) add_group(result.solver_owned->electrical_conductances);
+    if (!result.solver_owned->electrical_sources.empty()) add_group(result.solver_owned->electrical_sources);
+    if (!result.solver_owned->controlled_voltage_sources.empty()) add_group(result.solver_owned->controlled_voltage_sources);
+    if (!result.solver_owned->variable_conductances.empty()) add_group(result.solver_owned->variable_conductances);
+    if (!result.solver_owned->azs_switches.empty()) add_group(result.solver_owned->azs_switches);
+    if (!result.solver_owned->hold_buttons.empty()) add_group(result.solver_owned->hold_buttons);
+    if (!result.solver_owned->relays.empty()) add_group(result.solver_owned->relays);
+    if (!result.solver_owned->knob_switches.empty()) add_group(result.solver_owned->knob_switches);
 }
 
 }  // namespace

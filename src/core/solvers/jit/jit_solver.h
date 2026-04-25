@@ -7,23 +7,57 @@
 #include "ui/core/interned_id.h"
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-// Component forward declarations for SolverOwnedRefs typed pointers
-#include "components/controlled_voltage_source.h"
-#include "components/variable_conductance.h"
-#include "components/azs.h"
-#include "components/hold_button.h"
-#include "components/relay.h"
-#include "components/knob_switch.h"
-#include "components/electrical_conductance.h"
-#include "components/electrical_source.h"
-
 // Forward declarations
 struct SimulationState;
+struct SolverOwnedRefs;
+
+// ---- Compiled operation types (no component header dependencies) ----
+
+/// Kind of electrical patch operation applied before each solve.
+enum class ElectricalPatchKind : uint8_t {
+    AffineClamp,
+    LerpClamped01,
+    BoolSwitch,
+    IndexSwitch
+};
+
+/// Compiled pre-solve electrical patch operation.
+/// Each op writes current-frame mutable element values by element_id.
+struct ElectricalPatchOp {
+    ElectricalPatchKind kind = ElectricalPatchKind::AffineClamp;
+    uint32_t element_id = UINT32_MAX;
+
+    // Signal-driven operands (used by AffineClamp/LerpClamped01).
+    uint32_t s0 = UINT32_MAX;
+    uint32_t s1 = UINT32_MAX;
+    uint32_t s2 = UINT32_MAX;
+    uint32_t s3 = UINT32_MAX;
+    uint32_t s4 = UINT32_MAX;
+
+    // Pointer-driven state (used by BoolSwitch/IndexSwitch).
+    const bool* bool_state = nullptr;
+    const int* int_state = nullptr;
+    int index_value = 0;
+
+    // Constant outputs for switch kinds.
+    float open_value = 0.0f;
+    float closed_value = 0.0f;
+};
+
+/// Type-erased component step function signature.
+using SolverStepFn = void (*)(void*, SimulationState&, double);
+
+/// Compiled post-solve execute or commit operation for solver-owned components.
+struct SolverStepOp {
+    void* instance = nullptr;
+    SolverStepFn fn = nullptr;
+};
 
 /// Typed port-to-signal mapping. Keys are interned "node_id.port_name" strings.
 /// Runtime lookups are integer-only (InternedId comparison, no string hashing).
@@ -103,64 +137,19 @@ inline Domain get_component_domain_mask(const ComponentVariant& variant) {
     }, variant);
 }
 
-/// Pre-built typed pointer lists for solver-owned components.
-/// Populated at build time to eliminate per-frame std::visit scans
-/// over the full 68-type ComponentVariant.
-struct SolverOwnedRefs {
-    // Dynamic source components (patched before solve_electrical each frame)
-    std::vector<ControlledVoltageSource<JitProvider>*> controlled_voltage_sources;
-    std::vector<VariableConductance<JitProvider>*> variable_conductances;
-    std::vector<AZS<JitProvider>*> azs_switches;
-    std::vector<HoldButton<JitProvider>*> hold_buttons;
-    std::vector<Relay<JitProvider>*> relays;
-    std::vector<KnobSwitch<JitProvider>*> knob_switches;
-
-    // Commit-phase components (commit() called after solve_electrical each frame)
-    std::vector<Generator<JitProvider>*> generators;
-    std::vector<Resistor<JitProvider>*> resistors;
-    std::vector<ElectricalConductance<JitProvider>*> electrical_conductances;
-    std::vector<ElectricalSource<JitProvider>*> electrical_sources;
-};
-
-enum class ElectricalPatchKind : uint8_t {
-    AffineClamp,
-    LerpClamped01,
-    BoolSwitch,
-    IndexSwitch
-};
-
-struct ElectricalPatchOp {
-    ElectricalPatchKind kind = ElectricalPatchKind::AffineClamp;
-    uint32_t element_id = UINT32_MAX;
-
-    // Signal-driven operands (used by AffineClamp/LerpClamped01).
-    uint32_t s0 = UINT32_MAX;
-    uint32_t s1 = UINT32_MAX;
-    uint32_t s2 = UINT32_MAX;
-    uint32_t s3 = UINT32_MAX;
-    uint32_t s4 = UINT32_MAX;
-
-    // Pointer-driven state (used by BoolSwitch/IndexSwitch).
-    const bool* bool_state = nullptr;
-    const int* int_state = nullptr;
-    int index_value = 0;
-
-    // Constant outputs for switch kinds.
-    float open_value = 0.0f;
-    float closed_value = 0.0f;
-};
-
-using SolverStepFn = void (*)(void*, SimulationState&, double);
-
-struct SolverStepOp {
-    void* instance = nullptr;
-    SolverStepFn fn = nullptr;
-};
-
 /// Build port-to-signal mapping from devices and connections
 /// For AOT, this is used by codegen to generate component bindings
 struct BuildResult {
-    uint32_t signal_count;
+    /// Special members defined in jit_solver.cpp where SolverOwnedRefs is complete.
+    /// Required for unique_ptr<SolverOwnedRefs> with incomplete type (pimpl).
+    ~BuildResult();
+    BuildResult();
+    BuildResult(BuildResult&&) noexcept;
+    BuildResult& operator=(BuildResult&&) noexcept;
+    BuildResult(const BuildResult&) = delete;
+    BuildResult& operator=(const BuildResult&) = delete;
+
+    uint32_t signal_count = 0;
     std::vector<uint32_t> fixed_signals;
     PortToSignal port_to_signal;
 
@@ -187,7 +176,9 @@ struct BuildResult {
 
     /// Pre-built typed pointer lists for solver-owned components.
     /// Eliminates per-frame std::visit over all 68+ variant types.
-    SolverOwnedRefs solver_owned;
+    /// Defined in jit_solver_detail.h; opaque here to avoid pulling
+    /// 10 component headers into every consumer.
+    std::unique_ptr<SolverOwnedRefs> solver_owned;
 
     /// Compiled pre-solve electrical patch operations.
     /// Each op writes current-frame mutable element values by element_id.
