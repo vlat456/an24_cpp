@@ -1,5 +1,0 @@
-if(EXISTS "/Users/vladimir/an24_cpp/tests/logical_solver_tests[1]_tests.cmake")
-  include("/Users/vladimir/an24_cpp/tests/logical_solver_tests[1]_tests.cmake")
-else()
-  add_test(logical_solver_tests_NOT_BUILT logical_solver_tests_NOT_BUILT)
-endif()

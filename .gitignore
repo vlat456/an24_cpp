@@ -24,5 +24,25 @@ cmake_install.cmake
 Makefile
 compile_commands.json
 
+# CMake test discovery artifacts
+cmake_test_discovery_*.json
+*_include.cmake
+*_tests.cmake
+CTestTestfile.cmake
+
+# Scratch / one-off artifacts
+build.log
+test_detail.xml
+git-status
+path
+*.bak*
+EDITOR_VARIANT_USAGE.cpp
+COMPONENT_PARAM_ANALYSIS.md
+TASK_*.md
+add_port_types.py
+fix_dt.py
+fix_generated.py
+disable_editor_tests.py
+
 # OS
 .DS_Store

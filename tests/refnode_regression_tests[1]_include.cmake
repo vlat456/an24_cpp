@@ -1,5 +1,0 @@
-if(EXISTS "/Users/vladimir/an24_cpp/tests/refnode_regression_tests[1]_tests.cmake")
-  include("/Users/vladimir/an24_cpp/tests/refnode_regression_tests[1]_tests.cmake")
-else()
-  add_test(refnode_regression_tests_NOT_BUILT refnode_regression_tests_NOT_BUILT)
-endif()

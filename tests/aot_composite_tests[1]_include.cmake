@@ -1,5 +1,0 @@
-if(EXISTS "/Users/vladimir/an24_cpp/tests/aot_composite_tests[1]_tests.cmake")
-  include("/Users/vladimir/an24_cpp/tests/aot_composite_tests[1]_tests.cmake")
-else()
-  add_test(aot_composite_tests_NOT_BUILT aot_composite_tests_NOT_BUILT)
-endif()

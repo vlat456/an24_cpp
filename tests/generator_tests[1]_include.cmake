@@ -1,5 +1,0 @@
-if(EXISTS "/Users/vladimir/an24_cpp/tests/generator_tests[1]_tests.cmake")
-  include("/Users/vladimir/an24_cpp/tests/generator_tests[1]_tests.cmake")
-else()
-  add_test(generator_tests_NOT_BUILT generator_tests_NOT_BUILT)
-endif()

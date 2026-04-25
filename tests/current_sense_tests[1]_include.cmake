@@ -1,5 +1,0 @@
-if(EXISTS "/Users/vladimir/an24_cpp/tests/current_sense_tests[1]_tests.cmake")
-  include("/Users/vladimir/an24_cpp/tests/current_sense_tests[1]_tests.cmake")
-else()
-  add_test(current_sense_tests_NOT_BUILT current_sense_tests_NOT_BUILT)
-endif()
