@@ -155,9 +155,9 @@ std::optional<RawElement> extract_solver_role_element(
             *a, *b, g, 0.0f, element_idx++, dev.name, dev.classname };
     }
 
-    spdlog::warn("[codegen] unrecognized solver_role kind '{}' for device '{}' — skipped",
-        role.kind, dev.name);
-    return std::nullopt;
+    throw std::runtime_error(
+        "[codegen] unsupported solver_role kind '" + role.kind +
+        "' for device '" + dev.name + "' (classname: " + dev.classname + ")");
 }
 
 // ===== Section 3: Raw Element Collection (classname rule path) =====
