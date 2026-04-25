@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/solvers/common/provider.h"
-#include "component_enums.h"
+
 #include "../state.h"
 
 /// Integrator - mathematical integrator with reset: out = integral(in * dt)

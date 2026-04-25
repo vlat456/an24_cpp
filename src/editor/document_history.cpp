@@ -1,6 +1,6 @@
 #include "document.h"
 
-#include "debug.h"
+
 #include "visual/persist.h"
 
 bool Document::performUndo() {

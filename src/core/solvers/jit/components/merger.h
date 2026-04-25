@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/solvers/common/provider.h"
-#include "component_enums.h"
+
 #include "../state.h"
 
 /// Merger - 2-to-1 signal merger (inverse of Splitter)

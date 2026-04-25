@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/solvers/common/provider.h"
-#include "component_enums.h"
+
 #include "../state.h"
 
 /// Positive_V_to_Bool - convert positive voltage to TRUE (v > 0)

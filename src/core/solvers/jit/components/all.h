@@ -1,7 +1,7 @@
 #pragma once
 
 // Umbrella header - includes all component headers
-#include "component_enums.h"
+
 
 // Already split components
 #include "switch.h"

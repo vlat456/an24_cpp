@@ -19,7 +19,7 @@
 #include "visual/presentation/semantic_scene_hittest.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/path/path.h"
-#include "debug.h"
+
 #include <imgui.h>
 #include <algorithm>
 #include <cassert>

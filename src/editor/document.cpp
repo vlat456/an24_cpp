@@ -1,6 +1,6 @@
 #include "document.h"
 #include "commands/extract_blueprint.h"
-#include "debug.h"
+
 #include <spdlog/spdlog.h>
 
 int Document::next_id_ = 1;

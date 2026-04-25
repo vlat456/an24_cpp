@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/solvers/common/provider.h"
-#include "component_enums.h"
+
 #include "../state.h"
 
 /// AsymSlewRate - asymmetric linear rate limiter (different rise/fall rates)

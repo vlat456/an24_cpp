@@ -9,7 +9,7 @@
 #include "core/model/component_spec.h"
 #include "ui/core/interned_id.h"
 #include "ui/math/pt.h"
-#include "debug.h"
+
 #include "visual/persist.h"
 #include "visual/snap.h"
 #include <cstdio>
