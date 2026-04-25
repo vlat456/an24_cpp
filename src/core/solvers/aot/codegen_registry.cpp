@@ -599,7 +599,6 @@ void CodeGen::write_files(
     const std::string& out_dir,
     const std::string& source_file,
     const std::vector<ResolvedDevice>& devices,
-    const std::vector<Connection>& connections,
     const std::unordered_map<std::string, uint32_t>& port_to_signal,
     uint32_t signal_count,
     const ElectricalPlanCodegen& electrical_plan_arg
@@ -627,7 +626,7 @@ void CodeGen::write_files(
     std::cerr << "[codegen] Writing optimized ECS-like header to: " << header_path << "\n";
     std::cerr << "[codegen] Writing optimized ECS-like source to: " << source_path << "\n";
 
-    std::string header = generate_header(source_file, devices, connections, port_to_signal, signal_count, "Systems", electrical_plan);
+    std::string header = generate_header(source_file, devices, port_to_signal, signal_count, "Systems", electrical_plan);
     std::ofstream hfile(header_path);
     if (!hfile.is_open()) {
         std::cerr << "Failed to open: " << header_path << "\n";
@@ -636,7 +635,7 @@ void CodeGen::write_files(
     hfile << header;
     hfile.close();
 
-    std::string source = generate_source(header_name, devices, connections, port_to_signal, signal_count, "Systems", electrical_plan);
+    std::string source = generate_source(header_name, devices, port_to_signal, signal_count, "Systems", electrical_plan);
     std::ofstream sfile(source_path);
     if (!sfile.is_open()) {
         std::cerr << "Failed to open: " << source_path << "\n";

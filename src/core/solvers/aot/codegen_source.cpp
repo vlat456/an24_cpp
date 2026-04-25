@@ -362,15 +362,12 @@ void emit_dynamic_source_patching(
 
 std::string CodeGen::generate_source(
     const std::string& header_name,
-    const std::vector<ResolvedDevice>& devices_unfiltered,
-    const std::vector<Connection>& connections,
+    const std::vector<ResolvedDevice>& devices,
     const std::unordered_map<std::string, uint32_t>& port_to_signal,
     uint32_t signal_count,
     const std::string& class_name,
     const ElectricalPlanCodegen& electrical_plan
 ) {
-    const std::vector<ResolvedDevice>& devices = devices_unfiltered;
-    (void)connections;
 
     std::ostringstream oss;
 

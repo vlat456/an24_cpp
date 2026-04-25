@@ -2,7 +2,6 @@
 
 #include "core/model/component_registry.h"
 #include "core/model/component_spec.h"
-#include "core/model/connection.h"
 #include "core/model/resolved_device.h"
 
 #include <cstdint>
@@ -86,7 +85,6 @@ public:
     static std::string generate_header(
         const std::string& source_file,
         const std::vector<ResolvedDevice>& devices,
-        const std::vector<Connection>& connections,
         const std::unordered_map<std::string, uint32_t>& port_to_signal,
         uint32_t signal_count,
         const std::string& class_name = "Systems",
@@ -97,7 +95,6 @@ public:
     static std::string generate_source(
         const std::string& header_name,
         const std::vector<ResolvedDevice>& devices,
-        const std::vector<Connection>& connections,
         const std::unordered_map<std::string, uint32_t>& port_to_signal,
         uint32_t signal_count,
         const std::string& class_name = "Systems",
@@ -109,7 +106,6 @@ public:
         const std::string& out_dir,
         const std::string& source_file,
         const std::vector<ResolvedDevice>& devices,
-        const std::vector<Connection>& connections,
         const std::unordered_map<std::string, uint32_t>& port_to_signal,
         uint32_t signal_count,
         const ElectricalPlanCodegen& electrical_plan = {}

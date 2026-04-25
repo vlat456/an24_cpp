@@ -104,7 +104,7 @@ TEST(CodegenAccumulator, HeaderDoesNotContainAccumulatorFields) {
     auto [devices, connections, port_to_signal, signal_count] = make_multi_domain_devices();
 
     std::string header = CodeGen::generate_header(
-        "test.json", devices, connections, port_to_signal, signal_count);
+        "test.json", devices, port_to_signal, signal_count);
 
     EXPECT_EQ(header.find("acc_mechanical_"), std::string::npos)
         << "Header must not declare acc_mechanical_ field in push single-pass mode";
@@ -122,7 +122,7 @@ TEST(CodegenAccumulator, SolveStepHasNoAccumulatorDtUpdates) {
     auto [devices, connections, port_to_signal, signal_count] = make_multi_domain_devices();
 
     std::string source = CodeGen::generate_source(
-        "test.h", devices, connections, port_to_signal, signal_count);
+        "test.h", devices, port_to_signal, signal_count);
 
     EXPECT_EQ(source.find("acc_mechanical_ += dt"), std::string::npos)
         << "solve_step must not update acc_mechanical_ in push single-pass mode";
@@ -140,7 +140,7 @@ TEST(CodegenAccumulator, NoDtMultiplyPatternInGenerated) {
     auto [devices, connections, port_to_signal, signal_count] = make_multi_domain_devices();
 
     std::string source = CodeGen::generate_source(
-        "test.h", devices, connections, port_to_signal, signal_count);
+        "test.h", devices, port_to_signal, signal_count);
 
     EXPECT_EQ(source.find("dt * 3.0f"), std::string::npos)
         << "Generated code must NOT use dt * 3.0f (old pattern)";
@@ -175,7 +175,7 @@ TEST(CodegenAccumulator, DispatchTableSizeMatchesCycleLength) {
     auto [devices, connections, port_to_signal, signal_count] = make_multi_domain_devices();
 
     std::string source = CodeGen::generate_source(
-        "test.h", devices, connections, port_to_signal, signal_count);
+        "test.h", devices, port_to_signal, signal_count);
 
     // The dispatch table declaration should contain CYCLE_LENGTH entries
     std::string expected_table = "dispatch_table[" + std::to_string(DomainSchedule::CYCLE_LENGTH) + "]";

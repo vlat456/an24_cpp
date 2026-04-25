@@ -121,9 +121,9 @@ TEST(CodegenSanitize, DeviceNamesWithColonsAreValidIdentifiers) {
     }
 
     std::string header = CodeGen::generate_header(
-        "test.json", resolved_devices, connections, port_to_signal, signal_count);
+        "test.json", resolved_devices, port_to_signal, signal_count);
     std::string source = CodeGen::generate_source(
-        "test.h", resolved_devices, connections, port_to_signal, signal_count);
+        "test.h", resolved_devices, port_to_signal, signal_count);
 
     // Colons in device names should be replaced with underscores
     EXPECT_FALSE(has_bad_identifier(header))
@@ -165,7 +165,7 @@ TEST(CodegenSanitize, SanitizeNameFunction) {
         port_to_signal[input + ".v"] = 0;
 
         std::string header = CodeGen::generate_header(
-            "test.json", resolved_devices, {}, port_to_signal, 1);
+            "test.json", resolved_devices, port_to_signal, 1);
 
         EXPECT_NE(header.find(expected_fragment), std::string::npos)
             << "Expected '" << expected_fragment << "' in header for input '" << input << "'";
@@ -194,7 +194,7 @@ TEST(CodegenSanitize, NoCollisionBetweenDotAndDashAndColon) {
         std::unordered_map<std::string, uint32_t> port_to_signal;
         port_to_signal[name + ".v"] = 0;
 
-        return CodeGen::generate_header("test.json", resolved_devices, {}, port_to_signal, 1);
+        return CodeGen::generate_header("test.json", resolved_devices, port_to_signal, 1);
     };
 
     std::string h_dot   = sanitize_via_codegen("engine.temp");

@@ -6,14 +6,25 @@
 
 #include "blueprint_v2/flattener/flat_netlist.h"
 #include "blueprint_v2/path/path.h"
+#include "blueprint_v2/elaboration/elaboration_utils.h"
 #include "core/model/component_registry.h"
 #include "core/model/component_kind.h"
 #include "core/model/resolved_device.h"
+#include "core/solvers/common/signal_key.h"
 #include "ui/core/interned_id.h"
 
+#include <set>
 #include <string>
+#include <vector>
 
 namespace bp2::elaboration::detail {
+
+// =====================================================================
+// build_resolved_device — per-component ResolvedDevice builder
+//
+// Shared by both elaborate_for_jit() and elaborate_for_codegen().
+// Must come before collect_devices() which calls it.
+// =====================================================================
 
 /// Build a ResolvedDevice from a FlatNetlist component.
 ///
@@ -122,6 +133,106 @@ inline std::optional<ResolvedDevice> build_resolved_device(
     }
 
     return dev;
+}
+
+// =====================================================================
+// collect_devices — Phase 1: build device list from FlatNetlist
+// =====================================================================
+
+/// Result of Phase 1 device collection — shared between JIT and codegen paths.
+struct CollectedDevices {
+    std::vector<ResolvedDevice> devices;
+};
+
+/// Phase 1: Collect simulation-relevant devices from a FlatNetlist.
+///
+/// Skips bridge nodes, visual-only types, and deduplicates by dev_id.
+/// The fill_defaults flag controls whether missing params are filled from spec
+/// (codegen needs full param set; JIT doesn't).
+inline CollectedDevices collect_devices(
+    const FlatNetlist& netlist,
+    PathArena& arena,
+    const ui::StringInterner& interner,
+    const ComponentRegistry& type_registry,
+    bool fill_defaults)
+{
+    CollectedDevices result;
+    std::set<std::string> emitted_ids;
+
+    for (const auto& comp : netlist.components) {
+        const std::string dev_id = node_id_from_path(comp.path, arena, interner);
+        if (!emitted_ids.insert(dev_id).second) continue;
+
+        // Bridge nodes are structural — not simulation devices
+        if (!comp.exposed_port_name.empty()) continue;
+
+        const std::string classname(interner.resolve(comp.type));
+        const ComponentSpec* type_def = type_registry.get(classname);
+        if (!type_def) {
+            throw std::runtime_error("Component definition not found: " + classname);
+        }
+
+        auto dev = build_resolved_device(
+            comp, dev_id, classname, *type_def, interner, type_registry,
+            fill_defaults);
+        if (!dev.has_value()) continue;
+
+        result.devices.push_back(std::move(*dev));
+    }
+
+    return result;
+}
+
+// =====================================================================
+// collect_port_signals — Phase 2: build port_to_signal map
+// =====================================================================
+
+/// Result of Phase 2 signal extraction — indices and max tracking.
+struct SignalMapResult {
+    uint32_t next_signal = 0;
+};
+
+/// Phase 2 core: iterate port_signals and bridge exposures, calling back
+/// for each key-signal pair. The caller decides key representation.
+///
+/// @param on_key_sig  Called with (const std::string& key, uint32_t sig_idx)
+///                    for every port signal and bridge exposure.
+template <typename Fn>
+inline SignalMapResult collect_port_signals(
+    const FlatNetlist& netlist,
+    PathArena& arena,
+    const ui::StringInterner& interner,
+    Fn&& on_key_sig)
+{
+    SignalMapResult result;
+
+    for (const auto& comp : netlist.components) {
+        const std::string dev_id = node_id_from_path(comp.path, arena, interner);
+
+        for (const auto& [port_iid, sig_idx] : comp.port_signals) {
+            const std::string port_name(interner.resolve(port_iid));
+            const std::string key = signal_key::make_node_port_key(dev_id, port_name);
+
+            if (sig_idx >= result.next_signal) result.next_signal = sig_idx + 1;
+            on_key_sig(key, sig_idx);
+        }
+
+        // Bridge nodes: expose the parent-facing key pointing to the ext signal
+        if (!comp.exposed_port_name.empty()) {
+            const std::string exposed_key = exposed_key_for_bridge(dev_id, comp.exposed_port_name, interner);
+            if (!exposed_key.empty()) {
+                for (const auto& [port_iid, sig_idx] : comp.port_signals) {
+                    if (interner.resolve(port_iid) == "ext") {
+                        if (sig_idx >= result.next_signal) result.next_signal = sig_idx + 1;
+                        on_key_sig(exposed_key, sig_idx);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    return result;
 }
 
 } // namespace bp2::elaboration::detail

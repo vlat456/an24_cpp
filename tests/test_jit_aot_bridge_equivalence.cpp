@@ -156,9 +156,9 @@ TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
     }
 
     const std::string aot_header =
-        CodeGen::generate_header("bridge_equivalence.json", resolved_devices, connections, port_to_signal, next_signal);
+        CodeGen::generate_header("bridge_equivalence.json", resolved_devices, port_to_signal, next_signal);
     const std::string aot_source =
-        CodeGen::generate_source("bridge_equivalence.h", resolved_devices, connections, port_to_signal, next_signal);
+        CodeGen::generate_source("bridge_equivalence.h", resolved_devices, port_to_signal, next_signal);
 
     ASSERT_FALSE(aot_header.empty());
     ASSERT_FALSE(aot_source.empty());

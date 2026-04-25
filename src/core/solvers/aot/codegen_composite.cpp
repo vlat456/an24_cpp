@@ -43,9 +43,9 @@ CompositeCodegenResult flatten_and_generate(
 
     CompositeCodegenResult result;
     result.class_name = class_name;
-    result.header = CodeGen::generate_header(source_file, input.devices, {},
+    result.header = CodeGen::generate_header(source_file, input.devices,
                                               input.port_to_signal, input.signal_count, class_name, electrical_plan);
-    result.source = CodeGen::generate_source(header_name, input.devices, {},
+    result.source = CodeGen::generate_source(header_name, input.devices,
                                               input.port_to_signal, input.signal_count, class_name, electrical_plan);
     return result;
 }

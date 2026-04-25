@@ -120,7 +120,7 @@ TEST(LUTCodegen, Constructor_EmitsOffsetAndSize_NotTableString) {
     auto setup = make_setup({make_lut_device("my_lut", "0:0; 100:50; 200:100")});
 
     std::string source = CodeGen::generate_source(
-        "test.h", setup.devices, setup.connections,
+        "test.h", setup.devices,
         setup.port_to_signal, setup.signal_count);
 
     // Must contain integer offset/size assignments
@@ -138,7 +138,7 @@ TEST(LUTCodegen, PreLoad_EmitsStaticArenaArrays) {
     auto setup = make_setup({make_lut_device("my_lut", "10:20; 30:40; 50:60")});
 
     std::string source = CodeGen::generate_source(
-        "test.h", setup.devices, setup.connections,
+        "test.h", setup.devices,
         setup.port_to_signal, setup.signal_count);
 
     // pre_load must contain static const float arrays with the data
@@ -164,7 +164,7 @@ TEST(LUTCodegen, MultipleLUTs_OffsetsIncrement) {
     });
 
     std::string source = CodeGen::generate_source(
-        "test.h", setup.devices, setup.connections,
+        "test.h", setup.devices,
         setup.port_to_signal, setup.signal_count);
 
     // lut_a: offset=0, size=2
@@ -189,7 +189,7 @@ TEST(LUTCodegen, NoLUTs_NoArenaCode) {
     auto setup = make_setup({std::move(bat)});
 
     std::string source = CodeGen::generate_source(
-        "test.h", setup.devices, setup.connections,
+        "test.h", setup.devices,
         setup.port_to_signal, setup.signal_count);
 
     EXPECT_EQ(source.find("lut_keys_data"), std::string::npos)
@@ -201,7 +201,7 @@ TEST(LUTCodegen, EmptyTableParam_StillEmitsZeroSize) {
     auto setup = make_setup({make_lut_device("empty_lut", "")});
 
     std::string source = CodeGen::generate_source(
-        "test.h", setup.devices, setup.connections,
+        "test.h", setup.devices,
         setup.port_to_signal, setup.signal_count);
 
     // LUT with empty table: size should be 0
@@ -216,7 +216,7 @@ TEST(LUTCodegen, ArenaComment_ShowsTotalFloats) {
     });
 
     std::string source = CodeGen::generate_source(
-        "test.h", setup.devices, setup.connections,
+        "test.h", setup.devices,
         setup.port_to_signal, setup.signal_count);
 
     // Should have a comment showing total float count
@@ -228,7 +228,7 @@ TEST(LUTCodegen, SingleEntryTable) {
     auto setup = make_setup({make_lut_device("single_lut", "42:99")});
 
     std::string source = CodeGen::generate_source(
-        "test.h", setup.devices, setup.connections,
+        "test.h", setup.devices,
         setup.port_to_signal, setup.signal_count);
 
     EXPECT_NE(source.find("single_lut.table_offset = 0"), std::string::npos);
@@ -241,7 +241,7 @@ TEST(LUTCodegen, NegativeKeyValues_EncodedCorrectly) {
     auto setup = make_setup({make_lut_device("neg_lut", "-10:-5; 0:0; 10:5")});
 
     std::string source = CodeGen::generate_source(
-        "test.h", setup.devices, setup.connections,
+        "test.h", setup.devices,
         setup.port_to_signal, setup.signal_count);
 
     // Negative values should appear with minus sign (format_float produces "-10.0", "-5.0")
@@ -265,7 +265,7 @@ TEST(LUTCodegen, GenericParamLoop_SkippedForLUT) {
     auto setup = make_setup({std::move(lut)});
 
     std::string source = CodeGen::generate_source(
-        "test.h", setup.devices, setup.connections,
+        "test.h", setup.devices,
         setup.port_to_signal, setup.signal_count);
 
     // Must not contain any "test_lut.table =" (string assignment)
@@ -312,7 +312,7 @@ TEST(AOTCodegen, VisualOnly_FilteredFromHeader) {
     s.signal_count = next_sig;
 
     std::string header = CodeGen::generate_header(
-        "test.json", s.devices, s.connections,
+        "test.json", s.devices,
         s.port_to_signal, s.signal_count);
 
     EXPECT_NE(header.find("bat"), std::string::npos)
@@ -354,7 +354,7 @@ TEST(AOTCodegen, VisualOnly_FilteredFromSource) {
     s.signal_count = next_sig;
 
     std::string source = CodeGen::generate_source(
-        "test.h", s.devices, s.connections,
+        "test.h", s.devices,
         s.port_to_signal, s.signal_count);
 
     EXPECT_NE(source.find("bat"), std::string::npos)
@@ -402,7 +402,7 @@ TEST(AOTCodegen, Text_VisualOnly_FilteredFromHeader) {
     s.signal_count = next_sig;
 
     std::string header = CodeGen::generate_header(
-        "test.json", s.devices, s.connections,
+        "test.json", s.devices,
         s.port_to_signal, s.signal_count);
 
     EXPECT_NE(header.find("bat"), std::string::npos)
@@ -446,7 +446,7 @@ TEST(AOTCodegen, Text_VisualOnly_FilteredFromSource) {
     s.signal_count = next_sig;
 
     std::string source = CodeGen::generate_source(
-        "test.h", s.devices, s.connections,
+        "test.h", s.devices,
         s.port_to_signal, s.signal_count);
 
     EXPECT_NE(source.find("bat"), std::string::npos)

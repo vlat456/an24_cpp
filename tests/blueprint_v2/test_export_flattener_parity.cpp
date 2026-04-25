@@ -10,88 +10,13 @@
 #include "core/solvers/common/signal_key.h"
 #include "ui/core/interned_id.h"
 #include "io/json/component_registry_json_loader.h"
+#include "elaboration_parity_fixtures.h"
 
 #include <set>
 #include <string>
 #include <unordered_map>
 
 namespace {
-
-PrimitiveSpec make_primitive_spec(
-    const std::string& classname,
-    std::initializer_list<std::pair<const char*, Port>> ports,
-    std::vector<Domain> domains)
-{
-    PrimitiveSpec spec;
-    spec.classname = classname;
-    spec.domains = std::move(domains);
-    spec.solver.execution = ExecutionPhases{.electrical_passive = true};
-    for (const auto& [name, port] : ports) {
-        spec.ports[name] = port;
-    }
-    return spec;
-}
-
-const ComponentRegistry& parity_registry() {
-    static const ComponentRegistry registry = [] {
-        ComponentRegistry reg;
-        reg.register_type("Battery", make_primitive_spec(
-            "Battery",
-            {
-                {"v_out", Port{bp2::Direction::Output, PortType::V, Domain::Electrical, false}},
-                {"v_in", Port{bp2::Direction::Input, PortType::V, Domain::Electrical, false}},
-            },
-            {Domain::Electrical}));
-        reg.register_type("Resistor", make_primitive_spec(
-            "Resistor",
-            {
-                {"v_in", Port{bp2::Direction::Input, PortType::V, Domain::Electrical, false}},
-                {"v_out", Port{bp2::Direction::Output, PortType::V, Domain::Electrical, false}},
-            },
-            {Domain::Electrical}));
-        reg.register_type("LED", make_primitive_spec(
-            "LED",
-            {
-                {"v_in", Port{bp2::Direction::Input, PortType::V, Domain::Electrical, false}},
-            },
-            {Domain::Electrical}));
-        reg.register_type("InertiaNode", make_primitive_spec(
-            "InertiaNode",
-            {
-                {"rpm_out", Port{bp2::Direction::Output, PortType::RPM, Domain::Mechanical, false}},
-            },
-            {Domain::Mechanical}));
-        return reg;
-    }();
-    return registry;
-}
-
-bp2::Blueprint::Node make_node(ui::StringInterner& I,
-                               const char* id,
-                               const char* type,
-                               std::initializer_list<bp2::PortDescriptor> ports) {
-    bp2::Blueprint::Node n;
-    n.semantic.id = I.intern(id);
-    n.semantic.type = I.intern(type);
-    n.component().iface = bp2::Interface(ports);
-    return n;
-}
-
-bp2::PortDescriptor in_port(ui::StringInterner& I, const char* name, PortType t = PortType::V) {
-    return {I.intern(name), ::domain_for_port_type(t), bp2::Direction::Input, t};
-}
-
-bp2::PortDescriptor out_port(ui::StringInterner& I, const char* name, PortType t = PortType::V) {
-    return {I.intern(name), ::domain_for_port_type(t), bp2::Direction::Output, t};
-}
-
-std::set<std::string> collect_device_names(const JitBuildInput& jit_input) {
-    std::set<std::string> out;
-    for (const auto& dev : jit_input.devices) {
-        out.insert(dev.name);
-    }
-    return out;
-}
 
 /// Check that two node.port keys map to the same signal index in port_to_signal.
 bool connected_on_same_signal(const JitBuildInput& jit_input,
@@ -106,24 +31,6 @@ bool connected_on_same_signal(const JitBuildInput& jit_input,
         return false;
     }
     return it_a->second == it_b->second;
-}
-
-bp2::Blueprint::Node make_bridge_node(ui::StringInterner& I,
-                                      const char* id,
-                                      const char* exposed_port,
-                                      bool input_side,
-                                      PortType type = PortType::V) {
-    bp2::Blueprint::Node n;
-    n.semantic.id = I.intern(id);
-    n.semantic.type = I.intern("BridgePort");
-    n.view.name = exposed_port;
-    n.content = bp2::Blueprint::Node::BridgePortData{
-        I.intern(exposed_port),
-        input_side ? bp2::BridgeDirection::Input
-                   : bp2::BridgeDirection::Output,
-        type,
-    };
-    return n;
 }
 
 } // namespace
