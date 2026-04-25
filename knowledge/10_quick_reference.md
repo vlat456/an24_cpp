@@ -21,7 +21,7 @@ cd build && ctest
 | What | Where |
 |------|-------|
 | Simulation State | `src/core/solvers/jit/state.h` |
-| Component Base | `src/core/solvers/jit/component.h` |
+| Component Provider | `src/core/solvers/common/provider.h` |
 | Provider Pattern | `src/core/solvers/common/provider.h` |
 | All Components | `src/core/solvers/jit/components/all.h` |
 | JIT Solver | `src/core/solvers/jit/jit_solver.h` |

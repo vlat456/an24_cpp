@@ -1176,23 +1176,13 @@ Remaining differences are intentional — `parse_type_definition` is a lenient t
 
 ---
 
-### 3. PORTS Macro Bloat
+### 3. PORTS Macro Bloat — RESOLVED
 
-**File:** `src/jit_solver/component.h:61-262`
+**File:** `src/core/solvers/jit/component.h` — **DELETED**
 
-```cpp
-#define PORTS_1(Class, p1) uint32_t p1##_idx = 0;
-#define PORTS_2(Class, p1, p2) uint32_t p1##_idx = 0; uint32_t p2##_idx = 0;
-// ... continues to PORTS_32
-```
-
-**Problem:** 200+ lines of repetitive macro definitions for 1-32 ports.
-
-**Fix Options:**
-
-- Use variadic macro with `__VA_ARGS__`
-- Generate with preprocessor script
-- Replace with constexpr template metaprogramming
+The 221-line PORTS macro file was dead code. Zero components used it — all use
+`Provider provider;` for runtime port lookup. The only consumer was a self-referential
+test. Deleted entirely; test rewritten to validate port_registry.h codegen constants.
 
 ---
 

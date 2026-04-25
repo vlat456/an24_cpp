@@ -74,7 +74,7 @@ src/
 │   │   │   ├── scheduler.h  # PushScheduler
 │   │   │   ├── simulator.h # Simulator class
 │   │   │   ├── state.h      # SimulationState (SoA arrays)
-│   │   │   ├── component.h  # Base component interface
+│   │   │   ├── provider.h   # Provider pattern (port access abstraction)
 │   │   │   ├── components/  # All component implementations (~70)
 │   │   │   └── subsolvers/  # Electrical subsolver
 │   │   ├── aot/             # AOT code generation
@@ -127,7 +127,7 @@ The electrical subsolver handles closed electrical networks while the push sched
 | Purpose | File |
 |---------|------|
 | Simulation State | `src/core/solvers/jit/state.h` |
-| Component Base | `src/core/solvers/jit/component.h` |
+| Component Provider | `src/core/solvers/common/provider.h` |
 | Provider Pattern | `src/core/solvers/common/provider.h` |
 | All Components | `src/core/solvers/jit/components/all.h` |
 | JIT Solver Build | `src/core/solvers/jit/jit_solver.h` |
