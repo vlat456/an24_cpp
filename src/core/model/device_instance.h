@@ -29,11 +29,9 @@ struct DeviceInstance {
         std::unordered_map<std::string, bp2::Direction> ports_ = {}
     ) : name(name_), classname(classname_), params(std::move(params_)) {
         for (const auto& [port_name, direction] : ports_) {
-            PortType type = PortType::Any;
-            if (port_name.find('v') != std::string::npos) type = PortType::V;
-            else if (port_name.find('i') != std::string::npos) type = PortType::I;
-            else if (port_name.find("rpm") != std::string::npos) type = PortType::RPM;
-            ports[port_name] = Port{direction, type, domain_for_port_type(type), false, std::nullopt};
+            // No heuristic guessing — PortType::Any is the safe default.
+            // Tests needing specific types should use explicit Port construction.
+            ports[port_name] = Port{direction, PortType::Any, Domain::Electrical, false, std::nullopt};
         }
     }
 
@@ -45,11 +43,7 @@ struct DeviceInstance {
     ) : name(name_), classname(classname_), params(std::move(params_)) {
         for (const auto& [port_name, dir_str] : ports_) {
             bp2::Direction dir = (dir_str == "in" || dir_str == "i" || dir_str == "input") ? bp2::Direction::Input : bp2::Direction::Output;
-            PortType type = PortType::Any;
-            if (port_name.find('v') != std::string::npos) type = PortType::V;
-            else if (port_name.find('i') != std::string::npos) type = PortType::I;
-            else if (port_name.find("rpm") != std::string::npos) type = PortType::RPM;
-            ports[port_name] = Port{dir, type, domain_for_port_type(type), false, std::nullopt};
+            ports[port_name] = Port{dir, PortType::Any, Domain::Electrical, false, std::nullopt};
         }
     }
 };
