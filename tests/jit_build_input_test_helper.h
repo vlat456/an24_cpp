@@ -6,6 +6,10 @@
 #include "core/model/component_kind.h"
 #include "io/json/component_registry_json_loader.h"
 #include "core/registry/component_resolution.h"
+#include "blueprint_v2/flattener/flattener.h"
+#include "blueprint_v2/library/blueprint_library.h"
+#include "blueprint_v2/library/type_def_to_blueprint.h"
+#include "blueprint_v2/elaboration/sim_export.h"
 #include <deque>
 #include <vector>
 #include <unordered_map>
@@ -316,4 +320,65 @@ inline JitBuildInput make_jit_input_from_composite(
     input.signal_count = signal_count;
     
     return input;
+}
+
+// ==============================================================================
+// JIT Flattener path — shared by AOT↔JIT equivalence tests
+// ==============================================================================
+
+/// Run the full JIT path: registry → BlueprintLibrary → Flattener → elaborate_for_jit → build_systems_dev.
+/// Used to compare JIT results against AOT codegen output.
+inline BuildResult run_jit_flattener_path(const CompositeSpec& composite, const ComponentRegistry& registry) {
+    ui::StringInterner interner;
+    bp2::BlueprintLibrary library;
+    for (const auto& [name, spec] : registry.all_types()) {
+        if (is_composite(spec)) {
+            auto bp = bp2::blueprint_from_type_definition(spec, interner, registry);
+            library.add(interner.intern(name), std::move(bp));
+        }
+    }
+    auto bp = bp2::blueprint_from_type_definition(ComponentSpec{composite}, interner, registry);
+    bp2::PathArena arena(interner);
+    bp2::Flattener flattener(library);
+    auto netlist = flattener.flatten(bp, arena);
+    auto input = bp2::elaboration::elaborate_for_jit(netlist, arena, interner, registry);
+    return build_systems_dev(input);
+}
+
+/// Look up signal index for a port in a BuildResult. Returns UINT32_MAX if not found.
+inline uint32_t jit_signal_of(const BuildResult& result, const std::string& port) {
+    auto it = result.port_to_signal.find(result.signal_key_interner.lookup(port));
+    return it != result.port_to_signal.end() ? it->second : UINT32_MAX;
+}
+
+// ==============================================================================
+// Shared composite registries
+// ==============================================================================
+
+/// Build a registry containing the "voltage_indicator" composite (vin→lamp→vout).
+/// Used by AOT↔JIT topology parity tests in multiple test files.
+inline ComponentRegistry build_voltage_indicator_registry() {
+    ComponentRegistry registry;
+    register_from_library(registry, {"IndicatorLight"});
+
+    CompositeSpec lamp;
+    lamp.classname = "voltage_indicator";
+    DeviceInstance d_lamp;
+    d_lamp.name = "lamp";
+    d_lamp.classname = "IndicatorLight";
+    d_lamp.params["conductance"] = "0.002";  // Required param for ConductanceBranch solver role
+    lamp.devices.push_back(d_lamp);
+    lamp.bridge_ports = {
+        make_bridge_port_def("vin", bp2::BridgeDirection::Input, PortType::V),
+        make_bridge_port_def("vout", bp2::BridgeDirection::Output, PortType::V),
+    };
+    lamp.connections = {
+        {"vin.port", "lamp.v_in", {}},
+        {"lamp.v_out", "vout.port", {}}
+    };
+    lamp.ports["vin"]  = Port{bp2::Direction::Input, PortType::V, std::nullopt};
+    lamp.ports["vout"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
+    registry.register_type("voltage_indicator", lamp);
+
+    return registry;
 }

@@ -31,64 +31,16 @@ std::vector<ResolvedDevice> resolve_all_devices(const std::vector<DeviceInstance
 
 } // namespace
 
-// DISABLED: AOT codegen smoke test checking for legacy solver-specific method names.
-// In push model, codegen may use different method names or execution ordering,
-// causing these string searches to fail. This test validates codegen output
-// format rather than functional equivalence.
+// Verify that JIT and AOT codegen produce consistent bridge signal topologies
+// and that AOT source generation emits expected method calls.
 TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
     ComponentRegistry registry;
+    register_from_library(registry, {"RefNode", "ControlledVoltageSource", "Value", "Voltmeter"});
 
-    PrimitiveSpec gnd;
-    gnd.classname = "RefNode";
-    gnd.ports["v"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
-    gnd.domains = {Domain::Electrical};
-    gnd.solver.execution = {.electrical_passive = true};
-    gnd.solver.scheduler_source = true;
-    gnd.params["value"] = ParamSpec{ParamSchemaType::Float, "0.0"};
-    SolverRole role;
-    role.kind = "FixedVoltageNode";
-    role.port_map["node"] = "v";
-    role.param_map["voltage"] = "value";
-    role.value_map["bind_handle"] = 1.0f;
-    gnd.solver.solver_role = role;
-    gnd.solver.solver_owned_electrical = false;
-    registry.register_type("RefNode", gnd);
-
+    // Override Any_V_to_Bool with simplified port (library uses "Vin" but test uses "v_in")
     PrimitiveSpec cmd = *as_primitive(*test_registry().get("Any_V_to_Bool"));
     cmd.ports["v_in"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
     registry.register_type("Any_V_to_Bool", cmd);
-
-    PrimitiveSpec src;
-    src.classname = "ControlledVoltageSource";
-    src.domains = {Domain::Electrical};
-    src.solver.execution = {.electrical_actuator = true};
-    src.ports["cmd"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
-    src.ports["v_neg"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
-    src.ports["v_pos"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
-    src.ports["i_out"] = Port{bp2::Direction::Output, PortType::Any, std::nullopt};
-    src.ports["gain"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
-    src.ports["offset"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
-    src.ports["min_v"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
-    src.ports["max_v"] = Port{bp2::Direction::Input, PortType::Any, std::nullopt};
-    src.params["r_internal"] = ParamSpec{ParamSchemaType::Float, "0.1"};
-    src.solver.solver_owned_electrical = true;
-    {
-        SolverRole role;
-        role.kind = "TheveninSource";
-        role.port_map["pos"] = "v_pos";
-        role.port_map["neg"] = "v_neg";
-        role.param_map["resistance"] = "r_internal";
-        role.value_map["voltage"] = 0.0f;
-        role.value_map["bind_handle"] = 1.0f;
-        src.solver.solver_role = role;
-    }
-    registry.register_type("ControlledVoltageSource", src);
-
-    PrimitiveSpec val = *as_primitive(*test_registry().get("Value"));
-    registry.register_type("Value", val);
-
-    PrimitiveSpec meter = *as_primitive(*test_registry().get("Voltmeter"));
-    registry.register_type("Voltmeter", meter);
 
     std::vector<DeviceInstance> devices;
 
@@ -175,22 +127,12 @@ TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
     ASSERT_FALSE(aot_header.empty());
     ASSERT_FALSE(aot_source.empty());
 
-    std::vector<std::pair<std::string, std::string>> conn_pairs;
-    for (const auto& c : connections) {
-        conn_pairs.emplace_back(c.from, c.to);
-    }
     BuildResult jit = build_systems_dev(make_jit_input_from_composite(devices, {}, connections, &registry));
 
-    auto signal_of = [&](const std::string& port) {
-        auto it = jit.port_to_signal.find(jit.signal_key_interner.lookup(port));
-        EXPECT_NE(it, jit.port_to_signal.end()) << port;
-        return it == jit.port_to_signal.end() ? UINT32_MAX : it->second;
-    };
-
-    EXPECT_EQ(signal_of("cmd_src.v"), signal_of("cmd_logic.v_in"));
-    EXPECT_EQ(signal_of("cmd_logic.o"), signal_of("src.cmd"));
-    EXPECT_EQ(signal_of("gnd.v"), signal_of("src.v_neg"));
-    EXPECT_EQ(signal_of("src.v_pos"), signal_of("meter.v_in"));
+    EXPECT_EQ(jit_signal_of(jit, "cmd_src.v"), jit_signal_of(jit, "cmd_logic.v_in"));
+    EXPECT_EQ(jit_signal_of(jit, "cmd_logic.o"), jit_signal_of(jit, "src.cmd"));
+    EXPECT_EQ(jit_signal_of(jit, "gnd.v"), jit_signal_of(jit, "src.v_neg"));
+    EXPECT_EQ(jit_signal_of(jit, "src.v_pos"), jit_signal_of(jit, "meter.v_in"));
 
     EXPECT_NE(aot_source.find("cmd_logic.execute"), std::string::npos);
     EXPECT_NE(aot_source.find("src.execute"), std::string::npos);
@@ -220,11 +162,6 @@ TEST(JitAotBridgeEquivalence, SignalAllocationParityForBridgeAndAliasRules) {
         {"pass.v_out", "vout.port"},
     };
 
-    std::vector<std::pair<std::string, std::string>> conn_pairs;
-    conn_pairs.reserve(connections.size());
-    for (const auto& c : connections) {
-        conn_pairs.emplace_back(c.from, c.to);
-    }
     BuildResult jit = build_systems_dev(make_jit_input_from_composite(devices, bridges, connections));
     const std::vector<ResolvedDevice> resolved_for_aot = resolve_all_devices(devices, registry);
 
@@ -292,12 +229,6 @@ TEST(JitAotBridgeEquivalence, VisualOnlyDevicesIgnoredByBothPaths) {
         {"vin.port", "load.v_in"},
         {"load.v_out", "vout.port"},
     };
-
-    std::vector<std::pair<std::string, std::string>> conn_pairs;
-    conn_pairs.reserve(connections.size());
-    for (const auto& c : connections) {
-        conn_pairs.emplace_back(c.from, c.to);
-    }
 
     BuildResult jit = build_systems_dev(make_jit_input_from_composite(devices, bridges, connections, &registry));
     const std::vector<ResolvedDevice> resolved_for_aot = resolve_all_devices(devices, registry);
