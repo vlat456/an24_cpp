@@ -27,6 +27,8 @@ struct SimulationState {
 
     SimulationState() = default;
 
+    /// Allocate a new signal index and set its initial value.
+    /// Returns the newly allocated index.
     [[nodiscard]] uint32_t allocate_signal(float initial_value) {
         const uint32_t idx = static_cast<uint32_t>(values.size());
         values.push_back(initial_value);

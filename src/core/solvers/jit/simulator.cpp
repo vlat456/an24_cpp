@@ -1,5 +1,4 @@
 #include "simulator.h"
-#include "core/solvers/common/port_registry.h"
 #include "core/solvers/common/signal_key.h"
 #include "../../../parse_number.h"
 #include <algorithm>
@@ -62,12 +61,12 @@ void update_dynamic_sources(BuildResult& br, SimulationState& st, ElectricalRunt
                 break;
             }
             case ElectricalPatchKind::BoolSwitch: {
-                const bool state = (op.bool_state != nullptr) ? *op.bool_state : false;
+                const bool state = st.values[op.s0] > 0.5f;
                 out = state ? op.closed_value : op.open_value;
                 break;
             }
             case ElectricalPatchKind::IndexSwitch: {
-                const int idx = (op.int_state != nullptr) ? *op.int_state : -1;
+                const int idx = static_cast<int>(st.values[op.s0]);
                 out = (idx == op.index_value) ? op.closed_value : op.open_value;
                 break;
             }
@@ -127,6 +126,13 @@ void Simulator<SolverTag>::start(const JitBuildInput& input) {
     for (uint32_t i = 0; i < build_result_->signal_count; ++i) {
         (void)state_.allocate_signal(0.0f);
     }
+
+    // Bootstrap: run solver-owned commit ops BEFORE initializing Value/RefNode
+    // signals. This ensures components like AZS/Relay write their initial
+    // internal state (closed=true) to signal ports. Running BEFORE Value init
+    // means control signals are still 0.0, so no premature state transitions
+    // occur — components simply write their constructor-initialized state.
+    run_solver_owned_ops(build_result_->solver_commit_ops, state_, 0.0);
 
     // Initialize RefNode and Value devices from their params.
     for (const auto& dev : input.devices) {

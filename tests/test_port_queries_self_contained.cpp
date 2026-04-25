@@ -1,10 +1,10 @@
-/// Regression test: port_queries.h must be self-contained.
+/// Regression test: port_traits.h and port_queries.h must be self-contained.
 ///
-/// This TU includes ONLY port_queries.h (not port_registry.h).
-/// If the generated header is missing a required include (e.g. port_metadata.h),
+/// This TU includes port_queries.h (which itself includes port_traits.h).
+/// If the generated headers are missing a required include (e.g. port_metadata.h),
 /// this file will fail to compile — catching the bug at build time.
 ///
-/// Historical note: port_queries.h uses *_PORT_COUNT, *_PORTS[], etc.
+/// Historical note: port_traits.h uses *_PORT_COUNT, *_PORTS[], etc.
 /// from port_metadata.h in get_output_ports() and get_source_writer_ports().
 /// The include was initially missing — this test prevents regression.
 
@@ -12,7 +12,7 @@
 #include "core/solvers/common/port_queries.h"
 
 TEST(PortQueriesSelfContained, GetOutputPortsCompilesAndRuns) {
-    // If port_queries.h doesn't include port_metadata.h, this won't compile
+    // If port_traits.h doesn't include port_metadata.h, this won't compile
     // because get_output_ports uses *_PORT_COUNT, *_PORT_DIRECTIONS, *_PORTS.
     auto outputs = get_output_ports(ComponentKind::Value);
     ASSERT_EQ(outputs.size(), 1u);
@@ -33,4 +33,11 @@ TEST(PortQueriesSelfContained, GetComponentPortsCompilesAndRuns) {
     EXPECT_EQ(ports[0], "A");
     EXPECT_EQ(ports[1], "B");
     EXPECT_EQ(ports[2], "o");
+}
+
+TEST(PortQueriesSelfContained, TraitPredicatesWork) {
+    // Verify trait predicates are accessible through port_queries.h → port_traits.h chain.
+    EXPECT_FALSE(is_scheduler_source_component(ComponentKind::AND));
+    EXPECT_TRUE(is_solver_owned_electrical_component(ComponentKind::AZS));
+    EXPECT_TRUE(requires_solver_role_component(ComponentKind::ControlledVoltageSource));
 }

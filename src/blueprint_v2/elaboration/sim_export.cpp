@@ -2,9 +2,7 @@
 
 #include "elaboration_detail.h"
 
-#include "blueprint_v2/blueprint/blueprint.h"
 #include "core/solvers/common/signal_key.h"
-#include "core/solvers/jit/jit_solver.h"
 
 #include <set>
 #include <string>

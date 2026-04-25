@@ -3,8 +3,8 @@
 /// E-001: electrical_subsolver hot path must be exception-free (noexcept).
 ///        Graceful fallback on singular matrices, deduplication on conflicting
 ///        fixed constraints.
-/// E-002: SolverOwnedRefs pre-built typed pointer lists eliminate per-frame
-///        std::visit scans.
+/// E-002: Solver step ops (execute/commit) are compiled at build time,
+///        eliminating per-frame std::visit scans over the full variant.
 /// E-003: JitProvider uses flat array (not unordered_map) for O(1) lookup.
 /// E-004: Simulator time_ uses double to prevent precision loss after hours.
 /// E-005: ComponentVariant architecture is documented and intentional.
@@ -17,7 +17,6 @@
 #include "core/model/component_registry.h"
 #include "core/solvers/jit/simulator.h"
 #include "core/solvers/jit/jit_solver.h"
-#include "core/solvers/jit/jit_solver_detail.h"
 #include "core/solvers/common/provider.h"
 #include "core/solvers/common/port_names.h"
 #include "core/solvers/common/port_registry.h"
@@ -100,12 +99,12 @@ TEST(E001_Noexcept, DuplicateFixedConstraintsSameValueNoThrow) {
 }
 
 // =============================================================================
-// E-002 Regression: SolverOwnedRefs populated at build time
+// E-002 Regression: Solver step ops populated at build time
 // =============================================================================
 
-TEST(E002_SolverOwnedRefs, PopulatedAfterBuild) {
+TEST(E002_SolverStepOps, PopulatedAfterBuild) {
      // Build a circuit with ElectricalSource + AZS + Relay + RefNode (ground).
-     // Verify SolverOwnedRefs has typed pointers for each.
+     // Verify solver_execute_ops / solver_commit_ops have entries for each.
 
      std::vector<DeviceInstance> devices = {
          make_device("ref_gnd", "RefNode", {{"value", "0"}}),
@@ -121,21 +120,23 @@ TEST(E002_SolverOwnedRefs, PopulatedAfterBuild) {
 
      auto br = build_systems_dev(make_jit_input(devices, signal_groups));
 
-     // ElectricalSource pointer list should be populated
-     EXPECT_EQ(br.solver_owned->electrical_sources.size(), 1u);
-     EXPECT_NE(br.solver_owned->electrical_sources[0], nullptr);
+     // 3 solver-owned components: ElectricalSource, AZS, Relay
+     // Each gets an execute op and a commit op.
+     EXPECT_EQ(br.solver_execute_ops.size(), 3u);
+     EXPECT_EQ(br.solver_commit_ops.size(), 3u);
 
-     // AZS pointer list should be populated
-     EXPECT_EQ(br.solver_owned->azs_switches.size(), 1u);
-     EXPECT_NE(br.solver_owned->azs_switches[0], nullptr);
-
-     // Relay pointer list should be populated
-     EXPECT_EQ(br.solver_owned->relays.size(), 1u);
-     EXPECT_NE(br.solver_owned->relays[0], nullptr);
+     for (const auto& op : br.solver_execute_ops) {
+         EXPECT_NE(op.instance, nullptr);
+         EXPECT_NE(op.fn, nullptr);
+     }
+     for (const auto& op : br.solver_commit_ops) {
+         EXPECT_NE(op.instance, nullptr);
+         EXPECT_NE(op.fn, nullptr);
+     }
 }
 
-TEST(E002_SolverOwnedRefs, PointersMatchDeviceMap) {
-     // Verify that SolverOwnedRefs pointers point to the actual devices
+TEST(E002_SolverStepOps, PointersMatchDeviceMap) {
+     // Verify that step op instance pointers reference the actual devices
      // stored in BuildResult::devices (not copies).
 
      std::vector<DeviceInstance> devices = {
@@ -148,18 +149,18 @@ TEST(E002_SolverOwnedRefs, PointersMatchDeviceMap) {
 
      auto br = build_systems_dev(make_jit_input(devices, signal_groups));
 
-     ASSERT_EQ(br.solver_owned->electrical_sources.size(), 1u);
+     ASSERT_EQ(br.solver_execute_ops.size(), 1u);
 
-     // The pointer in solver_owned should point into the devices map
+     // The step op instance should point into the devices map
      auto it = br.devices.find("bat1");
      ASSERT_NE(it, br.devices.end());
 
      const ElectricalSource<JitProvider>* from_map = std::get_if<ElectricalSource<JitProvider>>(&it->second);
      ASSERT_NE(from_map, nullptr);
-     EXPECT_EQ(br.solver_owned->electrical_sources[0], from_map);
+     EXPECT_EQ(br.solver_execute_ops[0].instance, static_cast<const void*>(from_map));
 }
 
-TEST(E002_SolverOwnedRefs, DeviceStoreSealedAfterBuild) {
+TEST(E002_SolverStepOps, DeviceStoreSealedAfterBuild) {
      std::vector<DeviceInstance> devices = {
          make_device("ref_gnd", "RefNode", {{"value", "0"}}),
          make_device("src", "ElectricalSource", {{"voltage", "28"}, {"resistance", "0.01"}}),
@@ -179,22 +180,15 @@ TEST(E002_SolverOwnedRefs, DeviceStoreSealedAfterBuild) {
      );
 }
 
-TEST(E002_SolverOwnedRefs, EmptyCircuitHasEmptyRefs) {
-     // An empty circuit should have no solver-owned refs.
+TEST(E002_SolverStepOps, EmptyCircuitHasNoOps) {
+     // An empty circuit should have no solver step ops.
      std::vector<DeviceInstance> devices;
      std::vector<std::vector<std::string>> signal_groups;
 
      auto br = build_systems_dev(make_jit_input(devices, signal_groups));
 
-     EXPECT_TRUE(br.solver_owned->generators.empty());
-     EXPECT_TRUE(br.solver_owned->controlled_voltage_sources.empty());
-     EXPECT_TRUE(br.solver_owned->variable_conductances.empty());
-     EXPECT_TRUE(br.solver_owned->azs_switches.empty());
-     EXPECT_TRUE(br.solver_owned->hold_buttons.empty());
-     EXPECT_TRUE(br.solver_owned->relays.empty());
-     EXPECT_TRUE(br.solver_owned->resistors.empty());
-     EXPECT_TRUE(br.solver_owned->electrical_conductances.empty());
-     EXPECT_TRUE(br.solver_owned->electrical_sources.empty());
+     EXPECT_TRUE(br.solver_execute_ops.empty());
+     EXPECT_TRUE(br.solver_commit_ops.empty());
 }
 
 // =============================================================================

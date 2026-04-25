@@ -7,11 +7,6 @@
 #include <unordered_map>
 #include <utility>
 
-#include <optional>
-#include <string>
-#include <unordered_map>
-#include <utility>
-
 /// Lightweight device descriptor used in CompositeSpec and JSON parsing.
 /// Represents a concrete device instance (name, type, params, ports, layout).
 /// Not to be confused with ResolvedDevice — this is the pre-resolution form.

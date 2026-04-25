@@ -6,7 +6,6 @@
 #include "components/all.h"
 
 #include <algorithm>
-#include <spdlog/spdlog.h>
 
 namespace jit_solver_impl {
 

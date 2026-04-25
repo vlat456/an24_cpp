@@ -1,13 +1,11 @@
 #pragma once
 
+#include "jit_build_input.h"
 #include "core/solvers/common/port_registry.h"
 #include "scheduler.h"
 #include "subsolvers/subsolver_types.h"
-#include "core/model/resolved_device.h"
-#include "ui/core/interned_id.h"
 #include <cstddef>
 #include <cstdint>
-#include <memory>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
@@ -15,7 +13,6 @@
 
 // Forward declarations
 struct SimulationState;
-struct SolverOwnedRefs;
 
 // ---- Compiled operation types (no component header dependencies) ----
 
@@ -29,20 +26,23 @@ enum class ElectricalPatchKind : uint8_t {
 
 /// Compiled pre-solve electrical patch operation.
 /// Each op writes current-frame mutable element values by element_id.
+/// Fully signal-driven — all inputs read from st.values[]. No raw pointers.
 struct ElectricalPatchOp {
     ElectricalPatchKind kind = ElectricalPatchKind::AffineClamp;
     uint32_t element_id = UINT32_MAX;
 
-    // Signal-driven operands (used by AffineClamp/LerpClamped01).
+    // Signal-driven operands (all kinds).
+    // AffineClamp: s0=cmd, s1=gain, s2=offset, s3=min_v, s4=max_v
+    // LerpClamped01: s0=cmd, s1=lo, s2=hi
+    // BoolSwitch: s0=state_signal (>0.5f == true)
+    // IndexSwitch: s0=position_signal (int cast, compared to index_value)
     uint32_t s0 = UINT32_MAX;
     uint32_t s1 = UINT32_MAX;
     uint32_t s2 = UINT32_MAX;
     uint32_t s3 = UINT32_MAX;
     uint32_t s4 = UINT32_MAX;
 
-    // Pointer-driven state (used by BoolSwitch/IndexSwitch).
-    const bool* bool_state = nullptr;
-    const int* int_state = nullptr;
+    // Integer constant for IndexSwitch (which position to match)
     int index_value = 0;
 
     // Constant outputs for switch kinds.
@@ -58,10 +58,6 @@ struct SolverStepOp {
     void* instance = nullptr;
     SolverStepFn fn = nullptr;
 };
-
-/// Typed port-to-signal mapping. Keys are interned "node_id.port_name" strings.
-/// Runtime lookups are integer-only (InternedId comparison, no string hashing).
-using PortToSignal = std::unordered_map<ui::InternedId, uint32_t>;
 
 /// Guarded component storage.
 ///
@@ -141,12 +137,10 @@ inline Domain get_component_domain_mask(const ComponentVariant& variant) {
 /// Build port-to-signal mapping from devices and connections
 /// For AOT, this is used by codegen to generate component bindings
 struct BuildResult {
-    /// Special members defined in jit_solver.cpp where SolverOwnedRefs is complete.
-    /// Required for unique_ptr<SolverOwnedRefs> with incomplete type (pimpl).
-    ~BuildResult();
-    BuildResult();
-    BuildResult(BuildResult&&) noexcept;
-    BuildResult& operator=(BuildResult&&) noexcept;
+    BuildResult() = default;
+    ~BuildResult() = default;
+    BuildResult(BuildResult&&) noexcept = default;
+    BuildResult& operator=(BuildResult&&) noexcept = default;
     BuildResult(const BuildResult&) = delete;
     BuildResult& operator=(const BuildResult&) = delete;
 
@@ -175,12 +169,6 @@ struct BuildResult {
     std::vector<float> lut_keys;
     std::vector<float> lut_values;
 
-    /// Pre-built typed pointer lists for solver-owned components.
-    /// Eliminates per-frame std::visit over all 68+ variant types.
-    /// Defined in jit_solver_detail.h; opaque here to avoid pulling
-    /// 10 component headers into every consumer.
-    std::unique_ptr<SolverOwnedRefs> solver_owned;
-
     /// Compiled pre-solve electrical patch operations.
     /// Each op writes current-frame mutable element values by element_id.
     std::vector<ElectricalPatchOp> electrical_patch_ops;
@@ -192,19 +180,6 @@ struct BuildResult {
     /// Compiled post-solve commit operations for solver-owned components.
     /// Eliminates per-frame per-type commit loops in simulator.
     std::vector<SolverStepOp> solver_commit_ops;
-};
-
-/// Pre-computed build input for the JIT solver.
-/// Can be produced either from:
-///   - elaborate_for_jit(FlatNetlist, ...)  — canonical BP2 path (no JSON)
-///   - build_input_from_json(string)        — legacy JSON adapter (tests, CLI)
-struct JitBuildInput {
-    std::vector<ResolvedDevice> devices;
-    std::vector<BridgePortDefinition> bridge_ports;
-    PortToSignal port_to_signal;
-    ui::StringInterner signal_key_interner;
-    uint32_t signal_count = 0;
-    std::unordered_map<std::string, float> initial_values;
 };
 
 /// Build solver runtime from pre-computed input (canonical path).

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "jit_solver_detail.h"
+#include "jit_solver.h"
 #include <string>
 #include <string_view>
 #include <vector>
@@ -62,7 +62,5 @@ void build_electrical_islands(
 void build_electrical_patch_ops(BuildResult& result);
 
 void build_solver_step_ops(BuildResult& result);
-
-void populate_solver_owned_refs(BuildResult& result);
 
 }  // namespace jit_solver_impl
