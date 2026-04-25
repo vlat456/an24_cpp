@@ -203,3 +203,133 @@ TEST(TypeDefToBlueprint, RejectsUnknownDeviceClassInsteadOfSynthesizingIface) {
 
     EXPECT_THROW(bp2::blueprint_from_type_definition(def, interner, registry), std::runtime_error);
 }
+
+// --- Sub-blueprint validation tests ---
+
+namespace {
+
+/// Helper: creates a registry with SourceNode + SinkNode + a simple composite "Inner".
+ComponentRegistry make_registry_with_inner_composite() {
+    ComponentRegistry registry;
+
+    // SourceNode (primitive)
+    PrimitiveSpec src;
+    src.classname = "SourceNode";
+    Port src_out;
+    src_out.direction = bp2::Direction::Output;
+    src_out.type = PortType::Bool;
+    src_out.domain = Domain::Logical;
+    src.ports["out"] = src_out;
+    registry.register_type(src.classname, src);
+
+    // SinkNode (primitive)
+    PrimitiveSpec dst;
+    dst.classname = "SinkNode";
+    Port dst_in;
+    dst_in.direction = bp2::Direction::Input;
+    dst_in.type = PortType::Bool;
+    dst_in.domain = Domain::Logical;
+    dst.ports["in"] = dst_in;
+    registry.register_type(dst.classname, dst);
+
+    // Inner composite: SourceNode → SinkNode
+    CompositeSpec inner;
+    inner.classname = "Inner";
+
+    Port inner_in;
+    inner_in.direction = bp2::Direction::Input;
+    inner_in.type = PortType::Bool;
+    inner_in.domain = Domain::Logical;
+    inner.ports["in"] = inner_in;
+
+    Port inner_out;
+    inner_out.direction = bp2::Direction::Output;
+    inner_out.type = PortType::Bool;
+    inner_out.domain = Domain::Logical;
+    inner.ports["out"] = inner_out;
+
+    DeviceInstance inner_src;
+    inner_src.name = "s";
+    inner_src.classname = "SourceNode";
+    inner.devices.push_back(inner_src);
+
+    DeviceInstance inner_dst;
+    inner_dst.name = "d";
+    inner_dst.classname = "SinkNode";
+    inner.devices.push_back(inner_dst);
+
+    Connection inner_conn;
+    inner_conn.from = "s.out";
+    inner_conn.to = "d.in";
+    inner.connections.push_back(inner_conn);
+
+    registry.register_type(inner.classname, inner);
+
+    return registry;
+}
+
+} // namespace
+
+TEST(TypeDefToBlueprint, SubBlueprintRefUnknownTypeThrows) {
+    ui::StringInterner interner;
+    ComponentRegistry registry = make_registry_with_inner_composite();
+
+    CompositeSpec outer;
+    outer.classname = "Outer";
+
+    SubBlueprintRef ref;
+    ref.id = "missing_child";
+    ref.type_name = "NonExistentComposite";  // Not in registry
+    outer.sub_blueprints.push_back(ref);
+
+    EXPECT_THROW(
+        bp2::blueprint_from_type_definition(outer, interner, registry),
+        std::runtime_error);
+}
+
+TEST(TypeDefToBlueprint, SubBlueprintRefPrimitiveTypeThrows) {
+    ui::StringInterner interner;
+    ComponentRegistry registry = make_registry_with_inner_composite();
+
+    CompositeSpec outer;
+    outer.classname = "Outer";
+
+    SubBlueprintRef ref;
+    ref.id = "not_a_composite";
+    ref.type_name = "SourceNode";  // Primitive, not composite
+    outer.sub_blueprints.push_back(ref);
+
+    EXPECT_THROW(
+        bp2::blueprint_from_type_definition(outer, interner, registry),
+        std::runtime_error);
+}
+
+TEST(TypeDefToBlueprint, SubBlueprintRefValidCompositeCreatesNode) {
+    ui::StringInterner interner;
+    ComponentRegistry registry = make_registry_with_inner_composite();
+
+    CompositeSpec outer;
+    outer.classname = "Outer";
+
+    SubBlueprintRef ref;
+    ref.id = "child";
+    ref.type_name = "Inner";
+    ref.pos = std::make_pair(50.0f, 60.0f);
+    ref.params_override["s.gain"] = "2.0";
+    outer.sub_blueprints.push_back(ref);
+
+    bp2::Blueprint bp = bp2::blueprint_from_type_definition(outer, interner, registry);
+
+    const auto* child = bp.find_node(interner.lookup("child"));
+    ASSERT_NE(child, nullptr);
+    EXPECT_TRUE(child->is_blueprint_instance());
+    EXPECT_EQ(child->semantic.type, interner.lookup("Inner"));
+    EXPECT_FLOAT_EQ(child->layout.x, 50.0f);
+    EXPECT_FLOAT_EQ(child->layout.y, 60.0f);
+
+    // Interface is resolved lazily — verify resolve_node_iface works
+    bp2::Interface iface = bp.resolve_node_iface(
+        *child, bp2::Blueprint::NodeIfaceAuthority{interner, &registry});
+    EXPECT_TRUE(iface.has(interner.lookup("in")));
+    EXPECT_TRUE(iface.has(interner.lookup("out")));
+}

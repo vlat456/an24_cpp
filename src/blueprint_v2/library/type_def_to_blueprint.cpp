@@ -157,7 +157,27 @@ Blueprint blueprint_from_type_definition(const ComponentSpec& spec,
     // --- Sub-blueprint instances → BlueprintInstanceData nodes ---
     // Each SubBlueprintRef becomes a blueprint_instance node that the Flattener
     // resolves recursively via the BlueprintLibrary.
+    //
+    // NOTE: BlueprintInstanceData nodes carry no inline Interface. Their ports
+    // are resolved lazily via Blueprint::resolve_node_iface(), which looks up
+    // the referenced composite definition from the registry. This is by design —
+    // the interface is derived from the referenced blueprint's own interface,
+    // avoiding redundant storage that could desync.
     for (const auto& ref : comp->sub_blueprints) {
+        // Validate that the referenced type exists as a composite in the registry.
+        const ComponentSpec* ref_def = registry.get(ref.type_name);
+        if (!ref_def) {
+            throw std::runtime_error(
+                "blueprint_from_type_definition: unknown sub-blueprint type '"
+                + ref.type_name + "' referenced by '" + ref.id
+                + "' in composite '" + comp->classname + "'");
+        }
+        if (!as_composite(*ref_def)) {
+            throw std::runtime_error(
+                "blueprint_from_type_definition: sub-blueprint type '"
+                + ref.type_name + "' is not a composite (referenced by '" + ref.id
+                + "' in composite '" + comp->classname + "')");
+        }
         Blueprint::Node node;
         node.semantic.id = interner.intern(ref.id);
         node.semantic.type = interner.intern(ref.type_name);
