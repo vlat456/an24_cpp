@@ -6,7 +6,6 @@
 #include "core/solvers/aot/codegen.h"
 #include "core/registry/component_resolution.h"
 #include "core/solvers/jit/jit_solver.h"
-#include "test_execution_phases.h"
 #include "jit_build_input_test_helper.h"
 
 namespace {

@@ -4,7 +4,6 @@
 #include "core/solvers/aot/codegen.h"
 #include "io/json/component_registry_json_loader.h"
 #include "core/registry/component_resolution.h"
-#include "test_execution_phases.h"
 
 
 // =============================================================================
