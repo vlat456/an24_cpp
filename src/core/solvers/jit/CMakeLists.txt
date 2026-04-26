@@ -66,7 +66,7 @@ add_library(jit_solver
     components/electric_heater.cpp
     components/electric_pump.cpp
     components/fuel_tank.cpp
-    components/gidro_accumulator.cpp
+    components/hydraulic_accumulator.cpp
     components/gyroscope.cpp
     components/inertia_node.cpp
     components/inverter.cpp

@@ -117,9 +117,6 @@ constexpr PortMeta PORT_META[] = {
     // Generator
     {"v_in", bp2::Direction::Input, 1, false},
     {"v_out", bp2::Direction::Output, 1, true},
-    // GidroAccumulator
-    {"p_in", bp2::Direction::Input, 8, false},
-    {"p_out", bp2::Direction::Output, 8, false},
     // Greater
     {"A", bp2::Direction::Input, 2, false},
     {"B", bp2::Direction::Input, 2, false},
@@ -135,6 +132,9 @@ constexpr PortMeta PORT_META[] = {
     {"state", bp2::Direction::Output, 2, false},
     {"v_in", bp2::Direction::Input, 1, false},
     {"v_out", bp2::Direction::Output, 1, false},
+    // HydraulicAccumulator
+    {"p_in", bp2::Direction::Input, 8, false},
+    {"p_out", bp2::Direction::Output, 8, false},
     // IndicatorLight
     {"brightness", bp2::Direction::Output, 1, false},
     {"v_in", bp2::Direction::Input, 1, false},
@@ -353,11 +353,11 @@ constexpr ComponentPortInfo COMPONENT_PORT_INFO[] = {
     {54, 2, false, false, false},  // FastTMO
     {56, 4, false, false, true},  // FuelTank
     {60, 2, true, true, true},  // Generator
-    {62, 2, false, false, false},  // GidroAccumulator
-    {64, 3, false, false, false},  // Greater
-    {67, 3, false, false, false},  // GreaterEq
-    {70, 1, false, false, false},  // Gyroscope
-    {71, 4, false, true, true},  // HoldButton
+    {62, 3, false, false, false},  // Greater
+    {65, 3, false, false, false},  // GreaterEq
+    {68, 1, false, false, false},  // Gyroscope
+    {69, 4, false, true, true},  // HoldButton
+    {73, 2, false, false, false},  // HydraulicAccumulator
     {75, 3, false, false, true},  // IndicatorLight
     {78, 5, false, false, false},  // InertiaNode
     {83, 4, false, false, false},  // Integrator

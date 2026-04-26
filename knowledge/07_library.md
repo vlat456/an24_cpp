@@ -220,7 +220,7 @@ Visual annotation:
 | Inverter | Voltage inverter |
 | Radiator | Thermal radiator |
 | FuelTank | Fuel reserve |
-| GidroAccumulator | Hydraulic accumulator |
+| HydraulicAccumulator | Hydraulic accumulator |
 | Transformer | Isolated transformer |
 | VariableConductance | Variable resistance |
 | GroundPower | Ground reference node |

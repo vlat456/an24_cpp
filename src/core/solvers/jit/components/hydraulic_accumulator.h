@@ -4,12 +4,12 @@
 
 #include "../state.h"
 
-/// GidroAccumulator - gas-charged hydraulic accumulator (Boyle's law)
+/// HydraulicAccumulator — gas-charged hydraulic accumulator (Boyle's law).
 /// Stores hydraulic energy via compressed gas. When system pressure exceeds
 /// precharge, fluid enters and gas compresses. When pressure drops, stored
 /// fluid is released back into the circuit.
 template <typename Provider = JitProvider>
-class GidroAccumulator {
+class HydraulicAccumulator {
 public:
     static constexpr Domain domain = Domain::Hydraulic;
 
@@ -18,7 +18,7 @@ public:
     float volume = 10.0f;              // Total accumulator volume (liters)
     double gas_volume = 10.0;          // Current gas volume (liters, state)
 
-    GidroAccumulator() = default;
+    HydraulicAccumulator() = default;
 
     void execute(SimulationState& st, double dt);
     void commit(SimulationState& st, double dt);

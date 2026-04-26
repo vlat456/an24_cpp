@@ -119,11 +119,6 @@ static void consume_params(Generator<JitProvider>& comp, ParamReader& param_read
     comp.v_nominal = param_reader.consume_float_optional("v_nominal", 28.5f);
 }
 
-static void consume_params(GidroAccumulator<JitProvider>& comp, ParamReader& param_reader) {
-    comp.precharge_pressure = param_reader.consume_float_optional("precharge_pressure", 50.0f);
-    comp.volume = param_reader.consume_float_optional("volume", 10.0f);
-}
-
 static void consume_params(Greater<JitProvider>& comp, ParamReader& param_reader) {
     (void)comp; (void)param_reader;  // no params
 }
@@ -140,6 +135,11 @@ static void consume_params(HoldButton<JitProvider>& comp, ParamReader& param_rea
     comp.g_closed = param_reader.consume_float_optional("g_closed", 1000.0f);
     comp.g_open = param_reader.consume_float_optional("g_open", 1e-6f);
     comp.idle = param_reader.consume_float_optional("idle", 0.0f);
+}
+
+static void consume_params(HydraulicAccumulator<JitProvider>& comp, ParamReader& param_reader) {
+    comp.precharge_pressure = param_reader.consume_float_optional("precharge_pressure", 50.0f);
+    comp.volume = param_reader.consume_float_optional("volume", 10.0f);
 }
 
 static void consume_params(IndicatorLight<JitProvider>& comp, ParamReader& param_reader) {
@@ -366,9 +366,7 @@ template <typename CompType, SchedulerRole Role>
 static void build_generic(BuildResult& result, const ResolvedDevice& dev, ParamReader& param_reader) {
     CompType comp;
     consume_params(comp, param_reader);
-    if constexpr (requires { comp.pre_load(); }) {
-        comp.pre_load();
-    }
+    if constexpr (requires { comp.pre_load(); }) { comp.pre_load(); }
     setup_component_ports(result, dev, comp);
     param_reader.validate_all_consumed();
     result.devices[dev.name] = std::move(comp);
@@ -378,7 +376,7 @@ static void build_generic(BuildResult& result, const ResolvedDevice& dev, ParamR
         result.scheduler.add_source(&std::get<CompType>(result.devices[dev.name]));
 }
 
-/// Special builder: LUT — table arena allocation.
+/// Special builder: LUT — table arena allocation before pre_load.
 static void build_LUT(BuildResult& result, const ResolvedDevice& dev, ParamReader& param_reader) {
     LUT<JitProvider> comp;
     consume_params(comp, param_reader);
@@ -447,11 +445,11 @@ static const BuildFn BUILD_TABLE[] = {
     build_generic<FastTMO<JitProvider>, SchedulerRole::Consumer>,  // FastTMO
     build_generic<FuelTank<JitProvider>, SchedulerRole::Consumer>,  // FuelTank
     build_generic<Generator<JitProvider>, SchedulerRole::None>,  // Generator
-    build_generic<GidroAccumulator<JitProvider>, SchedulerRole::Consumer>,  // GidroAccumulator
     build_generic<Greater<JitProvider>, SchedulerRole::Consumer>,  // Greater
     build_generic<GreaterEq<JitProvider>, SchedulerRole::Consumer>,  // GreaterEq
     build_generic<Gyroscope<JitProvider>, SchedulerRole::Consumer>,  // Gyroscope
     build_generic<HoldButton<JitProvider>, SchedulerRole::None>,  // HoldButton
+    build_generic<HydraulicAccumulator<JitProvider>, SchedulerRole::Consumer>,  // HydraulicAccumulator
     build_generic<IndicatorLight<JitProvider>, SchedulerRole::Consumer>,  // IndicatorLight
     build_generic<InertiaNode<JitProvider>, SchedulerRole::Consumer>,  // InertiaNode
     build_generic<Integrator<JitProvider>, SchedulerRole::Consumer>,  // Integrator

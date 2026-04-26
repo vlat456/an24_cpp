@@ -169,7 +169,7 @@ The helper handles: include dirs, gtest linking, `gtest_discover_tests()`, optio
 | Category | Files |
 |----------|-------|
 | Components | `test_logic_gates.cpp`, `test_current_sense.cpp`, `test_transformer.cpp`, `test_pid.cpp`, `test_slew_rate.cpp`, `test_clamp_normalize.cpp` |
-| Regression | `test_switch_regression.cpp`, `test_rug82_regression.cpp`, `test_gidro_accumulator_regression.cpp` |
+| Regression | `test_switch_regression.cpp`, `test_rug82_regression.cpp`, `test_hydraulic_accumulator_regression.cpp` |
 | Editor | `test_commands.cpp`, `test_visual_*.cpp`, `test_blueprint_loading.cpp` |
 | UI | `test_ui_*.cpp` |
 | Blueprint V2 | `tests/blueprint_v2/test_*.cpp` |

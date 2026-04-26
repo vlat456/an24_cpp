@@ -40,11 +40,11 @@ enum class ComponentKind : uint8_t {
     FastTMO,
     FuelTank,
     Generator,
-    GidroAccumulator,
     Greater,
     GreaterEq,
     Gyroscope,
     HoldButton,
+    HydraulicAccumulator,
     IndicatorLight,
     InertiaNode,
     Integrator,
@@ -118,11 +118,11 @@ inline std::optional<ComponentKind> parse_component_kind(std::string_view name) 
     if (name == "FastTMO") return ComponentKind::FastTMO;
     if (name == "FuelTank") return ComponentKind::FuelTank;
     if (name == "Generator") return ComponentKind::Generator;
-    if (name == "GidroAccumulator") return ComponentKind::GidroAccumulator;
     if (name == "Greater") return ComponentKind::Greater;
     if (name == "GreaterEq") return ComponentKind::GreaterEq;
     if (name == "Gyroscope") return ComponentKind::Gyroscope;
     if (name == "HoldButton") return ComponentKind::HoldButton;
+    if (name == "HydraulicAccumulator") return ComponentKind::HydraulicAccumulator;
     if (name == "IndicatorLight") return ComponentKind::IndicatorLight;
     if (name == "InertiaNode") return ComponentKind::InertiaNode;
     if (name == "Integrator") return ComponentKind::Integrator;
@@ -196,11 +196,11 @@ inline constexpr std::string_view component_kind_classname(ComponentKind kind) {
         case ComponentKind::FastTMO: return "FastTMO";
         case ComponentKind::FuelTank: return "FuelTank";
         case ComponentKind::Generator: return "Generator";
-        case ComponentKind::GidroAccumulator: return "GidroAccumulator";
         case ComponentKind::Greater: return "Greater";
         case ComponentKind::GreaterEq: return "GreaterEq";
         case ComponentKind::Gyroscope: return "Gyroscope";
         case ComponentKind::HoldButton: return "HoldButton";
+        case ComponentKind::HydraulicAccumulator: return "HydraulicAccumulator";
         case ComponentKind::IndicatorLight: return "IndicatorLight";
         case ComponentKind::InertiaNode: return "InertiaNode";
         case ComponentKind::Integrator: return "Integrator";
@@ -253,7 +253,7 @@ inline constexpr std::string_view component_kind_classname(ComponentKind kind) {
     return "Unknown";
 }
 
-/// KnobSwitch family: solver_role.kind == SolverRoleKind::KnobSwitchBranches.
+/// KnobSwitch family: solver_role.kind == "KnobSwitchBranches".
 inline constexpr bool is_knob_switch_kind(ComponentKind kind) {
     return kind == ComponentKind::KnobSwitch ||
            kind == ComponentKind::RotarySwitch1ToN ||

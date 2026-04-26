@@ -31,11 +31,11 @@ using ComponentVariant = std::variant<
     FastTMO<JitProvider>,
     FuelTank<JitProvider>,
     Generator<JitProvider>,
-    GidroAccumulator<JitProvider>,
     Greater<JitProvider>,
     GreaterEq<JitProvider>,
     Gyroscope<JitProvider>,
     HoldButton<JitProvider>,
+    HydraulicAccumulator<JitProvider>,
     IndicatorLight<JitProvider>,
     InertiaNode<JitProvider>,
     Integrator<JitProvider>,
@@ -110,11 +110,11 @@ static_assert(static_cast<size_t>(ComponentKind::ElectricalSource) == 17ull, "El
 static_assert(static_cast<size_t>(ComponentKind::FastTMO) == 18ull, "FastTMO enum position mismatch — re-run update_port_registry");
 static_assert(static_cast<size_t>(ComponentKind::FuelTank) == 19ull, "FuelTank enum position mismatch — re-run update_port_registry");
 static_assert(static_cast<size_t>(ComponentKind::Generator) == 20ull, "Generator enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::GidroAccumulator) == 21ull, "GidroAccumulator enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::Greater) == 22ull, "Greater enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::GreaterEq) == 23ull, "GreaterEq enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::Gyroscope) == 24ull, "Gyroscope enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::HoldButton) == 25ull, "HoldButton enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::Greater) == 21ull, "Greater enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::GreaterEq) == 22ull, "GreaterEq enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::Gyroscope) == 23ull, "Gyroscope enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::HoldButton) == 24ull, "HoldButton enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::HydraulicAccumulator) == 25ull, "HydraulicAccumulator enum position mismatch — re-run update_port_registry");
 static_assert(static_cast<size_t>(ComponentKind::IndicatorLight) == 26ull, "IndicatorLight enum position mismatch — re-run update_port_registry");
 static_assert(static_cast<size_t>(ComponentKind::InertiaNode) == 27ull, "InertiaNode enum position mismatch — re-run update_port_registry");
 static_assert(static_cast<size_t>(ComponentKind::Integrator) == 28ull, "Integrator enum position mismatch — re-run update_port_registry");

@@ -25,7 +25,7 @@
     { "blueprint_id": "FirstOrderLag", "path": "library/math/FirstOrderLag.blueprint" },
     { "blueprint_id": "FuelTank", "path": "library/electrical/FuelTank.blueprint" },
     { "blueprint_id": "Generator", "path": "library/electrical/Generator.blueprint" },
-    { "blueprint_id": "GidroAccumulator", "path": "library/electrical/GidroAccumulator.blueprint" },
+    { "blueprint_id": "HydraulicAccumulator", "path": "library/electrical/HydraulicAccumulator.blueprint" },
     { "blueprint_id": "Greater", "path": "library/math/Greater.blueprint" },
     { "blueprint_id": "GreaterEq", "path": "library/math/GreaterEq.blueprint" },
     { "blueprint_id": "GroundPower", "path": "library/electrical/GroundPower.blueprint" },

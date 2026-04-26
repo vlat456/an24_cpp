@@ -1,7 +1,7 @@
 {
   "version": "3.0",
-  "id": "GidroAccumulator",
-  "display_name": "GidroAccumulator",
+  "id": "HydraulicAccumulator",
+  "display_name": "HydraulicAccumulator",
   "scheduler_source": false,
 
   "solver_owned_electrical": false,

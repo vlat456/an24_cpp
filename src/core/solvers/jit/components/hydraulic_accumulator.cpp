@@ -1,10 +1,10 @@
-#include "gidro_accumulator.h"
+#include "hydraulic_accumulator.h"
 #include "core/solvers/common/port_names.h"
 #include <algorithm>
 #include <cmath>
 
 template <typename Provider>
-void GidroAccumulator<Provider>::execute(SimulationState& st, double dt) {
+void HydraulicAccumulator<Provider>::execute(SimulationState& st, double dt) {
     float p_in = st.values[provider.get(PortNames::p_in)];
     
     // Boyle's law: P_precharge * V_total = P_gas * V_gas
@@ -22,13 +22,13 @@ void GidroAccumulator<Provider>::execute(SimulationState& st, double dt) {
 }
 
 template <typename Provider>
-void GidroAccumulator<Provider>::commit(SimulationState& st, double /*dt*/) {
+void HydraulicAccumulator<Provider>::commit(SimulationState& st, double /*dt*/) {
     (void)st;
 }
 
 template <typename Provider>
-void GidroAccumulator<Provider>::pre_load() {
+void HydraulicAccumulator<Provider>::pre_load() {
     gas_volume = std::clamp(gas_volume, 0.1, static_cast<double>(volume));
 }
 
-template class GidroAccumulator<JitProvider>;
+template class HydraulicAccumulator<JitProvider>;

@@ -545,8 +545,8 @@ Mechanical conversion of all `float dt` parameters and accumulator state variabl
 2. **Codegen:** `codegen.cpp` — all emitted `float dt` strings changed to `double dt` for AOT path
 3. **All ~78 component headers:** execute/commit signatures changed to `double dt`
 4. **All ~24 component .cpp files:** method definitions changed to `double dt`
-5. **Accumulator variables promoted to double:** `accumulator.h` (state, next_state), `integrator.h` (accumulator, next_accumulator), `pid.h` (integral), `pi.h` (integral), `fuel_tank.h` (level, next_level), `azs.h` (temp), `ru19a.h` (timer, next_timer, current_rpm, next_current_rpm, t4, next_t4), `gs24.h` (wait_time, next_wait_time, current_rpm, next_current_rpm), `inertia_node.h` (rpm, next_rpm), `gidro_accumulator.h` (gas_volume), `battery.h` (capacity, charge)
-6. **Type mismatch fixes:** Fixed `std::max`/`std::min`/`std::clamp` calls where promoted `double` accumulators or `double dt` were mixed with `float` literals (azs.cpp, fuel_tank.cpp, gidro_accumulator.cpp, ru19a.cpp, spring.cpp, pd.cpp, pid.cpp, pi.cpp, fast_tmo.cpp, asym_tmo.cpp, monostable.cpp, rug82.cpp)
+5. **Accumulator variables promoted to double:** `accumulator.h` (state, next_state), `integrator.h` (accumulator, next_accumulator), `pid.h` (integral), `pi.h` (integral), `fuel_tank.h` (level, next_level), `azs.h` (temp), `ru19a.h` (timer, next_timer, current_rpm, next_current_rpm, t4, next_t4), `gs24.h` (wait_time, next_wait_time, current_rpm, next_current_rpm), `inertia_node.h` (rpm, next_rpm), `hydraulic_accumulator.h` (gas_volume), `battery.h` (capacity, charge)
+6. **Type mismatch fixes:** Fixed `std::max`/`std::min`/`std::clamp` calls where promoted `double` accumulators or `double dt` were mixed with `float` literals (azs.cpp, fuel_tank.cpp, hydraulic_accumulator.cpp, ru19a.cpp, spring.cpp, pd.cpp, pid.cpp, pi.cpp, fast_tmo.cpp, asym_tmo.cpp, monostable.cpp, rug82.cpp)
 7. **All ~45 test files + examples:** `float dt` variables and helper signatures updated
 
 **Build:** Clean (0 errors, warnings only for unrelated nodiscard)
@@ -927,7 +927,7 @@ These suites validate legacy solver internals or removed state arrays/stamping p
 | `gs24_regression_tests`              | legacy iterative-era state-array coupling assumptions |
 | `electric_heater_regression_tests`   | Removed `across/through/conductance` internals        |
 | `switch_regression_tests`            | Removed legacy solver downstream passback internals   |
-| `gidro_accumulator_regression_tests` | Removed legacy solver matrix/stamp assumptions        |
+| `hydraulic_accumulator_regression_tests` | Removed legacy solver matrix/stamp assumptions        |
 | `fuel_tank_regression_tests`         | Removed legacy solver matrix/stamp assumptions        |
 | `refnode_regression_tests`           | Removed legacy solver residual assumptions            |
 | `rug82_regression_tests`             | Removed legacy solver iteration semantics             |

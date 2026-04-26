@@ -32,7 +32,7 @@
 #include "gyroscope.h"
 #include "electric_pump.h"
 #include "solenoid_valve.h"
-#include "gidro_accumulator.h"
+#include "hydraulic_accumulator.h"
 #include "fuel_tank.h"
 #include "inertia_node.h"
 #include "spring.h"
