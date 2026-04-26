@@ -9,18 +9,12 @@
 /// Handles FixedPressureNode, PressureSource (Norton equivalent),
 /// and FlowBranch elements. Writes solved pressures to
 /// SimulationState::values and branch flows to HydraulicRuntimeState.
+///
+/// Caller must initialize rt.element_value_a before calling (e.g., via
+/// build_common::init_element_values_from_plan).
 void solve_hydraulic(
     const HydraulicBuildPlan& plan,
     const std::vector<float>& element_value_a,
-    SimulationState& st,
-    HydraulicRuntimeState& rt,
-    double dt
-) noexcept;
-
-/// Self-contained overload that initializes element_value_a from plan defaults
-/// on first call and reuses the buffer across frames.
-void solve_hydraulic(
-    const HydraulicBuildPlan& plan,
     SimulationState& st,
     HydraulicRuntimeState& rt,
     double dt

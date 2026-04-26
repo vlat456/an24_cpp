@@ -17,9 +17,9 @@ void solve_electrical(
     double dt
 ) noexcept;
 
-/// Backward-compatible overload.
-/// Uses ElectricalRuntimeState::element_value_a as mutable runtime values,
-/// initializing missing entries from plan defaults.
+/// Self-contained overload that initializes element_value_a from plan defaults.
+/// Used by AOT codegen and standalone tests. The JIT Simulator uses the 5-arg
+/// version with explicit element_value_a after start-time initialization.
 void solve_electrical(
     const ElectricalBuildPlan& plan,
     SimulationState& st,
