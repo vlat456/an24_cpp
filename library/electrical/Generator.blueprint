@@ -2,8 +2,7 @@
   "version": "3.0",
   "id": "Generator",
   "display_name": "Generator",
-  "scheduler_source": true,
-  "solver_owned_electrical": true,
+  "scheduler_role": "None",
   "interface": [
     {
       "name": "v_in",

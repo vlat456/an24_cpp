@@ -2,7 +2,7 @@
   "version": "3.0",
   "id": "FirstOrderLag",
   "display_name": "FirstOrderLag",
-  "scheduler_source": false,
+  "scheduler_role": "Consumer",
   "interface": [
     {
       "direction": 0,

@@ -176,8 +176,8 @@ TEST(FactoryValidationTest, MissingReferenceNode_WarnsButBuilds) {
 // Regression: Special builders (LUT, RefNode) must use scheduler role from
 // metadata, not hardcoded assumptions. Previously, emit_build_LUT hard-coded
 // add_consumer and emit_build_RefNode hard-coded add_source, ignoring the
-// scheduler_source / solver_owned_electrical metadata. If those values ever
-// change, this test catches the mismatch.
+// scheduler_role_kind metadata. If those values ever change, this test catches
+// the mismatch.
 // ---------------------------------------------------------------------------
 TEST(FactoryValidationTest, SpecialBuilderSchedulerRolesMatchMetadata) {
     // Build a system with LUT (Consumer), RefNode (Source), and Value (Source)

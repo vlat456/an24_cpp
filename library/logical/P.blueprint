@@ -2,9 +2,7 @@
   "version": "3.0",
   "id": "P",
   "display_name": "P",
-  "scheduler_source": false,
-
-  "solver_owned_electrical": false,
+  "scheduler_role": "Consumer",
   "interface": [
     {
       "name": "feedback",

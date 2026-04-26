@@ -2,7 +2,7 @@
   "version": "3.0",
   "id": "Text",
   "display_name": "Text",
-  "scheduler_source": false,
+  "scheduler_role": "Consumer",
   "interface": [],
   "nodes": [],
   "wires": [],

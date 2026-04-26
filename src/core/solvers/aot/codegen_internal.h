@@ -65,30 +65,26 @@ inline void emit_device_execute_commit(
     const std::vector<ResolvedDevice>& devices
 ) {
     for (const auto& dev : devices) {
-        const bool is_source = dev.scheduler_source;
-        if (!is_source) {
+        if (dev.scheduler_role_kind != SchedulerRoleKind::Source) {
             continue;
         }
         oss << "    " << sanitize_name(dev.name) << ".execute(*st, dt);\n";
     }
     for (const auto& dev : devices) {
-        const bool is_source = dev.scheduler_source;
-        if (is_source) {
+        if (dev.scheduler_role_kind == SchedulerRoleKind::Source) {
             continue;
         }
         oss << "    " << sanitize_name(dev.name) << ".execute(*st, dt);\n";
     }
 
     for (const auto& dev : devices) {
-        const bool is_source = dev.scheduler_source;
-        if (!is_source) {
+        if (dev.scheduler_role_kind != SchedulerRoleKind::Source) {
             continue;
         }
         oss << "    " << sanitize_name(dev.name) << ".commit(*st, dt);\n";
     }
     for (const auto& dev : devices) {
-        const bool is_source = dev.scheduler_source;
-        if (is_source) {
+        if (dev.scheduler_role_kind == SchedulerRoleKind::Source) {
             continue;
         }
         oss << "    " << sanitize_name(dev.name) << ".commit(*st, dt);\n";

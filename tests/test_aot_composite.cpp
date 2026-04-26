@@ -834,7 +834,7 @@ TEST(AotComposite, GeneratedStepMethodsUseSourceConsumerOrdering) {
     refnode_out.classname = "RefNode";
     refnode_out.ports["v"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     refnode_out.domains = {Domain::Electrical};
-    refnode_out.solver.scheduler_source = true;
+    refnode_out.solver.scheduler_role_kind = SchedulerRoleKind::Source;
     refnode_out.params["value"] = ParamSpec{ParamSchemaType::Float, "0.0"};
     SolverRole role;
     role.kind = SolverRoleKind::FixedVoltageNode;
@@ -842,7 +842,6 @@ TEST(AotComposite, GeneratedStepMethodsUseSourceConsumerOrdering) {
     role.param_map["voltage"] = "value";
     role.value_map["bind_handle"] = 1.0f;
     refnode_out.solver.solver_role = role;
-    refnode_out.solver.solver_owned_electrical = false;
     registry.register_type("RefNode", refnode_out);
 
     // Voltmeter with port "v" (library has "v_in") — must be hand-built
@@ -850,7 +849,7 @@ TEST(AotComposite, GeneratedStepMethodsUseSourceConsumerOrdering) {
     consumer_type.classname = "Voltmeter";
     consumer_type.ports["v"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
     consumer_type.domains = {Domain::Electrical};
-    consumer_type.solver.scheduler_source = false;
+    consumer_type.solver.scheduler_role_kind = SchedulerRoleKind::Consumer;
     registry.register_type("Voltmeter", consumer_type);
 
     CompositeSpec td;

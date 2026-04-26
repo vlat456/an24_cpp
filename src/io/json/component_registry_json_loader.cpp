@@ -64,22 +64,16 @@ std::pair<ComponentSpec, TypePresentation> parse_blueprint_type_definition(
         visual_only = j["visual_only"].get<bool>();
     }
 
-    if (!j.contains("scheduler_source") || !j["scheduler_source"].is_boolean()) {
-        throw std::runtime_error("Missing required boolean 'scheduler_source' for component '" + classname + "'");
-    }
-    const bool scheduler_source = j["scheduler_source"].get<bool>();
-
-    bool solver_owned_electrical = false;
-    if (is_cpp) {
-        if (!j.contains("solver_owned_electrical") || !j["solver_owned_electrical"].is_boolean()) {
-            throw std::runtime_error("Missing required boolean 'solver_owned_electrical' for component '" + classname + "'");
+    // scheduler_role: typed enum parsed from string ("Source", "Consumer", "None").
+    // Required for cpp_class components, defaults to "Consumer" for composites.
+    SchedulerRoleKind scheduler_role_kind = SchedulerRoleKind::Consumer;
+    if (j.contains("scheduler_role")) {
+        if (!j["scheduler_role"].is_string()) {
+            throw std::runtime_error("'scheduler_role' must be a string for component '" + classname + "'");
         }
-        solver_owned_electrical = j["solver_owned_electrical"].get<bool>();
-    } else if (j.contains("solver_owned_electrical")) {
-        if (!j["solver_owned_electrical"].is_boolean()) {
-            throw std::runtime_error("'solver_owned_electrical' must be boolean for component '" + classname + "'");
-        }
-        solver_owned_electrical = j["solver_owned_electrical"].get<bool>();
+        scheduler_role_kind = parse_scheduler_role_kind(j["scheduler_role"].get<std::string>());
+    } else if (is_cpp) {
+        throw std::runtime_error("Missing required 'scheduler_role' for component '" + classname + "'");
     }
 
     std::vector<Domain> domains;
@@ -310,8 +304,7 @@ std::pair<ComponentSpec, TypePresentation> parse_blueprint_type_definition(
         prim.ports = std::move(ports);
         prim.params = std::move(params);
         prim.domains = std::move(domains);
-        prim.solver.scheduler_source = scheduler_source;
-        prim.solver.solver_owned_electrical = solver_owned_electrical;
+        prim.solver.scheduler_role_kind = scheduler_role_kind;
         prim.solver.solver_role = std::move(solver_role);
         prim.priority = std::move(priority);
         prim.critical = critical;

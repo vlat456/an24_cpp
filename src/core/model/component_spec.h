@@ -24,8 +24,7 @@ struct ComponentMeta {
 /// Composites never have solver traits — they decompose into primitives.
 struct PrimitiveSolverMetadata {
     std::optional<SolverRole> solver_role;
-    bool scheduler_source = false;
-    bool solver_owned_electrical = false;
+    SchedulerRoleKind scheduler_role_kind = SchedulerRoleKind::Consumer;
 };
 
 struct PrimitiveSpec : ComponentMeta {

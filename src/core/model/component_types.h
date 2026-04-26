@@ -48,6 +48,35 @@ inline const char* solver_role_kind_name(SolverRoleKind k) {
     return "Unknown";
 }
 
+/// Typed discriminator for push-scheduler participation.
+/// Replaces the domain-specific `scheduler_source` + `solver_owned_electrical` booleans.
+///   - Source:   push-scheduler source (drives other components)
+///   - Consumer: push-scheduler consumer (reacts to sources)
+///   - None:     no push-scheduler role (exclusively managed by a subsolver)
+enum class SchedulerRoleKind : uint8_t {
+    Source,
+    Consumer,
+    None,
+};
+
+/// Parse a "scheduler_role" string into typed enum. Throws on unknown value.
+inline SchedulerRoleKind parse_scheduler_role_kind(const std::string& s) {
+    if (s == "Source")   return SchedulerRoleKind::Source;
+    if (s == "Consumer") return SchedulerRoleKind::Consumer;
+    if (s == "None")    return SchedulerRoleKind::None;
+    throw std::runtime_error("Unknown scheduler_role '" + s + "'");
+}
+
+/// Convert SchedulerRoleKind back to string (for diagnostics/codegen).
+inline const char* scheduler_role_kind_name(SchedulerRoleKind k) {
+    switch (k) {
+        case SchedulerRoleKind::Source:   return "Source";
+        case SchedulerRoleKind::Consumer: return "Consumer";
+        case SchedulerRoleKind::None:    return "None";
+    }
+    return "Unknown";
+}
+
 struct SolverRole {
     SolverRoleKind kind;
     Domain domain = Domain::Electrical;

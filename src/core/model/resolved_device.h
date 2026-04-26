@@ -19,8 +19,7 @@ struct ResolvedDevice {
     std::string priority = "med";
     std::optional<size_t> bucket;
     bool critical = false;
-    bool scheduler_source = false;
-    bool solver_owned_electrical = false;
+    SchedulerRoleKind scheduler_role_kind = SchedulerRoleKind::Consumer;
     std::unordered_map<std::string, Port> ports;
     std::unordered_map<std::string, std::string> params;
     std::vector<Domain> domains;

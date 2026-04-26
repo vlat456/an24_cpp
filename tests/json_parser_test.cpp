@@ -3,6 +3,7 @@
 #include "io/json/type_definition_json.h"
 #include "core/registry/component_resolution.h"
 #include "core/model/presentation_spec.h"
+#include "core/model/component_types.h"
 
 #include <nlohmann/json.hpp>
 #include <gtest/gtest.h>
@@ -588,7 +589,7 @@ static const char* minimal_blueprint_v2(const char* classname) {
     // Returns a static buffer — only safe for one call at a time
     static char buf[1400];
     snprintf(buf, sizeof(buf),
-        R"({"version": "3.0", "id": "%s", "display_name": "%s", "interface": [], "cpp_class": true, "scheduler_source": false, "solver_owned_electrical": false, "domains": ["Electrical"], "execution": {"electrical_passive": true, "electrical_observer": false, "logical": false, "control_commit": false, "electrical_actuator": false, "finalize": false, "mechanical": false, "hydraulic": false, "thermal": false}})",
+        R"({"version": "3.0", "id": "%s", "display_name": "%s", "interface": [], "cpp_class": true, "scheduler_role": "Consumer", "domains": ["Electrical"], "execution": {"electrical_passive": true, "electrical_observer": false, "logical": false, "control_commit": false, "electrical_actuator": false, "finalize": false, "mechanical": false, "hydraulic": false, "thermal": false}})",
         classname, classname);
     return buf;
 }
@@ -797,13 +798,13 @@ TEST(JsonParserTest, MergeDeviceInstance_PropagatesPortDomainAndSourceWriter) {
     EXPECT_TRUE(merged.ports.at("v_out").source_writer);
 }
 
-// Regression: parse_type_definition must parse scheduler_source from JSON.
-// Previously it was missing, always defaulting to false even when JSON said true.
-TEST(JsonParserTest, ParseTypeDefinition_ParsesSchedulerSource) {
+// Regression: parse_type_definition must parse scheduler_role from JSON.
+// Previously it was missing, always defaulting to Consumer even when JSON said Source.
+TEST(JsonParserTest, ParseTypeDefinition_ParsesSchedulerRole) {
     auto j = nlohmann::json::parse(R"({
         "classname": "TestSource",
         "cpp_class": true,
-        "scheduler_source": true,
+        "scheduler_role": "Source",
         "domains": ["Electrical"],
         "ports": {"v_out": {"direction": "Out", "type": "V"}}
     })");
@@ -811,13 +812,13 @@ TEST(JsonParserTest, ParseTypeDefinition_ParsesSchedulerSource) {
     auto [def, pres] = parse_type_definition(j);
     const PrimitiveSpec* prim = as_primitive(def);
     ASSERT_NE(prim, nullptr);
-    EXPECT_TRUE(prim->solver.scheduler_source);
+    EXPECT_EQ(prim->solver.scheduler_role_kind, SchedulerRoleKind::Source);
 
-    // Also verify false case
+    // Also verify Consumer case
     auto j2 = nlohmann::json::parse(R"({
         "classname": "TestLoad",
         "cpp_class": true,
-        "scheduler_source": false,
+        "scheduler_role": "Consumer",
         "domains": ["Electrical"],
         "ports": {"v_in": {"direction": "In", "type": "V"}}
     })");
@@ -825,11 +826,11 @@ TEST(JsonParserTest, ParseTypeDefinition_ParsesSchedulerSource) {
     auto [def2, pres2] = parse_type_definition(j2);
     const PrimitiveSpec* prim2 = as_primitive(def2);
     ASSERT_NE(prim2, nullptr);
-    EXPECT_FALSE(prim2->solver.scheduler_source);
+    EXPECT_EQ(prim2->solver.scheduler_role_kind, SchedulerRoleKind::Consumer);
 }
 
-// Regression: parse_type_definition default when scheduler_source is absent.
-TEST(JsonParserTest, ParseTypeDefinition_SchedulerSourceDefaultsFalse) {
+// Regression: parse_type_definition default when scheduler_role is absent.
+TEST(JsonParserTest, ParseTypeDefinition_SchedulerRoleDefaultsConsumer) {
     auto j = nlohmann::json::parse(R"({
         "classname": "TestNoField",
         "cpp_class": true,
@@ -840,21 +841,21 @@ TEST(JsonParserTest, ParseTypeDefinition_SchedulerSourceDefaultsFalse) {
      auto [def, pres] = parse_type_definition(j);
      const PrimitiveSpec* prim = as_primitive(def);
      ASSERT_NE(prim, nullptr);
-     EXPECT_FALSE(prim->solver.scheduler_source);
+     EXPECT_EQ(prim->solver.scheduler_role_kind, SchedulerRoleKind::Consumer);
 }
 
-TEST(ComponentRegistry, MissingSolverOwnedElectricalInV3BlueprintThrows) {
+TEST(ComponentRegistry, MissingSchedulerRoleInCppBlueprintThrows) {
     namespace fs = std::filesystem;
-    auto tmp = fs::temp_directory_path() / "test_missing_solver_owned";
+    auto tmp = fs::temp_directory_path() / "test_missing_scheduler_role";
     fs::remove_all(tmp);
     fs::create_directories(tmp);
 
+    // cpp_class=true but no scheduler_role field — should throw
     std::ofstream(tmp / "Bad.blueprint") << R"({
         "version": "3.0",
         "id": "Bad",
         "display_name": "Bad",
         "cpp_class": true,
-        "scheduler_source": false,
         "domains": ["Electrical"],
         "interface": []
     })";
@@ -961,7 +962,7 @@ TEST(ComponentRegistry, V3CompositeStringParamsMergedIntoDeviceParams) {
         "id": "TestComposite",
         "display_name": "TestComposite",
         "cpp_class": false,
-        "scheduler_source": false,
+        "scheduler_role": "Consumer",
         "domains": ["Electrical"],
         "interface": [
             {"name": "out", "direction": 1, "domain": 1, "type": "V", "source_writer": false}
@@ -1015,7 +1016,7 @@ TEST(JsonParserTest, LoadRejectsBridgePortMissingDirection) {
         "id": "BridgeNoDir",
         "display_name": "Bridge No Direction",
         "cpp_class": false,
-        "scheduler_source": false,
+        "scheduler_role": "Consumer",
         "domains": ["Electrical"],
         "interface": [],
         "nodes": [
@@ -1046,7 +1047,7 @@ TEST(JsonParserTest, LoadRejectsBridgePortWithStaleSideField) {
         "id": "BridgeSide",
         "display_name": "Bridge With Side",
         "cpp_class": false,
-        "scheduler_source": false,
+        "scheduler_role": "Consumer",
         "domains": ["Electrical"],
         "interface": [],
         "nodes": [

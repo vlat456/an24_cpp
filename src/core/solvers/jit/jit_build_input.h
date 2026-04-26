@@ -25,8 +25,7 @@ struct SolverDevice {
     std::string name;
     std::string classname;
     ComponentKind kind = ComponentKind::Unknown;
-    bool scheduler_source = false;
-    bool solver_owned_electrical = false;
+    SchedulerRoleKind scheduler_role_kind = SchedulerRoleKind::Consumer;
     std::unordered_map<std::string, Port> ports;
     std::unordered_map<std::string, std::string> params;
     std::vector<Domain> domains;
@@ -40,8 +39,7 @@ inline SolverDevice to_solver_device(const struct ResolvedDevice& rd) {
     sd.name = rd.name;
     sd.classname = rd.classname;
     sd.kind = rd.kind;
-    sd.scheduler_source = rd.scheduler_source;
-    sd.solver_owned_electrical = rd.solver_owned_electrical;
+    sd.scheduler_role_kind = rd.scheduler_role_kind;
     sd.ports = rd.ports;
     sd.params = rd.params;
     sd.domains = rd.domains;

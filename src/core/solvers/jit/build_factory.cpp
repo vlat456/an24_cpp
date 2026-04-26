@@ -9,8 +9,6 @@
 
 namespace jit_solver_impl {
 
-enum class SchedulerRole { Consumer, Source, None };
-
 // Per-component param consumers — the "data" in data-driven.
 // Each overload is selected by the generic template via overload resolution.
 
@@ -362,19 +360,19 @@ static void consume_params(XOR<JitProvider>& comp, ParamReader& param_reader) {
 
 /// Generic builder template: construct → consume_params → build_finish.
 /// Handles 69/71 components — only LUT (arena) and RefNode (fixed signals) need custom builders.
-template <typename CompType, SchedulerRole Role>
+template <typename CompType, SchedulerRoleKind Role>
 static void build_generic(BuildResult& result, const SolverDevice& dev, ParamReader& param_reader) {
-    CompType comp;
-    consume_params(comp, param_reader);
-    if constexpr (requires { comp.pre_load(); }) { comp.pre_load(); }
-    setup_component_ports(result, dev, comp);
-    param_reader.validate_all_consumed();
-    result.devices[dev.name] = std::move(comp);
-    if constexpr (Role == SchedulerRole::Consumer)
-        result.scheduler.add_consumer(&std::get<CompType>(result.devices[dev.name]));
-    else if constexpr (Role == SchedulerRole::Source)
-        result.scheduler.add_source(&std::get<CompType>(result.devices[dev.name]));
-}
+     CompType comp;
+     consume_params(comp, param_reader);
+     if constexpr (requires { comp.pre_load(); }) { comp.pre_load(); }
+     setup_component_ports(result, dev, comp);
+     param_reader.validate_all_consumed();
+     result.devices[dev.name] = std::move(comp);
+     if constexpr (Role == SchedulerRoleKind::Consumer)
+         result.scheduler.add_consumer(&std::get<CompType>(result.devices[dev.name]));
+     else if constexpr (Role == SchedulerRoleKind::Source)
+         result.scheduler.add_source(&std::get<CompType>(result.devices[dev.name]));
+ }
 
 /// Special builder: LUT — table arena allocation before pre_load.
 static void build_LUT(BuildResult& result, const SolverDevice& dev, ParamReader& param_reader) {
@@ -424,78 +422,78 @@ using BuildFn = void(*)(BuildResult&, const SolverDevice&, ParamReader&);
 }
 
 static const BuildFn BUILD_TABLE[] = {
-    build_generic<AND<JitProvider>, SchedulerRole::Consumer>,  // AND
-    build_generic<AZS<JitProvider>, SchedulerRole::None>,  // AZS
-    build_generic<Accumulator<JitProvider>, SchedulerRole::Consumer>,  // Accumulator
-    build_generic<Add<JitProvider>, SchedulerRole::Consumer>,  // Add
-    build_generic<Any_V_to_Bool<JitProvider>, SchedulerRole::Consumer>,  // Any_V_to_Bool
-    build_generic<AsymSlewRate<JitProvider>, SchedulerRole::Consumer>,  // AsymSlewRate
-    build_generic<AsymTMO<JitProvider>, SchedulerRole::Consumer>,  // AsymTMO
-    build_generic<Bus<JitProvider>, SchedulerRole::Consumer>,  // Bus
-    build_generic<Clamp<JitProvider>, SchedulerRole::Consumer>,  // Clamp
-    build_generic<Comparator<JitProvider>, SchedulerRole::Consumer>,  // Comparator
-    build_generic<ControlledCurrentSource<JitProvider>, SchedulerRole::Consumer>,  // ControlledCurrentSource
-    build_generic<ControlledVoltageSource<JitProvider>, SchedulerRole::None>,  // ControlledVoltageSource
-    build_generic<CurrentSense<JitProvider>, SchedulerRole::Consumer>,  // CurrentSense
-    build_generic<Divide<JitProvider>, SchedulerRole::Consumer>,  // Divide
-    build_generic<ElectricHeater<JitProvider>, SchedulerRole::Consumer>,  // ElectricHeater
-    build_generic<ElectricPump<JitProvider>, SchedulerRole::Consumer>,  // ElectricPump
-    build_generic<ElectricalConductance<JitProvider>, SchedulerRole::None>,  // ElectricalConductance
-    build_generic<ElectricalSource<JitProvider>, SchedulerRole::None>,  // ElectricalSource
-    build_generic<FastTMO<JitProvider>, SchedulerRole::Consumer>,  // FastTMO
-    build_generic<FuelTank<JitProvider>, SchedulerRole::Consumer>,  // FuelTank
-    build_generic<Generator<JitProvider>, SchedulerRole::None>,  // Generator
-    build_generic<Greater<JitProvider>, SchedulerRole::Consumer>,  // Greater
-    build_generic<GreaterEq<JitProvider>, SchedulerRole::Consumer>,  // GreaterEq
-    build_generic<Gyroscope<JitProvider>, SchedulerRole::Consumer>,  // Gyroscope
-    build_generic<HoldButton<JitProvider>, SchedulerRole::None>,  // HoldButton
-    build_generic<HydraulicAccumulator<JitProvider>, SchedulerRole::Consumer>,  // HydraulicAccumulator
-    build_generic<IndicatorLight<JitProvider>, SchedulerRole::Consumer>,  // IndicatorLight
-    build_generic<InertiaNode<JitProvider>, SchedulerRole::Consumer>,  // InertiaNode
-    build_generic<Integrator<JitProvider>, SchedulerRole::Consumer>,  // Integrator
-    build_generic<Inverter<JitProvider>, SchedulerRole::Consumer>,  // Inverter
-    build_generic<KnobSwitch<JitProvider>, SchedulerRole::None>,  // KnobSwitch
+    build_generic<AND<JitProvider>, SchedulerRoleKind::Consumer>,  // AND
+    build_generic<AZS<JitProvider>, SchedulerRoleKind::None>,  // AZS
+    build_generic<Accumulator<JitProvider>, SchedulerRoleKind::Consumer>,  // Accumulator
+    build_generic<Add<JitProvider>, SchedulerRoleKind::Consumer>,  // Add
+    build_generic<Any_V_to_Bool<JitProvider>, SchedulerRoleKind::Consumer>,  // Any_V_to_Bool
+    build_generic<AsymSlewRate<JitProvider>, SchedulerRoleKind::Consumer>,  // AsymSlewRate
+    build_generic<AsymTMO<JitProvider>, SchedulerRoleKind::Consumer>,  // AsymTMO
+    build_generic<Bus<JitProvider>, SchedulerRoleKind::Consumer>,  // Bus
+    build_generic<Clamp<JitProvider>, SchedulerRoleKind::Consumer>,  // Clamp
+    build_generic<Comparator<JitProvider>, SchedulerRoleKind::Consumer>,  // Comparator
+    build_generic<ControlledCurrentSource<JitProvider>, SchedulerRoleKind::Consumer>,  // ControlledCurrentSource
+    build_generic<ControlledVoltageSource<JitProvider>, SchedulerRoleKind::None>,  // ControlledVoltageSource
+    build_generic<CurrentSense<JitProvider>, SchedulerRoleKind::Consumer>,  // CurrentSense
+    build_generic<Divide<JitProvider>, SchedulerRoleKind::Consumer>,  // Divide
+    build_generic<ElectricHeater<JitProvider>, SchedulerRoleKind::Consumer>,  // ElectricHeater
+    build_generic<ElectricPump<JitProvider>, SchedulerRoleKind::Consumer>,  // ElectricPump
+    build_generic<ElectricalConductance<JitProvider>, SchedulerRoleKind::None>,  // ElectricalConductance
+    build_generic<ElectricalSource<JitProvider>, SchedulerRoleKind::None>,  // ElectricalSource
+    build_generic<FastTMO<JitProvider>, SchedulerRoleKind::Consumer>,  // FastTMO
+    build_generic<FuelTank<JitProvider>, SchedulerRoleKind::Consumer>,  // FuelTank
+    build_generic<Generator<JitProvider>, SchedulerRoleKind::None>,  // Generator
+    build_generic<Greater<JitProvider>, SchedulerRoleKind::Consumer>,  // Greater
+    build_generic<GreaterEq<JitProvider>, SchedulerRoleKind::Consumer>,  // GreaterEq
+    build_generic<Gyroscope<JitProvider>, SchedulerRoleKind::Consumer>,  // Gyroscope
+    build_generic<HoldButton<JitProvider>, SchedulerRoleKind::None>,  // HoldButton
+    build_generic<HydraulicAccumulator<JitProvider>, SchedulerRoleKind::Consumer>,  // HydraulicAccumulator
+    build_generic<IndicatorLight<JitProvider>, SchedulerRoleKind::Consumer>,  // IndicatorLight
+    build_generic<InertiaNode<JitProvider>, SchedulerRoleKind::Consumer>,  // InertiaNode
+    build_generic<Integrator<JitProvider>, SchedulerRoleKind::Consumer>,  // Integrator
+    build_generic<Inverter<JitProvider>, SchedulerRoleKind::Consumer>,  // Inverter
+    build_generic<KnobSwitch<JitProvider>, SchedulerRoleKind::None>,  // KnobSwitch
     build_LUT,  // LUT (special: table arena)
-    build_generic<LerpNode<JitProvider>, SchedulerRole::Consumer>,  // LerpNode
-    build_generic<Lesser<JitProvider>, SchedulerRole::Consumer>,  // Lesser
-    build_generic<LesserEq<JitProvider>, SchedulerRole::Consumer>,  // LesserEq
-    build_generic<Max<JitProvider>, SchedulerRole::Consumer>,  // Max
-    build_generic<Merger<JitProvider>, SchedulerRole::Consumer>,  // Merger
-    build_generic<Min<JitProvider>, SchedulerRole::Consumer>,  // Min
-    build_generic<Monostable<JitProvider>, SchedulerRole::Consumer>,  // Monostable
-    build_generic<Multiply<JitProvider>, SchedulerRole::Consumer>,  // Multiply
-    build_generic<NAND<JitProvider>, SchedulerRole::Consumer>,  // NAND
-    build_generic<NOT<JitProvider>, SchedulerRole::Consumer>,  // NOT
-    build_generic<Normalize<JitProvider>, SchedulerRole::Consumer>,  // Normalize
-    build_generic<OR<JitProvider>, SchedulerRole::Consumer>,  // OR
-    build_generic<P<JitProvider>, SchedulerRole::Consumer>,  // P
-    build_generic<PD<JitProvider>, SchedulerRole::Consumer>,  // PD
-    build_generic<PI<JitProvider>, SchedulerRole::Consumer>,  // PI
-    build_generic<PID<JitProvider>, SchedulerRole::Consumer>,  // PID
-    build_generic<Positive_V_to_Bool<JitProvider>, SchedulerRole::Consumer>,  // Positive_V_to_Bool
-    build_generic<PressureRef<JitProvider>, SchedulerRole::Source>,  // PressureRef
-    build_generic<Radiator<JitProvider>, SchedulerRole::Consumer>,  // Radiator
+    build_generic<LerpNode<JitProvider>, SchedulerRoleKind::Consumer>,  // LerpNode
+    build_generic<Lesser<JitProvider>, SchedulerRoleKind::Consumer>,  // Lesser
+    build_generic<LesserEq<JitProvider>, SchedulerRoleKind::Consumer>,  // LesserEq
+    build_generic<Max<JitProvider>, SchedulerRoleKind::Consumer>,  // Max
+    build_generic<Merger<JitProvider>, SchedulerRoleKind::Consumer>,  // Merger
+    build_generic<Min<JitProvider>, SchedulerRoleKind::Consumer>,  // Min
+    build_generic<Monostable<JitProvider>, SchedulerRoleKind::Consumer>,  // Monostable
+    build_generic<Multiply<JitProvider>, SchedulerRoleKind::Consumer>,  // Multiply
+    build_generic<NAND<JitProvider>, SchedulerRoleKind::Consumer>,  // NAND
+    build_generic<NOT<JitProvider>, SchedulerRoleKind::Consumer>,  // NOT
+    build_generic<Normalize<JitProvider>, SchedulerRoleKind::Consumer>,  // Normalize
+    build_generic<OR<JitProvider>, SchedulerRoleKind::Consumer>,  // OR
+    build_generic<P<JitProvider>, SchedulerRoleKind::Consumer>,  // P
+    build_generic<PD<JitProvider>, SchedulerRoleKind::Consumer>,  // PD
+    build_generic<PI<JitProvider>, SchedulerRoleKind::Consumer>,  // PI
+    build_generic<PID<JitProvider>, SchedulerRoleKind::Consumer>,  // PID
+    build_generic<Positive_V_to_Bool<JitProvider>, SchedulerRoleKind::Consumer>,  // Positive_V_to_Bool
+    build_generic<PressureRef<JitProvider>, SchedulerRoleKind::Source>,  // PressureRef
+    build_generic<Radiator<JitProvider>, SchedulerRoleKind::Consumer>,  // Radiator
     build_RefNode,  // RefNode (special: fixed signals)
-    build_generic<Relay<JitProvider>, SchedulerRole::None>,  // Relay
-    build_generic<Resistor<JitProvider>, SchedulerRole::None>,  // Resistor
-    build_generic<RotarySwitch1ToN<JitProvider>, SchedulerRole::None>,  // RotarySwitch1ToN
-    build_generic<RotarySwitchNTo1<JitProvider>, SchedulerRole::None>,  // RotarySwitchNTo1
-    build_generic<SampleHold<JitProvider>, SchedulerRole::Consumer>,  // SampleHold
-    build_generic<SlewRate<JitProvider>, SchedulerRole::Consumer>,  // SlewRate
-    build_generic<Slider<JitProvider>, SchedulerRole::Consumer>,  // Slider
-    build_generic<SolenoidValve<JitProvider>, SchedulerRole::Consumer>,  // SolenoidValve
-    build_generic<Splitter<JitProvider>, SchedulerRole::Consumer>,  // Splitter
-    build_generic<Spring<JitProvider>, SchedulerRole::Consumer>,  // Spring
-    build_generic<Subtract<JitProvider>, SchedulerRole::Consumer>,  // Subtract
-    build_generic<Switch<JitProvider>, SchedulerRole::Consumer>,  // Switch
-    build_generic<TempSensor<JitProvider>, SchedulerRole::Consumer>,  // TempSensor
-    build_generic<TimeDelay<JitProvider>, SchedulerRole::Consumer>,  // TimeDelay
-    build_generic<Transformer<JitProvider>, SchedulerRole::Consumer>,  // Transformer
-    build_generic<Value<JitProvider>, SchedulerRole::Source>,  // Value
-    build_generic<VariableConductance<JitProvider>, SchedulerRole::None>,  // VariableConductance
-    build_generic<VoltageSense<JitProvider>, SchedulerRole::Consumer>,  // VoltageSense
-    build_generic<Voltmeter<JitProvider>, SchedulerRole::Consumer>,  // Voltmeter
-    build_generic<XOR<JitProvider>, SchedulerRole::Consumer>,  // XOR
+    build_generic<Relay<JitProvider>, SchedulerRoleKind::None>,  // Relay
+    build_generic<Resistor<JitProvider>, SchedulerRoleKind::None>,  // Resistor
+    build_generic<RotarySwitch1ToN<JitProvider>, SchedulerRoleKind::None>,  // RotarySwitch1ToN
+    build_generic<RotarySwitchNTo1<JitProvider>, SchedulerRoleKind::None>,  // RotarySwitchNTo1
+    build_generic<SampleHold<JitProvider>, SchedulerRoleKind::Consumer>,  // SampleHold
+    build_generic<SlewRate<JitProvider>, SchedulerRoleKind::Consumer>,  // SlewRate
+    build_generic<Slider<JitProvider>, SchedulerRoleKind::Consumer>,  // Slider
+    build_generic<SolenoidValve<JitProvider>, SchedulerRoleKind::Consumer>,  // SolenoidValve
+    build_generic<Splitter<JitProvider>, SchedulerRoleKind::Consumer>,  // Splitter
+    build_generic<Spring<JitProvider>, SchedulerRoleKind::Consumer>,  // Spring
+    build_generic<Subtract<JitProvider>, SchedulerRoleKind::Consumer>,  // Subtract
+    build_generic<Switch<JitProvider>, SchedulerRoleKind::Consumer>,  // Switch
+    build_generic<TempSensor<JitProvider>, SchedulerRoleKind::Consumer>,  // TempSensor
+    build_generic<TimeDelay<JitProvider>, SchedulerRoleKind::Consumer>,  // TimeDelay
+    build_generic<Transformer<JitProvider>, SchedulerRoleKind::Consumer>,  // Transformer
+    build_generic<Value<JitProvider>, SchedulerRoleKind::Source>,  // Value
+    build_generic<VariableConductance<JitProvider>, SchedulerRoleKind::None>,  // VariableConductance
+    build_generic<VoltageSense<JitProvider>, SchedulerRoleKind::Consumer>,  // VoltageSense
+    build_generic<Voltmeter<JitProvider>, SchedulerRoleKind::Consumer>,  // Voltmeter
+    build_generic<XOR<JitProvider>, SchedulerRoleKind::Consumer>,  // XOR
     build_unsupported,  // Unknown (sentinel — guarded by has_component_metadata)
 };
 
@@ -515,10 +513,7 @@ void build_and_register_components(
             throw std::runtime_error("Missing generated port metadata for component class '" + dev.classname + "'");
         }
 
-        const bool is_source = dev.scheduler_source;
-        const bool is_solver_owned = dev.solver_owned_electrical;
-
-        if (!is_source && !is_solver_owned) {
+        if (dev.scheduler_role_kind == SchedulerRoleKind::Consumer) {
             consumer_device_names.push_back(dev.name);
         }
 

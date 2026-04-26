@@ -190,7 +190,7 @@
       "label": "v_out"
     }
   ],
-  "scheduler_source": false,
+  "scheduler_role": "Consumer",
   "version": "3.0",
   "wires": [
     {

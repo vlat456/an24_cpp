@@ -2,8 +2,7 @@
   "version": "3.0",
   "id": "VariableConductance",
   "display_name": "VariableConductance",
-  "scheduler_source": false,
-  "solver_owned_electrical": true,
+  "scheduler_role": "None",
   "interface": [
     {
       "name": "v_in",

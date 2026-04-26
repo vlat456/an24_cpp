@@ -352,9 +352,9 @@ TEST(PushBuildValidation, KnobSwitchLegacyPortNamesAreNotConnected) {
 }
 
 TEST(PushBuildValidation, KnobSwitchIsNotInPushScheduler) {
-    // Regression: KnobSwitch is solver-owned and must NOT be added to the push
-    // scheduler as a consumer. Previously it was missing from
-    // is_solver_owned_electrical_propagator(), causing double commit() calls.
+    // Regression: KnobSwitch has scheduler_role=None and must NOT be added to
+    // the push scheduler as a consumer. Previously it was missing from the
+    // solver-owned exclusion list, causing double commit() calls.
     std::vector<DeviceInstance> devices = {
         make_device("knob", "KnobSwitch", {{"positions", "2"}}),
         make_device("src", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}}),
@@ -402,21 +402,21 @@ TEST(PushBuildValidation, RotarySwitchAliasesAreNotInPushScheduler) {
 TEST(PushBuildValidation, SolverOwnedElectricalClassification_MetadataDrivenCoverage) {
     // Regression coverage: solver-owned electrical classification must be driven
     // by generated metadata for all currently expected classes/aliases.
-    EXPECT_TRUE(is_solver_owned_electrical_component(ComponentKind::Generator));
-    EXPECT_TRUE(is_solver_owned_electrical_component(ComponentKind::Resistor));
-    EXPECT_TRUE(is_solver_owned_electrical_component(ComponentKind::ElectricalConductance));
-    EXPECT_TRUE(is_solver_owned_electrical_component(ComponentKind::ElectricalSource));
-    EXPECT_TRUE(is_solver_owned_electrical_component(ComponentKind::ControlledVoltageSource));
-    EXPECT_TRUE(is_solver_owned_electrical_component(ComponentKind::VariableConductance));
-    EXPECT_TRUE(is_solver_owned_electrical_component(ComponentKind::AZS));
-    EXPECT_TRUE(is_solver_owned_electrical_component(ComponentKind::HoldButton));
-    EXPECT_TRUE(is_solver_owned_electrical_component(ComponentKind::Relay));
-    EXPECT_TRUE(is_solver_owned_electrical_component(ComponentKind::KnobSwitch));
-    EXPECT_TRUE(is_solver_owned_electrical_component(ComponentKind::RotarySwitch1ToN));
-    EXPECT_TRUE(is_solver_owned_electrical_component(ComponentKind::RotarySwitchNTo1));
+    EXPECT_TRUE(is_solver_owned_component(ComponentKind::Generator));
+    EXPECT_TRUE(is_solver_owned_component(ComponentKind::Resistor));
+    EXPECT_TRUE(is_solver_owned_component(ComponentKind::ElectricalConductance));
+    EXPECT_TRUE(is_solver_owned_component(ComponentKind::ElectricalSource));
+    EXPECT_TRUE(is_solver_owned_component(ComponentKind::ControlledVoltageSource));
+    EXPECT_TRUE(is_solver_owned_component(ComponentKind::VariableConductance));
+    EXPECT_TRUE(is_solver_owned_component(ComponentKind::AZS));
+    EXPECT_TRUE(is_solver_owned_component(ComponentKind::HoldButton));
+    EXPECT_TRUE(is_solver_owned_component(ComponentKind::Relay));
+    EXPECT_TRUE(is_solver_owned_component(ComponentKind::KnobSwitch));
+    EXPECT_TRUE(is_solver_owned_component(ComponentKind::RotarySwitch1ToN));
+    EXPECT_TRUE(is_solver_owned_component(ComponentKind::RotarySwitchNTo1));
 
     // A non-solver-owned electrical observer should stay false.
-    EXPECT_FALSE(is_solver_owned_electrical_component(ComponentKind::CurrentSense));
+    EXPECT_FALSE(is_solver_owned_component(ComponentKind::CurrentSense));
 }
 
 TEST(PushBuildValidation, RotarySwitchAliasesInstantiateDistinctVariantTypes) {
@@ -838,7 +838,7 @@ TEST(PushBuildValidation, MetadataHelpersUnknownAndSentinelFailFast) {
     // Unknown: valid enum value but not a real component
     EXPECT_FALSE(has_component_metadata(ComponentKind::Unknown));
     EXPECT_FALSE(is_scheduler_source_component(ComponentKind::Unknown));
-    EXPECT_FALSE(is_solver_owned_electrical_component(ComponentKind::Unknown));
+    EXPECT_FALSE(is_solver_owned_component(ComponentKind::Unknown));
     EXPECT_FALSE(requires_solver_role_component(ComponentKind::Unknown));
     EXPECT_TRUE(get_output_ports(ComponentKind::Unknown).empty());
     EXPECT_TRUE(get_source_writer_ports(ComponentKind::Unknown, static_cast<uint8_t>(Domain::Electrical)).empty());
@@ -846,7 +846,7 @@ TEST(PushBuildValidation, MetadataHelpersUnknownAndSentinelFailFast) {
     // _COUNT: out of bounds sentinel — same safe behavior
     EXPECT_FALSE(has_component_metadata(ComponentKind::_COUNT));
     EXPECT_FALSE(is_scheduler_source_component(ComponentKind::_COUNT));
-    EXPECT_FALSE(is_solver_owned_electrical_component(ComponentKind::_COUNT));
+    EXPECT_FALSE(is_solver_owned_component(ComponentKind::_COUNT));
     EXPECT_FALSE(requires_solver_role_component(ComponentKind::_COUNT));
     EXPECT_TRUE(get_output_ports(ComponentKind::_COUNT).empty());
     EXPECT_TRUE(get_source_writer_ports(ComponentKind::_COUNT, static_cast<uint8_t>(Domain::Electrical)).empty());
@@ -1033,13 +1033,12 @@ TEST(PushBuildValidation, MergeDeviceInstance_PropagatesPortDomainAndSourceWrite
     EXPECT_TRUE(merged.ports.at("v_out").source_writer);
 }
 
-// Regression: parse_type_definition must parse scheduler_source from JSON.
-// Previously it was missing, always defaulting to false even when JSON said true.
-TEST(PushBuildValidation, ParseTypeDefinition_ParsesSchedulerSource) {
+// Regression: parse_type_definition must parse scheduler_role from JSON.
+TEST(PushBuildValidation, ParseTypeDefinition_ParsesSchedulerRole) {
     auto j = nlohmann::json::parse(R"({
         "classname": "TestSource",
         "cpp_class": true,
-        "scheduler_source": true,
+        "scheduler_role": "Source",
         "domains": ["Electrical"],
         "ports": {"v_out": {"direction": "Out", "type": "V"}}
     })");
@@ -1047,13 +1046,13 @@ TEST(PushBuildValidation, ParseTypeDefinition_ParsesSchedulerSource) {
     auto [def, pres] = parse_type_definition(j);
     const PrimitiveSpec* prim = as_primitive(def);
     ASSERT_NE(prim, nullptr);
-    EXPECT_TRUE(prim->solver.scheduler_source);
+    EXPECT_EQ(prim->solver.scheduler_role_kind, SchedulerRoleKind::Source);
 
-    // Also verify false case
+    // Also verify Consumer case
     auto j2 = nlohmann::json::parse(R"({
         "classname": "TestLoad",
         "cpp_class": true,
-        "scheduler_source": false,
+        "scheduler_role": "Consumer",
         "domains": ["Electrical"],
         "ports": {"v_in": {"direction": "In", "type": "V"}}
     })");
@@ -1061,7 +1060,7 @@ TEST(PushBuildValidation, ParseTypeDefinition_ParsesSchedulerSource) {
     auto [def2, pres2] = parse_type_definition(j2);
     const PrimitiveSpec* prim2 = as_primitive(def2);
     ASSERT_NE(prim2, nullptr);
-    EXPECT_FALSE(prim2->solver.scheduler_source);
+    EXPECT_EQ(prim2->solver.scheduler_role_kind, SchedulerRoleKind::Consumer);
 }
 
 // Regression: sentinel signal must be included in fixed_signals.

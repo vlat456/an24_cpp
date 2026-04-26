@@ -143,9 +143,11 @@ std::pair<ComponentSpec, TypePresentation> parse_type_definition(const json& j) 
     if (j.contains("critical")) meta.critical = j["critical"].get<bool>();
     // visual_only moved to TypePresentation
     if (j.contains("visual_only")) pres.visual_only = j["visual_only"].get<bool>();
-    // scheduler_source and solver_owned_electrical moved to PrimitiveSolverMetadata
-    bool scheduler_source = j.value("scheduler_source", false);
-    bool solver_owned_electrical = j.value("solver_owned_electrical", false);
+    // scheduler_role: typed enum parsed from string
+    SchedulerRoleKind scheduler_role_kind = SchedulerRoleKind::Consumer;
+    if (j.contains("scheduler_role")) {
+        scheduler_role_kind = parse_scheduler_role_kind(j["scheduler_role"].get<std::string>());
+    }
 
     if (j.contains("ports")) {
         for (auto& [port_name, port_val] : j["ports"].items()) {
@@ -173,8 +175,7 @@ std::pair<ComponentSpec, TypePresentation> parse_type_definition(const json& j) 
         static_cast<ComponentMeta&>(prim) = std::move(meta);
 
         // Set solver metadata from fields that were hoisted to meta-level
-        prim.solver.scheduler_source = scheduler_source;
-        prim.solver.solver_owned_electrical = solver_owned_electrical;
+        prim.solver.scheduler_role_kind = scheduler_role_kind;
 
         if (j.contains("solver_role") && j["solver_role"].is_object()) {
             SolverRole role;

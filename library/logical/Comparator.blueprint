@@ -2,9 +2,7 @@
   "version": "3.0",
   "id": "Comparator",
   "display_name": "Comparator",
-  "scheduler_source": false,
-
-  "solver_owned_electrical": false,
+  "scheduler_role": "Consumer",
   "interface": [
     {
       "name": "Va",

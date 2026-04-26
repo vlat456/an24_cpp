@@ -134,12 +134,16 @@ inline std::vector<std::string> get_source_writer_ports(ComponentKind kind, uint
     return result;
 }
 
-inline bool is_scheduler_source_component(ComponentKind kind) {
-    return has_component_metadata(kind) && COMPONENT_PORT_INFO[static_cast<size_t>(kind)].scheduler_source;
+inline SchedulerRoleKind component_scheduler_role(ComponentKind kind) {
+    return has_component_metadata(kind) ? COMPONENT_PORT_INFO[static_cast<size_t>(kind)].scheduler_role_kind : SchedulerRoleKind::Consumer;
 }
 
-inline bool is_solver_owned_electrical_component(ComponentKind kind) {
-    return has_component_metadata(kind) && COMPONENT_PORT_INFO[static_cast<size_t>(kind)].solver_owned_electrical;
+inline bool is_scheduler_source_component(ComponentKind kind) {
+    return component_scheduler_role(kind) == SchedulerRoleKind::Source;
+}
+
+inline bool is_solver_owned_component(ComponentKind kind) {
+    return component_scheduler_role(kind) == SchedulerRoleKind::None;
 }
 
 inline bool requires_solver_role_component(ComponentKind kind) {

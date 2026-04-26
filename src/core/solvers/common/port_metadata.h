@@ -9,6 +9,7 @@
 #include "core/solvers/common/port_names.h"
 #include "blueprint_v2/interface/direction.h"
 #include "core/model/component_kind.h"
+#include "core/model/component_types.h"
 
 /// True for valid ComponentKind values (not Unknown, not _COUNT).
 inline constexpr bool has_component_metadata(ComponentKind kind) {
@@ -28,8 +29,7 @@ struct PortMeta {
 struct ComponentPortInfo {
     size_t port_offset;
     size_t port_count;
-    bool scheduler_source;
-    bool solver_owned_electrical;
+    SchedulerRoleKind scheduler_role_kind;
     bool requires_solver_role;
 };
 
@@ -332,79 +332,79 @@ constexpr PortMeta PORT_META[] = {
 };
 
 constexpr ComponentPortInfo COMPONENT_PORT_INFO[] = {
-    {0, 3, false, false, false},  // AND
-    {3, 6, false, true, true},  // AZS
-    {9, 2, false, false, false},  // Accumulator
-    {11, 3, false, false, false},  // Add
-    {14, 2, false, false, false},  // Any_V_to_Bool
-    {16, 2, false, false, false},  // AsymSlewRate
-    {18, 2, false, false, false},  // AsymTMO
-    {20, 1, false, false, false},  // Bus
-    {21, 4, false, false, false},  // Clamp
-    {25, 3, false, false, false},  // Comparator
-    {28, 3, false, false, false},  // ControlledCurrentSource
-    {31, 8, false, true, true},  // ControlledVoltageSource
-    {39, 3, false, false, true},  // CurrentSense
-    {42, 3, false, false, false},  // Divide
-    {45, 2, false, false, false},  // ElectricHeater
-    {47, 3, false, false, false},  // ElectricPump
-    {50, 2, false, true, true},  // ElectricalConductance
-    {52, 2, false, true, true},  // ElectricalSource
-    {54, 2, false, false, false},  // FastTMO
-    {56, 4, false, false, true},  // FuelTank
-    {60, 2, true, true, true},  // Generator
-    {62, 3, false, false, false},  // Greater
-    {65, 3, false, false, false},  // GreaterEq
-    {68, 1, false, false, false},  // Gyroscope
-    {69, 4, false, true, true},  // HoldButton
-    {73, 2, false, false, false},  // HydraulicAccumulator
-    {75, 3, false, false, true},  // IndicatorLight
-    {78, 5, false, false, false},  // InertiaNode
-    {83, 4, false, false, false},  // Integrator
-    {87, 2, false, false, false},  // Inverter
-    {89, 8, false, true, true},  // KnobSwitch
-    {97, 2, false, false, false},  // LUT
-    {99, 2, false, false, false},  // LerpNode
-    {101, 3, false, false, false},  // Lesser
-    {104, 3, false, false, false},  // LesserEq
-    {107, 3, false, false, false},  // Max
-    {110, 3, false, false, false},  // Merger
-    {113, 3, false, false, false},  // Min
-    {116, 2, false, false, false},  // Monostable
-    {118, 3, false, false, false},  // Multiply
-    {121, 3, false, false, false},  // NAND
-    {124, 2, false, false, false},  // NOT
-    {126, 4, false, false, false},  // Normalize
-    {130, 3, false, false, false},  // OR
-    {133, 3, false, false, false},  // P
-    {136, 3, false, false, false},  // PD
-    {139, 7, false, false, false},  // PI
-    {146, 3, false, false, false},  // PID
-    {149, 2, false, false, false},  // Positive_V_to_Bool
-    {151, 1, true, false, true},  // PressureRef
-    {152, 2, false, false, false},  // Radiator
-    {154, 1, true, false, true},  // RefNode
-    {155, 5, false, true, true},  // Relay
-    {160, 2, false, true, true},  // Resistor
-    {162, 8, false, true, true},  // RotarySwitch1ToN
-    {170, 8, false, true, true},  // RotarySwitchNTo1
-    {178, 3, false, false, false},  // SampleHold
-    {181, 2, false, false, false},  // SlewRate
-    {183, 2, false, false, false},  // Slider
-    {185, 4, false, false, true},  // SolenoidValve
-    {189, 3, false, false, false},  // Splitter
-    {192, 3, false, false, false},  // Spring
-    {195, 3, false, false, false},  // Subtract
-    {198, 4, false, false, false},  // Switch
-    {202, 2, false, false, false},  // TempSensor
-    {204, 2, false, false, false},  // TimeDelay
-    {206, 2, false, false, false},  // Transformer
-    {208, 1, true, false, false},  // Value
-    {209, 5, false, true, true},  // VariableConductance
-    {214, 5, false, false, false},  // VoltageSense
-    {219, 1, false, false, false},  // Voltmeter
-    {220, 3, false, false, false},  // XOR
-    {0, 0, false, false, false},  // Unknown (sentinel)
+    {0, 3, SchedulerRoleKind::Consumer, false},  // AND
+    {3, 6, SchedulerRoleKind::None, true},  // AZS
+    {9, 2, SchedulerRoleKind::Consumer, false},  // Accumulator
+    {11, 3, SchedulerRoleKind::Consumer, false},  // Add
+    {14, 2, SchedulerRoleKind::Consumer, false},  // Any_V_to_Bool
+    {16, 2, SchedulerRoleKind::Consumer, false},  // AsymSlewRate
+    {18, 2, SchedulerRoleKind::Consumer, false},  // AsymTMO
+    {20, 1, SchedulerRoleKind::Consumer, false},  // Bus
+    {21, 4, SchedulerRoleKind::Consumer, false},  // Clamp
+    {25, 3, SchedulerRoleKind::Consumer, false},  // Comparator
+    {28, 3, SchedulerRoleKind::Consumer, false},  // ControlledCurrentSource
+    {31, 8, SchedulerRoleKind::None, true},  // ControlledVoltageSource
+    {39, 3, SchedulerRoleKind::Consumer, true},  // CurrentSense
+    {42, 3, SchedulerRoleKind::Consumer, false},  // Divide
+    {45, 2, SchedulerRoleKind::Consumer, false},  // ElectricHeater
+    {47, 3, SchedulerRoleKind::Consumer, false},  // ElectricPump
+    {50, 2, SchedulerRoleKind::None, true},  // ElectricalConductance
+    {52, 2, SchedulerRoleKind::None, true},  // ElectricalSource
+    {54, 2, SchedulerRoleKind::Consumer, false},  // FastTMO
+    {56, 4, SchedulerRoleKind::Consumer, true},  // FuelTank
+    {60, 2, SchedulerRoleKind::None, true},  // Generator
+    {62, 3, SchedulerRoleKind::Consumer, false},  // Greater
+    {65, 3, SchedulerRoleKind::Consumer, false},  // GreaterEq
+    {68, 1, SchedulerRoleKind::Consumer, false},  // Gyroscope
+    {69, 4, SchedulerRoleKind::None, true},  // HoldButton
+    {73, 2, SchedulerRoleKind::Consumer, false},  // HydraulicAccumulator
+    {75, 3, SchedulerRoleKind::Consumer, true},  // IndicatorLight
+    {78, 5, SchedulerRoleKind::Consumer, false},  // InertiaNode
+    {83, 4, SchedulerRoleKind::Consumer, false},  // Integrator
+    {87, 2, SchedulerRoleKind::Consumer, false},  // Inverter
+    {89, 8, SchedulerRoleKind::None, true},  // KnobSwitch
+    {97, 2, SchedulerRoleKind::Consumer, false},  // LUT
+    {99, 2, SchedulerRoleKind::Consumer, false},  // LerpNode
+    {101, 3, SchedulerRoleKind::Consumer, false},  // Lesser
+    {104, 3, SchedulerRoleKind::Consumer, false},  // LesserEq
+    {107, 3, SchedulerRoleKind::Consumer, false},  // Max
+    {110, 3, SchedulerRoleKind::Consumer, false},  // Merger
+    {113, 3, SchedulerRoleKind::Consumer, false},  // Min
+    {116, 2, SchedulerRoleKind::Consumer, false},  // Monostable
+    {118, 3, SchedulerRoleKind::Consumer, false},  // Multiply
+    {121, 3, SchedulerRoleKind::Consumer, false},  // NAND
+    {124, 2, SchedulerRoleKind::Consumer, false},  // NOT
+    {126, 4, SchedulerRoleKind::Consumer, false},  // Normalize
+    {130, 3, SchedulerRoleKind::Consumer, false},  // OR
+    {133, 3, SchedulerRoleKind::Consumer, false},  // P
+    {136, 3, SchedulerRoleKind::Consumer, false},  // PD
+    {139, 7, SchedulerRoleKind::Consumer, false},  // PI
+    {146, 3, SchedulerRoleKind::Consumer, false},  // PID
+    {149, 2, SchedulerRoleKind::Consumer, false},  // Positive_V_to_Bool
+    {151, 1, SchedulerRoleKind::Source, true},  // PressureRef
+    {152, 2, SchedulerRoleKind::Consumer, false},  // Radiator
+    {154, 1, SchedulerRoleKind::Source, true},  // RefNode
+    {155, 5, SchedulerRoleKind::None, true},  // Relay
+    {160, 2, SchedulerRoleKind::None, true},  // Resistor
+    {162, 8, SchedulerRoleKind::None, true},  // RotarySwitch1ToN
+    {170, 8, SchedulerRoleKind::None, true},  // RotarySwitchNTo1
+    {178, 3, SchedulerRoleKind::Consumer, false},  // SampleHold
+    {181, 2, SchedulerRoleKind::Consumer, false},  // SlewRate
+    {183, 2, SchedulerRoleKind::Consumer, false},  // Slider
+    {185, 4, SchedulerRoleKind::Consumer, true},  // SolenoidValve
+    {189, 3, SchedulerRoleKind::Consumer, false},  // Splitter
+    {192, 3, SchedulerRoleKind::Consumer, false},  // Spring
+    {195, 3, SchedulerRoleKind::Consumer, false},  // Subtract
+    {198, 4, SchedulerRoleKind::Consumer, false},  // Switch
+    {202, 2, SchedulerRoleKind::Consumer, false},  // TempSensor
+    {204, 2, SchedulerRoleKind::Consumer, false},  // TimeDelay
+    {206, 2, SchedulerRoleKind::Consumer, false},  // Transformer
+    {208, 1, SchedulerRoleKind::Source, false},  // Value
+    {209, 5, SchedulerRoleKind::None, true},  // VariableConductance
+    {214, 5, SchedulerRoleKind::Consumer, false},  // VoltageSense
+    {219, 1, SchedulerRoleKind::Consumer, false},  // Voltmeter
+    {220, 3, SchedulerRoleKind::Consumer, false},  // XOR
+    {0, 0, SchedulerRoleKind::Consumer, false},  // Unknown (sentinel)
 };
 
 static_assert(sizeof(COMPONENT_PORT_INFO) / sizeof(COMPONENT_PORT_INFO[0]) == static_cast<size_t>(ComponentKind::_COUNT),

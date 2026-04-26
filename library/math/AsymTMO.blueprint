@@ -2,9 +2,7 @@
   "version": "3.0",
   "id": "AsymTMO",
   "display_name": "AsymTMO",
-  "scheduler_source": false,
-
-  "solver_owned_electrical": false,
+  "scheduler_role": "Consumer",
   "interface": [
     {
       "name": "in",

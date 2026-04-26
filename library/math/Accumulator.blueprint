@@ -2,9 +2,7 @@
   "version": "3.0",
   "id": "Accumulator",
   "display_name": "Accumulator",
-  "scheduler_source": false,
-
-  "solver_owned_electrical": false,
+  "scheduler_role": "Consumer",
   "interface": [
     {
       "name": "in",

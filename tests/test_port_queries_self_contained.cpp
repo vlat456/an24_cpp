@@ -38,6 +38,6 @@ TEST(PortQueriesSelfContained, GetComponentPortsCompilesAndRuns) {
 TEST(PortQueriesSelfContained, TraitPredicatesWork) {
     // Verify trait predicates are accessible through port_queries.h → port_traits.h chain.
     EXPECT_FALSE(is_scheduler_source_component(ComponentKind::AND));
-    EXPECT_TRUE(is_solver_owned_electrical_component(ComponentKind::AZS));
+    EXPECT_TRUE(is_solver_owned_component(ComponentKind::AZS));
     EXPECT_TRUE(requires_solver_role_component(ComponentKind::ControlledVoltageSource));
 }

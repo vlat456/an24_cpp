@@ -127,8 +127,7 @@ inline std::optional<ResolvedDevice> build_resolved_device(
     dev.critical = meta.critical;
 
     if (const PrimitiveSpec* prim = as_primitive(type_def)) {
-        dev.scheduler_source = prim->solver.scheduler_source;
-        dev.solver_owned_electrical = prim->solver.solver_owned_electrical;
+        dev.scheduler_role_kind = prim->solver.scheduler_role_kind;
     }
 
     return dev;

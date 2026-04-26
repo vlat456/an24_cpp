@@ -289,8 +289,7 @@ TEST(BlueprintExtension, RegistryIgnoresJsonFiles) {
             "id": "TestComp",
             "display_name": "TestComp",
             "cpp_class": true,
-            "scheduler_source": false,
-            "solver_owned_electrical": false,
+            "scheduler_role": "Consumer",
             "domains": ["Electrical"],
             "execution": {
                 "electrical_passive": true,

@@ -2,8 +2,7 @@
   "version": "3.0",
   "id": "Relay",
   "display_name": "Relay",
-  "scheduler_source": false,
-  "solver_owned_electrical": true,
+  "scheduler_role": "None",
   "interface": [
     {
       "name": "control",

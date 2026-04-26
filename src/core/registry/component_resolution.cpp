@@ -152,12 +152,11 @@ ResolvedDevice resolve_component(
     resolved.pos = merged.pos;
     resolved.size = merged.size;
     resolved.kind = parse_component_kind(merged.classname).value_or(ComponentKind::Unknown);
-    // scheduler_source and solver_owned_electrical come from PrimitiveSpec.solver
+    // scheduler_role_kind comes from PrimitiveSpec.solver
     resolved.domains = spec_domains(definition);
 
     if (const PrimitiveSpec* prim = as_primitive(definition)) {
-        resolved.scheduler_source = prim->solver.scheduler_source;
-        resolved.solver_owned_electrical = prim->solver.solver_owned_electrical;
+        resolved.scheduler_role_kind = prim->solver.scheduler_role_kind;
         resolved.solver_role = prim->solver.solver_role;
     }
 

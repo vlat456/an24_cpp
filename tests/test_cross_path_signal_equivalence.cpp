@@ -196,7 +196,7 @@ ComponentRegistry make_minimal_registry() {
         spec.params["v_nominal"] = ParamSpec{ParamSchemaType::Float, "28.0"};
         spec.params["capacity_ah"] = ParamSpec{ParamSchemaType::Float, "60.0"};
         spec.params["internal_r"] = ParamSpec{ParamSchemaType::Float, "0.01"};
-        spec.solver.solver_owned_electrical = false;
+        spec.solver.scheduler_role_kind = SchedulerRoleKind::Consumer;
         SolverRole role;
         role.kind = SolverRoleKind::FixedVoltageNode;
         role.port_map["node"] = "v_out";
@@ -215,7 +215,7 @@ ComponentRegistry make_minimal_registry() {
         spec.classname = "Ground";
         spec.ports["gnd"] = Port{bp2::Direction::InOut, PortType::V, std::nullopt};
         spec.domains = {Domain::Electrical};
-        spec.solver.scheduler_source = true;
+        spec.solver.scheduler_role_kind = SchedulerRoleKind::Source;
         spec.params["value"] = ParamSpec{ParamSchemaType::Float, "0.0"};
         SolverRole role;
         role.kind = SolverRoleKind::FixedVoltageNode;
@@ -223,7 +223,7 @@ ComponentRegistry make_minimal_registry() {
         role.param_map["voltage"] = "value";
         role.value_map["bind_handle"] = 1.0f;
         spec.solver.solver_role = role;
-        spec.solver.solver_owned_electrical = false;
+        spec.solver.scheduler_role_kind = SchedulerRoleKind::Consumer;
         registry.register_type("Ground", spec);
     }
 
@@ -235,7 +235,7 @@ ComponentRegistry make_minimal_registry() {
         spec.ports["ground"] = Port{bp2::Direction::InOut, PortType::V, std::nullopt};
         spec.domains = {Domain::Electrical};
         spec.params["conductance"] = ParamSpec{ParamSchemaType::Float, "0.002"};
-        spec.solver.solver_owned_electrical = false;
+        spec.solver.scheduler_role_kind = SchedulerRoleKind::Consumer;
         SolverRole role;
         role.kind = SolverRoleKind::ConductanceBranch;
         role.port_map["a"] = "v_in";

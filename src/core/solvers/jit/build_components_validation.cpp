@@ -52,12 +52,12 @@ void validate_consumer_guardrails(
         auto it_dev = std::find_if(devices.begin(), devices.end(),
             [&name](const SolverDevice& d) { return d.name == name; });
         if (it_dev != devices.end()) {
-            if (it_dev->solver_owned_electrical) {
+            if (it_dev->scheduler_role_kind == SchedulerRoleKind::None) {
                 throw std::runtime_error(
-                    std::string("Guardrail violation: solver-owned electrical propagator '") +
+                    std::string("Guardrail violation: subsolver-exclusive component '") +
                     it_dev->classname + "' (device '" + it_dev->name +
                     "') was incorrectly added to push scheduler consumer list. "
-                    "These components must only run via the electrical solver.");
+                    "Components with scheduler_role=None must only run via their subsolver.");
             }
         }
     }

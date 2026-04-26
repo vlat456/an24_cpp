@@ -559,7 +559,7 @@
   ],
   "pan_x": -373.51409912109375,
   "pan_y": -7.783411979675293,
-  "scheduler_source": false,
+  "scheduler_role": "Consumer",
   "version": "3.0",
   "wires": [
     {

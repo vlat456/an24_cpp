@@ -34,8 +34,7 @@ struct ComponentPorts {
     std::vector<PortMeta> ports;
     std::vector<CodegenParam> params;
     std::optional<SolverRoleKind> solver_role_kind;  ///< nullopt if no solver_role
-    bool scheduler_source = false;
-    bool solver_owned_electrical = false;
+    SchedulerRoleKind scheduler_role_kind = SchedulerRoleKind::Consumer;
 };
 
 std::vector<ComponentPorts> build_component_metadata(const ComponentRegistry& registry) {
@@ -52,8 +51,7 @@ std::vector<ComponentPorts> build_component_metadata(const ComponentRegistry& re
         comp.classname = def->classname;
         comp.solver_role_kind = def->solver.solver_role.has_value()
             ? std::optional<SolverRoleKind>(def->solver.solver_role->kind) : std::nullopt;
-        comp.scheduler_source = def->solver.scheduler_source;
-        comp.solver_owned_electrical = def->solver.solver_owned_electrical;
+        comp.scheduler_role_kind = def->solver.scheduler_role_kind;
 
         // Collect non-visual-only params sorted by name for deterministic codegen
         for (const auto& [param_name, param_spec] : def->params) {
@@ -161,8 +159,11 @@ static bool emit_param_assignment(std::ostringstream& oss, const CodegenParam& p
 
 /// Determine scheduler role string for the generic template.
 static const char* scheduler_role_for(const ComponentPorts& comp) {
-    if (comp.solver_owned_electrical) return "None";
-    if (comp.scheduler_source) return "Source";
+    switch (comp.scheduler_role_kind) {
+        case SchedulerRoleKind::None:    return "None";
+        case SchedulerRoleKind::Source:  return "Source";
+        case SchedulerRoleKind::Consumer: return "Consumer";
+    }
     return "Consumer";
 }
 
@@ -170,12 +171,16 @@ static const char* scheduler_role_for(const ComponentPorts& comp) {
 /// Uses the same logic as build_generic's if constexpr dispatch.
 static void emit_scheduler_add(std::ostringstream& oss, const ComponentPorts& comp, const char* indent = "    ") {
     const std::string& cn = comp.classname;
-    if (comp.solver_owned_electrical) {
-        // No scheduler registration — managed by electrical subsolver
-    } else if (comp.scheduler_source) {
-        oss << indent << "result.scheduler.add_source(&std::get<" << cn << "<JitProvider>>(result.devices[dev.name]));\n";
-    } else {
-        oss << indent << "result.scheduler.add_consumer(&std::get<" << cn << "<JitProvider>>(result.devices[dev.name]));\n";
+    switch (comp.scheduler_role_kind) {
+        case SchedulerRoleKind::None:
+            // No scheduler registration — managed by subsolver
+            break;
+        case SchedulerRoleKind::Source:
+            oss << indent << "result.scheduler.add_source(&std::get<" << cn << "<JitProvider>>(result.devices[dev.name]));\n";
+            break;
+        case SchedulerRoleKind::Consumer:
+            oss << indent << "result.scheduler.add_consumer(&std::get<" << cn << "<JitProvider>>(result.devices[dev.name]));\n";
+            break;
     }
 }
 
@@ -211,19 +216,19 @@ static void emit_consume_params_overload(std::ostringstream& oss, const Componen
 static void emit_build_generic_template(std::ostringstream& oss) {
     oss << R"(/// Generic builder template: construct → consume_params → build_finish.
 /// Handles 69/71 components — only LUT (arena) and RefNode (fixed signals) need custom builders.
-template <typename CompType, SchedulerRole Role>
+template <typename CompType, SchedulerRoleKind Role>
 static void build_generic(BuildResult& result, const ResolvedDevice& dev, ParamReader& param_reader) {
-    CompType comp;
-    consume_params(comp, param_reader);
-    if constexpr (requires { comp.pre_load(); }) { comp.pre_load(); }
-    setup_component_ports(result, dev, comp);
-    param_reader.validate_all_consumed();
-    result.devices[dev.name] = std::move(comp);
-    if constexpr (Role == SchedulerRole::Consumer)
-        result.scheduler.add_consumer(&std::get<CompType>(result.devices[dev.name]));
-    else if constexpr (Role == SchedulerRole::Source)
-        result.scheduler.add_source(&std::get<CompType>(result.devices[dev.name]));
-}
+     CompType comp;
+     consume_params(comp, param_reader);
+     if constexpr (requires { comp.pre_load(); }) { comp.pre_load(); }
+     setup_component_ports(result, dev, comp);
+     param_reader.validate_all_consumed();
+     result.devices[dev.name] = std::move(comp);
+     if constexpr (Role == SchedulerRoleKind::Consumer)
+         result.scheduler.add_consumer(&std::get<CompType>(result.devices[dev.name]));
+     else if constexpr (Role == SchedulerRoleKind::Source)
+         result.scheduler.add_source(&std::get<CompType>(result.devices[dev.name]));
+ }
 
 )";
 
@@ -303,7 +308,7 @@ static const BuildFn BUILD_TABLE[] = {
         } else if (needs_special_builder(comp)) {
             oss << "    build_" << cn << ",  // " << cn << " (special: table arena)\n";
         } else {
-            oss << "    build_generic<" << cn << "<JitProvider>, SchedulerRole::" << scheduler_role_for(comp) << ">,  // " << cn << "\n";
+            oss << "    build_generic<" << cn << "<JitProvider>, SchedulerRoleKind::" << scheduler_role_for(comp) << ">,  // " << cn << "\n";
         }
     }
 
@@ -328,10 +333,7 @@ static const BuildFn BUILD_TABLE[] = {
             throw std::runtime_error("Missing generated port metadata for component class '" + dev.classname + "'");
         }
 
-        const bool is_source = dev.scheduler_source;
-        const bool is_solver_owned = dev.solver_owned_electrical;
-
-        if (!is_source && !is_solver_owned) {
+        if (dev.scheduler_role_kind == SchedulerRoleKind::Consumer) {
             consumer_device_names.push_back(dev.name);
         }
 
@@ -372,8 +374,8 @@ static void emit_build_factory_content(std::ostringstream& oss, const std::vecto
     oss << "\n";
     oss << "namespace jit_solver_impl {\n\n";
 
-    // Scheduler role enum for compile-time dispatch in build_generic
-    oss << "enum class SchedulerRole { Consumer, Source, None };\n\n";
+    // SchedulerRoleKind is defined in component_types.h — Consumer, Source, None.
+    // No local enum needed for build_generic dispatch.
 
     // Per-component consume_params overloads
     oss << "// Per-component param consumers — the \"data\" in data-driven.\n";
@@ -431,8 +433,7 @@ void emit_port_metadata_prelude(std::ostringstream& oss, const std::vector<Compo
     oss << "struct ComponentPortInfo {\n";
     oss << "    size_t port_offset;\n";
     oss << "    size_t port_count;\n";
-    oss << "    bool scheduler_source;\n";
-    oss << "    bool solver_owned_electrical;\n";
+    oss << "    SchedulerRoleKind scheduler_role_kind;\n";
     oss << "    bool requires_solver_role;\n";
     oss << "};\n\n";
 }
@@ -458,13 +459,12 @@ void emit_port_metadata_arrays(std::ostringstream& oss, const std::vector<Compon
     size_t offset = 0;
     for (const auto& comp : all_components) {
         oss << "    {" << offset << ", " << comp.ports.size()
-            << ", " << (comp.scheduler_source ? "true" : "false")
-            << ", " << (comp.solver_owned_electrical ? "true" : "false")
+            << ", SchedulerRoleKind::" << scheduler_role_kind_name(comp.scheduler_role_kind)
             << ", " << (comp.solver_role_kind.has_value() ? "true" : "false")
             << "},  // " << comp.classname << "\n";
         offset += comp.ports.size();
     }
-    oss << "    {0, 0, false, false, false},  // Unknown (sentinel)\n";
+    oss << "    {0, 0, SchedulerRoleKind::Consumer, false},  // Unknown (sentinel)\n";
     oss << "};\n\n";
 
     // Size validation
@@ -557,12 +557,16 @@ void emit_port_traits_lookups(
 
 void emit_port_traits_arrays(std::ostringstream& oss, const std::vector<ComponentPorts>& /*all_components*/) {
     // Component-level traits are now in COMPONENT_PORT_INFO — just provide predicate helpers.
-    oss << "inline bool is_scheduler_source_component(ComponentKind kind) {\n";
-    oss << "    return has_component_metadata(kind) && COMPONENT_PORT_INFO[static_cast<size_t>(kind)].scheduler_source;\n";
+    oss << "inline SchedulerRoleKind component_scheduler_role(ComponentKind kind) {\n";
+    oss << "    return has_component_metadata(kind) ? COMPONENT_PORT_INFO[static_cast<size_t>(kind)].scheduler_role_kind : SchedulerRoleKind::Consumer;\n";
     oss << "}\n\n";
 
-    oss << "inline bool is_solver_owned_electrical_component(ComponentKind kind) {\n";
-    oss << "    return has_component_metadata(kind) && COMPONENT_PORT_INFO[static_cast<size_t>(kind)].solver_owned_electrical;\n";
+    oss << "inline bool is_scheduler_source_component(ComponentKind kind) {\n";
+    oss << "    return component_scheduler_role(kind) == SchedulerRoleKind::Source;\n";
+    oss << "}\n\n";
+
+    oss << "inline bool is_solver_owned_component(ComponentKind kind) {\n";
+    oss << "    return component_scheduler_role(kind) == SchedulerRoleKind::None;\n";
     oss << "}\n\n";
 
     oss << "inline bool requires_solver_role_component(ComponentKind kind) {\n";
