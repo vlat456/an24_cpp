@@ -23,7 +23,6 @@ public:
 
     void execute(SimulationState& st, double dt);
     void commit(SimulationState& st, double dt);
-    void pre_load() {}
 
     /// Parse "k1:v1; k2:v2; ..." table string into keys/values vectors
     static bool parse_table(const std::string& table_str,

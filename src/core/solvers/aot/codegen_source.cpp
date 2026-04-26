@@ -236,7 +236,8 @@ void emit_preload_method(
 ) {
     oss << "void " << class_name << "::pre_load() {\n";
     for (const auto& dev : devices) {
-        oss << "    " << codegen_detail::sanitize_name(dev.name) << ".pre_load();\n";
+        const std::string name = codegen_detail::sanitize_name(dev.name);
+        oss << "    if constexpr (requires { " << name << ".pre_load(); }) { " << name << ".pre_load(); }\n";
     }
 
     if (!lut_entries.empty()) {

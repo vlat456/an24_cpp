@@ -215,7 +215,7 @@ template <typename CompType, SchedulerRole Role>
 static void build_generic(BuildResult& result, const ResolvedDevice& dev, ParamReader& param_reader) {
     CompType comp;
     consume_params(comp, param_reader);
-    comp.pre_load();
+    if constexpr (requires { comp.pre_load(); }) { comp.pre_load(); }
     setup_component_ports(result, dev, comp);
     param_reader.validate_all_consumed();
     result.devices[dev.name] = std::move(comp);
@@ -251,7 +251,7 @@ static void emit_build_LUT(std::ostringstream& oss, const ComponentPorts& comp) 
         oss << "        }\n";
         oss << "    }\n";
     }
-    oss << "    comp.pre_load();\n";
+    oss << "    if constexpr (requires { comp.pre_load(); }) { comp.pre_load(); }\n";
     oss << "    setup_component_ports(result, dev, comp);\n";
     oss << "    param_reader.validate_all_consumed();\n";
     oss << "    result.devices[dev.name] = std::move(comp);\n";
@@ -266,7 +266,7 @@ static void emit_build_RefNode(std::ostringstream& oss, const ComponentPorts& co
     oss << "static void build_" << cn << "(BuildResult& result, const ResolvedDevice& dev, ParamReader& param_reader) {\n";
     oss << "    " << cn << "<JitProvider> comp;\n";
     oss << "    consume_params(comp, param_reader);\n";
-    oss << "    comp.pre_load();\n";
+    oss << "    if constexpr (requires { comp.pre_load(); }) { comp.pre_load(); }\n";
     oss << "    setup_component_ports(result, dev, comp);\n";
     oss << "    param_reader.validate_all_consumed();\n";
     oss << "    result.devices[dev.name] = std::move(comp);\n";

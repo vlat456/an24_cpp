@@ -366,7 +366,9 @@ template <typename CompType, SchedulerRole Role>
 static void build_generic(BuildResult& result, const ResolvedDevice& dev, ParamReader& param_reader) {
     CompType comp;
     consume_params(comp, param_reader);
-    comp.pre_load();
+    if constexpr (requires { comp.pre_load(); }) {
+        comp.pre_load();
+    }
     setup_component_ports(result, dev, comp);
     param_reader.validate_all_consumed();
     result.devices[dev.name] = std::move(comp);
@@ -376,7 +378,7 @@ static void build_generic(BuildResult& result, const ResolvedDevice& dev, ParamR
         result.scheduler.add_source(&std::get<CompType>(result.devices[dev.name]));
 }
 
-/// Special builder: LUT — table arena allocation before pre_load.
+/// Special builder: LUT — table arena allocation.
 static void build_LUT(BuildResult& result, const ResolvedDevice& dev, ParamReader& param_reader) {
     LUT<JitProvider> comp;
     consume_params(comp, param_reader);
@@ -390,7 +392,6 @@ static void build_LUT(BuildResult& result, const ResolvedDevice& dev, ParamReade
             result.lut_values.insert(result.lut_values.end(), vals.begin(), vals.end());
         }
     }
-    comp.pre_load();
     setup_component_ports(result, dev, comp);
     param_reader.validate_all_consumed();
     result.devices[dev.name] = std::move(comp);
@@ -401,7 +402,6 @@ static void build_LUT(BuildResult& result, const ResolvedDevice& dev, ParamReade
 static void build_RefNode(BuildResult& result, const ResolvedDevice& dev, ParamReader& param_reader) {
     RefNode<JitProvider> comp;
     consume_params(comp, param_reader);
-    comp.pre_load();
     setup_component_ports(result, dev, comp);
     param_reader.validate_all_consumed();
     result.devices[dev.name] = std::move(comp);
