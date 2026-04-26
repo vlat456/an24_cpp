@@ -51,7 +51,7 @@ struct RawElement {
 };
 
 // =====================================================================
-// Phase 1: Extract raw electrical elements from solver_role devices
+// Shared helpers for element extraction
 // =====================================================================
 
 /// Resolve a port name to signal index with fail-fast on missing mapping.
@@ -107,7 +107,7 @@ static uint32_t resolve_role_port(
 }
 
 /// Read a solver_role param by role key.
-/// Resolution order: required param_map lookup in dev.params -> required literal value_map.
+/// Resolution order: param_map → dev.params, then value_map literal.
 static float read_role_param_required(
     const ResolvedDevice& dev,
     const SolverRole& role,
@@ -117,17 +117,136 @@ static float read_role_param_required(
     if (it != role.param_map.end()) {
         return read_param_float_required(dev, it->second, role_key);
     }
-
     auto it_val = role.value_map.find(role_key);
     if (it_val != role.value_map.end()) {
         return it_val->second;
     }
-
     throw std::runtime_error("solver_role missing required param key '" + role_key +
         "' for component '" + dev.name + "' (classname: " + dev.classname + ")");
 }
 
+/// Check if bind_handle is requested for this role.
+static bool should_bind_handle(const SolverRole& role) {
+    auto it = role.value_map.find("bind_handle");
+    return it != role.value_map.end() && it->second > 0.5f;
+}
+
+// =====================================================================
+// Element extraction: function-pointer table (schema registry)
+//
+// Each solver_role.kind maps to an extractor function that produces
+// one or more RawElement structs from a device's role metadata.
+// Adding a new element kind requires only: 1 function + 1 table entry.
+// =====================================================================
+
+/// Extraction function signature.
+using ExtractorFn = void(*)(
+    const ResolvedDevice& dev,
+    const SolverRole& role,
+    const PortToSignal& port_to_signal,
+    const ui::StringInterner& interner,
+    bool bind_handle,
+    std::vector<RawElement>& out,
+    size_t& element_idx);
+
+/// One entry in the extractor table.
+struct ElementExtractor {
+    std::string_view kind;
+    ExtractorFn extract;
+};
+
+/// Find extractor by kind string. Linear scan over small array.
+static const ElementExtractor* find_extractor(
+    const ElementExtractor* table, size_t count, std::string_view kind)
+{
+    for (size_t i = 0; i < count; ++i) {
+        if (table[i].kind == kind) return &table[i];
+    }
+    return nullptr;
+}
+
+// ---- Extractor functions ----
+
+static void extract_fixed_voltage_node(
+    const ResolvedDevice& dev, const SolverRole& role,
+    const PortToSignal& pts, const ui::StringInterner& intern,
+    bool bind_handle, std::vector<RawElement>& out, size_t& element_idx)
+{
+    float value = read_role_param_required(dev, role, "voltage");
+    uint32_t node_a = resolve_role_port(dev, role, "node", pts, intern);
+    out.push_back({ElectricalElementKind::FixedVoltageNode,
+        node_a, UINT32_MAX, value, 0.0f,
+        element_idx++, bind_handle ? dev.name : std::string{}});
+}
+
+static void extract_thevenin_source(
+    const ResolvedDevice& dev, const SolverRole& role,
+    const PortToSignal& pts, const ui::StringInterner& intern,
+    bool bind_handle, std::vector<RawElement>& out, size_t& element_idx)
+{
+    float voltage = read_role_param_required(dev, role, "voltage");
+    float resistance = read_role_param_required(dev, role, "resistance");
+    uint32_t node_pos = resolve_role_port(dev, role, "pos", pts, intern);
+    uint32_t node_neg = resolve_role_port(dev, role, "neg", pts, intern);
+    out.push_back({ElectricalElementKind::TheveninSource,
+        node_pos, node_neg, voltage, resistance,
+        element_idx++, bind_handle ? dev.name : std::string{}});
+}
+
+static void extract_conductance_branch(
+    const ResolvedDevice& dev, const SolverRole& role,
+    const PortToSignal& pts, const ui::StringInterner& intern,
+    bool bind_handle, std::vector<RawElement>& out, size_t& element_idx)
+{
+    float conductance = read_role_param_required(dev, role, "g");
+    uint32_t node_a = resolve_role_port(dev, role, "a", pts, intern);
+    uint32_t node_b = resolve_role_port(dev, role, "b", pts, intern);
+    out.push_back({ElectricalElementKind::ConductanceBranch,
+        node_a, node_b, conductance, 0.0f,
+        element_idx++, bind_handle ? dev.name : std::string{}});
+}
+
+static void extract_knob_switch_branches(
+    const ResolvedDevice& dev, const SolverRole& role,
+    const PortToSignal& pts, const ui::StringInterner& intern,
+    bool bind_handle, std::vector<RawElement>& out, size_t& element_idx)
+{
+    int positions = static_cast<int>(read_role_param_required(dev, role, "positions"));
+    positions = std::clamp(positions, 2, KnobSwitch<JitProvider>::MAX_POSITIONS);
+    int initial_pos = static_cast<int>(read_role_param_required(dev, role, "initial_position"));
+    initial_pos = std::clamp(initial_pos, 0, positions - 1);
+    float g_open_val = read_role_param_required(dev, role, "g_open");
+    float g_closed_val = read_role_param_required(dev, role, "g_closed");
+    uint32_t node_wiper = resolve_role_port(dev, role, "wiper", pts, intern);
+
+    static_assert(KnobSwitch<JitProvider>::MAX_POSITIONS <= 5,
+                  "KnobSwitch terminal list supports up to 5 throws");
+    static const char* terminal_names[] = {"throw1", "throw2", "throw3", "throw4", "throw5"};
+
+    for (int i = 0; i < positions; ++i) {
+        uint32_t node_t = resolve_role_port(dev, role, terminal_names[i], pts, intern);
+        float initial_g = (i == initial_pos) ? g_closed_val : g_open_val;
+        out.push_back({ElectricalElementKind::ConductanceBranch,
+            node_wiper, node_t, initial_g, 0.0f,
+            element_idx++, bind_handle ? dev.name : std::string{}});
+    }
+}
+
+// ---- The extractor table ----
+
+static const ElementExtractor k_electrical_extractors[] = {
+    {"FixedVoltageNode",    &extract_fixed_voltage_node},
+    {"TheveninSource",      &extract_thevenin_source},
+    {"ConductanceBranch",   &extract_conductance_branch},
+    {"KnobSwitchBranches",  &extract_knob_switch_branches},
+};
+
+// =====================================================================
+// Phase 1: Extract raw electrical elements from solver_role devices
+// =====================================================================
+
 /// Extract raw electrical elements from all devices that have a solver_role.
+/// Dispatches to registered extractor functions — no if-else chain.
 static std::vector<RawElement> extract_raw_elements(
     const std::vector<ResolvedDevice>& devices,
     const PortToSignal& port_to_signal,
@@ -141,66 +260,15 @@ static std::vector<RawElement> extract_raw_elements(
         if (!dev.solver_role.has_value()) continue;
         const auto& role = *dev.solver_role;
 
-        const bool bind_handle = [&]() {
-            auto it_bind = role.value_map.find("bind_handle");
-            return it_bind != role.value_map.end() && it_bind->second > 0.5f;
-        }();
-
-        if (role.kind == "FixedVoltageNode") {
-            float value = read_role_param_required(dev, role, "voltage");
-            uint32_t node_a = resolve_role_port(dev, role, "node", port_to_signal, signal_key_interner);
-            raw_elements.push_back({
-                ElectricalElementKind::FixedVoltageNode,
-                node_a, UINT32_MAX, value, 0.0f,
-                element_idx++, bind_handle ? dev.name : std::string{}
-            });
-        }
-        else if (role.kind == "TheveninSource") {
-            float voltage = read_role_param_required(dev, role, "voltage");
-            float resistance = read_role_param_required(dev, role, "resistance");
-            uint32_t node_pos = resolve_role_port(dev, role, "pos", port_to_signal, signal_key_interner);
-            uint32_t node_neg = resolve_role_port(dev, role, "neg", port_to_signal, signal_key_interner);
-            raw_elements.push_back({
-                ElectricalElementKind::TheveninSource,
-                node_pos, node_neg, voltage, resistance,
-                element_idx++, bind_handle ? dev.name : std::string{}
-            });
-        }
-        else if (role.kind == "ConductanceBranch") {
-            float conductance = read_role_param_required(dev, role, "g");
-            uint32_t node_a = resolve_role_port(dev, role, "a", port_to_signal, signal_key_interner);
-            uint32_t node_b = resolve_role_port(dev, role, "b", port_to_signal, signal_key_interner);
-            raw_elements.push_back({
-                ElectricalElementKind::ConductanceBranch,
-                node_a, node_b, conductance, 0.0f,
-                element_idx++, bind_handle ? dev.name : std::string{}
-            });
-        }
-        else if (role.kind == "KnobSwitchBranches") {
-            int positions = static_cast<int>(read_role_param_required(dev, role, "positions"));
-            positions = std::clamp(positions, 2, KnobSwitch<JitProvider>::MAX_POSITIONS);
-            int initial_pos = static_cast<int>(read_role_param_required(dev, role, "initial_position"));
-            initial_pos = std::clamp(initial_pos, 0, positions - 1);
-            float g_open_val = read_role_param_required(dev, role, "g_open");
-            float g_closed_val = read_role_param_required(dev, role, "g_closed");
-            uint32_t node_wiper = resolve_role_port(dev, role, "wiper", port_to_signal, signal_key_interner);
-            static_assert(KnobSwitch<JitProvider>::MAX_POSITIONS <= 5,
-                          "KnobSwitch terminal list in build_electrical.cpp supports up to 5 throws");
-            const char* terminal_names[] = {"throw1", "throw2", "throw3", "throw4", "throw5"};
-            for (int i = 0; i < positions; ++i) {
-                uint32_t node_t = resolve_role_port(dev, role, terminal_names[i], port_to_signal, signal_key_interner);
-                float initial_g = (i == initial_pos) ? g_closed_val : g_open_val;
-                raw_elements.push_back({
-                    ElectricalElementKind::ConductanceBranch,
-                    node_wiper, node_t, initial_g, 0.0f,
-                    element_idx++, bind_handle ? dev.name : std::string{}
-                });
-            }
-        }
-        else {
+        const auto* extractor = find_extractor(
+            k_electrical_extractors, std::size(k_electrical_extractors), role.kind);
+        if (!extractor) {
             throw std::runtime_error("Unsupported solver_role kind '" + role.kind +
                 "' for component '" + dev.name + "' (classname: " + dev.classname + ")");
         }
+
+        extractor->extract(dev, role, port_to_signal, signal_key_interner,
+                           should_bind_handle(role), raw_elements, element_idx);
     }
 
     return raw_elements;
