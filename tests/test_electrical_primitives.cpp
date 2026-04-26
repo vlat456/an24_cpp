@@ -559,7 +559,7 @@ TEST(ElectricalPrimitives, MetadataProducesCorrectElementKind) {
     // -- ConductanceBranch via solver_role --
     {
         ResolvedDevice dev = make_resolved_device_with_role("cond1", "ElectricalConductance", {{"conductance", "0.5"}}, SolverRole{
-            .kind = "ConductanceBranch",
+            .kind = SolverRoleKind::ConductanceBranch,
             .port_map = {{"a", "v_in"}, {"b", "v_out"}},
             .param_map = {{"g", "conductance"}}
         });
@@ -592,7 +592,7 @@ TEST(ElectricalPrimitives, MetadataProducesCorrectElementKind) {
     // -- TheveninSource via solver_role --
     {
         ResolvedDevice dev = make_resolved_device_with_role("src1", "ElectricalSource", {{"voltage", "12.0"}, {"resistance", "0.05"}}, SolverRole{
-            .kind = "TheveninSource",
+            .kind = SolverRoleKind::TheveninSource,
             .port_map = {{"pos", "v_out"}, {"neg", "v_in"}},
             .param_map = {{"voltage", "voltage"}, {"resistance", "resistance"}}
         });
@@ -625,7 +625,7 @@ TEST(ElectricalPrimitives, MetadataProducesCorrectElementKind) {
     // -- FixedVoltageNode via solver_role --
     {
         ResolvedDevice dev = make_resolved_device_with_role("ref1", "RefNode", {{"value", "5.0"}}, SolverRole{
-            .kind = "FixedVoltageNode",
+            .kind = SolverRoleKind::FixedVoltageNode,
             .port_map = {{"node", "v"}},
             .param_map = {{"voltage", "value"}}
         });
@@ -663,7 +663,7 @@ TEST(ElectricalPrimitives, MetadataMissingPortKeyThrows) {
     // ConductanceBranch requires port keys "a" and "b". Test with "a" missing.
     {
         ResolvedDevice dev = make_resolved_device_with_role("cond1", "ElectricalConductance", {{"conductance", "0.5"}}, SolverRole{
-            .kind = "ConductanceBranch",
+            .kind = SolverRoleKind::ConductanceBranch,
             .port_map = {{"b", "v_out"}},  // Missing "a" key
             .param_map = {{"g", "conductance"}}
         });
@@ -684,7 +684,7 @@ TEST(ElectricalPrimitives, MetadataMissingPortKeyThrows) {
     // TheveninSource requires "pos" and "neg". Test with "neg" missing.
     {
         ResolvedDevice dev = make_resolved_device_with_role("src1", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}}, SolverRole{
-            .kind = "TheveninSource",
+            .kind = SolverRoleKind::TheveninSource,
             .port_map = {{"pos", "v_out"}},  // Missing "neg" key
             .param_map = {{"voltage", "voltage"}, {"resistance", "resistance"}}
         });
@@ -705,7 +705,7 @@ TEST(ElectricalPrimitives, MetadataMissingPortKeyThrows) {
     // FixedVoltageNode requires "node". Test with empty port_map.
     {
         ResolvedDevice dev = make_resolved_device_with_role("ref1", "RefNode", {{"value", "0.0"}}, SolverRole{
-            .kind = "FixedVoltageNode",
+            .kind = SolverRoleKind::FixedVoltageNode,
             .port_map = {},  // Missing "node" key
             .param_map = {{"voltage", "value"}}
         });
@@ -732,7 +732,7 @@ TEST(ElectricalPrimitives, MetadataMissingParamKeyThrows) {
     // ConductanceBranch requires param key "g". Test with it missing.
     {
         ResolvedDevice dev = make_resolved_device_with_role("cond1", "ElectricalConductance", {{"conductance", "0.5"}}, SolverRole{
-            .kind = "ConductanceBranch",
+            .kind = SolverRoleKind::ConductanceBranch,
             .port_map = {{"a", "v_in"}, {"b", "v_out"}},
             .param_map = {}  // Missing "g" key
         });
@@ -753,7 +753,7 @@ TEST(ElectricalPrimitives, MetadataMissingParamKeyThrows) {
     // TheveninSource requires "voltage" and "resistance". Test with "resistance" missing.
     {
         ResolvedDevice dev = make_resolved_device_with_role("src1", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}}, SolverRole{
-            .kind = "TheveninSource",
+            .kind = SolverRoleKind::TheveninSource,
             .port_map = {{"pos", "v_out"}, {"neg", "v_in"}},
             .param_map = {{"voltage", "voltage"}}  // Missing "resistance" key
         });

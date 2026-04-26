@@ -148,7 +148,7 @@ std::pair<ComponentSpec, TypePresentation> parse_blueprint_type_definition(
         if (!sr.contains("kind") || !sr["kind"].is_string()) {
             throw std::runtime_error("solver_role missing required string 'kind' for component '" + classname + "'");
         }
-        role.kind = sr["kind"].get<std::string>();
+        role.kind = parse_solver_role_kind(sr["kind"].get<std::string>());
 
         if (sr.contains("domain") && sr["domain"].is_string()) {
             role.domain = json_io_internal::parse_domain_string(sr["domain"].get<std::string>());

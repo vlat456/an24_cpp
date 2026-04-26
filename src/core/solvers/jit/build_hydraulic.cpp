@@ -39,12 +39,12 @@ using HydraulicExtractorFn = void(*)(
     size_t& element_idx);
 
 struct HydraulicElementExtractor {
-    std::string_view kind;
+    SolverRoleKind kind;
     HydraulicExtractorFn extract;
 };
 
 static const HydraulicElementExtractor* find_hydraulic_extractor(
-    const HydraulicElementExtractor* table, size_t count, std::string_view kind)
+    const HydraulicElementExtractor* table, size_t count, SolverRoleKind kind)
 {
     for (size_t i = 0; i < count; ++i) {
         if (table[i].kind == kind) return &table[i];
@@ -97,9 +97,9 @@ static void extract_fixed_pressure_node(
 // ---- The extractor table ----
 
 static const HydraulicElementExtractor k_hydraulic_extractors[] = {
-    {"FixedPressureNode", &extract_fixed_pressure_node},
-    {"PressureSource",    &extract_pressure_source},
-    {"FlowBranch",        &extract_flow_branch},
+    {SolverRoleKind::FixedPressureNode, &extract_fixed_pressure_node},
+    {SolverRoleKind::PressureSource,    &extract_pressure_source},
+    {SolverRoleKind::FlowBranch,        &extract_flow_branch},
 };
 
 // =====================================================================
@@ -125,7 +125,8 @@ static std::vector<RawElement> extract_hydraulic_raw_elements(
         const auto* extractor = find_hydraulic_extractor(
             k_hydraulic_extractors, std::size(k_hydraulic_extractors), role.kind);
         if (!extractor) {
-            throw std::runtime_error("Unsupported hydraulic solver_role kind '" + role.kind +
+            throw std::runtime_error("Unsupported hydraulic solver_role kind '" +
+                std::string(solver_role_kind_name(role.kind)) +
                 "' for component '" + dev.name + "' (classname: " + dev.classname + ")");
         }
 

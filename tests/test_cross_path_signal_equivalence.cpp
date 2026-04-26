@@ -197,7 +197,7 @@ ComponentRegistry make_minimal_registry() {
         spec.params["internal_r"] = ParamSpec{ParamSchemaType::Float, "0.01"};
         spec.solver.solver_owned_electrical = false;
         SolverRole role;
-        role.kind = "FixedVoltageNode";
+        role.kind = SolverRoleKind::FixedVoltageNode;
         role.port_map["node"] = "v_out";
         role.param_map["voltage"] = "v_nominal";
         role.value_map["bind_handle"] = 1.0f;
@@ -217,7 +217,7 @@ ComponentRegistry make_minimal_registry() {
         spec.solver.scheduler_source = true;
         spec.params["value"] = ParamSpec{ParamSchemaType::Float, "0.0"};
         SolverRole role;
-        role.kind = "FixedVoltageNode";
+        role.kind = SolverRoleKind::FixedVoltageNode;
         role.port_map["node"] = "gnd";
         role.param_map["voltage"] = "value";
         role.value_map["bind_handle"] = 1.0f;
@@ -236,7 +236,7 @@ ComponentRegistry make_minimal_registry() {
         spec.params["conductance"] = ParamSpec{ParamSchemaType::Float, "0.002"};
         spec.solver.solver_owned_electrical = false;
         SolverRole role;
-        role.kind = "ConductanceBranch";
+        role.kind = SolverRoleKind::ConductanceBranch;
         role.port_map["a"] = "v_in";
         role.port_map["b"] = "ground";
         role.param_map["g"] = "conductance";

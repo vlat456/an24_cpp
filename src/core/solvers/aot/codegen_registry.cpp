@@ -10,7 +10,7 @@
 namespace {
 
 /// Solver role kind constants — single source of truth for codegen predicates.
-static constexpr const char* KNOB_SWITCH_BRANCHES_ROLE = "KnobSwitchBranches";
+static constexpr SolverRoleKind KNOB_SWITCH_BRANCHES_ROLE = SolverRoleKind::KnobSwitchBranches;
 
 struct PortMeta {
     std::string name;
@@ -33,7 +33,7 @@ struct ComponentPorts {
     std::string classname;
     std::vector<PortMeta> ports;
     std::vector<CodegenParam> params;
-    std::string solver_role_kind;  ///< Empty if no solver_role, else e.g. "FixedVoltageNode"
+    std::optional<SolverRoleKind> solver_role_kind;  ///< nullopt if no solver_role
     bool scheduler_source = false;
     bool solver_owned_electrical = false;
 };
@@ -51,7 +51,7 @@ std::vector<ComponentPorts> build_component_metadata(const ComponentRegistry& re
         ComponentPorts comp;
         comp.classname = def->classname;
         comp.solver_role_kind = def->solver.solver_role.has_value()
-            ? def->solver.solver_role->kind : "";
+            ? std::optional<SolverRoleKind>(def->solver.solver_role->kind) : std::nullopt;
         comp.scheduler_source = def->solver.scheduler_source;
         comp.solver_owned_electrical = def->solver.solver_owned_electrical;
 
@@ -182,7 +182,7 @@ static void emit_scheduler_add(std::ostringstream& oss, const ComponentPorts& co
 /// Does this component require a special (non-generic) builder?
 /// Special cases: LUT (table arena allocation), RefNode (fixed signal registration).
 static bool needs_special_builder(const ComponentPorts& comp) {
-    if (comp.solver_role_kind == "FixedVoltageNode") return true;
+    if (comp.solver_role_kind == SolverRoleKind::FixedVoltageNode) return true;
     for (const auto& p : comp.params) {
         if (p.type == ParamSchemaType::Table) return true;
     }
@@ -298,7 +298,7 @@ static const BuildFn BUILD_TABLE[] = {
 
     for (const auto& comp : all_components) {
         const std::string& cn = comp.classname;
-        if (comp.solver_role_kind == "FixedVoltageNode") {
+        if (comp.solver_role_kind == SolverRoleKind::FixedVoltageNode) {
             oss << "    build_" << cn << ",  // " << cn << " (special: fixed signals)\n";
         } else if (needs_special_builder(comp)) {
             oss << "    build_" << cn << ",  // " << cn << " (special: table arena)\n";
@@ -387,7 +387,7 @@ static void emit_build_factory_content(std::ostringstream& oss, const std::vecto
 
     // Special builders for non-vanilla components
     for (const auto& comp : all_components) {
-        if (comp.solver_role_kind == "FixedVoltageNode") {
+        if (comp.solver_role_kind == SolverRoleKind::FixedVoltageNode) {
             emit_build_RefNode(oss, comp);
         } else if (needs_special_builder(comp)) {
             emit_build_LUT(oss, comp);
@@ -460,7 +460,7 @@ void emit_port_metadata_arrays(std::ostringstream& oss, const std::vector<Compon
         oss << "    {" << offset << ", " << comp.ports.size()
             << ", " << (comp.scheduler_source ? "true" : "false")
             << ", " << (comp.solver_owned_electrical ? "true" : "false")
-            << ", " << (!comp.solver_role_kind.empty() ? "true" : "false")
+            << ", " << (comp.solver_role_kind.has_value() ? "true" : "false")
             << "},  // " << comp.classname << "\n";
         offset += comp.ports.size();
     }
@@ -720,10 +720,10 @@ void CodeGen::generate_component_kind(const ComponentRegistry& registry, const s
     struct FamilyDef {
         const char* predicate_name;
         const char* doc_string;
-        std::string role_kind;  // solver_role_kind to match
+        SolverRoleKind role_kind;
     };
     const FamilyDef families[] = {
-        {"is_knob_switch_kind", "KnobSwitch family", std::string(KNOB_SWITCH_BRANCHES_ROLE)},
+        {"is_knob_switch_kind", "KnobSwitch family", KNOB_SWITCH_BRANCHES_ROLE},
     };
 
     for (const auto& fam : families) {
@@ -735,7 +735,7 @@ void CodeGen::generate_component_kind(const ComponentRegistry& registry, const s
         }
         if (members.empty()) continue;
 
-        oss << "/// " << fam.doc_string << ": solver_role.kind == \"" << fam.role_kind << "\".\n";
+        oss << "/// " << fam.doc_string << ": solver_role.kind == \"" << solver_role_kind_name(fam.role_kind) << "\".\n";
         oss << "inline constexpr bool " << fam.predicate_name << "(ComponentKind kind) {\n";
         if (members.size() == 1) {
             oss << "    return kind == ComponentKind::" << members[0] << ";\n";

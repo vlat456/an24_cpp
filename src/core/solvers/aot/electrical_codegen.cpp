@@ -139,7 +139,7 @@ std::vector<RawElement> extract_solver_role_element(
     if (!dev.solver_role.has_value()) return result;
     const auto& role = *dev.solver_role;
 
-    if (role.kind == "FixedVoltageNode") {
+    if (role.kind == SolverRoleKind::FixedVoltageNode) {
         float value = read_role_param(role, dev, "voltage", 0.0f);
         auto node = resolve_port_optional(dev.name, dev.classname, role.port_map.at("node"), port_to_signal, options);
         if (!node.has_value()) return result;
@@ -148,7 +148,7 @@ std::vector<RawElement> extract_solver_role_element(
         return result;
     }
 
-    if (role.kind == "TheveninSource") {
+    if (role.kind == SolverRoleKind::TheveninSource) {
         float voltage = read_role_param(role, dev, "voltage", 28.0f);
         float resistance = read_role_param(role, dev, "resistance", 0.01f);
         auto pos = resolve_port_optional(dev.name, dev.classname, role.port_map.at("pos"), port_to_signal, options);
@@ -159,7 +159,7 @@ std::vector<RawElement> extract_solver_role_element(
         return result;
     }
 
-    if (role.kind == "ConductanceBranch") {
+    if (role.kind == SolverRoleKind::ConductanceBranch) {
         float g = read_role_param(role, dev, "g", 0.1f);
         auto a = resolve_port_optional(dev.name, dev.classname, role.port_map.at("a"), port_to_signal, options);
         auto b = resolve_port_optional(dev.name, dev.classname, role.port_map.at("b"), port_to_signal, options);
@@ -169,7 +169,7 @@ std::vector<RawElement> extract_solver_role_element(
         return result;
     }
 
-    if (role.kind == "KnobSwitchBranches") {
+    if (role.kind == SolverRoleKind::KnobSwitchBranches) {
         int positions = static_cast<int>(read_role_param(role, dev, "positions", 3.0f));
         positions = std::clamp(positions, 2, static_cast<int>(KNOB_SWITCH_MAX_POSITIONS));
         int initial_pos = static_cast<int>(read_role_param(role, dev, "initial_position", 0.0f));
@@ -189,7 +189,7 @@ std::vector<RawElement> extract_solver_role_element(
     }
 
     throw std::runtime_error(
-        "[codegen] unsupported solver_role kind '" + role.kind +
+        "[codegen] unsupported solver_role kind '" + std::string(solver_role_kind_name(role.kind)) +
         "' for device '" + dev.name + "' (classname: " + dev.classname + ")");
 }
 

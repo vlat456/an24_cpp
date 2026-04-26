@@ -179,7 +179,7 @@ std::pair<ComponentSpec, TypePresentation> parse_type_definition(const json& j) 
         if (j.contains("solver_role") && j["solver_role"].is_object()) {
             SolverRole role;
             const auto& sr = j["solver_role"];
-            role.kind = sr.value("kind", "");
+            role.kind = parse_solver_role_kind(sr.value("kind", ""));
             if (sr.contains("domain") && sr["domain"].is_string()) {
                 role.domain = json_io_internal::parse_domain_string(sr["domain"].get<std::string>());
             }

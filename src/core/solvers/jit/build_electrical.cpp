@@ -48,13 +48,13 @@ using ExtractorFn = void(*)(
 
 /// One entry in the extractor table.
 struct ElementExtractor {
-    std::string_view kind;
+    SolverRoleKind kind;
     ExtractorFn extract;
 };
 
-/// Find extractor by kind string. Linear scan over small array.
+/// Find extractor by SolverRoleKind. Linear scan over small array.
 static const ElementExtractor* find_extractor(
-    const ElementExtractor* table, size_t count, std::string_view kind)
+    const ElementExtractor* table, size_t count, SolverRoleKind kind)
 {
     for (size_t i = 0; i < count; ++i) {
         if (table[i].kind == kind) return &table[i];
@@ -132,10 +132,10 @@ static void extract_knob_switch_branches(
 // ---- The extractor table ----
 
 static const ElementExtractor k_electrical_extractors[] = {
-    {"FixedVoltageNode",    &extract_fixed_voltage_node},
-    {"TheveninSource",      &extract_thevenin_source},
-    {"ConductanceBranch",   &extract_conductance_branch},
-    {"KnobSwitchBranches",  &extract_knob_switch_branches},
+    {SolverRoleKind::FixedVoltageNode,    &extract_fixed_voltage_node},
+    {SolverRoleKind::TheveninSource,      &extract_thevenin_source},
+    {SolverRoleKind::ConductanceBranch,   &extract_conductance_branch},
+    {SolverRoleKind::KnobSwitchBranches,  &extract_knob_switch_branches},
 };
 
 // =====================================================================
@@ -164,7 +164,8 @@ static std::vector<RawElement> extract_raw_elements(
         const auto* extractor = find_extractor(
             k_electrical_extractors, std::size(k_electrical_extractors), role.kind);
         if (!extractor) {
-            throw std::runtime_error("Unsupported solver_role kind '" + role.kind +
+            throw std::runtime_error("Unsupported solver_role kind '" +
+                std::string(solver_role_kind_name(role.kind)) +
                 "' for component '" + dev.name + "' (classname: " + dev.classname + ")");
         }
 

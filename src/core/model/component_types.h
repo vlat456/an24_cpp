@@ -10,8 +10,46 @@
 #include "core/domain_types.h"
 #include "blueprint_v2/interface/direction.h"
 
+/// Typed discriminator for solver_role.kind — replaces raw string comparison.
+/// Parsed from JSON at load time; unknown values fail fast.
+enum class SolverRoleKind : uint8_t {
+    TheveninSource,
+    ConductanceBranch,
+    FixedVoltageNode,
+    KnobSwitchBranches,
+    PressureSource,
+    FlowBranch,
+    FixedPressureNode,
+};
+
+/// Parse a solver_role "kind" string into typed enum. Throws on unknown value.
+inline SolverRoleKind parse_solver_role_kind(const std::string& s) {
+    if (s == "TheveninSource")    return SolverRoleKind::TheveninSource;
+    if (s == "ConductanceBranch") return SolverRoleKind::ConductanceBranch;
+    if (s == "FixedVoltageNode")  return SolverRoleKind::FixedVoltageNode;
+    if (s == "KnobSwitchBranches") return SolverRoleKind::KnobSwitchBranches;
+    if (s == "PressureSource")    return SolverRoleKind::PressureSource;
+    if (s == "FlowBranch")        return SolverRoleKind::FlowBranch;
+    if (s == "FixedPressureNode") return SolverRoleKind::FixedPressureNode;
+    throw std::runtime_error("Unknown solver_role kind '" + s + "'");
+}
+
+/// Convert SolverRoleKind back to string (for diagnostics/codegen).
+inline const char* solver_role_kind_name(SolverRoleKind k) {
+    switch (k) {
+        case SolverRoleKind::TheveninSource:     return "TheveninSource";
+        case SolverRoleKind::ConductanceBranch:  return "ConductanceBranch";
+        case SolverRoleKind::FixedVoltageNode:   return "FixedVoltageNode";
+        case SolverRoleKind::KnobSwitchBranches: return "KnobSwitchBranches";
+        case SolverRoleKind::PressureSource:     return "PressureSource";
+        case SolverRoleKind::FlowBranch:         return "FlowBranch";
+        case SolverRoleKind::FixedPressureNode:  return "FixedPressureNode";
+    }
+    return "Unknown";
+}
+
 struct SolverRole {
-    std::string kind;
+    SolverRoleKind kind;
     Domain domain = Domain::Electrical;
     std::unordered_map<std::string, std::string> port_map;
     std::unordered_map<std::string, std::string> param_map;

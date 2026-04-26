@@ -837,7 +837,7 @@ TEST(AotComposite, GeneratedStepMethodsUseSourceConsumerOrdering) {
     refnode_out.solver.scheduler_source = true;
     refnode_out.params["value"] = ParamSpec{ParamSchemaType::Float, "0.0"};
     SolverRole role;
-    role.kind = "FixedVoltageNode";
+    role.kind = SolverRoleKind::FixedVoltageNode;
     role.port_map["node"] = "v";
     role.param_map["voltage"] = "value";
     role.value_map["bind_handle"] = 1.0f;
