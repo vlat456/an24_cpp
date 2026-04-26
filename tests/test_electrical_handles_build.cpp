@@ -307,7 +307,7 @@ TEST(ElectricalHandleBuild, GeneratorWithParamsGetsValidHandle) {
 // Regression: KnobSwitch via solver_role metadata gets valid handles
 // ============================================================================
 // Verifies that when a KnobSwitch device uses the metadata-driven path
-// (solver_role.kind == "KnobSwitchBranches"), the bind_handle flag in
+// (solver_role.kind == SolverRoleKind::KnobSwitchBranches), the bind_handle flag in
 // solver_role.values causes ElectricalPrimitiveHandle assignment.
 // Without bind_handle, elements are created with empty device_name and
 // handles are never assigned — breaking dynamic IndexSwitch patch ops.

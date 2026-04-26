@@ -36,31 +36,7 @@ using RawElement = build_common::GenericRawElement<ElectricalElementKind>;
 // Adding a new element kind requires only: 1 function + 1 table entry.
 // =====================================================================
 
-/// Extraction function signature.
-using ExtractorFn = void(*)(
-    const ResolvedDevice& dev,
-    const SolverRole& role,
-    const PortToSignal& port_to_signal,
-    const core::StringInterner& interner,
-    bool bind_handle,
-    std::vector<RawElement>& out,
-    size_t& element_idx);
-
-/// One entry in the extractor table.
-struct ElementExtractor {
-    SolverRoleKind kind;
-    ExtractorFn extract;
-};
-
-/// Find extractor by SolverRoleKind. Linear scan over small array.
-static const ElementExtractor* find_extractor(
-    const ElementExtractor* table, size_t count, SolverRoleKind kind)
-{
-    for (size_t i = 0; i < count; ++i) {
-        if (table[i].kind == kind) return &table[i];
-    }
-    return nullptr;
-}
+using Extractor = build_common::ElementExtractor<RawElement>;
 
 // ---- Extractor functions ----
 
@@ -131,7 +107,7 @@ static void extract_knob_switch_branches(
 
 // ---- The extractor table ----
 
-static const ElementExtractor k_electrical_extractors[] = {
+static const Extractor k_electrical_extractors[] = {
     {SolverRoleKind::FixedVoltageNode,    &extract_fixed_voltage_node},
     {SolverRoleKind::TheveninSource,      &extract_thevenin_source},
     {SolverRoleKind::ConductanceBranch,   &extract_conductance_branch},
@@ -161,7 +137,7 @@ static std::vector<RawElement> extract_raw_elements(
         // These are handled by their respective domain extractors.
         if (role.domain != Domain::Electrical) continue;
 
-        const auto* extractor = find_extractor(
+        const auto* extractor = build_common::find_extractor(
             k_electrical_extractors, std::size(k_electrical_extractors), role.kind);
         if (!extractor) {
             throw std::runtime_error("Unsupported solver_role kind '" +

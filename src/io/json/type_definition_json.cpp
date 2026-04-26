@@ -179,7 +179,10 @@ std::pair<ComponentSpec, TypePresentation> parse_type_definition(const json& j) 
         if (j.contains("solver_role") && j["solver_role"].is_object()) {
             SolverRole role;
             const auto& sr = j["solver_role"];
-            role.kind = parse_solver_role_kind(sr.value("kind", ""));
+            if (!sr.contains("kind") || !sr["kind"].is_string()) {
+                throw std::runtime_error("solver_role missing required string 'kind' for component '" + classname + "'");
+            }
+            role.kind = parse_solver_role_kind(sr["kind"].get<std::string>());
             if (sr.contains("domain") && sr["domain"].is_string()) {
                 role.domain = json_io_internal::parse_domain_string(sr["domain"].get<std::string>());
             }

@@ -29,28 +29,7 @@ using RawElement = build_common::GenericRawElement<HydraulicElementKind>;
 // Element extraction: function-pointer table
 // =====================================================================
 
-using HydraulicExtractorFn = void(*)(
-    const ResolvedDevice& dev,
-    const SolverRole& role,
-    const PortToSignal& port_to_signal,
-    const core::StringInterner& interner,
-    bool bind_handle,
-    std::vector<RawElement>& out,
-    size_t& element_idx);
-
-struct HydraulicElementExtractor {
-    SolverRoleKind kind;
-    HydraulicExtractorFn extract;
-};
-
-static const HydraulicElementExtractor* find_hydraulic_extractor(
-    const HydraulicElementExtractor* table, size_t count, SolverRoleKind kind)
-{
-    for (size_t i = 0; i < count; ++i) {
-        if (table[i].kind == kind) return &table[i];
-    }
-    return nullptr;
-}
+using Extractor = build_common::ElementExtractor<RawElement>;
 
 // ---- Extractor functions ----
 
@@ -96,7 +75,7 @@ static void extract_fixed_pressure_node(
 
 // ---- The extractor table ----
 
-static const HydraulicElementExtractor k_hydraulic_extractors[] = {
+static const Extractor k_hydraulic_extractors[] = {
     {SolverRoleKind::FixedPressureNode, &extract_fixed_pressure_node},
     {SolverRoleKind::PressureSource,    &extract_pressure_source},
     {SolverRoleKind::FlowBranch,        &extract_flow_branch},
@@ -122,7 +101,7 @@ static std::vector<RawElement> extract_hydraulic_raw_elements(
         // Only process hydraulic domain solver_roles.
         if (role.domain != Domain::Hydraulic) continue;
 
-        const auto* extractor = find_hydraulic_extractor(
+        const auto* extractor = build_common::find_extractor(
             k_hydraulic_extractors, std::size(k_hydraulic_extractors), role.kind);
         if (!extractor) {
             throw std::runtime_error("Unsupported hydraulic solver_role kind '" +

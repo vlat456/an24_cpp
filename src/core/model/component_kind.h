@@ -253,7 +253,7 @@ inline constexpr std::string_view component_kind_classname(ComponentKind kind) {
     return "Unknown";
 }
 
-/// KnobSwitch family: solver_role.kind == "KnobSwitchBranches".
+/// KnobSwitch family: solver_role.kind == SolverRoleKind::KnobSwitchBranches.
 inline constexpr bool is_knob_switch_kind(ComponentKind kind) {
     return kind == ComponentKind::KnobSwitch ||
            kind == ComponentKind::RotarySwitch1ToN ||

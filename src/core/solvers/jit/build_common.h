@@ -214,5 +214,38 @@ void init_element_values_from_plan(const BuildPlan& plan, RuntimeState& rt) {
     }
 }
 
+// =====================================================================
+// Generic extractor table — works for any domain's raw elements.
+// =====================================================================
+
+/// Extractor function signature: converts a device's solver_role into raw elements.
+template<typename RawElem>
+using ExtractorFn = void(*)(
+    const ResolvedDevice& dev,
+    const SolverRole& role,
+    const PortToSignal& port_to_signal,
+    const core::StringInterner& interner,
+    bool bind_handle,
+    std::vector<RawElem>& out,
+    size_t& element_idx);
+
+/// One entry in the domain-specific extractor table.
+template<typename RawElem>
+struct ElementExtractor {
+    SolverRoleKind kind;
+    ExtractorFn<RawElem> extract;
+};
+
+/// Find extractor by SolverRoleKind. Linear scan over small array.
+template<typename RawElem>
+const ElementExtractor<RawElem>* find_extractor(
+    const ElementExtractor<RawElem>* table, size_t count, SolverRoleKind kind)
+{
+    for (size_t i = 0; i < count; ++i) {
+        if (table[i].kind == kind) return &table[i];
+    }
+    return nullptr;
+}
+
 } // namespace build_common
 } // namespace jit_solver_impl
