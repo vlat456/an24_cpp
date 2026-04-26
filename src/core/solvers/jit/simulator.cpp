@@ -36,12 +36,12 @@ void update_dynamic_sources(BuildResult& br, SimulationState& st, ElectricalRunt
             }
             case ElectricalPatchKind::BoolSwitch: {
                 const bool state = st.values[op.s0] > 0.5f;
-                out = state ? op.closed_value : op.open_value;
+                out = state ? op.state_true_value : op.state_false_value;
                 break;
             }
             case ElectricalPatchKind::IndexSwitch: {
                 const int idx = static_cast<int>(st.values[op.s0]);
-                out = (idx == op.index_value) ? op.closed_value : op.open_value;
+                out = (idx == op.index_value) ? op.state_true_value : op.state_false_value;
                 break;
             }
         }
@@ -74,7 +74,7 @@ void update_hydraulic_dynamic_sources(BuildResult& br, SimulationState& st, Hydr
         switch (op.kind) {
             case HydraulicPatchKind::BoolSwitch: {
                 const bool state = st.values[op.s0] > 0.5f;
-                out = state ? op.closed_value : op.open_value;
+                out = state ? op.state_true_value : op.state_false_value;
                 break;
             }
             case HydraulicPatchKind::CopySignal: {

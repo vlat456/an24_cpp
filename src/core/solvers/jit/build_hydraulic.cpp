@@ -214,15 +214,14 @@ void build_hydraulic_patch_ops(BuildResult& result)
 
             if constexpr (std::is_same_v<T, SolenoidValve<JitProvider>>) {
                 // BoolSwitch: reads committed open/closed state from signal.
-                // One-frame delay: commit() writes state in frame N,
-                // patch op reads it in frame N+1.
+                // state=true → valve open (high conductance), state=false → valve closed (low conductance).
                 if (!is_valid(comp.hydraulic_handle)) return;
                 HydraulicPatchOp op;
                 op.kind = HydraulicPatchKind::BoolSwitch;
                 op.element_id = comp.hydraulic_handle.element_id;
                 op.s0 = comp.provider.get(PortNames::state);
-                op.open_value = comp.g_closed;   // "open" = state=false = valve closed = low g
-                op.closed_value = comp.g_open;   // "closed" = state=true = valve open = high g
+                op.state_true_value = comp.g_open;    // valve open when state=true
+                op.state_false_value = comp.g_closed;  // valve closed when state=false
                 add_op(op);
             }
             else if constexpr (std::is_same_v<T, FuelTank<JitProvider>>) {

@@ -295,14 +295,15 @@ void build_electrical_patch_ops(BuildResult& result)
             else if constexpr (std::is_same_v<T, AZS<JitProvider>> ||
                                std::is_same_v<T, HoldButton<JitProvider>> ||
                                std::is_same_v<T, Relay<JitProvider>>) {
-                // BoolSwitch: reads committed closed/is_pressed state from signal
+                // BoolSwitch: reads committed closed/is_pressed state from signal.
+                // state=true → closed (high conductance), state=false → open (low conductance).
                 if (!is_valid(comp.electrical_handle)) return;
                 ElectricalPatchOp op;
                 op.kind = ElectricalPatchKind::BoolSwitch;
                 op.element_id = comp.electrical_handle.element_id;
                 op.s0 = comp.provider.get(PortNames::state);
-                op.open_value = comp.g_open;
-                op.closed_value = comp.g_closed;
+                op.state_true_value = comp.g_closed;
+                op.state_false_value = comp.g_open;
                 add_op(op);
             }
             else if constexpr (std::is_same_v<T, KnobSwitch<JitProvider>> ||
@@ -316,8 +317,8 @@ void build_electrical_patch_ops(BuildResult& result)
                     op.element_id = comp.electrical_handles[i].element_id;
                     op.s0 = comp.provider.get(PortNames::position);
                     op.index_value = i;
-                    op.open_value = comp.g_open;
-                    op.closed_value = comp.g_closed;
+                    op.state_true_value = comp.g_closed;
+                    op.state_false_value = comp.g_open;
                     add_op(op);
                 }
             }

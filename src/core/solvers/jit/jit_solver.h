@@ -47,8 +47,12 @@ struct ElectricalPatchOp {
     int index_value = 0;
 
     // Constant outputs for switch kinds.
-    float open_value = 0.0f;
-    float closed_value = 0.0f;
+    // BoolSwitch: state_true_value = value when state_signal ≥ 0.5f
+    //             state_false_value = value when state_signal < 0.5f
+    // IndexSwitch: state_true_value = value when position matches index_value
+    //              state_false_value = value otherwise
+    float state_true_value = 0.0f;
+    float state_false_value = 0.0f;
 };
 
 /// Type-erased component step function signature.
@@ -153,7 +157,7 @@ struct ElectricalArtifacts {
 
 /// Kind of hydraulic patch operation applied before each solve.
 enum class HydraulicPatchKind : uint8_t {
-    BoolSwitch,     ///< Switch between open/closed conductance (SolenoidValve)
+    BoolSwitch,     ///< Switch conductance based on state signal (SolenoidValve)
     CopySignal      ///< Copy a signal value to element_value_a (FuelTank pressure)
 };
 
@@ -169,8 +173,10 @@ struct HydraulicPatchOp {
     uint32_t s0 = UINT32_MAX;
 
     // Constant outputs for BoolSwitch.
-    float open_value = 0.0f;
-    float closed_value = 0.0f;
+    // state_true_value = value when state_signal ≥ 0.5f
+    // state_false_value = value when state_signal < 0.5f
+    float state_true_value = 0.0f;
+    float state_false_value = 0.0f;
 };
 
 /// Hydraulic-domain solver state — groups build artifacts + mutable runtime.
