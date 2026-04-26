@@ -4,7 +4,6 @@
 #include "io/json/json_parse_internal.h"
 
 #include <algorithm>
-#include <array>
 
 using json = nlohmann::json;
 
@@ -49,58 +48,6 @@ Port parse_port(const json& j) {
         }
     }
     return port;
-}
-
-ExecutionPhases parse_execution_phases_strict(const json& execution, const std::string& classname) {
-    if (!execution.is_object()) {
-        throw std::runtime_error("Type definition field 'execution' must be an object for component '" + classname + "'");
-    }
-
-    static constexpr std::array<const char*, 9> required_keys = {
-        "electrical_passive",
-        "electrical_observer",
-        "logical",
-        "control_commit",
-        "electrical_actuator",
-        "finalize",
-        "mechanical",
-        "hydraulic",
-        "thermal"
-    };
-
-    for (const char* key : required_keys) {
-        if (!execution.contains(key)) {
-            throw std::runtime_error(
-                "Type definition field 'execution' is missing required key '" + std::string(key) +
-                "' for component '" + classname + "'");
-        }
-        if (!execution[key].is_boolean()) {
-            throw std::runtime_error(
-                "Type definition field 'execution." + std::string(key) +
-                "' must be boolean for component '" + classname + "'");
-        }
-    }
-
-    for (const auto& [key, _] : execution.items()) {
-        const bool known = std::find(required_keys.begin(), required_keys.end(), key) != required_keys.end();
-        if (!known) {
-            throw std::runtime_error(
-                "Type definition field 'execution' contains unknown key '" + key +
-                "' for component '" + classname + "'");
-        }
-    }
-
-    ExecutionPhases phases;
-    phases.electrical_passive = execution.at("electrical_passive").get<bool>();
-    phases.electrical_observer = execution.at("electrical_observer").get<bool>();
-    phases.logical = execution.at("logical").get<bool>();
-    phases.control_commit = execution.at("control_commit").get<bool>();
-    phases.electrical_actuator = execution.at("electrical_actuator").get<bool>();
-    phases.finalize = execution.at("finalize").get<bool>();
-    phases.mechanical = execution.at("mechanical").get<bool>();
-    phases.hydraulic = execution.at("hydraulic").get<bool>();
-    phases.thermal = execution.at("thermal").get<bool>();
-    return phases;
 }
 
 } // namespace
@@ -228,12 +175,6 @@ std::pair<ComponentSpec, TypePresentation> parse_type_definition(const json& j) 
         // Set solver metadata from fields that were hoisted to meta-level
         prim.solver.scheduler_source = scheduler_source;
         prim.solver.solver_owned_electrical = solver_owned_electrical;
-
-        if (j.contains("execution") && j["execution"].is_object()) {
-            prim.solver.execution = parse_execution_phases_strict(j["execution"], classname);
-        } else if (j.contains("execution")) {
-            throw std::runtime_error("Type definition field 'execution' must be an object for component '" + classname + "'");
-        }
 
         if (j.contains("solver_role") && j["solver_role"].is_object()) {
             SolverRole role;

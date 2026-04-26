@@ -97,7 +97,6 @@ TEST(BlueprintPorts, AliasPortUnification_JitAotParity) {
     ASSERT_NE(prim, nullptr);
     prim->classname = "Bus";
     prim->domains = {Domain::Electrical};
-    prim->solver.execution = ExecutionPhases{.electrical_passive = true};
 
     DeviceInstance dev;
     dev.name = "test_dev";

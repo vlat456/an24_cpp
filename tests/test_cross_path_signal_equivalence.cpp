@@ -192,7 +192,6 @@ ComponentRegistry make_minimal_registry() {
         spec.ports["v_in"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
         spec.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
         spec.domains = {Domain::Electrical};
-        spec.solver.execution = {.electrical_passive = true};
         spec.params["v_nominal"] = ParamSpec{ParamSchemaType::Float, "28.0"};
         spec.params["capacity_ah"] = ParamSpec{ParamSchemaType::Float, "60.0"};
         spec.params["internal_r"] = ParamSpec{ParamSchemaType::Float, "0.01"};
@@ -215,7 +214,6 @@ ComponentRegistry make_minimal_registry() {
         spec.classname = "Ground";
         spec.ports["gnd"] = Port{bp2::Direction::InOut, PortType::V, std::nullopt};
         spec.domains = {Domain::Electrical};
-        spec.solver.execution = {.electrical_passive = true};
         spec.solver.scheduler_source = true;
         spec.params["value"] = ParamSpec{ParamSchemaType::Float, "0.0"};
         SolverRole role;
@@ -235,7 +233,6 @@ ComponentRegistry make_minimal_registry() {
         spec.ports["v_in"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
         spec.ports["ground"] = Port{bp2::Direction::InOut, PortType::V, std::nullopt};
         spec.domains = {Domain::Electrical};
-        spec.solver.execution = {.electrical_passive = true};
         spec.params["conductance"] = ParamSpec{ParamSchemaType::Float, "0.002"};
         spec.solver.solver_owned_electrical = false;
         SolverRole role;

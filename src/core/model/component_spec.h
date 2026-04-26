@@ -23,7 +23,6 @@ struct ComponentMeta {
 /// Solver-specific metadata that only applies to primitive components.
 /// Composites never have solver traits — they decompose into primitives.
 struct PrimitiveSolverMetadata {
-    std::optional<ExecutionPhases> execution;
     std::optional<SolverRole> solver_role;
     bool scheduler_source = false;
     bool solver_owned_electrical = false;
@@ -72,11 +71,6 @@ inline std::unordered_map<std::string, ParamSpec>& spec_params_mut(ComponentSpec
 
 inline const std::vector<Domain>& spec_domains(const ComponentSpec& s) {
     return spec_meta(s).domains;
-}
-
-inline std::optional<ExecutionPhases> spec_execution(const ComponentSpec& s) {
-    if (auto* p = std::get_if<PrimitiveSpec>(&s)) return p->solver.execution;
-    return std::nullopt;
 }
 
 inline std::optional<SolverRole> spec_solver_role(const ComponentSpec& s) {

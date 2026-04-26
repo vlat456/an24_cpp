@@ -18,18 +18,6 @@ struct SolverRole {
     std::unordered_map<std::string, float> value_map;
 };
 
-struct ExecutionPhases {
-    bool electrical_passive = false;
-    bool electrical_observer = false;
-    bool logical = false;
-    bool control_commit = false;
-    bool electrical_actuator = false;
-    bool finalize = false;
-    bool mechanical = false;
-    bool hydraulic = false;
-    bool thermal = false;
-};
-
 enum class ParamSchemaType {
     Float,
     Int,

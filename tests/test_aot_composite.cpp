@@ -834,7 +834,6 @@ TEST(AotComposite, GeneratedStepMethodsUseSourceConsumerOrdering) {
     refnode_out.classname = "RefNode";
     refnode_out.ports["v"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     refnode_out.domains = {Domain::Electrical};
-    refnode_out.solver.execution = {.electrical_passive = true};
     refnode_out.solver.scheduler_source = true;
     refnode_out.params["value"] = ParamSpec{ParamSchemaType::Float, "0.0"};
     SolverRole role;
@@ -852,7 +851,6 @@ TEST(AotComposite, GeneratedStepMethodsUseSourceConsumerOrdering) {
     consumer_type.ports["v"] = Port{bp2::Direction::Input, PortType::V, std::nullopt};
     consumer_type.domains = {Domain::Electrical};
     consumer_type.solver.scheduler_source = false;
-    consumer_type.solver.execution = {.electrical_observer = true};
     registry.register_type("Voltmeter", consumer_type);
 
     CompositeSpec td;

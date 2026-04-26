@@ -24,7 +24,6 @@ struct ResolvedDevice {
     std::unordered_map<std::string, Port> ports;
     std::unordered_map<std::string, std::string> params;
     std::vector<Domain> domains;
-    std::optional<ExecutionPhases> execution;
     std::optional<SolverRole> solver_role;
     std::optional<std::pair<float, float>> pos;
     std::optional<std::pair<float, float>> size;

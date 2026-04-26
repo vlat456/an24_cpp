@@ -122,7 +122,6 @@ inline std::optional<ResolvedDevice> build_resolved_device(
 
     const auto& meta = spec_meta(type_def);
     dev.domains = domains;
-    dev.execution = spec_execution(type_def);
     dev.solver_role = spec_solver_role(type_def);
     dev.priority = meta.priority;
     dev.critical = meta.critical;

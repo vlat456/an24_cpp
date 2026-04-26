@@ -12,66 +12,6 @@
 
 namespace {
 
-ExecutionPhases make_execution_for_class(const std::string& classname) {
-    ExecutionPhases phases;
-
-    const bool is_observer =
-        (classname == "VoltageSense") ||
-        (classname == "Voltmeter") ||
-        (classname == "CurrentSense");
-    const bool is_actuator =
-        (classname == "ControlledVoltageSource") ||
-        (classname == "ControlledCurrentSource") ||
-        (classname == "VariableConductance");
-
-    if (!is_observer && !is_actuator && classname != "Bus") {
-        phases.electrical_passive = true;
-    }
-    if (is_observer) {
-        phases.electrical_observer = true;
-    }
-    if (classname == "CurrentSense") {
-        phases.electrical_passive = true;
-    }
-    if (is_actuator) {
-        phases.electrical_actuator = true;
-    }
-
-    if (classname == "AND" || classname == "OR" || classname == "NOT" || classname == "NAND" || classname == "XOR" ||
-        classname == "Any_V_to_Bool" || classname == "Positive_V_to_Bool" ||
-        classname == "PID" || classname == "PI" || classname == "PD" || classname == "P" ||
-        classname == "Comparator" || classname == "LUT" || classname == "Monostable" || classname == "TimeDelay" ||
-        classname == "SampleHold" || classname == "GreaterEq" || classname == "LesserEq" || classname == "Greater" ||
-        classname == "Lesser" || classname == "Bus") {
-        phases.logical = true;
-    }
-
-    if (classname == "HoldButton" || classname == "Switch" || classname == "Relay" || classname == "AZS") {
-        phases.control_commit = true;
-    }
-
-    if (classname == "LerpNode" || classname == "GidroAccumulator" || classname == "FuelTank") {
-        phases.finalize = true;
-    }
-
-    if (classname == "InertiaNode" || classname == "Spring" ||
-        classname == "ElectricPump") {
-        phases.mechanical = true;
-    }
-
-    if (classname == "SolenoidValve" || classname == "GidroAccumulator" || classname == "FuelTank" ||
-        classname == "ElectricPump") {
-        phases.hydraulic = true;
-    }
-
-    if (classname == "TempSensor" || classname == "ElectricHeater" || classname == "Radiator" ||
-        classname == "FuelTank") {
-        phases.thermal = true;
-    }
-
-    return phases;
-}
-
 /// Helper: build a single-component system via build_systems_dev.
 /// Creates a DeviceInstance with the given classname and all its registry ports,
 /// plus a ground RefNode so signal allocation succeeds.

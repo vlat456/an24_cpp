@@ -158,7 +158,6 @@ ResolvedDevice resolve_component(
     if (const PrimitiveSpec* prim = as_primitive(definition)) {
         resolved.scheduler_source = prim->solver.scheduler_source;
         resolved.solver_owned_electrical = prim->solver.solver_owned_electrical;
-        resolved.execution = prim->solver.execution;
         resolved.solver_role = prim->solver.solver_role;
     }
 

@@ -310,7 +310,6 @@ std::pair<ComponentSpec, TypePresentation> parse_blueprint_type_definition(
         prim.ports = std::move(ports);
         prim.params = std::move(params);
         prim.domains = std::move(domains);
-        prim.solver.execution = std::nullopt;
         prim.solver.scheduler_source = scheduler_source;
         prim.solver.solver_owned_electrical = solver_owned_electrical;
         prim.solver.solver_role = std::move(solver_role);

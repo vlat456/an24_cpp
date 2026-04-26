@@ -240,7 +240,6 @@ TEST(CodegenExportParity, DefaultParamsAreFilled) {
     PrimitiveSpec spec;
     spec.classname = "Resistor";
     spec.domains = {Domain::Electrical};
-    spec.solver.execution = ExecutionPhases{.electrical_passive = true};
     spec.ports["v_in"]  = Port{bp2::Direction::Input, PortType::V, Domain::Electrical, false};
     spec.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, Domain::Electrical, false};
     spec.params["resistance"] = ParamSpec{ParamSchemaType::Float, "100.0", std::nullopt, std::nullopt};
@@ -291,7 +290,6 @@ TEST(CodegenExportParity, VisualOnlyComponentFilteredOut) {
     PrimitiveSpec label_spec;
     label_spec.classname = "Label";
     label_spec.domains = {Domain::Electrical};
-    label_spec.solver.execution = ExecutionPhases{.logical = true};
     TypePresentation label_pres;
     label_pres.visual_only = true;
     reg.register_type("Label", std::move(label_spec), label_pres);

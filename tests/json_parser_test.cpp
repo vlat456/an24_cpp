@@ -593,48 +593,6 @@ static const char* minimal_blueprint_v2(const char* classname) {
     return buf;
 }
 
-TEST(JsonParserTest, ParseTypeDefinition_ExecutionMissingKeyThrows) {
-    auto j = nlohmann::json::parse(R"({
-        "classname": "ElectricalSource",
-        "cpp_class": true,
-        "ports": {"v_out": {"direction": "Out", "type": "V"}},
-        "execution": {
-            "electrical_passive": true,
-            "electrical_observer": false,
-            "logical": false,
-            "control_commit": false,
-            "electrical_actuator": false,
-            "finalize": false,
-            "mechanical": false,
-            "hydraulic": false
-        }
-    })");
-
-    EXPECT_THROW(parse_type_definition(j), std::runtime_error);
-}
-
-TEST(JsonParserTest, ParseTypeDefinition_ExecutionUnknownKeyThrows) {
-    auto j = nlohmann::json::parse(R"({
-        "classname": "ElectricalSource",
-        "cpp_class": true,
-        "ports": {"v_out": {"direction": "Out", "type": "V"}},
-        "execution": {
-            "electrical_passive": true,
-            "electrical_observer": false,
-            "logical": false,
-            "control_commit": false,
-            "electrical_actuator": false,
-            "finalize": false,
-            "mechanical": false,
-            "hydraulic": false,
-            "thermal": false,
-            "extra": true
-        }
-    })");
-
-    EXPECT_THROW(parse_type_definition(j), std::runtime_error);
-}
-
 TEST(ComponentRegistry, LoadRecursive_SubdirSetsCategory) {
     namespace fs = std::filesystem;
     auto tmp = fs::temp_directory_path() / "test_lib_hierarchy";
@@ -691,7 +649,6 @@ TEST(JsonParserTest, MergeDeviceInstance_ParamSchemaRejectsInvalidValue) {
     PrimitiveSpec def;
     def.classname = "ElectricalSource";
     def.domains = std::vector<Domain>{Domain::Electrical};
-    def.solver.execution = ExecutionPhases{true, false, false, false, false, false, false, false, false};
     def.ports["v_out"] = Port{bp2::Direction::Output, PortType::V, std::nullopt};
     def.params["r_internal"] = ParamSpec{ParamSchemaType::Float, "0.1", 0.000001, std::nullopt, true, false};
 
@@ -884,50 +841,6 @@ TEST(JsonParserTest, ParseTypeDefinition_SchedulerSourceDefaultsFalse) {
      const PrimitiveSpec* prim = as_primitive(def);
      ASSERT_NE(prim, nullptr);
      EXPECT_FALSE(prim->solver.scheduler_source);
-}
-
-TEST(JsonParserTest, ParseTypeDefinition_ExecutionRequiresAllCanonicalKeys) {
-    auto j = nlohmann::json::parse(R"({
-        "classname": "ElectricalSource",
-        "cpp_class": true,
-        "domains": ["Electrical"],
-        "ports": {"v_out": {"direction": "Out", "type": "V"}},
-        "execution": {
-            "electrical_passive": true,
-            "electrical_observer": false,
-            "logical": false,
-            "control_commit": false,
-            "electrical_actuator": false,
-            "finalize": false,
-            "mechanical": false,
-            "hydraulic": false
-        }
-    })");
-
-    EXPECT_THROW(parse_type_definition(j), std::runtime_error);
-}
-
-TEST(JsonParserTest, ParseTypeDefinition_ExecutionRejectsUnknownKeys) {
-    auto j = nlohmann::json::parse(R"({
-        "classname": "ElectricalSource",
-        "cpp_class": true,
-        "domains": ["Electrical"],
-        "ports": {"v_out": {"direction": "Out", "type": "V"}},
-        "execution": {
-            "electrical_passive": true,
-            "electrical_observer": false,
-            "logical": false,
-            "control_commit": false,
-            "electrical_actuator": false,
-            "finalize": false,
-            "mechanical": false,
-            "hydraulic": false,
-            "thermal": false,
-            "extra": true
-        }
-    })");
-
-    EXPECT_THROW(parse_type_definition(j), std::runtime_error);
 }
 
 TEST(ComponentRegistry, MissingSolverOwnedElectricalInV3BlueprintThrows) {

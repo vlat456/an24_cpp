@@ -702,7 +702,6 @@ TEST(PushBuildValidation, TypeDefinitionWithoutExecutionIsAccepted) {
     auto [def, pres] = parse_type_definition(td);
     const auto* prim = as_primitive(def);
     ASSERT_NE(prim, nullptr);
-    EXPECT_FALSE(prim->solver.execution.has_value());
 }
 
 TEST(PushBuildValidation, ExpandSubBlueprintReferences_CleansLoadingStackAfterFailure) {
