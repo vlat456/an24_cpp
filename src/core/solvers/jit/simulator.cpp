@@ -1,23 +1,27 @@
 #include "simulator.h"
 #include "build_common.h"
 #include "core/solvers/common/signal_key.h"
-#include "subsolvers/hydraulic_subsolver.h"
 #include "../../../parse_number.h"
 #include <algorithm>
 #include <cmath>
 
 namespace {
 
-/// Pre-solve pass: apply compiled electrical patch operations.
-void update_dynamic_sources(BuildResult& br, SimulationState& st, ElectricalRuntimeState& rt) {
-    for (const auto& op : br.electrical.patch_ops) {
+/// Pre-solve pass: apply compiled nodal patch operations.
+/// Domain-agnostic: works for electrical, hydraulic, or any nodal domain.
+void update_nodal_dynamic_sources(
+    const std::vector<NodalPatchOp>& ops,
+    SimulationState& st,
+    NodalRuntimeState& rt)
+{
+    for (const auto& op : ops) {
         if (op.element_id >= rt.element_value_a.size()) {
             continue;
         }
 
         float out = rt.element_value_a[op.element_id];
         switch (op.kind) {
-            case ElectricalPatchKind::AffineClamp: {
+            case NodalPatchKind::AffineClamp: {
                 float cmd = st.values[op.s0];
                 float gain = st.values[op.s1];
                 float offset = st.values[op.s2];
@@ -26,7 +30,7 @@ void update_dynamic_sources(BuildResult& br, SimulationState& st, ElectricalRunt
                 out = std::clamp(cmd * gain + offset, min_v, max_v);
                 break;
             }
-            case ElectricalPatchKind::LerpClamped01: {
+            case NodalPatchKind::LerpClamped01: {
                 float cmd = st.values[op.s0];
                 float lo = st.values[op.s1];
                 float hi = st.values[op.s2];
@@ -34,14 +38,18 @@ void update_dynamic_sources(BuildResult& br, SimulationState& st, ElectricalRunt
                 out = lo + (hi - lo) * t;
                 break;
             }
-            case ElectricalPatchKind::BoolSwitch: {
+            case NodalPatchKind::BoolSwitch: {
                 const bool state = st.values[op.s0] > 0.5f;
                 out = state ? op.state_true_value : op.state_false_value;
                 break;
             }
-            case ElectricalPatchKind::IndexSwitch: {
+            case NodalPatchKind::IndexSwitch: {
                 const int idx = static_cast<int>(st.values[op.s0]);
                 out = (idx == op.index_value) ? op.state_true_value : op.state_false_value;
+                break;
+            }
+            case NodalPatchKind::CopySignal: {
+                out = st.values[op.s0];
                 break;
             }
         }
@@ -56,33 +64,6 @@ void run_solver_owned_ops(const std::vector<SolverStepOp>& ops, SimulationState&
         if (op.instance != nullptr && op.fn != nullptr) {
             op.fn(op.instance, st, dt);
         }
-    }
-}
-
-} // anonymous namespace
-
-// Hydraulic runtime helpers — same pattern as electrical.
-namespace {
-
-void update_hydraulic_dynamic_sources(BuildResult& br, SimulationState& st, HydraulicRuntimeState& rt) {
-    for (const auto& op : br.hydraulic.patch_ops) {
-        if (op.element_id >= rt.element_value_a.size()) {
-            continue;
-        }
-
-        float out = rt.element_value_a[op.element_id];
-        switch (op.kind) {
-            case HydraulicPatchKind::BoolSwitch: {
-                const bool state = st.values[op.s0] > 0.5f;
-                out = state ? op.state_true_value : op.state_false_value;
-                break;
-            }
-            case HydraulicPatchKind::CopySignal: {
-                out = st.values[op.s0];
-                break;
-            }
-        }
-        rt.element_value_a[op.element_id] = out;
     }
 }
 
@@ -208,9 +189,6 @@ void Simulator<SolverTag>::stop() {
     time_ = 0.0;
     step_count_ = 0;
     running_ = false;
-    // Note: electrical_rt pointer in state_ is already cleared by SimulationState()
-    // reset above. build_result_.reset() destroys the ElectricalArtifacts which
-    // owns the ElectricalRuntimeState. No dangling pointer possible.
 }
 
 template <typename SolverTag>
@@ -223,13 +201,6 @@ void Simulator<SolverTag>::step(double dt) {
     }
 
     // E-008: Clamp dt to prevent physics explosions on frame hitches.
-    // At variable refresh rates, dt can spike to very large values (alt-tab,
-    // loading screen, frame stutter). Components using Euler integration
-    // (value += rate * dt) would produce non-physical discontinuities:
-    // a 1-second hitch at 1000ms dt could discharge a battery by 60x normal,
-    // slam integrators to limits, or cause flickering gauges.
-    // 100ms cap = ~6 frames at 60Hz, which is the most we allow to accumulate
-    // in a single step. Standard practice in game physics.
     static constexpr double MAX_DT = 0.1;
     dt = std::min(dt, MAX_DT);
 
@@ -240,64 +211,52 @@ void Simulator<SolverTag>::step(double dt) {
     // The pipeline uses ONE electrical solve per frame with one-frame-delayed
     // actuator states. This is intentional for a game at 60Hz+:
     //
-    //   1. update_dynamic_sources — stamp actuator states (AZS/Relay/CVS)
-    //      from PREVIOUS frame's commit into the electrical build plan
-    //   2. solve_electrical — single Gaussian solve for all islands
+    //   1. update_dynamic_sources — stamp actuator states from PREVIOUS frame
+    //   2. solve_nodal — single Gaussian solve for all islands
     //   3. execute solver-owned — post-solve compute (e.g., AZS thermal model)
     //   4. scheduler.step — execute all logical/mechanical/etc. components
     //   5. commit solver-owned — battery discharge, state transitions
     //
-    // The previous 9-phase pipeline ran two electrical solves per frame to
-    // handle within-frame actuator feedback. At 60Hz+, one-frame delay
-    // (16ms) for AZS/relay state changes is invisible to players, and
-    // halving the electrical solver cost is a clear win for a game.
-    //
-    // One-frame delay semantics: actuator state changes (e.g., AZS toggle,
-    // relay close) take effect in the NEXT frame's solve_electrical, not
-    // the current one. This is consistent with the push-model design where
-    // commit() stages transitions for next frame's execute().
+    // One-frame delay semantics: actuator state changes take effect in the
+    // NEXT frame's solve, not the current one.
     // ===========================================================================
 
     // Set pointer before solver runs so components can access electrical_rt.
-    // RAII guard ensures cleanup on ALL exit paths (including exceptions).
+    // RAII guard ensures cleanup on ALL exit paths.
     state_.electrical_rt = &build_result_->electrical.runtime;
     struct RtGuard {
         SimulationState& st;
         ~RtGuard() { st.electrical_rt = nullptr; st.hydraulic_rt = nullptr; }
     } guard{state_};
 
-    // Pre-solve: update dynamic Thevenin source voltages (ControlledVoltageSource).
-    // Reads cmd from previous frame's signal array (one-frame-delay semantic).
-    update_dynamic_sources(*build_result_, state_, build_result_->electrical.runtime);
-
-    // Run electrical subsolver to compute node voltages and branch currents
-    solve_electrical(build_result_->electrical.plan, build_result_->electrical.runtime.element_value_a, state_, build_result_->electrical.runtime, dt);
-
-    // Execute pass for solver-owned components that need post-solve computation
-    // (e.g., AZS thermal model reads branch currents from solved electrical state).
+    // == Electrical domain solve ==
+    update_nodal_dynamic_sources(
+        build_result_->electrical.patch_ops, state_, build_result_->electrical.runtime);
+    solve_nodal(build_result_->electrical.plan,
+                build_result_->electrical.runtime.element_value_a,
+                state_, build_result_->electrical.runtime, dt);
     run_solver_owned_ops(build_result_->electrical.execute_ops, state_, dt);
 
     // == Hydraulic domain solve ==
     if (!build_result_->hydraulic.plan.islands.empty()) {
         state_.hydraulic_rt = &build_result_->hydraulic.runtime;
-        update_hydraulic_dynamic_sources(*build_result_, state_, build_result_->hydraulic.runtime);
-        solve_hydraulic(build_result_->hydraulic.plan, build_result_->hydraulic.runtime.element_value_a, state_, build_result_->hydraulic.runtime, dt);
+        update_nodal_dynamic_sources(
+            build_result_->hydraulic.patch_ops, state_, build_result_->hydraulic.runtime);
+        solve_nodal(build_result_->hydraulic.plan,
+                    build_result_->hydraulic.runtime.element_value_a,
+                    state_, build_result_->hydraulic.runtime, dt);
         run_solver_owned_ops(build_result_->hydraulic.execute_ops, state_, dt);
     }
 
     build_result_->scheduler.step(state_, dt);
 
     // Explicit commit pass for solver-owned components (Battery discharge, etc).
-    // These are NOT in the scheduler's source/consumer lists but need per-frame
-    // commit to update internal state (e.g., Battery.charge).
     run_solver_owned_ops(build_result_->electrical.commit_ops, state_, dt);
 
     // Hydraulic commit pass
     if (!build_result_->hydraulic.plan.islands.empty()) {
         run_solver_owned_ops(build_result_->hydraulic.commit_ops, state_, dt);
     }
-
-    // Guard destructor clears state_.electrical_rt = nullptr here.
 
     time_ += dt;
     step_count_++;

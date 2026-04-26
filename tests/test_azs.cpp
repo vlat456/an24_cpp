@@ -2,7 +2,7 @@
 #include "core/solvers/jit/components/all.h"
 #include "core/solvers/common/port_registry.h"
 #include "core/solvers/jit/state.h"
-#include "core/solvers/jit/subsolvers/subsolver_types.h"
+#include "core/solvers/jit/subsolvers/nodal_types.h"
 
 
 template <typename Comp>
@@ -34,7 +34,7 @@ struct AZSTestFixture : public ::testing::Test {
     static constexpr uint32_t SIGNAL_COUNT = 6;
 
     SimulationState st;
-    ElectricalRuntimeState rt;
+    NodalRuntimeState rt;
     AZS<JitProvider> azs;
 
     void SetUp() override {
@@ -57,13 +57,13 @@ struct AZSTestFixture : public ::testing::Test {
         azs.pre_load();
 
         // Attach electrical runtime handle for solver-owned branch current sampling.
-        rt.branch_currents.resize(1, 0.0f);
+        rt.branch_flows.resize(1, 0.0f);
         azs.electrical_handle = {0, 0, 0};
         st.electrical_rt = &rt;
     }
 
     void set_branch_current(float i_abs) {
-        rt.branch_currents[0] = i_abs;
+        rt.branch_flows[0] = i_abs;
     }
 };
 

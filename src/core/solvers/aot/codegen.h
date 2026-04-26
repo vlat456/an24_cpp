@@ -19,7 +19,9 @@ struct CompositeCodegenResult {
 };
 
 // == Electrical plan for AOT codegen ==
-// Mirrors the runtime ElectricalBuildPlan but with static arrays for hot path.
+// Codegen-phase plan types. Element kinds map 1:1 to runtime NodalElementKind,
+// but keep domain-specific names for codegen clarity. The generated C++ output
+// uses unified runtime types (NodalElementKind, NodalElement, NodalIslandPlan).
 // Used to emit constexpr electrical island data in generated code.
 
 enum class ElectricalElementKindCodegen : uint8_t {

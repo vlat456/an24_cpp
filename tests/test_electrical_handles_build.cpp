@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include "core/solvers/jit/jit_solver.h"
-#include "core/solvers/jit/subsolvers/subsolver_types.h"
+#include "core/solvers/jit/subsolvers/nodal_types.h"
 #include "core/solvers/common/port_registry.h"
 #include "core/registry/component_resolution.h"
 #include "jit_build_input_test_helper.h"
@@ -8,7 +8,7 @@
 
 // ============================================================================
 // Electrical Primitive Handle Tests - Batch 3
-// Validates ElectricalPrimitiveHandle assignment in build_systems_dev
+// Validates NodalPrimitiveHandle assignment in build_systems_dev
 // ============================================================================
 
 TEST(ElectricalHandleBuild, ElectricalSourceCreatesTheveninElement) {
@@ -31,7 +31,7 @@ TEST(ElectricalHandleBuild, ElectricalSourceCreatesTheveninElement) {
     ASSERT_EQ(result.electrical.plan.islands.size(), 1u);
     bool found_thevenin = false;
     for (const auto& elem : result.electrical.plan.islands[0].elements) {
-        if (elem.kind == ElectricalElementKind::TheveninSource) {
+        if (elem.kind == NodalElementKind::Source) {
             found_thevenin = true;
             break;
         }
@@ -110,7 +110,7 @@ TEST(ElectricalHandleBuild, HandlePointsToCorrectElementKind) {
 
     const auto& elem = result.electrical.plan.islands[gen->electrical_handle.island_index]
                               .elements[gen->electrical_handle.element_index];
-    EXPECT_EQ(elem.kind, ElectricalElementKind::TheveninSource);
+    EXPECT_EQ(elem.kind, NodalElementKind::Source);
 }
 
 TEST(ElectricalHandleBuild, IndicatorHandlePointsToConductanceBranch) {
@@ -138,7 +138,7 @@ TEST(ElectricalHandleBuild, IndicatorHandlePointsToConductanceBranch) {
 
     const auto& elem = result.electrical.plan.islands[light->electrical_handle.island_index]
                               .elements[light->electrical_handle.element_index];
-    EXPECT_EQ(elem.kind, ElectricalElementKind::ConductanceBranch);
+    EXPECT_EQ(elem.kind, NodalElementKind::Branch);
 }
 
 TEST(ElectricalHandleBuild, DeterministicHandles) {
@@ -222,7 +222,7 @@ TEST(ElectricalHandleBuild, CurrentSenseHandlePointsToConductanceBranch) {
 
     const auto& elem = result.electrical.plan.islands[cs->electrical_handle.island_index]
                               .elements[cs->electrical_handle.element_index];
-    EXPECT_EQ(elem.kind, ElectricalElementKind::ConductanceBranch);
+    EXPECT_EQ(elem.kind, NodalElementKind::Branch);
     EXPECT_EQ(cs->electrical_handle.element_id, elem.element_id);
 }
 
@@ -280,7 +280,7 @@ TEST(ElectricalHandleBuild, GeneratorHandlePointsToTheveninSource) {
 
     const auto& elem = result.electrical.plan.islands[gen->electrical_handle.island_index]
                               .elements[gen->electrical_handle.element_index];
-    EXPECT_EQ(elem.kind, ElectricalElementKind::TheveninSource);
+    EXPECT_EQ(elem.kind, NodalElementKind::Source);
 }
 
 TEST(ElectricalHandleBuild, GeneratorWithParamsGetsValidHandle) {
@@ -308,7 +308,7 @@ TEST(ElectricalHandleBuild, GeneratorWithParamsGetsValidHandle) {
 // ============================================================================
 // Verifies that when a KnobSwitch device uses the metadata-driven path
 // (solver_role.kind == SolverRoleKind::KnobSwitchBranches), the bind_handle flag in
-// solver_role.values causes ElectricalPrimitiveHandle assignment.
+// solver_role.values causes NodalPrimitiveHandle assignment.
 // Without bind_handle, elements are created with empty device_name and
 // handles are never assigned — breaking dynamic IndexSwitch patch ops.
 
@@ -347,7 +347,7 @@ TEST(ElectricalHandleBuild, KnobSwitchMetadataGetsHandles) {
         ASSERT_LT(h.island_index, result.electrical.plan.islands.size());
         const auto& island = result.electrical.plan.islands[h.island_index];
         ASSERT_LT(h.element_index, island.elements.size());
-        EXPECT_EQ(island.elements[h.element_index].kind, ElectricalElementKind::ConductanceBranch)
+        EXPECT_EQ(island.elements[h.element_index].kind, NodalElementKind::Branch)
             << "Handle " << i << " should point to ConductanceBranch";
     }
 }

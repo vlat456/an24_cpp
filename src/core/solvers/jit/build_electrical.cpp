@@ -26,7 +26,7 @@ namespace jit_solver_impl {
 // RawElement — alias for shared GenericRawElement
 // =====================================================================
 
-using RawElement = build_common::GenericRawElement<ElectricalElementKind>;
+using RawElement = build_common::GenericRawElement<NodalElementKind>;
 
 // =====================================================================
 // Element extraction: function-pointer table (schema registry)
@@ -47,7 +47,7 @@ static void extract_fixed_voltage_node(
 {
     float value = build_common::read_role_param_required(dev, role, "voltage");
     uint32_t node_a = build_common::resolve_role_port(dev, role, "node", pts, intern);
-    out.push_back({ElectricalElementKind::FixedVoltageNode,
+    out.push_back({NodalElementKind::FixedNode,
         node_a, UINT32_MAX, value, 0.0f,
         element_idx++, bind_handle ? dev.name : std::string{}});
 }
@@ -61,7 +61,7 @@ static void extract_thevenin_source(
     float resistance = build_common::read_role_param_required(dev, role, "resistance");
     uint32_t node_pos = build_common::resolve_role_port(dev, role, "pos", pts, intern);
     uint32_t node_neg = build_common::resolve_role_port(dev, role, "neg", pts, intern);
-    out.push_back({ElectricalElementKind::TheveninSource,
+    out.push_back({NodalElementKind::Source,
         node_pos, node_neg, voltage, resistance,
         element_idx++, bind_handle ? dev.name : std::string{}});
 }
@@ -74,7 +74,7 @@ static void extract_conductance_branch(
     float conductance = build_common::read_role_param_required(dev, role, "g");
     uint32_t node_a = build_common::resolve_role_port(dev, role, "a", pts, intern);
     uint32_t node_b = build_common::resolve_role_port(dev, role, "b", pts, intern);
-    out.push_back({ElectricalElementKind::ConductanceBranch,
+    out.push_back({NodalElementKind::Branch,
         node_a, node_b, conductance, 0.0f,
         element_idx++, bind_handle ? dev.name : std::string{}});
 }
@@ -99,7 +99,7 @@ static void extract_knob_switch_branches(
     for (int i = 0; i < positions; ++i) {
         uint32_t node_t = build_common::resolve_role_port(dev, role, terminal_names[i], pts, intern);
         float initial_g = (i == initial_pos) ? g_closed_val : g_open_val;
-        out.push_back({ElectricalElementKind::ConductanceBranch,
+        out.push_back({NodalElementKind::Branch,
             node_wiper, node_t, initial_g, 0.0f,
             element_idx++, bind_handle ? dev.name : std::string{}});
     }
@@ -158,7 +158,7 @@ static std::vector<RawElement> extract_raw_elements(
 // =====================================================================
 
 // =====================================================================
-// Phase 3: Assign ElectricalPrimitiveHandle to component variants
+// Phase 3: Assign NodalPrimitiveHandle to component variants
 // =====================================================================
 
 /// Assign handles from island elements to their owning component variants.
@@ -192,7 +192,7 @@ static void assign_handles(
                     device_name + "' not found in result.devices");
             }
 
-            ElectricalPrimitiveHandle handle;
+            NodalPrimitiveHandle handle;
             handle.island_index = static_cast<uint32_t>(island_idx);
             handle.element_index = static_cast<uint32_t>(elem_idx);
             handle.element_id = elem.element_id;
@@ -223,7 +223,7 @@ void build_electrical_islands(
     const std::vector<SolverDevice>& devices)
 {
     auto raw_elements = extract_raw_elements(devices, result.port_to_signal, result.signal_key_interner);
-    build_common::group_into_islands<RawElement, ElectricalIslandPlan>(raw_elements, result.electrical.plan);
+    build_common::group_into_islands<RawElement, NodalIslandPlan>(raw_elements, result.electrical.plan);
     assign_handles(raw_elements, result);
 }
 
@@ -235,7 +235,7 @@ void build_electrical_patch_ops(BuildResult& result)
 {
     result.electrical.patch_ops.clear();
 
-    auto add_op = [&](const ElectricalPatchOp& op) {
+    auto add_op = [&](const NodalPatchOp& op) {
         if (op.element_id == UINT32_MAX) return;
         result.electrical.patch_ops.push_back(op);
     };
@@ -249,8 +249,8 @@ void build_electrical_patch_ops(BuildResult& result)
 
             if constexpr (std::is_same_v<T, ControlledVoltageSource<JitProvider>>) {
                 if (!is_valid(comp.electrical_handle)) return;
-                ElectricalPatchOp op;
-                op.kind = ElectricalPatchKind::AffineClamp;
+                NodalPatchOp op;
+                op.kind = NodalPatchKind::AffineClamp;
                 op.element_id = comp.electrical_handle.element_id;
                 op.s0 = comp.provider.get(PortNames::cmd);
                 op.s1 = comp.provider.get(PortNames::gain);
@@ -261,8 +261,8 @@ void build_electrical_patch_ops(BuildResult& result)
             }
             else if constexpr (std::is_same_v<T, VariableConductance<JitProvider>>) {
                 if (!is_valid(comp.electrical_handle)) return;
-                ElectricalPatchOp op;
-                op.kind = ElectricalPatchKind::LerpClamped01;
+                NodalPatchOp op;
+                op.kind = NodalPatchKind::LerpClamped01;
                 op.element_id = comp.electrical_handle.element_id;
                 op.s0 = comp.provider.get(PortNames::cmd);
                 op.s1 = comp.provider.get(PortNames::g_min);
@@ -275,8 +275,8 @@ void build_electrical_patch_ops(BuildResult& result)
                 // BoolSwitch: reads committed closed/is_pressed state from signal.
                 // state=true → closed (high conductance), state=false → open (low conductance).
                 if (!is_valid(comp.electrical_handle)) return;
-                ElectricalPatchOp op;
-                op.kind = ElectricalPatchKind::BoolSwitch;
+                NodalPatchOp op;
+                op.kind = NodalPatchKind::BoolSwitch;
                 op.element_id = comp.electrical_handle.element_id;
                 op.s0 = comp.provider.get(PortNames::state);
                 op.state_true_value = comp.g_closed;
@@ -289,8 +289,8 @@ void build_electrical_patch_ops(BuildResult& result)
                 // IndexSwitch: multi-element knob, one patch op per branch
                 for (int i = 0; i < comp.num_handles; ++i) {
                     if (!is_valid(comp.electrical_handles[i])) continue;
-                    ElectricalPatchOp op;
-                    op.kind = ElectricalPatchKind::IndexSwitch;
+                    NodalPatchOp op;
+                    op.kind = NodalPatchKind::IndexSwitch;
                     op.element_id = comp.electrical_handles[i].element_id;
                     op.s0 = comp.provider.get(PortNames::position);
                     op.index_value = i;
@@ -309,9 +309,9 @@ void build_electrical_patch_ops(BuildResult& result)
 // with handles automatically get step ops without editing this file.
 template<typename T>
 constexpr bool is_electrical_solver_owned_v = requires(T t) {
-    { t.electrical_handle } -> std::same_as<ElectricalPrimitiveHandle&>;
+    { t.electrical_handle } -> std::same_as<NodalPrimitiveHandle&>;
 } || requires(T t) {
-    { t.electrical_handles } -> std::convertible_to<ElectricalPrimitiveHandle*>;
+    { t.electrical_handles } -> std::convertible_to<NodalPrimitiveHandle*>;
 };
 
 void build_solver_step_ops(BuildResult& result)

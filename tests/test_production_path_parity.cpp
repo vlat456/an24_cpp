@@ -20,7 +20,7 @@ TEST(ProductionPathParity, CompositeAotJitTopologyParity) {
     EXPECT_NE(jit_signal_of(jit_result, "lamp.brightness"), jit_signal_of(jit_result, "vin.port"));
     EXPECT_NE(jit_signal_of(jit_result, "lamp.brightness"), jit_signal_of(jit_result, "lamp.v_out"));
 
-    EXPECT_NE(aot_result.source.find("solve_electrical"), std::string::npos);
+    EXPECT_NE(aot_result.source.find("solve_nodal"), std::string::npos);
     EXPECT_NE(aot_result.header.find("ELECTRICAL_DEBUG_MAP"), std::string::npos);
 }
 

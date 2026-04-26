@@ -12,7 +12,7 @@ void ControlledVoltageSource<Provider>::pre_load() {
 /// Execute: no-op for solver-owned CVS.
 /// Voltage propagation is handled by the electrical solver (TheveninSource element).
 /// The dynamic source voltage is patched into the electrical plan before
-/// solve_electrical() runs each frame (see update_dynamic_sources in simulator.cpp).
+/// solve_nodal() runs each frame (see update_dynamic_sources in simulator.cpp).
 template <typename Provider>
 void ControlledVoltageSource<Provider>::execute(SimulationState& /*st*/, double /*dt*/) {
     // Intentionally empty. Solver handles v_pos/v_neg via TheveninSource.
@@ -20,11 +20,11 @@ void ControlledVoltageSource<Provider>::execute(SimulationState& /*st*/, double 
 
 template <typename Provider>
 void ControlledVoltageSource<Provider>::commit(SimulationState& st, double /*dt*/) {
-    // Commit runs after solve_electrical() in the solver-owned commit pass.
+    // Commit runs after solve_nodal() in the solver-owned commit pass.
     // Export solved source branch current for topology-agnostic derating logic.
     float i_out = 0.0f;
     if (st.electrical_rt != nullptr && is_valid(electrical_handle)) {
-        i_out = std::fabs(get_branch_current(*st.electrical_rt, electrical_handle));
+        i_out = std::fabs(get_branch_flow(*st.electrical_rt, electrical_handle));
     }
     st.values[provider.get(PortNames::i_out)] = i_out;
 }

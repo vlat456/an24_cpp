@@ -84,7 +84,7 @@ TEST(UnmappedPortRegression, SetOverwritesPrevious) {
 
 TEST(DomainDispatchRegression, HoldButton_IsElectricalDomain) {
     // [BUG-4]: HoldButton was Domain::Logical, which caused the simulator
-    // to skip its solve_electrical() method entirely.
+    // to skip its solve_nodal() method entirely.
     using HB = HoldButton<JitProvider>;
     EXPECT_TRUE((static_cast<uint32_t>(HB::domain) & static_cast<uint32_t>(Domain::Electrical)) != 0)
         << "HoldButton must include Electrical domain to be dispatched by the electrical solver";

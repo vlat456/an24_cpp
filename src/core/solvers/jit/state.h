@@ -1,8 +1,7 @@
 #pragma once
 
 #include "core/domain_types.h"
-#include "subsolvers/subsolver_types.h"
-#include "subsolvers/hydraulic_subsolver_types.h"
+#include "subsolvers/nodal_types.h"
 #include <cstdint>
 #include <vector>
 
@@ -24,12 +23,12 @@ struct SimulationState {
     // Pointer to currently active electrical runtime state.
     // Set by simulator before scheduler.step() each frame.
     // Null if electrical solving is not active.
-    ElectricalRuntimeState* electrical_rt = nullptr;
+    NodalRuntimeState* electrical_rt = nullptr;
 
     // Pointer to currently active hydraulic runtime state.
     // Set by simulator before scheduler.step() each frame.
     // Null if hydraulic solving is not active.
-    HydraulicRuntimeState* hydraulic_rt = nullptr;
+    NodalRuntimeState* hydraulic_rt = nullptr;
 
     SimulationState() = default;
 

@@ -32,7 +32,7 @@ static SimulationState make_state(size_t n = 3) {
 
 // =============================================================================
 // Batch 6: Solved Current Tests
-// CurrentSense now reads solved branch current from electrical runtime state.
+// CurrentSense now reads solved branch flow from electrical runtime state.
 // Old fake formula (i_out = (v_in - v_out) * conductance) has been removed.
 // =============================================================================
 
@@ -42,8 +42,8 @@ TEST(CurrentSense, ReportsSolvedCurrent) {
     comp.electrical_handle = {0, 0, 2};  // valid handle with element_id=2
 
     auto st = make_state();
-    st.electrical_rt = new ElectricalRuntimeState();
-    st.electrical_rt->branch_currents = {0.0f, 0.0f, 7.5f};  // index 2 = 7.5A
+    st.electrical_rt = new NodalRuntimeState();
+    st.electrical_rt->branch_flows = {0.0f, 0.0f, 7.5f};  // index 2 = 7.5A
 
     step_component(comp, st, 1.0 / 60.0);
 
@@ -57,8 +57,8 @@ TEST(CurrentSense, NoHandleOutputsZero) {
     comp.electrical_handle = {UINT32_MAX, UINT32_MAX, UINT32_MAX};  // invalid handle
 
     auto st = make_state();
-    st.electrical_rt = new ElectricalRuntimeState();
-    st.electrical_rt->branch_currents = {0.0f, 0.0f, 7.5f};
+    st.electrical_rt = new NodalRuntimeState();
+    st.electrical_rt->branch_flows = {0.0f, 0.0f, 7.5f};
 
     step_component(comp, st, 1.0 / 60.0);
 
@@ -80,13 +80,13 @@ TEST(CurrentSense, NoElectricalRtOutputsZero) {
 }
 
 TEST(CurrentSense, OutOfRangeElementIdOutputsZero) {
-    // CurrentSense with element_id beyond branch_currents size outputs 0
+    // CurrentSense with element_id beyond branch_flows size outputs 0
     auto comp = make_current_sense(1000.0f);
     comp.electrical_handle = {0, 0, 100};  // valid handle but index 100
 
     auto st = make_state();
-    st.electrical_rt = new ElectricalRuntimeState();
-    st.electrical_rt->branch_currents = {0.0f, 0.0f};  // only 3 elements
+    st.electrical_rt = new NodalRuntimeState();
+    st.electrical_rt->branch_flows = {0.0f, 0.0f};  // only 3 elements
 
     step_component(comp, st, 1.0 / 60.0);
 
@@ -100,8 +100,8 @@ TEST(CurrentSense, ReadsZeroCurrentWhenNoDischarge) {
     comp.electrical_handle = {0, 0, 1};
 
     auto st = make_state();
-    st.electrical_rt = new ElectricalRuntimeState();
-    st.electrical_rt->branch_currents = {0.0f, 0.0f};  // 0A discharge
+    st.electrical_rt = new NodalRuntimeState();
+    st.electrical_rt->branch_flows = {0.0f, 0.0f};  // 0A discharge
 
     step_component(comp, st, 1.0 / 60.0);
 
@@ -116,8 +116,8 @@ TEST(CurrentSense, ReadsNegativeCurrentForCharging) {
     comp.electrical_handle = {0, 0, 1};
 
     auto st = make_state();
-    st.electrical_rt = new ElectricalRuntimeState();
-    st.electrical_rt->branch_currents = {0.0f, -5.0f};  // -5A (charging)
+    st.electrical_rt = new NodalRuntimeState();
+    st.electrical_rt->branch_flows = {0.0f, -5.0f};  // -5A (charging)
 
     step_component(comp, st, 1.0 / 60.0);
 

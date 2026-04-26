@@ -86,8 +86,8 @@ void emit_systems_class_declaration(
     oss << "    uint32_t step_counter_ = 0;\n\n";
 
     if (!electrical_plan.islands.empty()) {
-        oss << "    ElectricalBuildPlan electrical_plan_;\n";
-        oss << "    ElectricalRuntimeState electrical_rt_;\n";
+        oss << "    NodalBuildPlan electrical_plan_;\n";
+        oss << "    NodalRuntimeState electrical_rt_;\n";
         oss << "    static constexpr float ELECTRICAL_DIAG_RESIDUAL_WARN = 1e-4f;\n";
         oss << "    static constexpr uint32_t ELECTRICAL_COUNTER_LOG_PERIOD = 600;\n";
         oss << "\n";
@@ -202,13 +202,13 @@ std::string CodeGen::generate_header(
             oss << "};\n";
 
             oss << "constexpr uint32_t island_" << island_idx << "_element_count = " << island.elements.size() << ";\n";
-            oss << "constexpr ElectricalElement island_" << island_idx << "_elements[] = {\n";
+            oss << "constexpr NodalElement island_" << island_idx << "_elements[] = {\n";
             for (const auto& elem : island.elements) {
-                const char* kind_str = "ElectricalElementKind::FixedVoltageNode";
+                const char* kind_str = "NodalElementKind::FixedNode";
                 if (elem.kind == ElectricalElementKindCodegen::TheveninSource) {
-                    kind_str = "ElectricalElementKind::TheveninSource";
+                    kind_str = "NodalElementKind::Source";
                 } else if (elem.kind == ElectricalElementKindCodegen::ConductanceBranch) {
-                    kind_str = "ElectricalElementKind::ConductanceBranch";
+                    kind_str = "NodalElementKind::Branch";
                 }
                 oss << "    { " << kind_str << ", " << elem.node_a << ", " << elem.node_b
                     << ", " << locale_safe::format_float(elem.value_a) << "f, "
@@ -218,11 +218,11 @@ std::string CodeGen::generate_header(
         }
 
         oss << "struct AotElectricalPlan {\n";
-        oss << "    std::vector<ElectricalIslandPlan> islands;\n";
+        oss << "    std::vector<NodalIslandPlan> islands;\n";
         oss << "    AotElectricalPlan() {\n";
         for (size_t island_idx = 0; island_idx < electrical_plan.islands.size(); ++island_idx) {
             const auto& island = electrical_plan.islands[island_idx];
-            oss << "        ElectricalIslandPlan isl;\n";
+            oss << "        NodalIslandPlan isl;\n";
             oss << "        isl.signal_indices.assign(island_" << island_idx << "_nodes, island_" << island_idx
                 << "_nodes + " << island.signal_indices.size() << ");\n";
             oss << "        isl.elements.assign(island_" << island_idx << "_elements, island_" << island_idx

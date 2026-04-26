@@ -75,15 +75,15 @@ TEST(ElectricalIslandBuild, ClosedCircuitOneIsland) {
     ASSERT_EQ(island.elements.size(), 4u);
 
     // Collect element kinds
-    std::vector<ElectricalElementKind> kinds;
+    std::vector<NodalElementKind> kinds;
     for (const auto& elem : island.elements) {
         kinds.push_back(elem.kind);
     }
 
     // Should have one of each kind
-    EXPECT_TRUE(std::find(kinds.begin(), kinds.end(), ElectricalElementKind::FixedVoltageNode) != kinds.end());
-    EXPECT_TRUE(std::find(kinds.begin(), kinds.end(), ElectricalElementKind::TheveninSource) != kinds.end());
-    EXPECT_EQ(std::count(kinds.begin(), kinds.end(), ElectricalElementKind::ConductanceBranch), 2);
+    EXPECT_TRUE(std::find(kinds.begin(), kinds.end(), NodalElementKind::FixedNode) != kinds.end());
+    EXPECT_TRUE(std::find(kinds.begin(), kinds.end(), NodalElementKind::Source) != kinds.end());
+    EXPECT_EQ(std::count(kinds.begin(), kinds.end(), NodalElementKind::Branch), 2);
 
     // Island should have 3 unique node indices (battery output node,
     // node between resistor and indicator, and refnode/ground node)
@@ -166,9 +166,9 @@ TEST(ElectricalIslandBuild, RefNodeCreatesFixedVoltageNode) {
     const auto& island = result.electrical.plan.islands[0];
 
     // Find the FixedVoltageNode element
-    const ElectricalElement* fvn = nullptr;
+    const NodalElement* fvn = nullptr;
     for (const auto& elem : island.elements) {
-        if (elem.kind == ElectricalElementKind::FixedVoltageNode) {
+        if (elem.kind == NodalElementKind::FixedNode) {
             fvn = &elem;
             break;
         }
@@ -195,9 +195,9 @@ TEST(ElectricalIslandBuild, BatteryCreatesTheveninSource) {
     const auto& island = result.electrical.plan.islands[0];
 
     // Find the TheveninSource element (Battery)
-    const ElectricalElement* thv = nullptr;
+    const NodalElement* thv = nullptr;
     for (const auto& elem : island.elements) {
-        if (elem.kind == ElectricalElementKind::TheveninSource) {
+        if (elem.kind == NodalElementKind::Source) {
             thv = &elem;
             break;
         }
@@ -225,9 +225,9 @@ TEST(ElectricalIslandBuild, GeneratorCreatesTheveninSource) {
     const auto& island = result.electrical.plan.islands[0];
 
     // Find the TheveninSource element (Generator)
-    const ElectricalElement* thv = nullptr;
+    const NodalElement* thv = nullptr;
     for (const auto& elem : island.elements) {
-        if (elem.kind == ElectricalElementKind::TheveninSource) {
+        if (elem.kind == NodalElementKind::Source) {
             thv = &elem;
             break;
         }
@@ -257,9 +257,9 @@ TEST(ElectricalIslandBuild, ResistorCreatesConductanceBranch) {
     const auto& island = result.electrical.plan.islands[0];
 
     // Find the ConductanceBranch element (Resistor)
-    const ElectricalElement* cb = nullptr;
+    const NodalElement* cb = nullptr;
     for (const auto& elem : island.elements) {
-        if (elem.kind == ElectricalElementKind::ConductanceBranch) {
+        if (elem.kind == NodalElementKind::Branch) {
             cb = &elem;
             break;
         }
@@ -288,9 +288,9 @@ TEST(ElectricalIslandBuild, IndicatorLightCreatesConductanceBranch) {
     const auto& island = result.electrical.plan.islands[0];
 
     // Find the ConductanceBranch element (IndicatorLight)
-    const ElectricalElement* cb = nullptr;
+    const NodalElement* cb = nullptr;
     for (const auto& elem : island.elements) {
-        if (elem.kind == ElectricalElementKind::ConductanceBranch) {
+        if (elem.kind == NodalElementKind::Branch) {
             cb = &elem;
             break;
         }
@@ -362,12 +362,12 @@ TEST(ElectricalIslandBuild, UnsupportedComponentsIgnored) {
     ASSERT_EQ(island.elements.size(), 2u);
 
     // Verify kinds
-    std::vector<ElectricalElementKind> kinds;
+    std::vector<NodalElementKind> kinds;
     for (const auto& elem : island.elements) {
         kinds.push_back(elem.kind);
     }
-    EXPECT_TRUE(std::find(kinds.begin(), kinds.end(), ElectricalElementKind::TheveninSource) != kinds.end());
-    EXPECT_TRUE(std::find(kinds.begin(), kinds.end(), ElectricalElementKind::FixedVoltageNode) != kinds.end());
+    EXPECT_TRUE(std::find(kinds.begin(), kinds.end(), NodalElementKind::Source) != kinds.end());
+    EXPECT_TRUE(std::find(kinds.begin(), kinds.end(), NodalElementKind::FixedNode) != kinds.end());
 }
 
 TEST(ElectricalIslandBuild, RelayCreatesDynamicConductanceBranch) {
@@ -389,7 +389,7 @@ TEST(ElectricalIslandBuild, RelayCreatesDynamicConductanceBranch) {
 
     bool found_relay_branch = false;
     for (const auto& elem : island.elements) {
-        if (elem.kind == ElectricalElementKind::ConductanceBranch) {
+        if (elem.kind == NodalElementKind::Branch) {
             found_relay_branch = true;
             EXPECT_NEAR(elem.value_a, 1e-6f, 1e-10f);
         }

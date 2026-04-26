@@ -6,8 +6,7 @@ add_library(jit_solver
     build_electrical.cpp
     build_hydraulic.cpp
     simulator.cpp
-    subsolvers/electrical_subsolver.cpp
-    subsolvers/hydraulic_subsolver.cpp
+    subsolvers/nodal_subsolver.cpp
     # Phase 2 Slice 1: Migrated push-style components
     components/switch.cpp
     components/relay.cpp

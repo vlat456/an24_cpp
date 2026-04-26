@@ -3,8 +3,7 @@
 #include "jit_build_input.h"
 #include "core/solvers/common/port_registry.h"
 #include "scheduler.h"
-#include "subsolvers/subsolver_types.h"
-#include "subsolvers/hydraulic_subsolver_types.h"
+#include "subsolvers/nodal_types.h"
 #include <cstddef>
 #include <cstdint>
 #include <stdexcept>
@@ -17,19 +16,21 @@ struct SimulationState;
 
 // ---- Compiled operation types (no component header dependencies) ----
 
-/// Kind of electrical patch operation applied before each solve.
-enum class ElectricalPatchKind : uint8_t {
-    AffineClamp,
-    LerpClamped01,
-    BoolSwitch,
-    IndexSwitch
+/// Kind of pre-solve patch operation applied before each nodal solve.
+/// Domain-agnostic: used by electrical, hydraulic, and future domains.
+enum class NodalPatchKind : uint8_t {
+    AffineClamp,    ///< cmd*gain+offset clamped to [min,max]
+    LerpClamped01,  ///< lerp(lo, hi, clamp(cmd, 0, 1))
+    BoolSwitch,     ///< signal > 0.5f → true/false value
+    IndexSwitch,    ///< int(signal) == index → true/false value
+    CopySignal      ///< copy signal value to element_value_a
 };
 
-/// Compiled pre-solve electrical patch operation.
+/// Compiled pre-solve patch operation.
 /// Each op writes current-frame mutable element values by element_id.
 /// Fully signal-driven — all inputs read from st.values[]. No raw pointers.
-struct ElectricalPatchOp {
-    ElectricalPatchKind kind = ElectricalPatchKind::AffineClamp;
+struct NodalPatchOp {
+    NodalPatchKind kind = NodalPatchKind::BoolSwitch;
     uint32_t element_id = UINT32_MAX;
 
     // Signal-driven operands (all kinds).
@@ -37,6 +38,7 @@ struct ElectricalPatchOp {
     // LerpClamped01: s0=cmd, s1=lo, s2=hi
     // BoolSwitch: s0=state_signal (>0.5f == true)
     // IndexSwitch: s0=position_signal (int cast, compared to index_value)
+    // CopySignal: s0=source_signal
     uint32_t s0 = UINT32_MAX;
     uint32_t s1 = UINT32_MAX;
     uint32_t s2 = UINT32_MAX;
@@ -139,58 +141,18 @@ inline Domain get_component_domain_mask(const ComponentVariant& variant) {
     }, variant);
 }
 
-/// Electrical-domain solver state — groups build artifacts + mutable runtime.
-/// Produced by build_electrical.cpp at build time. Runtime state is mutated
-/// each frame by the simulator.
-struct ElectricalArtifacts {
+/// Nodal-domain solver state — groups build artifacts + mutable runtime.
+/// Used by all nodal domains (electrical, hydraulic, pneumatic).
+/// Produced by domain-specific build pipelines at build time.
+struct NodalArtifacts {
     // Build-time artifacts (immutable after build)
-    ElectricalBuildPlan plan;
-    std::vector<ElectricalPatchOp> patch_ops;
+    NodalBuildPlan plan;
+    std::vector<NodalPatchOp> patch_ops;
     std::vector<SolverStepOp> execute_ops;
     std::vector<SolverStepOp> commit_ops;
 
     // Per-frame mutable runtime state
-    ElectricalRuntimeState runtime;
-};
-
-// ---- Hydraulic patch operation types ----
-
-/// Kind of hydraulic patch operation applied before each solve.
-enum class HydraulicPatchKind : uint8_t {
-    BoolSwitch,     ///< Switch conductance based on state signal (SolenoidValve)
-    CopySignal      ///< Copy a signal value to element_value_a (FuelTank pressure)
-};
-
-/// Compiled pre-solve hydraulic patch operation.
-/// Fully signal-driven — all inputs read from st.values[]. No raw pointers.
-struct HydraulicPatchOp {
-    HydraulicPatchKind kind = HydraulicPatchKind::BoolSwitch;
-    uint32_t element_id = UINT32_MAX;
-
-    // Signal-driven operands.
-    // BoolSwitch: s0=state_signal (>0.5f == true)
-    // CopySignal: s0=source_signal (pressure value to copy)
-    uint32_t s0 = UINT32_MAX;
-
-    // Constant outputs for BoolSwitch.
-    // state_true_value = value when state_signal ≥ 0.5f
-    // state_false_value = value when state_signal < 0.5f
-    float state_true_value = 0.0f;
-    float state_false_value = 0.0f;
-};
-
-/// Hydraulic-domain solver state — groups build artifacts + mutable runtime.
-/// Produced by build_hydraulic.cpp at build time. Runtime state is mutated
-/// each frame by the simulator.
-struct HydraulicArtifacts {
-    // Build-time artifacts (immutable after build)
-    HydraulicBuildPlan plan;
-    std::vector<HydraulicPatchOp> patch_ops;
-    std::vector<SolverStepOp> execute_ops;
-    std::vector<SolverStepOp> commit_ops;
-
-    // Per-frame mutable runtime state
-    HydraulicRuntimeState runtime;
+    NodalRuntimeState runtime;
 };
 
 /// Build port-to-signal mapping from devices and connections
@@ -222,10 +184,10 @@ struct BuildResult {
     PushScheduler scheduler;
 
     /// Electrical-domain build artifacts (plan, patch ops, step ops).
-    ElectricalArtifacts electrical;
+    NodalArtifacts electrical;
 
     /// Hydraulic-domain build artifacts (plan, patch ops, step ops).
-    HydraulicArtifacts hydraulic;
+    NodalArtifacts hydraulic;
 
     /// LUT table arena - accumulated during build, moved to SimulationState at start
     std::vector<float> lut_keys;

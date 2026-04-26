@@ -3,7 +3,7 @@
 #include "core/solvers/common/provider.h"
 
 #include "../state.h"
-#include "../subsolvers/subsolver_types.h"
+#include "../subsolvers/nodal_types.h"
 
 /// ControlledVoltageSource - control-to-electrical bridge (Thevenin source)
 /// Reads cmd (control scalar), outputs controlled voltage between v_pos and v_neg.
@@ -19,7 +19,7 @@ public:
     static constexpr Domain domain = Domain::Electrical;
 
     Provider provider;
-    ElectricalPrimitiveHandle electrical_handle;
+    NodalPrimitiveHandle electrical_handle;
     float r_internal = 0.1f;
     float inv_r      = 10.0f;  // precomputed
 

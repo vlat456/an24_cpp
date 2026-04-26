@@ -66,7 +66,7 @@ TEST(ANDGateDebugTest, AND_With_Battery_VToBool_HoldButton) {
     }
 
     // Seed battery output voltage: Battery is solver-owned — its voltage is
-    // produced by solve_electrical(), which this test intentionally skips to
+    // produced by solve_nodal(), which this test intentionally skips to
     // isolate port mapping / logical gate wiring. Seeding bat.v_out to 28V
     // is equivalent to what the electrical solver would produce.
     {

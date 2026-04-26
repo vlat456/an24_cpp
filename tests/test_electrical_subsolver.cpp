@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "core/solvers/jit/subsolvers/electrical_subsolver.h"
+#include "core/solvers/jit/subsolvers/nodal_subsolver.h"
 #include "core/solvers/jit/state.h"
 #include <algorithm>
 #include <cmath>
@@ -7,11 +7,11 @@
 namespace {
 
 // Helper to create an island plan with given nodes and elements
-ElectricalIslandPlan make_island(
+NodalIslandPlan make_island(
     std::vector<uint32_t> signal_indices,
-    std::vector<ElectricalElement> elements
+    std::vector<NodalElement> elements
 ) {
-    ElectricalIslandPlan island;
+    NodalIslandPlan island;
     island.signal_indices = std::move(signal_indices);
     island.elements = std::move(elements);
     return island;
@@ -38,27 +38,27 @@ TEST(ElectricalSubsolver, SimpleTheveninDivider) {
     // Nodes: 0 = ground (fixed 0V), 1 = junction (unknown)
     // Elements: TheveninSource(28V, 1R) from 1->0, ConductanceBranch(1S) from 1->0
 
-    ElectricalBuildPlan plan;
+    NodalBuildPlan plan;
     plan.islands.push_back(make_island(
         {0, 1},  // signal indices
         {
             // Ground node 0, fixed 0V
-            ElectricalElement{
-                ElectricalElementKind::FixedVoltageNode,
+            NodalElement{
+                NodalElementKind::FixedNode,
                 0, 0,   // node_a=0, node_b=0 (unused)
                 0.0f, 0.0f,  // value_a=0V
                 0u  // element_id=0
             },
-            // TheveninSource: Vth=28, Rseries=1 from node 1 to node 0.
-            ElectricalElement{
-                ElectricalElementKind::TheveninSource,
+            // Source: Vth=28, Rseries=1 from node 1 to node 0.
+            NodalElement{
+                NodalElementKind::Source,
                 1, 0,
                 28.0f, 1.0f,  // value_a=Vth=28, value_b=Rseries=1
                 1u  // element_id=1
             },
-            // ConductanceBranch: g=1S from node 1 to node 0 (load to ground)
-            ElectricalElement{
-                ElectricalElementKind::ConductanceBranch,
+            // Branch: g=1S from node 1 to node 0 (load to ground)
+            NodalElement{
+                NodalElementKind::Branch,
                 1, 0,   // node_a=1, node_b=0
                 1.0f, 0.0f,  // value_a=g=1
                 2u  // element_id=2
@@ -67,21 +67,21 @@ TEST(ElectricalSubsolver, SimpleTheveninDivider) {
     ));
 
     SimulationState st = make_sim_state(4);  // Extra space
-    ElectricalRuntimeState rt;
+    NodalRuntimeState rt;
     rt.enable_diagnostics = true;
 
-    solve_electrical(plan, st, rt, 0.0f);
+    solve_nodal(plan, st, rt, 0.0f);
 
     // Node 0 should be 0V (ground)
     EXPECT_NEAR(st.values[0], 0.0f, 1e-3f);
     // Node 1 should be around 14V
     EXPECT_NEAR(st.values[1], 14.0f, 1e-3f);
 
-    // Check branch currents
-    EXPECT_EQ(rt.branch_currents.size(), 3u);
-    // Thevenin branch current is stored as net Norton branch current.
+    // Check branch flows
+    EXPECT_EQ(rt.branch_flows.size(), 3u);
+    // Thevenin branch flow is stored as net Norton branch flow.
     // With node_a=1, node_b=0: I = g*(14-0) - 28 = -14A.
-    EXPECT_NEAR(rt.branch_currents[1], -14.0f, 1e-3f);
+    EXPECT_NEAR(rt.branch_flows[1], -14.0f, 1e-3f);
 
     ASSERT_EQ(rt.island_diagnostics.size(), 1u);
     EXPECT_TRUE(rt.island_diagnostics[0].solve_ok);
@@ -104,34 +104,34 @@ TEST(ElectricalSubsolver, SeriesChainTwoResistors) {
     // R1: node2-node1 with g=0.5 (R=2)
     // R2: node1-node0 with g=0.5 (R=2)
 
-    ElectricalBuildPlan plan;
+    NodalBuildPlan plan;
     plan.islands.push_back(make_island(
         {0, 1, 2},  // signal indices: ground, middle, source
         {
             // Ground node 0, fixed 0V
-            ElectricalElement{
-                ElectricalElementKind::FixedVoltageNode,
+            NodalElement{
+                NodalElementKind::FixedNode,
                 0, 0,
                 0.0f, 0.0f,
                 0u
             },
             // TheveninSource: Vth=28, Rseries=0 from node 2 to node 0
-            ElectricalElement{
-                ElectricalElementKind::TheveninSource,
+            NodalElement{
+                NodalElementKind::Source,
                 2, 0,   // node_a=2 (source), node_b=0 (ground)
                 28.0f, 0.0f,  // Vth=28, Rseries=0 (ideal)
                 1u
             },
             // R1: g=0.5S (R=2) from node2 to node1
-            ElectricalElement{
-                ElectricalElementKind::ConductanceBranch,
+            NodalElement{
+                NodalElementKind::Branch,
                 2, 1,
                 0.5f, 0.0f,  // g=0.5
                 2u
             },
             // R2: g=0.5S (R=2) from node1 to node0
-            ElectricalElement{
-                ElectricalElementKind::ConductanceBranch,
+            NodalElement{
+                NodalElementKind::Branch,
                 1, 0,
                 0.5f, 0.0f,  // g=0.5
                 3u
@@ -140,9 +140,9 @@ TEST(ElectricalSubsolver, SeriesChainTwoResistors) {
     ));
 
     SimulationState st = make_sim_state(4);
-    ElectricalRuntimeState rt;
+    NodalRuntimeState rt;
 
-    solve_electrical(plan, st, rt, 0.0f);
+    solve_nodal(plan, st, rt, 0.0f);
 
     // Ground = 0V
     EXPECT_NEAR(st.values[0], 0.0f, 1e-3f);
@@ -153,35 +153,35 @@ TEST(ElectricalSubsolver, SeriesChainTwoResistors) {
 
     // Currents: through R1 should equal through R2 (series)
     // I = (28-14)/2 = 7A through each resistor
-    EXPECT_NEAR(rt.branch_currents[2], 7.0f, 1e-3f);  // R1 current
-    EXPECT_NEAR(rt.branch_currents[3], 7.0f, 1e-3f);  // R2 current
+    EXPECT_NEAR(rt.branch_flows[2], 7.0f, 1e-3f);  // R1 current
+    EXPECT_NEAR(rt.branch_flows[3], 7.0f, 1e-3f);  // R2 current
 }
 
 TEST(ElectricalSubsolver, DuplicateFixedConstraintsDeduplicatedSilently) {
     // Test: Two FixedVoltageNode on same node with SAME value.
     // Solver deduplicates silently — first value wins. No assert, no throw.
 
-    ElectricalBuildPlan plan;
+    NodalBuildPlan plan;
     plan.islands.push_back(make_island(
         {0, 1},
         {
             // Node 0 fixed at 0V
-            ElectricalElement{
-                ElectricalElementKind::FixedVoltageNode,
+            NodalElement{
+                NodalElementKind::FixedNode,
                 0, 0,
                 0.0f, 0.0f,
                 0u
             },
             // Node 0 also fixed at 0V — DUPLICATE (same value, safe)
-            ElectricalElement{
-                ElectricalElementKind::FixedVoltageNode,
+            NodalElement{
+                NodalElementKind::FixedNode,
                 0, 0,
                 0.0f, 0.0f,
                 1u
             },
             // Some element connecting to make it a valid island
-            ElectricalElement{
-                ElectricalElementKind::ConductanceBranch,
+            NodalElement{
+                NodalElementKind::Branch,
                 0, 1,
                 1.0f, 0.0f,
                 2u
@@ -190,10 +190,10 @@ TEST(ElectricalSubsolver, DuplicateFixedConstraintsDeduplicatedSilently) {
     ));
 
     SimulationState st = make_sim_state(4);
-    ElectricalRuntimeState rt;
+    NodalRuntimeState rt;
 
     // Should NOT throw — duplicate fixed constraint with same value is deduplicated.
-    EXPECT_NO_THROW(solve_electrical(plan, st, rt, 0.0f));
+    EXPECT_NO_THROW(solve_nodal(plan, st, rt, 0.0f));
     // Node 0 should be 0V
     EXPECT_NEAR(st.values[0], 0.0f, 1e-3f);
 }
@@ -203,20 +203,20 @@ TEST(ElectricalSubsolver, ZeroConductanceResultsInSingularFallback) {
     // conductance path to ground, so the system is singular and falls back
     // to preserving the previous state value.
 
-    ElectricalBuildPlan plan;
+    NodalBuildPlan plan;
     plan.islands.push_back(make_island(
         {0, 1},
         {
             // Ground node 0
-            ElectricalElement{
-                ElectricalElementKind::FixedVoltageNode,
+            NodalElement{
+                NodalElementKind::FixedNode,
                 0, 0,
                 0.0f, 0.0f,
                 0u
             },
             // Zero conductance (open circuit) — singular matrix
-            ElectricalElement{
-                ElectricalElementKind::ConductanceBranch,
+            NodalElement{
+                NodalElementKind::Branch,
                 1, 0,
                 0.0f, 0.0f,  // g = 0 (open circuit)
                 1u
@@ -226,17 +226,17 @@ TEST(ElectricalSubsolver, ZeroConductanceResultsInSingularFallback) {
 
     SimulationState st = make_sim_state(4);
     st.values[1] = 5.0f;  // Set previous value for fallback
-    ElectricalRuntimeState rt;
+    NodalRuntimeState rt;
 
     // Should NOT throw — zero g creates singular system, fallback preserves previous value.
-    EXPECT_NO_THROW(solve_electrical(plan, st, rt, 0.0f));
+    EXPECT_NO_THROW(solve_nodal(plan, st, rt, 0.0f));
     // Node 1 should preserve previous value (singular fallback)
     EXPECT_NEAR(st.values[1], 5.0f, 1e-3f);
     EXPECT_EQ(rt.counters.singular_fallbacks, 1u);
 }
 
 TEST(ElectricalSubsolver, BranchCurrentStoragePopulated) {
-    // Test: Verify branch_currents vector is properly sized and populated
+    // Test: Verify branch_flows vector is properly sized and populated
     // Circuit: node 0 ground, node 1 unknown
     // Thevenin from node 1 to node 0: Vth=10, Rseries=1
     // Conductance g=2 from node 1 to node 0
@@ -250,33 +250,33 @@ TEST(ElectricalSubsolver, BranchCurrentStoragePopulated) {
     // - Conductance g=1: I = 1*(2.5-0) = 2.5A (from 1 to 0)
     // - Thevenin internal: I = 1*(0-2.5) = -2.5A (from 0 to 1, since Va=0 < Vb=2.5)
 
-    ElectricalBuildPlan plan;
+    NodalBuildPlan plan;
     plan.islands.push_back(make_island(
         {0, 1},
         {
-            ElectricalElement{
-                ElectricalElementKind::FixedVoltageNode,
+            NodalElement{
+                NodalElementKind::FixedNode,
                 0, 0,
                 0.0f, 0.0f,
                 5u  // high element_id
             },
             // Thevenin from node 1 to node 0: Vth=10, Rseries=1
-            ElectricalElement{
-                ElectricalElementKind::TheveninSource,
+            NodalElement{
+                NodalElementKind::Source,
                 1, 0,
                 10.0f, 1.0f,  // Vth=10V, Rseries=1R
                 2u
             },
             // Conductance g=2 from node 1 to node 0
-            ElectricalElement{
-                ElectricalElementKind::ConductanceBranch,
+            NodalElement{
+                NodalElementKind::Branch,
                 1, 0,
                 2.0f, 0.0f,
                 3u
             },
             // Conductance g=1 from node 1 to node 0
-            ElectricalElement{
-                ElectricalElementKind::ConductanceBranch,
+            NodalElement{
+                NodalElementKind::Branch,
                 1, 0,
                 1.0f, 0.0f,
                 7u
@@ -285,55 +285,55 @@ TEST(ElectricalSubsolver, BranchCurrentStoragePopulated) {
     ));
 
     SimulationState st = make_sim_state(4);
-    ElectricalRuntimeState rt;
+    NodalRuntimeState rt;
 
-    solve_electrical(plan, st, rt, 0.0f);
+    solve_nodal(plan, st, rt, 0.0f);
 
     // Should have resized to max+1 = 8
-    EXPECT_EQ(rt.branch_currents.size(), 8u);
+    EXPECT_EQ(rt.branch_flows.size(), 8u);
 
     // FixedVoltageNode at index 5 should have 0 current
-    EXPECT_NEAR(rt.branch_currents[5], 0.0f, 1e-9f);
+    EXPECT_NEAR(rt.branch_flows[5], 0.0f, 1e-9f);
 
     // Node 1 should be at 2.5V (In / g_total = 10 / 4)
     EXPECT_NEAR(st.values[1], 2.5f, 1e-3f);
 
     // ConductanceBranch currents
     // Current through g=2: 2 * (2.5 - 0) = 5A
-    EXPECT_NEAR(rt.branch_currents[3], 5.0f, 1e-3f);
+    EXPECT_NEAR(rt.branch_flows[3], 5.0f, 1e-3f);
     // Current through g=1: 1 * (2.5 - 0) = 2.5A
-    EXPECT_NEAR(rt.branch_currents[7], 2.5f, 1e-3f);
+    EXPECT_NEAR(rt.branch_flows[7], 2.5f, 1e-3f);
 
     // TheveninSource branch current (net Norton form): g*(Va-Vb) - In.
     // Va=2.5, Vb=0, g=1, In=10 => 2.5 - 10 = -7.5A.
-    EXPECT_NEAR(rt.branch_currents[2], -7.5f, 1e-3f);
+    EXPECT_NEAR(rt.branch_flows[2], -7.5f, 1e-3f);
 }
 
 TEST(ElectricalSubsolver, EmptyPlanClearsBranchCurrents) {
-    ElectricalBuildPlan plan;
+    NodalBuildPlan plan;
     SimulationState st = make_sim_state(4);
-    ElectricalRuntimeState rt;
-    rt.branch_currents = {1.0f, 2.0f, 3.0f};
+    NodalRuntimeState rt;
+    rt.branch_flows = {1.0f, 2.0f, 3.0f};
 
-    EXPECT_NO_THROW(solve_electrical(plan, st, rt, 0.0f));
-    EXPECT_TRUE(rt.branch_currents.empty());
+    EXPECT_NO_THROW(solve_nodal(plan, st, rt, 0.0f));
+    EXPECT_TRUE(rt.branch_flows.empty());
 }
 
 TEST(ElectricalSubsolver, AllNodesFixedNoSolveNeeded) {
     // Test: All nodes are fixed voltage - N=0 case should not attempt solve
 
-    ElectricalBuildPlan plan;
+    NodalBuildPlan plan;
     plan.islands.push_back(make_island(
         {0, 1},
         {
-            ElectricalElement{
-                ElectricalElementKind::FixedVoltageNode,
+            NodalElement{
+                NodalElementKind::FixedNode,
                 0, 0,
                 0.0f, 0.0f,
                 0u
             },
-            ElectricalElement{
-                ElectricalElementKind::FixedVoltageNode,
+            NodalElement{
+                NodalElementKind::FixedNode,
                 1, 1,
                 5.0f, 0.0f,
                 1u
@@ -342,10 +342,10 @@ TEST(ElectricalSubsolver, AllNodesFixedNoSolveNeeded) {
     ));
 
     SimulationState st = make_sim_state(4);
-    ElectricalRuntimeState rt;
+    NodalRuntimeState rt;
 
     // Should not throw, even though no conductance elements
-    EXPECT_NO_THROW(solve_electrical(plan, st, rt, 0.0f));
+    EXPECT_NO_THROW(solve_nodal(plan, st, rt, 0.0f));
 
     // Voltages should be written
     EXPECT_NEAR(st.values[0], 0.0f, 1e-3f);
@@ -355,30 +355,30 @@ TEST(ElectricalSubsolver, AllNodesFixedNoSolveNeeded) {
 TEST(ElectricalSubsolver, VoltageWritebackToSimulationState) {
     // Test: Solved voltages are correctly written to st.values
 
-    ElectricalBuildPlan plan;
+    NodalBuildPlan plan;
     plan.islands.push_back(make_island(
         {10, 20, 30},  // Non-contiguous signal indices
         {
-            ElectricalElement{
-                ElectricalElementKind::FixedVoltageNode,
+            NodalElement{
+                NodalElementKind::FixedNode,
                 10, 10,
                 0.0f, 0.0f,
                 0u
             },
-            ElectricalElement{
-                ElectricalElementKind::TheveninSource,
+            NodalElement{
+                NodalElementKind::Source,
                 30, 10,
                 24.0f, 2.0f,  // Vth=24, R=2
                 1u
             },
-            ElectricalElement{
-                ElectricalElementKind::ConductanceBranch,
+            NodalElement{
+                NodalElementKind::Branch,
                 30, 20,
                 1.0f, 0.0f,  // R=1 ohm from node30 to node20
                 2u
             },
-            ElectricalElement{
-                ElectricalElementKind::ConductanceBranch,
+            NodalElement{
+                NodalElementKind::Branch,
                 20, 10,
                 1.0f, 0.0f,  // R=1 ohm from node20 to node10
                 3u
@@ -390,9 +390,9 @@ TEST(ElectricalSubsolver, VoltageWritebackToSimulationState) {
     SimulationState st;
     st.values.resize(50, 999.0f);  // Initialize with sentinel
 
-    ElectricalRuntimeState rt;
+    NodalRuntimeState rt;
 
-    solve_electrical(plan, st, rt, 0.0f);
+    solve_nodal(plan, st, rt, 0.0f);
 
     // Only signal indices 10, 20, 30 should be modified
     EXPECT_NEAR(st.values[10], 0.0f, 1e-3f);   // Ground
@@ -410,24 +410,24 @@ TEST(ElectricalSubsolver, SignalIndexAtBoundaryWritesCorrectly) {
     // Test: Signal indices at exact boundary of st.values.size() work fine.
     // Verifies the bounds check does not reject valid indices.
 
-    ElectricalBuildPlan plan;
+    NodalBuildPlan plan;
     plan.islands.push_back(make_island(
         {0, 9},  // Node 9 is at the boundary (size=10, valid range 0-9)
         {
-            ElectricalElement{
-                ElectricalElementKind::FixedVoltageNode,
+            NodalElement{
+                NodalElementKind::FixedNode,
                 0, 0,
                 0.0f, 0.0f,
                 0u
             },
-            ElectricalElement{
-                ElectricalElementKind::TheveninSource,
+            NodalElement{
+                NodalElementKind::Source,
                 9, 0,
                 12.0f, 1.0f,
                 1u
             },
-            ElectricalElement{
-                ElectricalElementKind::ConductanceBranch,
+            NodalElement{
+                NodalElementKind::Branch,
                 9, 0,
                 1.0f, 0.0f,
                 2u
@@ -436,28 +436,28 @@ TEST(ElectricalSubsolver, SignalIndexAtBoundaryWritesCorrectly) {
     ));
 
     SimulationState st = make_sim_state(10);  // Exactly 10 signals (0-9)
-    ElectricalRuntimeState rt;
+    NodalRuntimeState rt;
 
-    EXPECT_NO_THROW(solve_electrical(plan, st, rt, 0.0f));
+    EXPECT_NO_THROW(solve_nodal(plan, st, rt, 0.0f));
     // Node 9 should have valid voltage: V = 12 * (1/(1+1)) = 6V
     EXPECT_NEAR(st.values[9], 6.0f, 1e-3f);
 }
 
 TEST(ElectricalSubsolver, SingularIslandDoesNotThrowAndKeepsPreviousState) {
-    ElectricalBuildPlan plan;
-    ElectricalIslandPlan island;
+    NodalBuildPlan plan;
+    NodalIslandPlan island;
 
     // Two-node floating island (no FixedVoltageNode): singular by construction.
     island.signal_indices = {0, 1};
     island.elements = {
-        ElectricalElement{
-            ElectricalElementKind::TheveninSource,
+        NodalElement{
+            NodalElementKind::Source,
             0, 1,
             28.0f, 0.01f,
             0u
         },
-        ElectricalElement{
-            ElectricalElementKind::ConductanceBranch,
+        NodalElement{
+            NodalElementKind::Branch,
             0, 1,
             1.0f, 0.0f,
             1u
@@ -469,38 +469,38 @@ TEST(ElectricalSubsolver, SingularIslandDoesNotThrowAndKeepsPreviousState) {
     st.values[0] = 12.5f;
     st.values[1] = -3.0f;
 
-    ElectricalRuntimeState rt;
+    NodalRuntimeState rt;
 
-    EXPECT_NO_THROW(solve_electrical(plan, st, rt, 1.0f / 60.0f));
+    EXPECT_NO_THROW(solve_nodal(plan, st, rt, 1.0f / 60.0f));
 
     // On singular fallback, previous voltages are preserved.
     EXPECT_NEAR(st.values[0], 12.5f, 1e-6f);
     EXPECT_NEAR(st.values[1], -3.0f, 1e-6f);
 
     // Branch currents are zeroed for failed solve.
-    ASSERT_GE(rt.branch_currents.size(), 2u);
-    EXPECT_FLOAT_EQ(rt.branch_currents[0], 0.0f);
-    EXPECT_FLOAT_EQ(rt.branch_currents[1], 0.0f);
+    ASSERT_GE(rt.branch_flows.size(), 2u);
+    EXPECT_FLOAT_EQ(rt.branch_flows[0], 0.0f);
+    EXPECT_FLOAT_EQ(rt.branch_flows[1], 0.0f);
 }
 
 TEST(ElectricalSubsolver, SpecializedN1SolveMatchesExpectedDivider) {
     // Single unknown node (N=1): source + load to fixed ground.
     // This path should use the specialized N==1 solve branch.
-    ElectricalBuildPlan plan;
+    NodalBuildPlan plan;
     plan.islands.push_back(make_island(
         {0, 1},
         {
-            ElectricalElement{ElectricalElementKind::FixedVoltageNode, 0, 0, 0.0f, 0.0f, 0u},
-            ElectricalElement{ElectricalElementKind::TheveninSource, 1, 0, 28.0f, 1.0f, 1u},
-            ElectricalElement{ElectricalElementKind::ConductanceBranch, 1, 0, 1.0f, 0.0f, 2u}
+            NodalElement{NodalElementKind::FixedNode, 0, 0, 0.0f, 0.0f, 0u},
+            NodalElement{NodalElementKind::Source, 1, 0, 28.0f, 1.0f, 1u},
+            NodalElement{NodalElementKind::Branch, 1, 0, 1.0f, 0.0f, 2u}
         }
     ));
 
     SimulationState st = make_sim_state(4);
-    ElectricalRuntimeState rt;
+    NodalRuntimeState rt;
     rt.enable_diagnostics = true;
 
-    solve_electrical(plan, st, rt, 0.0f);
+    solve_nodal(plan, st, rt, 0.0f);
 
     EXPECT_NEAR(st.values[1], 14.0f, 1e-3f);
     ASSERT_EQ(rt.island_diagnostics.size(), 1u);
@@ -514,22 +514,22 @@ TEST(ElectricalSubsolver, SpecializedN2SolveMatchesSeriesChain) {
     //   node2 --R1(2ohm)-- node1 --R2(2ohm)-- node0(gnd)
     //   source Vth=28V, Rseries=1 between node2 and node0
     // Expected: node2=22.4V, node1=11.2V.
-    ElectricalBuildPlan plan;
+    NodalBuildPlan plan;
     plan.islands.push_back(make_island(
         {0, 1, 2},
         {
-            ElectricalElement{ElectricalElementKind::FixedVoltageNode, 0, 0, 0.0f, 0.0f, 0u},
-            ElectricalElement{ElectricalElementKind::TheveninSource, 2, 0, 28.0f, 1.0f, 1u},
-            ElectricalElement{ElectricalElementKind::ConductanceBranch, 2, 1, 0.5f, 0.0f, 2u},
-            ElectricalElement{ElectricalElementKind::ConductanceBranch, 1, 0, 0.5f, 0.0f, 3u}
+            NodalElement{NodalElementKind::FixedNode, 0, 0, 0.0f, 0.0f, 0u},
+            NodalElement{NodalElementKind::Source, 2, 0, 28.0f, 1.0f, 1u},
+            NodalElement{NodalElementKind::Branch, 2, 1, 0.5f, 0.0f, 2u},
+            NodalElement{NodalElementKind::Branch, 1, 0, 0.5f, 0.0f, 3u}
         }
     ));
 
     SimulationState st = make_sim_state(5);
-    ElectricalRuntimeState rt;
+    NodalRuntimeState rt;
     rt.enable_diagnostics = true;
 
-    solve_electrical(plan, st, rt, 0.0f);
+    solve_nodal(plan, st, rt, 0.0f);
 
     EXPECT_NEAR(st.values[2], 22.4f, 1e-3f);
     EXPECT_NEAR(st.values[1], 11.2f, 1e-3f);
@@ -540,13 +540,13 @@ TEST(ElectricalSubsolver, SpecializedN2SolveMatchesSeriesChain) {
 }
 
 TEST(ElectricalSubsolver, SolveCountersTrackSpecializedPaths) {
-    ElectricalBuildPlan plan;
+    NodalBuildPlan plan;
 
     // Island 0: N==0 (all fixed)
     plan.islands.push_back(make_island(
         {0},
         {
-            ElectricalElement{ElectricalElementKind::FixedVoltageNode, 0, 0, 0.0f, 0.0f, 0u}
+            NodalElement{NodalElementKind::FixedNode, 0, 0, 0.0f, 0.0f, 0u}
         }
     ));
 
@@ -554,9 +554,9 @@ TEST(ElectricalSubsolver, SolveCountersTrackSpecializedPaths) {
     plan.islands.push_back(make_island(
         {1, 2},
         {
-            ElectricalElement{ElectricalElementKind::FixedVoltageNode, 1, UINT32_MAX, 0.0f, 0.0f, 1u},
-            ElectricalElement{ElectricalElementKind::TheveninSource, 2, 1, 28.0f, 1.0f, 2u},
-            ElectricalElement{ElectricalElementKind::ConductanceBranch, 2, 1, 1.0f, 0.0f, 3u}
+            NodalElement{NodalElementKind::FixedNode, 1, UINT32_MAX, 0.0f, 0.0f, 1u},
+            NodalElement{NodalElementKind::Source, 2, 1, 28.0f, 1.0f, 2u},
+            NodalElement{NodalElementKind::Branch, 2, 1, 1.0f, 0.0f, 3u}
         }
     ));
 
@@ -564,10 +564,10 @@ TEST(ElectricalSubsolver, SolveCountersTrackSpecializedPaths) {
     plan.islands.push_back(make_island(
         {3, 4, 5},
         {
-            ElectricalElement{ElectricalElementKind::FixedVoltageNode, 3, UINT32_MAX, 0.0f, 0.0f, 4u},
-            ElectricalElement{ElectricalElementKind::TheveninSource, 5, 3, 28.0f, 1.0f, 5u},
-            ElectricalElement{ElectricalElementKind::ConductanceBranch, 5, 4, 0.5f, 0.0f, 6u},
-            ElectricalElement{ElectricalElementKind::ConductanceBranch, 4, 3, 0.5f, 0.0f, 7u}
+            NodalElement{NodalElementKind::FixedNode, 3, UINT32_MAX, 0.0f, 0.0f, 4u},
+            NodalElement{NodalElementKind::Source, 5, 3, 28.0f, 1.0f, 5u},
+            NodalElement{NodalElementKind::Branch, 5, 4, 0.5f, 0.0f, 6u},
+            NodalElement{NodalElementKind::Branch, 4, 3, 0.5f, 0.0f, 7u}
         }
     ));
 
@@ -575,8 +575,8 @@ TEST(ElectricalSubsolver, SolveCountersTrackSpecializedPaths) {
     plan.islands.push_back(make_island(
         {6, 7},
         {
-            ElectricalElement{ElectricalElementKind::TheveninSource, 6, 7, 28.0f, 0.01f, 8u},
-            ElectricalElement{ElectricalElementKind::ConductanceBranch, 6, 7, 1.0f, 0.0f, 9u}
+            NodalElement{NodalElementKind::Source, 6, 7, 28.0f, 0.01f, 8u},
+            NodalElement{NodalElementKind::Branch, 6, 7, 1.0f, 0.0f, 9u}
         }
     ));
 
@@ -584,8 +584,8 @@ TEST(ElectricalSubsolver, SolveCountersTrackSpecializedPaths) {
     st.values[6] = 1.0f;
     st.values[7] = -1.0f;
 
-    ElectricalRuntimeState rt;
-    solve_electrical(plan, st, rt, 0.0f);
+    NodalRuntimeState rt;
+    solve_nodal(plan, st, rt, 0.0f);
 
     EXPECT_EQ(rt.counters.islands_total, 4u);
     EXPECT_EQ(rt.counters.solves_n0, 1u);
@@ -596,23 +596,23 @@ TEST(ElectricalSubsolver, SolveCountersTrackSpecializedPaths) {
 }
 
 TEST(ElectricalSubsolver, SolveCountersTrackDensePathForN3) {
-    ElectricalBuildPlan plan;
+    NodalBuildPlan plan;
     // N==3 island (nodes 1,2,3 unknown; node0 fixed).
     plan.islands.push_back(make_island(
         {0, 1, 2, 3},
         {
-            ElectricalElement{ElectricalElementKind::FixedVoltageNode, 0, UINT32_MAX, 0.0f, 0.0f, 0u},
-            ElectricalElement{ElectricalElementKind::TheveninSource, 3, 0, 28.0f, 1.0f, 1u},
-            ElectricalElement{ElectricalElementKind::ConductanceBranch, 3, 2, 1.0f, 0.0f, 2u},
-            ElectricalElement{ElectricalElementKind::ConductanceBranch, 2, 1, 1.0f, 0.0f, 3u},
-            ElectricalElement{ElectricalElementKind::ConductanceBranch, 1, 0, 1.0f, 0.0f, 4u}
+            NodalElement{NodalElementKind::FixedNode, 0, UINT32_MAX, 0.0f, 0.0f, 0u},
+            NodalElement{NodalElementKind::Source, 3, 0, 28.0f, 1.0f, 1u},
+            NodalElement{NodalElementKind::Branch, 3, 2, 1.0f, 0.0f, 2u},
+            NodalElement{NodalElementKind::Branch, 2, 1, 1.0f, 0.0f, 3u},
+            NodalElement{NodalElementKind::Branch, 1, 0, 1.0f, 0.0f, 4u}
         }
     ));
 
     SimulationState st = make_sim_state(8);
-    ElectricalRuntimeState rt;
+    NodalRuntimeState rt;
     rt.enable_diagnostics = true;
-    solve_electrical(plan, st, rt, 0.0f);
+    solve_nodal(plan, st, rt, 0.0f);
 
     EXPECT_EQ(rt.counters.islands_total, 1u);
     EXPECT_EQ(rt.counters.solves_n0, 0u);
@@ -626,46 +626,46 @@ TEST(ElectricalSubsolver, SolveCountersTrackDensePathForN3) {
 }
 
 TEST(ElectricalSubsolver, ReservedScratchBuffersStayStableAcrossSteps) {
-    ElectricalBuildPlan plan;
+    NodalBuildPlan plan;
     plan.islands.push_back(make_island(
         {0, 1, 2},
         {
-            ElectricalElement{ElectricalElementKind::FixedVoltageNode, 0, UINT32_MAX, 0.0f, 0.0f, 0u},
-            ElectricalElement{ElectricalElementKind::TheveninSource, 2, 0, 28.0f, 1.0f, 1u},
-            ElectricalElement{ElectricalElementKind::ConductanceBranch, 2, 1, 0.5f, 0.0f, 2u},
-            ElectricalElement{ElectricalElementKind::ConductanceBranch, 1, 0, 0.5f, 0.0f, 3u}
+            NodalElement{NodalElementKind::FixedNode, 0, UINT32_MAX, 0.0f, 0.0f, 0u},
+            NodalElement{NodalElementKind::Source, 2, 0, 28.0f, 1.0f, 1u},
+            NodalElement{NodalElementKind::Branch, 2, 1, 0.5f, 0.0f, 2u},
+            NodalElement{NodalElementKind::Branch, 1, 0, 0.5f, 0.0f, 3u}
         }
     ));
 
     SimulationState st = make_sim_state(6);
-    ElectricalRuntimeState rt;
+    NodalRuntimeState rt;
     rt.enable_diagnostics = true;
     rt.reserve(/*max_nodes=*/3, /*max_elements=*/4, /*max_element_id=*/3);
 
-    solve_electrical(plan, st, rt, 0.0f);
+    solve_nodal(plan, st, rt, 0.0f);
 
-    size_t cap_branch_currents = rt.branch_currents.capacity();
+    size_t cap_branch_currents = rt.branch_flows.capacity();
     size_t cap_island_nodes = rt.island_nodes.capacity();
     size_t cap_fixed_nodes = rt.fixed_nodes.capacity();
-    size_t cap_fixed_voltages = rt.fixed_voltages.capacity();
+    size_t cap_fixed_voltages = rt.fixed_potentials.capacity();
     size_t cap_is_fixed = rt.is_fixed.capacity();
     size_t cap_node_to_unknown = rt.node_to_unknown.capacity();
-    size_t cap_island_voltages = rt.island_voltages.capacity();
+    size_t cap_island_voltages = rt.island_potentials.capacity();
     size_t cap_kcl = rt.kcl_residuals.capacity();
     size_t cap_matrix = rt.scratch_matrix.capacity();
     size_t cap_rhs = rt.scratch_rhs.capacity();
 
     for (int i = 0; i < 100; ++i) {
-        solve_electrical(plan, st, rt, 1.0f / 60.0f);
+        solve_nodal(plan, st, rt, 1.0f / 60.0f);
     }
 
-    EXPECT_EQ(rt.branch_currents.capacity(), cap_branch_currents);
+    EXPECT_EQ(rt.branch_flows.capacity(), cap_branch_currents);
     EXPECT_EQ(rt.island_nodes.capacity(), cap_island_nodes);
     EXPECT_EQ(rt.fixed_nodes.capacity(), cap_fixed_nodes);
-    EXPECT_EQ(rt.fixed_voltages.capacity(), cap_fixed_voltages);
+    EXPECT_EQ(rt.fixed_potentials.capacity(), cap_fixed_voltages);
     EXPECT_EQ(rt.is_fixed.capacity(), cap_is_fixed);
     EXPECT_EQ(rt.node_to_unknown.capacity(), cap_node_to_unknown);
-    EXPECT_EQ(rt.island_voltages.capacity(), cap_island_voltages);
+    EXPECT_EQ(rt.island_potentials.capacity(), cap_island_voltages);
     EXPECT_EQ(rt.kcl_residuals.capacity(), cap_kcl);
     EXPECT_EQ(rt.scratch_matrix.capacity(), cap_matrix);
     EXPECT_EQ(rt.scratch_rhs.capacity(), cap_rhs);

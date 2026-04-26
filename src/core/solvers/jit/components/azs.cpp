@@ -1,6 +1,6 @@
 #include "azs.h"
 #include "core/solvers/common/port_names.h"
-#include "../subsolvers/subsolver_types.h"
+#include "../subsolvers/nodal_types.h"
 #include <cmath>
 
 template <typename Provider>
@@ -15,7 +15,7 @@ void AZS<Provider>::execute(SimulationState& st, double dt) {
     // Electrical behavior is solver-owned via dynamic conductance branch.
     // Estimate branch current from solved electrical runtime for thermal model.
     if (st.electrical_rt != nullptr && is_valid(electrical_handle)) {
-        current = std::fabs(get_branch_current(*st.electrical_rt, electrical_handle));
+        current = std::fabs(get_branch_flow(*st.electrical_rt, electrical_handle));
     } else {
         current = 0.0f;
     }

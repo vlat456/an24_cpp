@@ -3,7 +3,7 @@
 #include "core/solvers/aot/codegen.h"
 #include "core/solvers/common/signal_allocation.h"
 #include "core/solvers/jit/jit_solver.h"
-#include "core/solvers/jit/subsolvers/electrical_subsolver.h"
+#include "core/solvers/jit/subsolvers/nodal_subsolver.h"
 #include "io/json/parse_json_api.h"
 #include <cmath>
 
@@ -32,7 +32,7 @@ std::vector<ResolvedDevice> resolve_all_devices(const ParserContext& ctx) {
 // full JIT_Simulator pipeline. They test topologies that exercise all major
 // semantic conventions documented in knowledge/22_electrical_semantics.md.
 //
-// Once AOT codegen emits solve_electrical() calls at the correct phase
+// Once AOT codegen emits solve_nodal() calls at the correct phase
 // position, these same JSON topologies should produce numerically identical
 // results when run through the AOT path. The AOT comparison is a planned
 // Phase 1 follow-up; these fixtures serve as the reference baseline now.
@@ -236,7 +236,7 @@ TEST(ElectricalParityFixtures, NearShortHighConductance) {
 // These 5 fixtures cover the canonical electrical topologies documented in
 // knowledge/22_electrical_semantics.md Phase 0 exit gate.
 //
-// When AOT codegen is updated to emit solve_electrical() calls (Phase 1 step 4),
+// When AOT codegen is updated to emit solve_nodal() calls (Phase 1 step 4),
 // the same JSON inputs above should be run through the AOT path and produce
 // numerically identical results. The target error is:
 //   - max abs voltage error < 1e-3V
@@ -250,16 +250,16 @@ TEST(ElectricalParityFixtures, NearShortHighConductance) {
 // ============================================================================
 // These tests verify that extract_electrical_plan() (used by codegen) produces
 // the same electrical plan and solve results as build_systems_dev() (JIT path).
-// Both paths use the same shared solve_electrical() function, so plan parity
+// Both paths use the same shared solve_nodal() function, so plan parity
 // implies result parity.
 //
-// Helper: run AOT path (extract_electrical_plan + solve_electrical)
+// Helper: run AOT path (extract_electrical_plan + solve_nodal)
 static void run_aot_electrical(
     const std::vector<ResolvedDevice>& devices,
     const std::vector<Connection>& connections,
-    ElectricalBuildPlan& out_plan,
+    NodalBuildPlan& out_plan,
     SimulationState& out_state,
-    ElectricalRuntimeState& out_rt,
+    NodalRuntimeState& out_rt,
     PortToSignal& out_port_to_signal,
     core::StringInterner& out_interner
 ) {
@@ -294,14 +294,14 @@ static void run_aot_electrical(
         out_port_to_signal[out_interner.intern(port_str)] = string_p2s.at(port_str);
     }
 
-    // Convert ElectricalPlanCodegen to ElectricalBuildPlan (same as AotElectricalPlan constructor)
+    // Convert ElectricalPlanCodegen to NodalBuildPlan (same as AotElectricalPlan constructor)
     out_plan.islands.clear();
     for (auto& island_cg : codegen_plan.islands) {
-        ElectricalIslandPlan isl;
+        NodalIslandPlan isl;
         isl.signal_indices = island_cg.signal_indices;
         for (auto& e : island_cg.elements) {
             isl.elements.push_back({
-                static_cast<ElectricalElementKind>(static_cast<uint8_t>(e.kind)),
+                static_cast<NodalElementKind>(static_cast<uint8_t>(e.kind)),
                 e.node_a, e.node_b, e.value_a, e.value_b, e.element_id
             });
         }
@@ -321,18 +321,18 @@ static void run_aot_electrical(
         for (const auto& e : island.elements)
             max_element_id = std::max(max_element_id, e.element_id);
     }
-    out_rt.branch_currents.reserve(max_element_id + 1);
+    out_rt.branch_flows.reserve(max_element_id + 1);
     out_rt.island_nodes.reserve(max_nodes);
     out_rt.fixed_nodes.reserve(max_elems);
-    out_rt.fixed_voltages.reserve(max_nodes);
+    out_rt.fixed_potentials.reserve(max_nodes);
     out_rt.is_fixed.reserve(max_nodes);
     out_rt.node_to_unknown.reserve(max_nodes);
-    out_rt.island_voltages.reserve(max_nodes);
+    out_rt.island_potentials.reserve(max_nodes);
     out_rt.scratch_matrix.reserve(static_cast<size_t>(max_nodes) * max_nodes);
     out_rt.scratch_rhs.reserve(max_nodes);
 
     // Run electrical solve
-    solve_electrical(out_plan, out_state, out_rt, 1.0f / 60.0f);
+    solve_nodal(out_plan, out_state, out_rt, 1.0f / 60.0f);
 }
 
 // Helper: set RefNode initial values in SimulationState
@@ -413,14 +413,14 @@ TEST(ElectricalAotParity, SimpleTheveninDivider) {
     for (uint32_t i = 0; i < jit_result.signal_count; ++i)
         (void)jit_state.allocate_signal(0.0f);
     set_refnode_values(jit_state, jit_input.devices, jit_result.port_to_signal, jit_result.signal_key_interner);
-    ElectricalRuntimeState jit_rt;
-    solve_electrical(jit_result.electrical.plan, jit_state, jit_rt, 1.0f / 60.0f);
+    NodalRuntimeState jit_rt;
+    solve_nodal(jit_result.electrical.plan, jit_state, jit_rt, 1.0f / 60.0f);
 
     // AOT path
     auto ctx = parse_json(json);
-    ElectricalBuildPlan aot_plan;
+    NodalBuildPlan aot_plan;
     SimulationState aot_state;
-    ElectricalRuntimeState aot_rt;
+    NodalRuntimeState aot_rt;
     PortToSignal aot_port_to_signal;
     core::StringInterner aot_interner;
     run_aot_electrical(resolve_all_devices(ctx), ctx.connections,
@@ -465,12 +465,12 @@ TEST(ElectricalAotParity, SeriesChainTwoResistors) {
     for (uint32_t i = 0; i < jit_result.signal_count; ++i)
         (void)jit_state.allocate_signal(0.0f);
     set_refnode_values(jit_state, jit_input.devices, jit_result.port_to_signal, jit_result.signal_key_interner);
-    ElectricalRuntimeState jit_rt;
-    solve_electrical(jit_result.electrical.plan, jit_state, jit_rt, 1.0f / 60.0f);
+    NodalRuntimeState jit_rt;
+    solve_nodal(jit_result.electrical.plan, jit_state, jit_rt, 1.0f / 60.0f);
 
-    ElectricalBuildPlan aot_plan;
+    NodalBuildPlan aot_plan;
     SimulationState aot_state;
-    ElectricalRuntimeState aot_rt;
+    NodalRuntimeState aot_rt;
     PortToSignal aot_port_to_signal;
     core::StringInterner aot_interner;
     run_aot_electrical(resolve_all_devices(ctx), ctx.connections,
@@ -513,12 +513,12 @@ TEST(ElectricalAotParity, ParallelBranchSplit) {
     for (uint32_t i = 0; i < jit_result.signal_count; ++i)
         (void)jit_state.allocate_signal(0.0f);
     set_refnode_values(jit_state, jit_input.devices, jit_result.port_to_signal, jit_result.signal_key_interner);
-    ElectricalRuntimeState jit_rt;
-    solve_electrical(jit_result.electrical.plan, jit_state, jit_rt, 1.0f / 60.0f);
+    NodalRuntimeState jit_rt;
+    solve_nodal(jit_result.electrical.plan, jit_state, jit_rt, 1.0f / 60.0f);
 
-    ElectricalBuildPlan aot_plan;
+    NodalBuildPlan aot_plan;
     SimulationState aot_state;
-    ElectricalRuntimeState aot_rt;
+    NodalRuntimeState aot_rt;
     PortToSignal aot_port_to_signal;
     core::StringInterner aot_interner;
     run_aot_electrical(resolve_all_devices(ctx), ctx.connections,
@@ -559,12 +559,12 @@ TEST(ElectricalAotParity, MultiIsland) {
     for (uint32_t i = 0; i < jit_result.signal_count; ++i)
         (void)jit_state.allocate_signal(0.0f);
     set_refnode_values(jit_state, jit_input.devices, jit_result.port_to_signal, jit_result.signal_key_interner);
-    ElectricalRuntimeState jit_rt;
-    solve_electrical(jit_result.electrical.plan, jit_state, jit_rt, 1.0f / 60.0f);
+    NodalRuntimeState jit_rt;
+    solve_nodal(jit_result.electrical.plan, jit_state, jit_rt, 1.0f / 60.0f);
 
-    ElectricalBuildPlan aot_plan;
+    NodalBuildPlan aot_plan;
     SimulationState aot_state;
-    ElectricalRuntimeState aot_rt;
+    NodalRuntimeState aot_rt;
     PortToSignal aot_port_to_signal;
     core::StringInterner aot_interner;
     run_aot_electrical(resolve_all_devices(ctx), ctx.connections,
@@ -601,12 +601,12 @@ TEST(ElectricalAotParity, NearShortHighConductance) {
     for (uint32_t i = 0; i < jit_result.signal_count; ++i)
         (void)jit_state.allocate_signal(0.0f);
     set_refnode_values(jit_state, jit_input.devices, jit_result.port_to_signal, jit_result.signal_key_interner);
-    ElectricalRuntimeState jit_rt;
-    solve_electrical(jit_result.electrical.plan, jit_state, jit_rt, 1.0f / 60.0f);
+    NodalRuntimeState jit_rt;
+    solve_nodal(jit_result.electrical.plan, jit_state, jit_rt, 1.0f / 60.0f);
 
-    ElectricalBuildPlan aot_plan;
+    NodalBuildPlan aot_plan;
     SimulationState aot_state;
-    ElectricalRuntimeState aot_rt;
+    NodalRuntimeState aot_rt;
     PortToSignal aot_port_to_signal;
     core::StringInterner aot_interner;
     run_aot_electrical(resolve_all_devices(ctx), ctx.connections,

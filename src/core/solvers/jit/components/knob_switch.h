@@ -3,7 +3,7 @@
 #include "core/solvers/common/provider.h"
 
 #include "../state.h"
-#include "../subsolvers/subsolver_types.h"
+#include "../subsolvers/nodal_types.h"
 
 /// KnobSwitch - Multi-position passive rotary selector (2-5 positions).
 /// Electrically: N ConductanceBranch elements between wiper and throw1..throwN.
@@ -35,7 +35,7 @@ public:
     Provider provider;
 
     /// One electrical handle per branch (wiper-to-throw1, wiper-to-throw2, etc.)
-    ElectricalPrimitiveHandle electrical_handles[MAX_POSITIONS];
+    NodalPrimitiveHandle electrical_handles[MAX_POSITIONS];
     int num_handles = 0;  ///< actual number of valid handles (= positions)
 
     int positions = 2;         ///< number of selectable terminals (2-5)

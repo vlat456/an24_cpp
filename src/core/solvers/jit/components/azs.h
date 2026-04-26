@@ -3,7 +3,7 @@
 #include "core/solvers/common/provider.h"
 
 #include "../state.h"
-#include "../subsolvers/subsolver_types.h"
+#include "../subsolvers/nodal_types.h"
 
 /// AZS (Avtomatom Zaashchity Seti) - Aircraft circuit breaker
 /// Hybrid switch + thermal fuse. Manual toggle via control port.
@@ -14,7 +14,7 @@ public:
     static constexpr Domain domain = Domain::Electrical | Domain::Thermal;
 
     Provider provider;
-    ElectricalPrimitiveHandle electrical_handle;
+    NodalPrimitiveHandle electrical_handle;
     bool closed = false;
     bool tripped = false;
     float last_control = 0.0f;

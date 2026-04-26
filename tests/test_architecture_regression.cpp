@@ -20,7 +20,7 @@
 #include "core/solvers/common/provider.h"
 #include "core/solvers/common/port_names.h"
 #include "core/solvers/common/port_registry.h"
-#include "core/solvers/jit/subsolvers/electrical_subsolver.h"
+#include "core/solvers/jit/subsolvers/nodal_subsolver.h"
 #include "core/solvers/jit/state.h"
 #include "io/json/component_registry_json_loader.h"
 #include "jit_build_input_test_helper.h"
@@ -32,18 +32,18 @@
 #include <limits>
 
 // =============================================================================
-// E-001 Regression: solve_electrical is noexcept
+// E-001 Regression: solve_nodal is noexcept
 // =============================================================================
 
 TEST(E001_Noexcept, SolveElectricalIsNoexcept) {
-    // Compile-time check: solve_electrical must be declared noexcept.
+    // Compile-time check: solve_nodal must be declared noexcept.
     // If someone removes noexcept, this test fails at compile time.
-    ElectricalBuildPlan plan;
+    NodalBuildPlan plan;
     SimulationState st;
-    ElectricalRuntimeState rt;
+    NodalRuntimeState rt;
     static_assert(
-        noexcept(solve_electrical(plan, st, rt, 0.0f)),
-        "solve_electrical must be noexcept (E-001)"
+        noexcept(solve_nodal(plan, st, rt, 0.0f)),
+        "solve_nodal must be noexcept (E-001)"
     );
 }
 
@@ -52,16 +52,16 @@ TEST(E001_Noexcept, SolveGaussianReturnsBool) {
     // Verify by checking that a singular matrix returns false without throwing.
 
     // Build a singular island: two floating nodes, no fixed voltage.
-    ElectricalBuildPlan plan;
-    ElectricalIslandPlan island;
+    NodalBuildPlan plan;
+    NodalIslandPlan island;
     island.signal_indices = {0, 1};
     island.elements = {
-        ElectricalElement{
-            ElectricalElementKind::TheveninSource,
+        NodalElement{
+            NodalElementKind::Source,
             0, 1, 28.0f, 0.01f, 0u
         },
-        ElectricalElement{
-            ElectricalElementKind::ConductanceBranch,
+        NodalElement{
+            NodalElementKind::Branch,
             0, 1, 1.0f, 0.0f, 1u
         }
     };
@@ -69,10 +69,10 @@ TEST(E001_Noexcept, SolveGaussianReturnsBool) {
 
     SimulationState st;
     st.values.resize(2, 5.0f);  // non-zero previous values
-    ElectricalRuntimeState rt;
+    NodalRuntimeState rt;
 
     // Must not throw. Previous values preserved on singular fallback.
-    EXPECT_NO_THROW(solve_electrical(plan, st, rt, 1.0f / 60.0f));
+    EXPECT_NO_THROW(solve_nodal(plan, st, rt, 1.0f / 60.0f));
     EXPECT_NEAR(st.values[0], 5.0f, 1e-6f);
     EXPECT_NEAR(st.values[1], 5.0f, 1e-6f);
     EXPECT_EQ(rt.counters.singular_fallbacks, 1u);
@@ -80,21 +80,21 @@ TEST(E001_Noexcept, SolveGaussianReturnsBool) {
 
 TEST(E001_Noexcept, DuplicateFixedConstraintsSameValueNoThrow) {
     // Two FixedVoltageNode on same node with same value: deduplicate, no throw.
-    ElectricalBuildPlan plan;
-    ElectricalIslandPlan island;
+    NodalBuildPlan plan;
+    NodalIslandPlan island;
     island.signal_indices = {0, 1};
     island.elements = {
-        ElectricalElement{ElectricalElementKind::FixedVoltageNode, 0, 0, 0.0f, 0.0f, 0u},
-        ElectricalElement{ElectricalElementKind::FixedVoltageNode, 0, 0, 0.0f, 0.0f, 1u},
-        ElectricalElement{ElectricalElementKind::ConductanceBranch, 0, 1, 1.0f, 0.0f, 2u}
+        NodalElement{NodalElementKind::FixedNode, 0, 0, 0.0f, 0.0f, 0u},
+        NodalElement{NodalElementKind::FixedNode, 0, 0, 0.0f, 0.0f, 1u},
+        NodalElement{NodalElementKind::Branch, 0, 1, 1.0f, 0.0f, 2u}
     };
     plan.islands.push_back(island);
 
     SimulationState st;
     st.values.resize(4, 0.0f);
-    ElectricalRuntimeState rt;
+    NodalRuntimeState rt;
 
-    EXPECT_NO_THROW(solve_electrical(plan, st, rt, 0.0f));
+    EXPECT_NO_THROW(solve_nodal(plan, st, rt, 0.0f));
     EXPECT_NEAR(st.values[0], 0.0f, 1e-3f);
 }
 

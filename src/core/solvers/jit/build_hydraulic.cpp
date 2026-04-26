@@ -23,7 +23,7 @@ namespace jit_solver_impl {
 // RawElement — alias for shared GenericRawElement
 // =====================================================================
 
-using RawElement = build_common::GenericRawElement<HydraulicElementKind>;
+using RawElement = build_common::GenericRawElement<NodalElementKind>;
 
 // =====================================================================
 // Element extraction: function-pointer table
@@ -43,7 +43,7 @@ static void extract_pressure_source(
     uint32_t node_pos = build_common::resolve_role_port(dev, role, "pos", pts, intern);
     uint32_t node_neg = build_common::resolve_role_port(dev, role, "neg", pts, intern);
 
-    out.push_back({HydraulicElementKind::PressureSource,
+    out.push_back({NodalElementKind::Source,
         node_pos, node_neg, pressure, resistance,
         element_idx++, bind_handle ? dev.name : std::string{}});
 }
@@ -56,7 +56,7 @@ static void extract_flow_branch(
     float conductance = build_common::read_role_param_required(dev, role, "g");
     uint32_t node_a = build_common::resolve_role_port(dev, role, "a", pts, intern);
     uint32_t node_b = build_common::resolve_role_port(dev, role, "b", pts, intern);
-    out.push_back({HydraulicElementKind::FlowBranch,
+    out.push_back({NodalElementKind::Branch,
         node_a, node_b, conductance, 0.0f,
         element_idx++, bind_handle ? dev.name : std::string{}});
 }
@@ -68,7 +68,7 @@ static void extract_fixed_pressure_node(
 {
     float value = build_common::read_role_param_required(dev, role, "pressure");
     uint32_t node_a = build_common::resolve_role_port(dev, role, "node", pts, intern);
-    out.push_back({HydraulicElementKind::FixedPressureNode,
+    out.push_back({NodalElementKind::FixedNode,
         node_a, UINT32_MAX, value, 0.0f,
         element_idx++, bind_handle ? dev.name : std::string{}});
 }
@@ -117,7 +117,7 @@ static std::vector<RawElement> extract_hydraulic_raw_elements(
 }
 
 // =====================================================================
-// Phase 3: Assign HydraulicPrimitiveHandle to component variants
+// Phase 3: Assign NodalPrimitiveHandle to component variants
 // =====================================================================
 
 static void assign_hydraulic_handles(
@@ -146,7 +146,7 @@ static void assign_hydraulic_handles(
                     device_name + "' not found in result.devices");
             }
 
-            HydraulicPrimitiveHandle handle;
+            NodalPrimitiveHandle handle;
             handle.island_index = static_cast<uint32_t>(island_idx);
             handle.element_index = static_cast<uint32_t>(elem_idx);
             handle.element_id = elem.element_id;
@@ -171,7 +171,7 @@ void build_hydraulic_islands(
 {
     auto raw_elements = extract_hydraulic_raw_elements(
         devices, result.port_to_signal, result.signal_key_interner);
-    build_common::group_into_islands<RawElement, HydraulicIslandPlan>(raw_elements, result.hydraulic.plan);
+    build_common::group_into_islands<RawElement, NodalIslandPlan>(raw_elements, result.hydraulic.plan);
     assign_hydraulic_handles(raw_elements, result);
 }
 
@@ -183,7 +183,7 @@ void build_hydraulic_patch_ops(BuildResult& result)
 {
     result.hydraulic.patch_ops.clear();
 
-    auto add_op = [&](const HydraulicPatchOp& op) {
+    auto add_op = [&](const NodalPatchOp& op) {
         if (op.element_id == UINT32_MAX) return;
         result.hydraulic.patch_ops.push_back(op);
     };
@@ -193,11 +193,9 @@ void build_hydraulic_patch_ops(BuildResult& result)
             using T = std::decay_t<decltype(comp)>;
 
             if constexpr (std::is_same_v<T, SolenoidValve<JitProvider>>) {
-                // BoolSwitch: reads committed open/closed state from signal.
-                // state=true → valve open (high conductance), state=false → valve closed (low conductance).
                 if (!is_valid(comp.hydraulic_handle)) return;
-                HydraulicPatchOp op;
-                op.kind = HydraulicPatchKind::BoolSwitch;
+                NodalPatchOp op;
+                op.kind = NodalPatchKind::BoolSwitch;
                 op.element_id = comp.hydraulic_handle.element_id;
                 op.s0 = comp.provider.get(PortNames::state);
                 op.state_true_value = comp.g_open;    // valve open when state=true
@@ -205,12 +203,9 @@ void build_hydraulic_patch_ops(BuildResult& result)
                 add_op(op);
             }
             else if constexpr (std::is_same_v<T, FuelTank<JitProvider>>) {
-                // CopySignal: reads gravity pressure from p_source signal,
-                // writes to PressureSource element_value_a (P_th).
-                // One-frame delay consistent with electrical solver-owned pattern.
                 if (!is_valid(comp.hydraulic_handle)) return;
-                HydraulicPatchOp op;
-                op.kind = HydraulicPatchKind::CopySignal;
+                NodalPatchOp op;
+                op.kind = NodalPatchKind::CopySignal;
                 op.element_id = comp.hydraulic_handle.element_id;
                 op.s0 = comp.provider.get(PortNames::p_source);
                 add_op(op);
@@ -223,7 +218,7 @@ void build_hydraulic_patch_ops(BuildResult& result)
 // per-frame execute/commit cycle.
 template<typename T>
 constexpr bool is_hydraulic_solver_owned_v = requires(T t) {
-    { t.hydraulic_handle } -> std::same_as<HydraulicPrimitiveHandle&>;
+    { t.hydraulic_handle } -> std::same_as<NodalPrimitiveHandle&>;
 };
 
 void build_hydraulic_step_ops(BuildResult& result)

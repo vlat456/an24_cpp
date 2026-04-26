@@ -261,25 +261,25 @@ TEST(ElectricalPrimitives, BuildPlanIncludesPrimitiveElements) {
     ASSERT_EQ(island.elements.size(), 3u);
 
     // Collect element kinds
-    std::vector<ElectricalElementKind> kinds;
+    std::vector<NodalElementKind> kinds;
     for (const auto& elem : island.elements) {
         kinds.push_back(elem.kind);
     }
 
-    EXPECT_TRUE(std::find(kinds.begin(), kinds.end(), ElectricalElementKind::TheveninSource) != kinds.end())
+    EXPECT_TRUE(std::find(kinds.begin(), kinds.end(), NodalElementKind::Source) != kinds.end())
         << "ElectricalSource should produce TheveninSource element";
-    EXPECT_TRUE(std::find(kinds.begin(), kinds.end(), ElectricalElementKind::ConductanceBranch) != kinds.end())
+    EXPECT_TRUE(std::find(kinds.begin(), kinds.end(), NodalElementKind::Branch) != kinds.end())
         << "ElectricalConductance should produce ConductanceBranch element";
-    EXPECT_TRUE(std::find(kinds.begin(), kinds.end(), ElectricalElementKind::FixedVoltageNode) != kinds.end())
+    EXPECT_TRUE(std::find(kinds.begin(), kinds.end(), NodalElementKind::FixedNode) != kinds.end())
         << "RefNode should produce FixedVoltageNode element";
 
     // Verify TheveninSource has correct parameters
     for (const auto& elem : island.elements) {
-        if (elem.kind == ElectricalElementKind::TheveninSource) {
+        if (elem.kind == NodalElementKind::Source) {
             EXPECT_FLOAT_EQ(elem.value_a, 12.0f) << "ElectricalSource voltage should be 12V";
             EXPECT_FLOAT_EQ(elem.value_b, 0.5f) << "ElectricalSource resistance should be 0.5 ohm";
         }
-        if (elem.kind == ElectricalElementKind::ConductanceBranch) {
+        if (elem.kind == NodalElementKind::Branch) {
             EXPECT_FLOAT_EQ(elem.value_a, 1.0f) << "ElectricalConductance conductance should be 1.0S";
         }
     }
@@ -486,11 +486,11 @@ ASSERT_EQ(result.electrical.plan.islands.size(), 1u);
     ASSERT_EQ(island.elements.size(), 3u);
 
     for (const auto& elem : island.elements) {
-        if (elem.kind == ElectricalElementKind::TheveninSource) {
+        if (elem.kind == NodalElementKind::Source) {
             EXPECT_FLOAT_EQ(elem.value_a, 28.0f) << "Default voltage should be 28V";
             EXPECT_FLOAT_EQ(elem.value_b, 0.01f) << "Default resistance should be 0.01 ohm";
         }
-        if (elem.kind == ElectricalElementKind::ConductanceBranch) {
+        if (elem.kind == NodalElementKind::Branch) {
             EXPECT_FLOAT_EQ(elem.value_a, 0.1f) << "Default conductance should be 0.1S";
         }
     }
@@ -554,7 +554,7 @@ TEST(ElectricalPrimitives, UnknownParamThrows) {
 
 TEST(ElectricalPrimitives, MetadataProducesCorrectElementKind) {
     // Build devices with solver_role metadata manually set (simulating library-loaded state).
-    // Verify that the metadata-driven path produces correct ElectricalElementKind.
+    // Verify that the metadata-driven path produces correct NodalElementKind.
 
     // -- ConductanceBranch via solver_role --
     {
@@ -580,7 +580,7 @@ TEST(ElectricalPrimitives, MetadataProducesCorrectElementKind) {
         // Find the element that came from cond1 (ConductanceBranch with g=0.5)
         bool found = false;
         for (const auto& elem : island.elements) {
-            if (elem.kind == ElectricalElementKind::ConductanceBranch &&
+            if (elem.kind == NodalElementKind::Branch &&
                 std::abs(elem.value_a - 0.5f) < 1e-6f) {
                 found = true;
                 break;
@@ -612,7 +612,7 @@ TEST(ElectricalPrimitives, MetadataProducesCorrectElementKind) {
 
         bool found = false;
         for (const auto& elem : island.elements) {
-            if (elem.kind == ElectricalElementKind::TheveninSource &&
+            if (elem.kind == NodalElementKind::Source &&
                 std::abs(elem.value_a - 12.0f) < 1e-6f &&
                 std::abs(elem.value_b - 0.05f) < 1e-6f) {
                 found = true;
@@ -645,7 +645,7 @@ TEST(ElectricalPrimitives, MetadataProducesCorrectElementKind) {
 
         bool found = false;
         for (const auto& elem : island.elements) {
-            if (elem.kind == ElectricalElementKind::FixedVoltageNode &&
+            if (elem.kind == NodalElementKind::FixedNode &&
                 std::abs(elem.value_a - 5.0f) < 1e-6f) {
                 found = true;
                 break;

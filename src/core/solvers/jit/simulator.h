@@ -2,7 +2,7 @@
 
 #include "jit_solver.h"
 #include "state.h"
-#include "core/solvers/jit/subsolvers/electrical_subsolver.h"
+#include "core/solvers/jit/subsolvers/nodal_subsolver.h"
 #include <optional>
 #include <string>
 #include <unordered_map>

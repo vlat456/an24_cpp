@@ -3,7 +3,7 @@
 #include "core/solvers/common/provider.h"
 
 #include "../state.h"
-#include "../subsolvers/subsolver_types.h"
+#include "../subsolvers/nodal_types.h"
 
 /// VariableConductance - control-to-electrical bridge (variable resistor)
 /// Reads cmd [0..1], computes g = lerp(g_min, g_max, cmd) between v_in and v_out.
@@ -19,7 +19,7 @@ public:
     static constexpr Domain domain = Domain::Electrical;
 
     Provider provider;
-    ElectricalPrimitiveHandle electrical_handle;
+    NodalPrimitiveHandle electrical_handle;
 
     VariableConductance() = default;
 

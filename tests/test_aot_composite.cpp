@@ -338,8 +338,8 @@ TEST(AotComposite, ElectricalPlan_BatteryAndResistor_GeneratesIslandArrays) {
     EXPECT_NE(result.header.find("island_0_elements"), std::string::npos)
         << "Header should contain island_0_elements array";
 
-    EXPECT_NE(result.source.find("solve_electrical"), std::string::npos)
-        << "Source should contain solve_electrical call";
+    EXPECT_NE(result.source.find("solve_nodal"), std::string::npos)
+        << "Source should contain solve_nodal call";
 
     EXPECT_NE(result.header.find("AotElectricalPlan"), std::string::npos)
         << "Header should contain AotElectricalPlan struct";
@@ -378,14 +378,76 @@ TEST(AotComposite, ElectricalPlan_IndicatorLight_GeneratesConductanceBranch) {
     EXPECT_NE(result.header.find("ELECTRICAL_ISLAND_COUNT"), std::string::npos)
         << "Header should contain ELECTRICAL_ISLAND_COUNT even for IndicatorLight";
 
-    EXPECT_NE(result.source.find("solve_electrical"), std::string::npos)
-        << "Source should contain solve_electrical for circuit with IndicatorLight";
+    EXPECT_NE(result.source.find("solve_nodal"), std::string::npos)
+        << "Source should contain solve_nodal for circuit with IndicatorLight";
+}
+
+// Regression: AOT codegen must emit unified runtime types (NodalElement,
+// NodalElementKind, NodalIslandPlan), NOT deleted domain-specific types
+// (ElectricalElement, ElectricalElementKind, ElectricalIslandPlan).
+TEST(AotComposite, ElectricalPlan_UsesUnifiedNodalTypes) {
+    ComponentRegistry registry;
+    register_from_library(registry, {"Generator", "Resistor", "RefNode"});
+
+    CompositeSpec circuit;
+    circuit.classname = "nodal_type_circuit";
+
+    DeviceInstance d_bat;
+    d_bat.name = "bat";
+    d_bat.classname = "Generator";
+    d_bat.params["v_nominal"] = "28.0";
+    d_bat.params["internal_r"] = "0.01";
+
+    DeviceInstance d_res;
+    d_res.name = "res";
+    d_res.classname = "Resistor";
+    d_res.params["conductance"] = "10.0";
+
+    DeviceInstance d_ref;
+    d_ref.name = "gnd";
+    d_ref.classname = "RefNode";
+    d_ref.params["value"] = "0.0";
+
+    circuit.devices.push_back(d_bat);
+    circuit.devices.push_back(d_res);
+    circuit.devices.push_back(d_ref);
+    circuit.connections = {
+        {"bat.v_out", "res.v_in", {}},
+        {"res.v_out", "gnd.v", {}}
+    };
+    registry.register_type("nodal_type_circuit", circuit);
+
+    auto result = CodeGen::generate_composite_systems(circuit, registry);
+
+    // Must use unified NodalElement (not deleted ElectricalElement)
+    EXPECT_NE(result.header.find("NodalElement"), std::string::npos)
+        << "Generated header must use NodalElement type";
+    EXPECT_EQ(result.header.find("ElectricalElement "), std::string::npos)
+        << "Generated header must NOT reference deleted ElectricalElement type";
+
+    // Must use unified NodalElementKind values
+    EXPECT_NE(result.header.find("NodalElementKind::"), std::string::npos)
+        << "Generated header must use NodalElementKind enum";
+    EXPECT_EQ(result.header.find("ElectricalElementKind::"), std::string::npos)
+        << "Generated header must NOT reference deleted ElectricalElementKind enum";
+
+    // Must use unified NodalIslandPlan (not deleted ElectricalIslandPlan)
+    EXPECT_NE(result.header.find("NodalIslandPlan"), std::string::npos)
+        << "Generated header must use NodalIslandPlan type";
+    EXPECT_EQ(result.header.find("ElectricalIslandPlan"), std::string::npos)
+        << "Generated header must NOT reference deleted ElectricalIslandPlan type";
+
+    // Verify specific kind mappings exist
+    EXPECT_NE(result.header.find("NodalElementKind::Source"), std::string::npos)
+        << "Generator should map to NodalElementKind::Source";
+    EXPECT_NE(result.header.find("NodalElementKind::Branch"), std::string::npos)
+        << "Resistor should map to NodalElementKind::Branch";
+    EXPECT_NE(result.header.find("NodalElementKind::FixedNode"), std::string::npos)
+        << "RefNode should map to NodalElementKind::FixedNode";
 }
 
 TEST(AotComposite, ElectricalPlan_NoElectricalDevices_HasZeroIslands) {
     ComponentRegistry registry;
-    // Bus is visual_only in the library via TypePresentation, but register_from_library
-    // copies only the ComponentSpec (not the presentation), so it won't be filtered out.
     register_from_library(registry, {"Bus"});
 
     CompositeSpec no_elec;
@@ -404,8 +466,8 @@ TEST(AotComposite, ElectricalPlan_NoElectricalDevices_HasZeroIslands) {
     EXPECT_NE(result.header.find("ELECTRICAL_ISLAND_COUNT = 0"), std::string::npos)
         << "Header should show ELECTRICAL_ISLAND_COUNT = 0 when no electrical devices";
 
-    EXPECT_EQ(result.source.find("solve_electrical"), std::string::npos)
-        << "Source should NOT contain solve_electrical when no electrical devices";
+    EXPECT_EQ(result.source.find("solve_nodal"), std::string::npos)
+        << "Source should NOT contain solve_nodal when no electrical devices";
 }
 
 TEST(AotComposite, ElectricalBindings_WrapperHandlesGenerated) {

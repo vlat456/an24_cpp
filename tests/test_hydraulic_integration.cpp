@@ -2,7 +2,7 @@
 #include "core/solvers/jit/jit_solver.h"
 #include "core/solvers/jit/simulator.h"
 #include "core/solvers/jit/state.h"
-#include "core/solvers/jit/subsolvers/hydraulic_subsolver_types.h"
+#include "core/solvers/jit/subsolvers/nodal_subsolver.h"
 #include "jit_build_input_test_helper.h"
 #include <cmath>
 
@@ -126,9 +126,9 @@ TEST(HydraulicIntegration, BuildProducesHydraulicIslands) {
     int fixed_nodes = 0;
     for (const auto& elem : island.elements) {
         switch (elem.kind) {
-            case HydraulicElementKind::PressureSource:  pressure_sources++; break;
-            case HydraulicElementKind::FlowBranch:      flow_branches++; break;
-            case HydraulicElementKind::FixedPressureNode: fixed_nodes++; break;
+            case NodalElementKind::Source:  pressure_sources++; break;
+            case NodalElementKind::Branch:      flow_branches++; break;
+            case NodalElementKind::FixedNode: fixed_nodes++; break;
         }
     }
     EXPECT_EQ(pressure_sources, 1);
@@ -167,8 +167,8 @@ TEST(HydraulicIntegration, PatchOpsCreated) {
     int bool_switches = 0;
     for (const auto& op : result.hydraulic.patch_ops) {
         switch (op.kind) {
-            case HydraulicPatchKind::CopySignal:  copy_signals++; break;
-            case HydraulicPatchKind::BoolSwitch:  bool_switches++; break;
+            case NodalPatchKind::CopySignal:  copy_signals++; break;
+            case NodalPatchKind::BoolSwitch:  bool_switches++; break;
         }
     }
     EXPECT_EQ(copy_signals, 1);

@@ -64,7 +64,7 @@ void emit_source_prelude(
 ) {
     oss << "#include \"" << header_name << "\"\n";
     oss << "#include \"core/solvers/jit/components/all.cpp\"\n";
-    oss << "#include \"core/solvers/jit/subsolvers/electrical_subsolver.h\"\n";
+    oss << "#include \"core/solvers/jit/subsolvers/nodal_subsolver.h\"\n";
     oss << "#include <spdlog/spdlog.h>\n";
     oss << "#include <algorithm>\n";
     oss << "#include <cstring>\n\n";
@@ -307,7 +307,7 @@ void emit_solve_step_dispatch(std::ostringstream& oss, const std::string& class_
 
 void emit_step_electrical_diagnostics(std::ostringstream& oss) {
     oss << "    st->electrical_rt = &electrical_rt_;\n";
-    oss << "    solve_electrical(electrical_plan_, *st, electrical_rt_, dt);\n";
+    oss << "    solve_nodal(electrical_plan_, *st, electrical_rt_, dt);\n";
     oss << "    if (step_counter_ > 0 && (step_counter_ % ELECTRICAL_COUNTER_LOG_PERIOD) == 0) {\n";
     oss << "        const auto& c = electrical_rt_.counters;\n";
     oss << "        spdlog::info(\"[aot-elec] solve counters: islands={} n0={} n1={} n2={} dense={} singular={}\",\n";
@@ -316,8 +316,8 @@ void emit_step_electrical_diagnostics(std::ostringstream& oss) {
     oss << "    for (const auto& diag : electrical_rt_.island_diagnostics) {\n";
     oss << "        if (!diag.solve_ok || diag.max_abs_kcl_residual > ELECTRICAL_DIAG_RESIDUAL_WARN) {\n";
     oss << "            spdlog::warn(\"[aot-elec] island={} solve_ok={} unknowns={} max_abs_kcl={} worst_signal={} worst_v={} worst_branch_comp={}\",\n";
-    oss << "                diag.island_index, diag.solve_ok, diag.unknown_count, diag.max_abs_kcl_residual,\n";
-    oss << "                diag.worst_node_signal, diag.worst_node_voltage, diag.worst_branch_element_id);\n";
+    oss <<                 "                diag.island_index, diag.solve_ok, diag.unknown_count, diag.max_abs_kcl_residual,\n";
+    oss << "                diag.worst_node_signal, diag.worst_node_potential, diag.worst_branch_element_id);\n";
     codegen_detail::emit_debug_map_lookup(oss,
         "element_id", "== diag.worst_branch_element_id",
         "[aot-elec] branch component={} device={} class={} role={} nodes=({},{})",

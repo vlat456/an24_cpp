@@ -86,7 +86,7 @@ TEST(PortMapRegression, AND_Gate_Reads_Correct_Signals) {
     if (gnd_it != result.port_to_signal.end())
         state.values[gnd_it->second] = 0.0f;
 
-    // Seed battery output: Battery is solver-owned (voltage from solve_electrical),
+    // Seed battery output: Battery is solver-owned (voltage from solve_nodal),
     // which this port-mapping test intentionally skips.
     auto bat_it = result.port_to_signal.find(result.signal_key_interner.lookup("bat.v_out"));
     ASSERT_NE(bat_it, result.port_to_signal.end()) << "bat.v_out must exist";
@@ -153,7 +153,7 @@ TEST(PortMapRegression, NOT_Gate_Reads_Correct_Input) {
     if (gnd_it != result.port_to_signal.end())
         state.values[gnd_it->second] = 0.0f;
 
-    // Seed battery output: Battery is solver-owned (voltage from solve_electrical),
+    // Seed battery output: Battery is solver-owned (voltage from solve_nodal),
     // which this port-mapping test intentionally skips.
     auto bat_it = result.port_to_signal.find(result.signal_key_interner.lookup("bat.v_out"));
     ASSERT_NE(bat_it, result.port_to_signal.end()) << "bat.v_out must exist";
@@ -203,7 +203,7 @@ TEST(PortMapRegression, Subtract_Reads_Both_Inputs) {
     if (gnd_it != result.port_to_signal.end())
         state.values[gnd_it->second] = 0.0f;
 
-    // Seed battery output: Battery is solver-owned (voltage from solve_electrical),
+    // Seed battery output: Battery is solver-owned (voltage from solve_nodal),
     // which this port-mapping test intentionally skips.
     auto bat_it = result.port_to_signal.find(result.signal_key_interner.lookup("bat.v_out"));
     ASSERT_NE(bat_it, result.port_to_signal.end()) << "bat.v_out must exist";

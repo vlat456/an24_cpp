@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "core/solvers/jit/subsolvers/hydraulic_subsolver.h"
+#include "core/solvers/jit/subsolvers/nodal_subsolver.h"
 #include "core/solvers/jit/state.h"
 #include "core/solvers/jit/build_common.h"
 #include <algorithm>
@@ -7,11 +7,11 @@
 
 namespace {
 
-HydraulicIslandPlan make_island(
+NodalIslandPlan make_island(
     std::vector<uint32_t> signal_indices,
-    std::vector<HydraulicElement> elements
+    std::vector<NodalElement> elements
 ) {
-    HydraulicIslandPlan island;
+    NodalIslandPlan island;
     island.signal_indices = std::move(signal_indices);
     island.elements = std::move(elements);
     return island;
@@ -33,25 +33,25 @@ SimulationState make_sim_state(size_t num_signals) {
 TEST(HydraulicSubsolver, SimplePressureDivider) {
     // PressureSource P_th=7.65 kPa, R_int=0.1 (g=10), load g=10 to atm.
     // Expected: P at node1 = 7.65 * (10/(10+10)) = 3.825 kPa
-    HydraulicBuildPlan plan;
+    NodalBuildPlan plan;
     plan.islands.push_back(make_island(
         {0, 1},
         {
             // Atmospheric ground node, fixed P=0
-            HydraulicElement{HydraulicElementKind::FixedPressureNode, 0, 0, 0.0f, 0.0f, 0u},
+            NodalElement{NodalElementKind::FixedNode, 0, 0, 0.0f, 0.0f, 0u},
             // PressureSource: P_th=7.65, R_int=0.1 from node 1 to node 0
-            HydraulicElement{HydraulicElementKind::PressureSource, 1, 0, 7.65f, 0.1f, 1u},
+            NodalElement{NodalElementKind::Source, 1, 0, 7.65f, 0.1f, 1u},
             // FlowBranch: g=10 from node 1 to node 0 (load)
-            HydraulicElement{HydraulicElementKind::FlowBranch, 1, 0, 10.0f, 0.0f, 2u}
+            NodalElement{NodalElementKind::Branch, 1, 0, 10.0f, 0.0f, 2u}
         }
     ));
 
     SimulationState st = make_sim_state(4);
-    HydraulicRuntimeState rt;
+    NodalRuntimeState rt;
     rt.enable_diagnostics = true;
 
     jit_solver_impl::build_common::init_element_values_from_plan(plan, rt);
-    solve_hydraulic(plan, rt.element_value_a, st, rt, 0.0);
+    solve_nodal(plan, rt.element_value_a, st, rt, 0.0);
 
     EXPECT_NEAR(st.values[0], 0.0f, 1e-3f);
     EXPECT_NEAR(st.values[1], 3.825f, 0.01f);
@@ -75,22 +75,22 @@ TEST(HydraulicSubsolver, SeriesOrificeChain) {
     // [20 -10][P2] = [76.5]
     // [-10 15][P1]   [ 0  ]
     // det=200, P2=5.7375, P1=3.825
-    HydraulicBuildPlan plan;
+    NodalBuildPlan plan;
     plan.islands.push_back(make_island(
         {0, 1, 2},
         {
-            HydraulicElement{HydraulicElementKind::FixedPressureNode, 0, 0, 0.0f, 0.0f, 0u},
-            HydraulicElement{HydraulicElementKind::PressureSource, 2, 0, 7.65f, 0.1f, 1u},
-            HydraulicElement{HydraulicElementKind::FlowBranch, 2, 1, 10.0f, 0.0f, 2u},
-            HydraulicElement{HydraulicElementKind::FlowBranch, 1, 0, 5.0f, 0.0f, 3u}
+            NodalElement{NodalElementKind::FixedNode, 0, 0, 0.0f, 0.0f, 0u},
+            NodalElement{NodalElementKind::Source, 2, 0, 7.65f, 0.1f, 1u},
+            NodalElement{NodalElementKind::Branch, 2, 1, 10.0f, 0.0f, 2u},
+            NodalElement{NodalElementKind::Branch, 1, 0, 5.0f, 0.0f, 3u}
         }
     ));
 
     SimulationState st = make_sim_state(4);
-    HydraulicRuntimeState rt;
+    NodalRuntimeState rt;
 
     jit_solver_impl::build_common::init_element_values_from_plan(plan, rt);
-    solve_hydraulic(plan, rt.element_value_a, st, rt, 0.0);
+    solve_nodal(plan, rt.element_value_a, st, rt, 0.0);
 
     EXPECT_NEAR(st.values[0], 0.0f, 1e-3f);
     EXPECT_NEAR(st.values[1], 3.825f, 0.01f);
@@ -101,40 +101,40 @@ TEST(HydraulicSubsolver, SeriesOrificeChain) {
 }
 
 TEST(HydraulicSubsolver, DuplicateFixedPressureDeduplicatedSilently) {
-    HydraulicBuildPlan plan;
+    NodalBuildPlan plan;
     plan.islands.push_back(make_island(
         {0, 1},
         {
-            HydraulicElement{HydraulicElementKind::FixedPressureNode, 0, 0, 0.0f, 0.0f, 0u},
-            HydraulicElement{HydraulicElementKind::FixedPressureNode, 0, 0, 0.0f, 0.0f, 1u},
-            HydraulicElement{HydraulicElementKind::FlowBranch, 0, 1, 1.0f, 0.0f, 2u}
+            NodalElement{NodalElementKind::FixedNode, 0, 0, 0.0f, 0.0f, 0u},
+            NodalElement{NodalElementKind::FixedNode, 0, 0, 0.0f, 0.0f, 1u},
+            NodalElement{NodalElementKind::Branch, 0, 1, 1.0f, 0.0f, 2u}
         }
     ));
 
     SimulationState st = make_sim_state(4);
-    HydraulicRuntimeState rt;
+    NodalRuntimeState rt;
 
     jit_solver_impl::build_common::init_element_values_from_plan(plan, rt);
-    EXPECT_NO_THROW(solve_hydraulic(plan, rt.element_value_a, st, rt, 0.0));
+    EXPECT_NO_THROW(solve_nodal(plan, rt.element_value_a, st, rt, 0.0));
     EXPECT_NEAR(st.values[0], 0.0f, 1e-3f);
 }
 
 TEST(HydraulicSubsolver, ZeroConductanceSingularFallback) {
-    HydraulicBuildPlan plan;
+    NodalBuildPlan plan;
     plan.islands.push_back(make_island(
         {0, 1},
         {
-            HydraulicElement{HydraulicElementKind::FixedPressureNode, 0, 0, 0.0f, 0.0f, 0u},
-            HydraulicElement{HydraulicElementKind::FlowBranch, 1, 0, 0.0f, 0.0f, 1u}
+            NodalElement{NodalElementKind::FixedNode, 0, 0, 0.0f, 0.0f, 0u},
+            NodalElement{NodalElementKind::Branch, 1, 0, 0.0f, 0.0f, 1u}
         }
     ));
 
     SimulationState st = make_sim_state(4);
     st.values[1] = 5.0f;
-    HydraulicRuntimeState rt;
+    NodalRuntimeState rt;
 
     jit_solver_impl::build_common::init_element_values_from_plan(plan, rt);
-    EXPECT_NO_THROW(solve_hydraulic(plan, rt.element_value_a, st, rt, 0.0));
+    EXPECT_NO_THROW(solve_nodal(plan, rt.element_value_a, st, rt, 0.0));
     EXPECT_NEAR(st.values[1], 5.0f, 1e-3f);
     EXPECT_EQ(rt.counters.singular_fallbacks, 1u);
 }
@@ -142,22 +142,22 @@ TEST(HydraulicSubsolver, ZeroConductanceSingularFallback) {
 TEST(HydraulicSubsolver, BranchFlowStoragePopulated) {
     // PressureSource P_th=10, R_int=0.5 (g=2, Qn=20), load1 g=2, load2 g=1
     // Total g=5, P1=20/5=4 kPa
-    HydraulicBuildPlan plan;
+    NodalBuildPlan plan;
     plan.islands.push_back(make_island(
         {0, 1},
         {
-            HydraulicElement{HydraulicElementKind::FixedPressureNode, 0, 0, 0.0f, 0.0f, 5u},
-            HydraulicElement{HydraulicElementKind::PressureSource, 1, 0, 10.0f, 0.5f, 2u},
-            HydraulicElement{HydraulicElementKind::FlowBranch, 1, 0, 2.0f, 0.0f, 3u},
-            HydraulicElement{HydraulicElementKind::FlowBranch, 1, 0, 1.0f, 0.0f, 7u}
+            NodalElement{NodalElementKind::FixedNode, 0, 0, 0.0f, 0.0f, 5u},
+            NodalElement{NodalElementKind::Source, 1, 0, 10.0f, 0.5f, 2u},
+            NodalElement{NodalElementKind::Branch, 1, 0, 2.0f, 0.0f, 3u},
+            NodalElement{NodalElementKind::Branch, 1, 0, 1.0f, 0.0f, 7u}
         }
     ));
 
     SimulationState st = make_sim_state(4);
-    HydraulicRuntimeState rt;
+    NodalRuntimeState rt;
 
     jit_solver_impl::build_common::init_element_values_from_plan(plan, rt);
-    solve_hydraulic(plan, rt.element_value_a, st, rt, 0.0);
+    solve_nodal(plan, rt.element_value_a, st, rt, 0.0);
 
     EXPECT_EQ(rt.branch_flows.size(), 8u);
     EXPECT_NEAR(rt.branch_flows[5], 0.0f, 1e-9f);
@@ -169,54 +169,54 @@ TEST(HydraulicSubsolver, BranchFlowStoragePopulated) {
 }
 
 TEST(HydraulicSubsolver, EmptyPlanClearsBranchFlows) {
-    HydraulicBuildPlan plan;
+    NodalBuildPlan plan;
     SimulationState st = make_sim_state(4);
-    HydraulicRuntimeState rt;
+    NodalRuntimeState rt;
     rt.branch_flows = {1.0f, 2.0f, 3.0f};
 
     jit_solver_impl::build_common::init_element_values_from_plan(plan, rt);
-    EXPECT_NO_THROW(solve_hydraulic(plan, rt.element_value_a, st, rt, 0.0));
+    EXPECT_NO_THROW(solve_nodal(plan, rt.element_value_a, st, rt, 0.0));
     EXPECT_TRUE(rt.branch_flows.empty());
 }
 
 TEST(HydraulicSubsolver, AllNodesFixedNoSolveNeeded) {
-    HydraulicBuildPlan plan;
+    NodalBuildPlan plan;
     plan.islands.push_back(make_island(
         {0, 1},
         {
-            HydraulicElement{HydraulicElementKind::FixedPressureNode, 0, 0, 0.0f, 0.0f, 0u},
-            HydraulicElement{HydraulicElementKind::FixedPressureNode, 1, 1, 5.0f, 0.0f, 1u}
+            NodalElement{NodalElementKind::FixedNode, 0, 0, 0.0f, 0.0f, 0u},
+            NodalElement{NodalElementKind::FixedNode, 1, 1, 5.0f, 0.0f, 1u}
         }
     ));
 
     SimulationState st = make_sim_state(4);
-    HydraulicRuntimeState rt;
+    NodalRuntimeState rt;
 
     jit_solver_impl::build_common::init_element_values_from_plan(plan, rt);
-    EXPECT_NO_THROW(solve_hydraulic(plan, rt.element_value_a, st, rt, 0.0));
+    EXPECT_NO_THROW(solve_nodal(plan, rt.element_value_a, st, rt, 0.0));
     EXPECT_NEAR(st.values[0], 0.0f, 1e-3f);
     EXPECT_NEAR(st.values[1], 5.0f, 1e-3f);
 }
 
 TEST(HydraulicSubsolver, PressureWritebackToSimulationState) {
     // Non-contiguous signal indices
-    HydraulicBuildPlan plan;
+    NodalBuildPlan plan;
     plan.islands.push_back(make_island(
         {10, 20, 30},
         {
-            HydraulicElement{HydraulicElementKind::FixedPressureNode, 10, 10, 0.0f, 0.0f, 0u},
-            HydraulicElement{HydraulicElementKind::PressureSource, 30, 10, 24.0f, 2.0f, 1u},
-            HydraulicElement{HydraulicElementKind::FlowBranch, 30, 20, 1.0f, 0.0f, 2u},
-            HydraulicElement{HydraulicElementKind::FlowBranch, 20, 10, 1.0f, 0.0f, 3u}
+            NodalElement{NodalElementKind::FixedNode, 10, 10, 0.0f, 0.0f, 0u},
+            NodalElement{NodalElementKind::Source, 30, 10, 24.0f, 2.0f, 1u},
+            NodalElement{NodalElementKind::Branch, 30, 20, 1.0f, 0.0f, 2u},
+            NodalElement{NodalElementKind::Branch, 20, 10, 1.0f, 0.0f, 3u}
         }
     ));
 
     SimulationState st;
     st.values.resize(50, 999.0f);
 
-    HydraulicRuntimeState rt;
+    NodalRuntimeState rt;
     jit_solver_impl::build_common::init_element_values_from_plan(plan, rt);
-    solve_hydraulic(plan, rt.element_value_a, st, rt, 0.0);
+    solve_nodal(plan, rt.element_value_a, st, rt, 0.0);
 
     EXPECT_NEAR(st.values[10], 0.0f, 1e-3f);
     EXPECT_NEAR(st.values[30], 12.0f, 1e-3f);
@@ -227,22 +227,22 @@ TEST(HydraulicSubsolver, PressureWritebackToSimulationState) {
 
 TEST(HydraulicSubsolver, SingularIslandPreservesPreviousState) {
     // Floating island — no FixedPressureNode → singular
-    HydraulicBuildPlan plan;
+    NodalBuildPlan plan;
     plan.islands.push_back(make_island(
         {0, 1},
         {
-            HydraulicElement{HydraulicElementKind::PressureSource, 0, 1, 28.0f, 0.01f, 0u},
-            HydraulicElement{HydraulicElementKind::FlowBranch, 0, 1, 1.0f, 0.0f, 1u}
+            NodalElement{NodalElementKind::Source, 0, 1, 28.0f, 0.01f, 0u},
+            NodalElement{NodalElementKind::Branch, 0, 1, 1.0f, 0.0f, 1u}
         }
     ));
 
     SimulationState st = make_sim_state(2);
     st.values[0] = 12.5f;
     st.values[1] = -3.0f;
-    HydraulicRuntimeState rt;
+    NodalRuntimeState rt;
 
     jit_solver_impl::build_common::init_element_values_from_plan(plan, rt);
-    EXPECT_NO_THROW(solve_hydraulic(plan, rt.element_value_a, st, rt, 1.0 / 60.0));
+    EXPECT_NO_THROW(solve_nodal(plan, rt.element_value_a, st, rt, 1.0 / 60.0));
     EXPECT_NEAR(st.values[0], 12.5f, 1e-6f);
     EXPECT_NEAR(st.values[1], -3.0f, 1e-6f);
 
@@ -252,41 +252,41 @@ TEST(HydraulicSubsolver, SingularIslandPreservesPreviousState) {
 }
 
 TEST(HydraulicSubsolver, SolveCountersTrackSpecializedPaths) {
-    HydraulicBuildPlan plan;
+    NodalBuildPlan plan;
 
     // N==0 (all fixed)
     plan.islands.push_back(make_island({0}, {
-        HydraulicElement{HydraulicElementKind::FixedPressureNode, 0, UINT32_MAX, 0.0f, 0.0f, 0u}
+        NodalElement{NodalElementKind::FixedNode, 0, UINT32_MAX, 0.0f, 0.0f, 0u}
     }));
 
     // N==1
     plan.islands.push_back(make_island({1, 2}, {
-        HydraulicElement{HydraulicElementKind::FixedPressureNode, 1, UINT32_MAX, 0.0f, 0.0f, 1u},
-        HydraulicElement{HydraulicElementKind::PressureSource, 2, 1, 28.0f, 1.0f, 2u},
-        HydraulicElement{HydraulicElementKind::FlowBranch, 2, 1, 1.0f, 0.0f, 3u}
+        NodalElement{NodalElementKind::FixedNode, 1, UINT32_MAX, 0.0f, 0.0f, 1u},
+        NodalElement{NodalElementKind::Source, 2, 1, 28.0f, 1.0f, 2u},
+        NodalElement{NodalElementKind::Branch, 2, 1, 1.0f, 0.0f, 3u}
     }));
 
     // N==2
     plan.islands.push_back(make_island({3, 4, 5}, {
-        HydraulicElement{HydraulicElementKind::FixedPressureNode, 3, UINT32_MAX, 0.0f, 0.0f, 4u},
-        HydraulicElement{HydraulicElementKind::PressureSource, 5, 3, 28.0f, 1.0f, 5u},
-        HydraulicElement{HydraulicElementKind::FlowBranch, 5, 4, 0.5f, 0.0f, 6u},
-        HydraulicElement{HydraulicElementKind::FlowBranch, 4, 3, 0.5f, 0.0f, 7u}
+        NodalElement{NodalElementKind::FixedNode, 3, UINT32_MAX, 0.0f, 0.0f, 4u},
+        NodalElement{NodalElementKind::Source, 5, 3, 28.0f, 1.0f, 5u},
+        NodalElement{NodalElementKind::Branch, 5, 4, 0.5f, 0.0f, 6u},
+        NodalElement{NodalElementKind::Branch, 4, 3, 0.5f, 0.0f, 7u}
     }));
 
     // Singular floating N==2
     plan.islands.push_back(make_island({6, 7}, {
-        HydraulicElement{HydraulicElementKind::PressureSource, 6, 7, 28.0f, 0.01f, 8u},
-        HydraulicElement{HydraulicElementKind::FlowBranch, 6, 7, 1.0f, 0.0f, 9u}
+        NodalElement{NodalElementKind::Source, 6, 7, 28.0f, 0.01f, 8u},
+        NodalElement{NodalElementKind::Branch, 6, 7, 1.0f, 0.0f, 9u}
     }));
 
     SimulationState st = make_sim_state(10);
     st.values[6] = 1.0f;
     st.values[7] = -1.0f;
-    HydraulicRuntimeState rt;
+    NodalRuntimeState rt;
 
     jit_solver_impl::build_common::init_element_values_from_plan(plan, rt);
-    solve_hydraulic(plan, rt.element_value_a, st, rt, 0.0);
+    solve_nodal(plan, rt.element_value_a, st, rt, 0.0);
 
     EXPECT_EQ(rt.counters.islands_total, 4u);
     EXPECT_EQ(rt.counters.solves_n0, 1u);
@@ -297,23 +297,23 @@ TEST(HydraulicSubsolver, SolveCountersTrackSpecializedPaths) {
 }
 
 TEST(HydraulicSubsolver, SolveCountersTrackDensePathForN3) {
-    HydraulicBuildPlan plan;
+    NodalBuildPlan plan;
     plan.islands.push_back(make_island(
         {0, 1, 2, 3},
         {
-            HydraulicElement{HydraulicElementKind::FixedPressureNode, 0, UINT32_MAX, 0.0f, 0.0f, 0u},
-            HydraulicElement{HydraulicElementKind::PressureSource, 3, 0, 28.0f, 1.0f, 1u},
-            HydraulicElement{HydraulicElementKind::FlowBranch, 3, 2, 1.0f, 0.0f, 2u},
-            HydraulicElement{HydraulicElementKind::FlowBranch, 2, 1, 1.0f, 0.0f, 3u},
-            HydraulicElement{HydraulicElementKind::FlowBranch, 1, 0, 1.0f, 0.0f, 4u}
+            NodalElement{NodalElementKind::FixedNode, 0, UINT32_MAX, 0.0f, 0.0f, 0u},
+            NodalElement{NodalElementKind::Source, 3, 0, 28.0f, 1.0f, 1u},
+            NodalElement{NodalElementKind::Branch, 3, 2, 1.0f, 0.0f, 2u},
+            NodalElement{NodalElementKind::Branch, 2, 1, 1.0f, 0.0f, 3u},
+            NodalElement{NodalElementKind::Branch, 1, 0, 1.0f, 0.0f, 4u}
         }
     ));
 
     SimulationState st = make_sim_state(8);
-    HydraulicRuntimeState rt;
+    NodalRuntimeState rt;
     rt.enable_diagnostics = true;
     jit_solver_impl::build_common::init_element_values_from_plan(plan, rt);
-    solve_hydraulic(plan, rt.element_value_a, st, rt, 0.0);
+    solve_nodal(plan, rt.element_value_a, st, rt, 0.0);
 
     EXPECT_EQ(rt.counters.islands_total, 1u);
     EXPECT_EQ(rt.counters.solves_dense, 1u);
@@ -324,56 +324,56 @@ TEST(HydraulicSubsolver, SolveCountersTrackDensePathForN3) {
 }
 
 TEST(HydraulicSubsolver, ReservedScratchBuffersStableAcrossSteps) {
-    HydraulicBuildPlan plan;
+    NodalBuildPlan plan;
     plan.islands.push_back(make_island(
         {0, 1, 2},
         {
-            HydraulicElement{HydraulicElementKind::FixedPressureNode, 0, UINT32_MAX, 0.0f, 0.0f, 0u},
-            HydraulicElement{HydraulicElementKind::PressureSource, 2, 0, 28.0f, 1.0f, 1u},
-            HydraulicElement{HydraulicElementKind::FlowBranch, 2, 1, 0.5f, 0.0f, 2u},
-            HydraulicElement{HydraulicElementKind::FlowBranch, 1, 0, 0.5f, 0.0f, 3u}
+            NodalElement{NodalElementKind::FixedNode, 0, UINT32_MAX, 0.0f, 0.0f, 0u},
+            NodalElement{NodalElementKind::Source, 2, 0, 28.0f, 1.0f, 1u},
+            NodalElement{NodalElementKind::Branch, 2, 1, 0.5f, 0.0f, 2u},
+            NodalElement{NodalElementKind::Branch, 1, 0, 0.5f, 0.0f, 3u}
         }
     ));
 
     SimulationState st = make_sim_state(6);
-    HydraulicRuntimeState rt;
+    NodalRuntimeState rt;
     rt.enable_diagnostics = true;
     rt.reserve(/*max_nodes=*/3, /*max_elements=*/4, /*max_element_id=*/3);
 
     jit_solver_impl::build_common::init_element_values_from_plan(plan, rt);
-    solve_hydraulic(plan, rt.element_value_a, st, rt, 0.0);
+    solve_nodal(plan, rt.element_value_a, st, rt, 0.0);
 
     size_t cap_branch_flows = rt.branch_flows.capacity();
     size_t cap_island_nodes = rt.island_nodes.capacity();
-    size_t cap_island_pressures = rt.island_pressures.capacity();
+    size_t cap_island_potentials = rt.island_potentials.capacity();
     size_t cap_matrix = rt.scratch_matrix.capacity();
     size_t cap_rhs = rt.scratch_rhs.capacity();
 
     for (int i = 0; i < 100; ++i) {
         jit_solver_impl::build_common::init_element_values_from_plan(plan, rt);
-        solve_hydraulic(plan, rt.element_value_a, st, rt, 1.0 / 60.0);
+        solve_nodal(plan, rt.element_value_a, st, rt, 1.0 / 60.0);
     }
 
     EXPECT_EQ(rt.branch_flows.capacity(), cap_branch_flows);
     EXPECT_EQ(rt.island_nodes.capacity(), cap_island_nodes);
-    EXPECT_EQ(rt.island_pressures.capacity(), cap_island_pressures);
+    EXPECT_EQ(rt.island_potentials.capacity(), cap_island_potentials);
     EXPECT_EQ(rt.scratch_matrix.capacity(), cap_matrix);
     EXPECT_EQ(rt.scratch_rhs.capacity(), cap_rhs);
 }
 
 TEST(HydraulicSubsolver, GetBranchFlowReturnsZeroForInvalidHandle) {
-    HydraulicRuntimeState rt;
+    NodalRuntimeState rt;
     rt.branch_flows = {1.0f, 2.0f, 3.0f};
 
     // Default handle — invalid
-    HydraulicPrimitiveHandle invalid;
+    NodalPrimitiveHandle invalid;
     EXPECT_FLOAT_EQ(get_branch_flow(rt, invalid), 0.0f);
 
     // Valid handle, out of range
-    HydraulicPrimitiveHandle oob{0, 0, 100};
+    NodalPrimitiveHandle oob{0, 0, 100};
     EXPECT_FLOAT_EQ(get_branch_flow(rt, oob), 0.0f);
 
     // Valid handle, in range
-    HydraulicPrimitiveHandle valid{0, 0, 1};
+    NodalPrimitiveHandle valid{0, 0, 1};
     EXPECT_FLOAT_EQ(get_branch_flow(rt, valid), 2.0f);
 }

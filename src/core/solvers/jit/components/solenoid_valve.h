@@ -3,7 +3,7 @@
 #include "core/solvers/common/provider.h"
 
 #include "../state.h"
-#include "../subsolvers/hydraulic_subsolver_types.h"
+#include "../subsolvers/nodal_types.h"
 
 /// SolenoidValve — electrically controlled hydraulic valve.
 ///
@@ -21,7 +21,7 @@ public:
     static constexpr Domain domain = Domain::Hydraulic;
 
     Provider provider;
-    HydraulicPrimitiveHandle hydraulic_handle;
+    NodalPrimitiveHandle hydraulic_handle;
     bool normally_closed = true;
     bool open = false;              ///< Committed valve state
     float flow = 0.0f;             ///< Branch flow from solver (L/s)

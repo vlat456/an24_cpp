@@ -124,7 +124,7 @@ TEST(ElectricHeaterRegression, ThermalOutput_HighVoltage_StillBounded) {
 // =============================================================================
 
 TEST(ElectricHeaterRegression, ElectricalAndThermal_SameConductance) {
-    // Both solve_electrical and solve_thermal should use the same conductance
+    // Both solve_nodal and solve_thermal should use the same conductance
     // formula: g = max_power / (v² + 0.01)
     auto comp = make_heater(500.0f, 0.9f);
 

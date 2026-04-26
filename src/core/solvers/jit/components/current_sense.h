@@ -3,7 +3,7 @@
 #include "core/solvers/common/provider.h"
 
 #include "../state.h"
-#include "../subsolvers/subsolver_types.h"
+#include "../subsolvers/nodal_types.h"
 
 /// CurrentSense - series current measurement node (ammeter)
 /// Sits in series between v_in and v_out with near-zero resistance.
@@ -14,7 +14,7 @@ public:
     static constexpr Domain domain = Domain::Electrical;
 
     Provider provider;
-    ElectricalPrimitiveHandle electrical_handle;
+    NodalPrimitiveHandle electrical_handle;
     float conductance = 1000.0f;  // high conductance = low series resistance
 
     CurrentSense() = default;

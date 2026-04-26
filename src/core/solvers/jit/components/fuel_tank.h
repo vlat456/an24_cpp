@@ -3,7 +3,7 @@
 #include "core/solvers/common/provider.h"
 
 #include "../state.h"
-#include "../subsolvers/hydraulic_subsolver_types.h"
+#include "../subsolvers/nodal_types.h"
 
 /// FuelTank — aircraft fuel reservoir with gravity head pressure.
 ///
@@ -21,7 +21,7 @@ public:
     static constexpr Domain domain = Domain::Hydraulic;
 
     Provider provider;
-    HydraulicPrimitiveHandle hydraulic_handle;
+    NodalPrimitiveHandle hydraulic_handle;
     float capacity = 1000.0f;       ///< Tank capacity (liters)
     double level = 1000.0;          ///< Current fuel amount (liters, state)
     double next_level = 1000.0;     ///< Next-frame fuel amount (liters)
