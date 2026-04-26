@@ -126,6 +126,14 @@ void Simulator<SolverTag>::start(const JitBuildInput& input) {
         (void)state_.allocate_signal(0.0f);
     }
 
+    // Initialize element_value_a from plan defaults — once, at start.
+    // These arrays are mutated in-place by patch ops each frame but their
+    // sizing and initial values never change after build.
+    jit_solver_impl::build_common::init_element_values_from_plan(
+        build_result_->electrical.plan, build_result_->electrical.runtime);
+    jit_solver_impl::build_common::init_element_values_from_plan(
+        build_result_->hydraulic.plan, build_result_->hydraulic.runtime);
+
     // Bootstrap: run solver-owned commit ops BEFORE initializing Value/RefNode
     // signals. This ensures components like AZS/Relay write their initial
     // internal state (closed=true) to signal ports. Running BEFORE Value init
@@ -258,9 +266,6 @@ void Simulator<SolverTag>::step(double dt) {
         ~RtGuard() { st.electrical_rt = nullptr; st.hydraulic_rt = nullptr; }
     } guard{state_};
 
-    // Ensure runtime mutable element values are initialized from build-plan defaults.
-    jit_solver_impl::build_common::init_element_values_from_plan(build_result_->electrical.plan, build_result_->electrical.runtime);
-
     // Pre-solve: update dynamic Thevenin source voltages (ControlledVoltageSource).
     // Reads cmd from previous frame's signal array (one-frame-delay semantic).
     update_dynamic_sources(*build_result_, state_, build_result_->electrical.runtime);
@@ -275,7 +280,6 @@ void Simulator<SolverTag>::step(double dt) {
     // == Hydraulic domain solve ==
     if (!build_result_->hydraulic.plan.islands.empty()) {
         state_.hydraulic_rt = &build_result_->hydraulic.runtime;
-        jit_solver_impl::build_common::init_element_values_from_plan(build_result_->hydraulic.plan, build_result_->hydraulic.runtime);
         update_hydraulic_dynamic_sources(*build_result_, state_, build_result_->hydraulic.runtime);
         solve_hydraulic(build_result_->hydraulic.plan, build_result_->hydraulic.runtime.element_value_a, state_, build_result_->hydraulic.runtime, dt);
         run_solver_owned_ops(build_result_->hydraulic.execute_ops, state_, dt);
