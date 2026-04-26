@@ -114,6 +114,8 @@ void Simulator<SolverTag>::start(const JitBuildInput& input) {
         build_result_->electrical.plan, build_result_->electrical.runtime);
     jit_solver_impl::build_common::init_element_values_from_plan(
         build_result_->hydraulic.plan, build_result_->hydraulic.runtime);
+    jit_solver_impl::build_common::init_element_values_from_plan(
+        build_result_->pneumatic.plan, build_result_->pneumatic.runtime);
 
     // Bootstrap: run solver-owned commit ops BEFORE initializing Value/RefNode
     // signals. This ensures components like AZS/Relay write their initial
@@ -127,9 +129,11 @@ void Simulator<SolverTag>::start(const JitBuildInput& input) {
 
     // Bootstrap hydraulic execute ops so CopySignal patch ops have valid
     // p_source values on the first frame (e.g., FuelTank gravity pressure).
-    // Without this, element_value_a would use plan-default pressure (0.0)
-    // instead of the computed gravity head for a full tank.
     run_solver_owned_ops(build_result_->hydraulic.execute_ops, state_, 0.0);
+
+    // Bootstrap pneumatic commit + execute ops (same pattern).
+    run_solver_owned_ops(build_result_->pneumatic.commit_ops, state_, 0.0);
+    run_solver_owned_ops(build_result_->pneumatic.execute_ops, state_, 0.0);
 
     // Initialize RefNode and Value devices from their params.
     for (const auto& dev : input.devices) {
@@ -176,6 +180,7 @@ void Simulator<SolverTag>::start(const JitBuildInput& input) {
 
     state_.electrical_rt = nullptr;
     state_.hydraulic_rt = nullptr;
+    state_.pneumatic_rt = nullptr;
 
     time_ = 0.0;
     step_count_ = 0;
@@ -226,7 +231,7 @@ void Simulator<SolverTag>::step(double dt) {
     state_.electrical_rt = &build_result_->electrical.runtime;
     struct RtGuard {
         SimulationState& st;
-        ~RtGuard() { st.electrical_rt = nullptr; st.hydraulic_rt = nullptr; }
+        ~RtGuard() { st.electrical_rt = nullptr; st.hydraulic_rt = nullptr; st.pneumatic_rt = nullptr; }
     } guard{state_};
 
     // == Electrical domain solve ==
@@ -248,6 +253,17 @@ void Simulator<SolverTag>::step(double dt) {
         run_solver_owned_ops(build_result_->hydraulic.execute_ops, state_, dt);
     }
 
+    // == Pneumatic domain solve ==
+    if (!build_result_->pneumatic.plan.islands.empty()) {
+        state_.pneumatic_rt = &build_result_->pneumatic.runtime;
+        update_nodal_dynamic_sources(
+            build_result_->pneumatic.patch_ops, state_, build_result_->pneumatic.runtime);
+        solve_nodal(build_result_->pneumatic.plan,
+                    build_result_->pneumatic.runtime.element_value_a,
+                    state_, build_result_->pneumatic.runtime, dt);
+        run_solver_owned_ops(build_result_->pneumatic.execute_ops, state_, dt);
+    }
+
     build_result_->scheduler.step(state_, dt);
 
     // Explicit commit pass for solver-owned components (Battery discharge, etc).
@@ -256,6 +272,11 @@ void Simulator<SolverTag>::step(double dt) {
     // Hydraulic commit pass
     if (!build_result_->hydraulic.plan.islands.empty()) {
         run_solver_owned_ops(build_result_->hydraulic.commit_ops, state_, dt);
+    }
+
+    // Pneumatic commit pass
+    if (!build_result_->pneumatic.plan.islands.empty()) {
+        run_solver_owned_ops(build_result_->pneumatic.commit_ops, state_, dt);
     }
 
     time_ += dt;

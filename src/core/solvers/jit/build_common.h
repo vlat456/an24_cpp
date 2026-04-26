@@ -1,6 +1,7 @@
 #pragma once
 
-/// Shared build helpers used by both electrical and hydraulic build pipelines.
+/// Shared build helpers used by all nodal domain build pipelines
+/// (electrical, hydraulic, pneumatic).
 /// Eliminates duplication of resolve_port, union-find, island grouping, etc.
 
 #include "jit_solver.h"
@@ -245,6 +246,57 @@ const ElementExtractor<RawElem>* find_extractor(
         if (table[i].kind == kind) return &table[i];
     }
     return nullptr;
+}
+
+// =====================================================================
+// Shared pressure-domain extractors — used by hydraulic and pneumatic.
+//
+// Both domains use the same SolverRoleKinds (PressureSource, FlowBranch,
+// FixedPressureNode) with identical extraction logic. Only the domain
+// filter in the calling code differs.
+// =====================================================================
+
+template<typename RawElem>
+void extract_pressure_source(
+    const SolverDevice& dev, const SolverRole& role,
+    const PortToSignal& pts, const core::StringInterner& intern,
+    bool bind_handle, std::vector<RawElem>& out, size_t& element_idx)
+{
+    float pressure = read_role_param_required(dev, role, "pressure");
+    float resistance = read_role_param_required(dev, role, "resistance");
+    uint32_t node_pos = resolve_role_port(dev, role, "pos", pts, intern);
+    uint32_t node_neg = resolve_role_port(dev, role, "neg", pts, intern);
+
+    out.push_back({NodalElementKind::Source,
+        node_pos, node_neg, pressure, resistance,
+        element_idx++, bind_handle ? dev.name : std::string{}});
+}
+
+template<typename RawElem>
+void extract_flow_branch(
+    const SolverDevice& dev, const SolverRole& role,
+    const PortToSignal& pts, const core::StringInterner& intern,
+    bool bind_handle, std::vector<RawElem>& out, size_t& element_idx)
+{
+    float conductance = read_role_param_required(dev, role, "g");
+    uint32_t node_a = resolve_role_port(dev, role, "a", pts, intern);
+    uint32_t node_b = resolve_role_port(dev, role, "b", pts, intern);
+    out.push_back({NodalElementKind::Branch,
+        node_a, node_b, conductance, 0.0f,
+        element_idx++, bind_handle ? dev.name : std::string{}});
+}
+
+template<typename RawElem>
+void extract_fixed_pressure_node(
+    const SolverDevice& dev, const SolverRole& role,
+    const PortToSignal& pts, const core::StringInterner& intern,
+    bool bind_handle, std::vector<RawElem>& out, size_t& element_idx)
+{
+    float value = read_role_param_required(dev, role, "pressure");
+    uint32_t node_a = resolve_role_port(dev, role, "node", pts, intern);
+    out.push_back({NodalElementKind::FixedNode,
+        node_a, UINT32_MAX, value, 0.0f,
+        element_idx++, bind_handle ? dev.name : std::string{}});
 }
 
 } // namespace build_common

@@ -80,17 +80,26 @@ static BuildResult build_from_signals(
     // Phase 3b: Hydraulic island extraction and handle assignment
     build_hydraulic_islands(result, devices);
 
+    // Phase 3c: Pneumatic island extraction and handle assignment
+    build_pneumatic_islands(result, devices);
+
     // Phase 4: Build compiled electrical runtime patch operations
     build_electrical_patch_ops(result);
 
     // Phase 4b: Build compiled hydraulic runtime patch operations
     build_hydraulic_patch_ops(result);
 
+    // Phase 4c: Build compiled pneumatic runtime patch operations
+    build_pneumatic_patch_ops(result);
+
     // Phase 5: Build compiled solver-owned step operations (execute + commit)
     build_solver_step_ops(result);
 
     // Phase 5b: Build compiled hydraulic solver-owned step operations
     build_hydraulic_step_ops(result);
+
+    // Phase 5c: Build compiled pneumatic solver-owned step operations
+    build_pneumatic_step_ops(result);
 
     // Freeze component storage after all pointer extraction is complete.
     // Prevents accidental post-build structural mutation that would invalidate

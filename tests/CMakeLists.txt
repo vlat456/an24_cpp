@@ -781,3 +781,4 @@ add_sim_test(elaborate_jit_parity_tests SOURCES test_elaborate_jit_parity.cpp LI
 
 # Cross-path signal allocation equivalence tests (Issue #227)
 add_sim_test(cross_path_signal_equivalence_tests SOURCES test_cross_path_signal_equivalence.cpp LINKS blueprint_v2 jit_solver json_io signal_allocation LABELS "production_path")
+add_sim_test(pneumatic_integration_tests SOURCES test_pneumatic_integration.cpp LINKS jit_solver)

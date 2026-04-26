@@ -5,6 +5,7 @@ add_library(jit_solver
     build_components_validation.cpp
     build_electrical.cpp
     build_hydraulic.cpp
+    build_pneumatic.cpp
     simulator.cpp
     subsolvers/nodal_subsolver.cpp
     # Phase 2 Slice 1: Migrated push-style components
@@ -72,6 +73,9 @@ add_library(jit_solver
     components/pressure_ref.cpp
     components/radiator.cpp
     components/solenoid_valve.cpp
+    components/pneumatic_compressor.cpp
+    components/pneumatic_ref.cpp
+    components/pneumatic_valve.cpp
     components/spring.cpp
     components/temp_sensor.cpp
     components/transformer.cpp

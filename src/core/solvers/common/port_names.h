@@ -62,6 +62,7 @@ enum class PortNames : uint32_t {
     power,
     primary,
     reset,
+    rpm_in,
     rpm_out,
     secondary,
     setpoint,

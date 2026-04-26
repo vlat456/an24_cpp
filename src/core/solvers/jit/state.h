@@ -30,6 +30,11 @@ struct SimulationState {
     // Null if hydraulic solving is not active.
     NodalRuntimeState* hydraulic_rt = nullptr;
 
+    // Pointer to currently active pneumatic runtime state.
+    // Set by simulator before scheduler.step() each frame.
+    // Null if pneumatic solving is not active.
+    NodalRuntimeState* pneumatic_rt = nullptr;
+
     SimulationState() = default;
 
     /// Allocate a new signal index and set its initial value.

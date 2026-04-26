@@ -189,6 +189,9 @@ struct BuildResult {
     /// Hydraulic-domain build artifacts (plan, patch ops, step ops).
     NodalArtifacts hydraulic;
 
+    /// Pneumatic-domain build artifacts (plan, patch ops, step ops).
+    NodalArtifacts pneumatic;
+
     /// LUT table arena - accumulated during build, moved to SimulationState at start
     std::vector<float> lut_keys;
     std::vector<float> lut_values;

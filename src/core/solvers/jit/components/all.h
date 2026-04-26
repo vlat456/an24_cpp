@@ -76,5 +76,8 @@
 #include "electrical_source.h"
 #include "value.h"
 #include "pressure_ref.h"
+#include "pneumatic_compressor.h"
+#include "pneumatic_ref.h"
+#include "pneumatic_valve.h"
 
 // No class declarations here - all are in their respective headers

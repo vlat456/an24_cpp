@@ -1,16 +1,17 @@
-/// Hydraulic domain build pipeline — element extraction, island grouping,
+/// Pneumatic domain build pipeline — element extraction, island grouping,
 /// handle assignment, patch ops, and step ops.
 ///
-/// Mirrors build_electrical.cpp for the hydraulic domain.
-/// Uses the same architectural patterns: schema-registered extractors,
-/// union-find island grouping, structural typing for handle assignment.
+/// Uses the same architectural patterns as hydraulic: schema-registered
+/// extractors, union-find island grouping, structural typing for handles.
+/// The unified nodal subsolver handles the actual solve — this file only
+/// produces NodalElement structs with NodalElementKind values.
 
 #include "jit_solver_internal.h"
 #include "build_common.h"
 #include "../common/signal_key.h"
 // Component headers for visit-based build ops.
-#include "components/fuel_tank.h"
-#include "components/solenoid_valve.h"
+#include "components/pneumatic_compressor.h"
+#include "components/pneumatic_valve.h"
 #include "core/solvers/common/provider.h"
 #include <unordered_set>
 
@@ -30,17 +31,17 @@ using Extractor = build_common::ElementExtractor<RawElement>;
 
 // ---- The extractor table (shared pressure-domain extractors) ----
 
-static const Extractor k_hydraulic_extractors[] = {
+static const Extractor k_pneumatic_extractors[] = {
     {SolverRoleKind::FixedPressureNode, &build_common::extract_fixed_pressure_node<RawElement>},
     {SolverRoleKind::PressureSource,    &build_common::extract_pressure_source<RawElement>},
     {SolverRoleKind::FlowBranch,        &build_common::extract_flow_branch<RawElement>},
 };
 
 // =====================================================================
-// Phase 1: Extract raw hydraulic elements from solver_role devices
+// Phase 1: Extract raw pneumatic elements from solver_role devices
 // =====================================================================
 
-static std::vector<RawElement> extract_hydraulic_raw_elements(
+static std::vector<RawElement> extract_pneumatic_raw_elements(
     const std::vector<SolverDevice>& devices,
     const PortToSignal& port_to_signal,
     const core::StringInterner& signal_key_interner)
@@ -53,13 +54,13 @@ static std::vector<RawElement> extract_hydraulic_raw_elements(
         if (!dev.solver_role.has_value()) continue;
         const auto& role = *dev.solver_role;
 
-        // Only process hydraulic domain solver_roles.
-        if (role.domain != Domain::Hydraulic) continue;
+        // Only process pneumatic domain solver_roles.
+        if (role.domain != Domain::Pneumatic) continue;
 
         const auto* extractor = build_common::find_extractor(
-            k_hydraulic_extractors, std::size(k_hydraulic_extractors), role.kind);
+            k_pneumatic_extractors, std::size(k_pneumatic_extractors), role.kind);
         if (!extractor) {
-            throw std::runtime_error("Unsupported hydraulic solver_role kind '" +
+            throw std::runtime_error("Unsupported pneumatic solver_role kind '" +
                 std::string(solver_role_kind_name(role.kind)) +
                 "' for component '" + dev.name + "' (classname: " + dev.classname + ")");
         }
@@ -75,7 +76,7 @@ static std::vector<RawElement> extract_hydraulic_raw_elements(
 // Phase 3: Assign NodalPrimitiveHandle to component variants
 // =====================================================================
 
-static void assign_hydraulic_handles(
+static void assign_pneumatic_handles(
     const std::vector<RawElement>& raw_elements,
     BuildResult& result)
 {
@@ -87,8 +88,8 @@ static void assign_hydraulic_handles(
         }
     }
 
-    for (size_t island_idx = 0; island_idx < result.hydraulic.plan.islands.size(); ++island_idx) {
-        const auto& island = result.hydraulic.plan.islands[island_idx];
+    for (size_t island_idx = 0; island_idx < result.pneumatic.plan.islands.size(); ++island_idx) {
+        const auto& island = result.pneumatic.plan.islands[island_idx];
         for (size_t elem_idx = 0; elem_idx < island.elements.size(); ++elem_idx) {
             const auto& elem = island.elements[elem_idx];
             auto it_name = element_id_to_device.find(elem.element_id);
@@ -97,7 +98,7 @@ static void assign_hydraulic_handles(
             const std::string& device_name = it_name->second;
             ComponentVariant* variant = result.devices.find_mutable(device_name);
             if (variant == nullptr) {
-                throw std::runtime_error("Hydraulic handle assignment failed: device '" +
+                throw std::runtime_error("Pneumatic handle assignment failed: device '" +
                     device_name + "' not found in result.devices");
             }
 
@@ -108,8 +109,8 @@ static void assign_hydraulic_handles(
 
             std::visit([&](auto& comp) {
                 using T = std::decay_t<decltype(comp)>;
-                if constexpr (requires { comp.hydraulic_handle; }) {
-                    comp.hydraulic_handle = handle;
+                if constexpr (requires { comp.pneumatic_handle; }) {
+                    comp.pneumatic_handle = handle;
                 }
             }, *variant);
         }
@@ -117,51 +118,51 @@ static void assign_hydraulic_handles(
 }
 
 // =====================================================================
-// Orchestrator: build_hydraulic_islands
+// Orchestrator: build_pneumatic_islands
 // =====================================================================
 
-void build_hydraulic_islands(
+void build_pneumatic_islands(
     BuildResult& result,
     const std::vector<SolverDevice>& devices)
 {
-    auto raw_elements = extract_hydraulic_raw_elements(
+    auto raw_elements = extract_pneumatic_raw_elements(
         devices, result.port_to_signal, result.signal_key_interner);
-    build_common::group_into_islands<RawElement, NodalIslandPlan>(raw_elements, result.hydraulic.plan);
-    assign_hydraulic_handles(raw_elements, result);
+    build_common::group_into_islands<RawElement, NodalIslandPlan>(raw_elements, result.pneumatic.plan);
+    assign_pneumatic_handles(raw_elements, result);
 }
 
 // =====================================================================
-// Hydraulic patch ops + solver step ops
+// Pneumatic patch ops + solver step ops
 // =====================================================================
 
-void build_hydraulic_patch_ops(BuildResult& result)
+void build_pneumatic_patch_ops(BuildResult& result)
 {
-    result.hydraulic.patch_ops.clear();
+    result.pneumatic.patch_ops.clear();
 
     auto add_op = [&](const NodalPatchOp& op) {
         if (op.element_id == UINT32_MAX) return;
-        result.hydraulic.patch_ops.push_back(op);
+        result.pneumatic.patch_ops.push_back(op);
     };
 
     result.devices.for_each_mutable([&](const std::string&, ComponentVariant& variant) {
         std::visit([&](auto& comp) {
             using T = std::decay_t<decltype(comp)>;
 
-            if constexpr (std::is_same_v<T, SolenoidValve<JitProvider>>) {
-                if (!is_valid(comp.hydraulic_handle)) return;
+            if constexpr (std::is_same_v<T, PneumaticValve<JitProvider>>) {
+                if (!is_valid(comp.pneumatic_handle)) return;
                 NodalPatchOp op;
                 op.kind = NodalPatchKind::BoolSwitch;
-                op.element_id = comp.hydraulic_handle.element_id;
+                op.element_id = comp.pneumatic_handle.element_id;
                 op.s0 = comp.provider.get(PortNames::state);
-                op.state_true_value = comp.g_open;    // valve open when state=true
-                op.state_false_value = comp.g_closed;  // valve closed when state=false
+                op.state_true_value = comp.g_open;
+                op.state_false_value = comp.g_closed;
                 add_op(op);
             }
-            else if constexpr (std::is_same_v<T, FuelTank<JitProvider>>) {
-                if (!is_valid(comp.hydraulic_handle)) return;
+            else if constexpr (std::is_same_v<T, PneumaticCompressor<JitProvider>>) {
+                if (!is_valid(comp.pneumatic_handle)) return;
                 NodalPatchOp op;
                 op.kind = NodalPatchKind::CopySignal;
-                op.element_id = comp.hydraulic_handle.element_id;
+                op.element_id = comp.pneumatic_handle.element_id;
                 op.s0 = comp.provider.get(PortNames::p_source);
                 add_op(op);
             }
@@ -169,25 +170,25 @@ void build_hydraulic_patch_ops(BuildResult& result)
     });
 }
 
-// Trait: true for component types that participate in the hydraulic solver's
+// Trait: true for component types that participate in the pneumatic solver's
 // per-frame execute/commit cycle.
 template<typename T>
-constexpr bool is_hydraulic_solver_owned_v = requires(T t) {
-    { t.hydraulic_handle } -> std::same_as<NodalPrimitiveHandle&>;
+constexpr bool is_pneumatic_solver_owned_v = requires(T t) {
+    { t.pneumatic_handle } -> std::same_as<NodalPrimitiveHandle&>;
 };
 
-void build_hydraulic_step_ops(BuildResult& result)
+void build_pneumatic_step_ops(BuildResult& result)
 {
-    result.hydraulic.execute_ops.clear();
-    result.hydraulic.commit_ops.clear();
+    result.pneumatic.execute_ops.clear();
+    result.pneumatic.commit_ops.clear();
 
     result.devices.for_each_mutable([&](const std::string&, ComponentVariant& variant) {
         std::visit([&](auto& comp) {
             using T = std::decay_t<decltype(comp)>;
-            if constexpr (is_hydraulic_solver_owned_v<T>) {
-                result.hydraulic.execute_ops.push_back(
+            if constexpr (is_pneumatic_solver_owned_v<T>) {
+                result.pneumatic.execute_ops.push_back(
                     {&comp, &execute_component_adapter<T>});
-                result.hydraulic.commit_ops.push_back(
+                result.pneumatic.commit_ops.push_back(
                     {&comp, &commit_component_adapter<T>});
             }
         }, variant);

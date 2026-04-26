@@ -8,7 +8,8 @@ enum class Domain : uint8_t {
     Logical    = 1 << 1,
     Mechanical = 1 << 2,
     Hydraulic  = 1 << 3,
-    Thermal    = 1 << 4
+    Thermal    = 1 << 4,
+    Pneumatic  = 1 << 5
 };
 
 constexpr Domain operator|(Domain a, Domain b) {
@@ -51,7 +52,7 @@ constexpr Domain domain_for_port_type(PortType t) {
         case PortType::Position:
             return Domain::Mechanical;
         case PortType::Pressure:
-            return Domain::Hydraulic;
+            return Domain::Hydraulic;  // Pressure ports used by hydraulic (default)
         case PortType::Temperature:
             return Domain::Thermal;
     }
@@ -65,6 +66,7 @@ constexpr PortType port_type_for_domain(Domain d) {
         case Domain::Mechanical: return PortType::RPM;
         case Domain::Hydraulic:  return PortType::Pressure;
         case Domain::Thermal:    return PortType::Temperature;
+        case Domain::Pneumatic:  return PortType::Pressure;
     }
     return PortType::Contextual;
 }

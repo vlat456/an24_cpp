@@ -72,6 +72,15 @@ void build_hydraulic_patch_ops(BuildResult& result);
 
 void build_hydraulic_step_ops(BuildResult& result);
 
+/// Pneumatic building functions
+void build_pneumatic_islands(
+    BuildResult& result,
+    const std::vector<SolverDevice>& devices);
+
+void build_pneumatic_patch_ops(BuildResult& result);
+
+void build_pneumatic_step_ops(BuildResult& result);
+
 /// Type-erased component adapters — shared by electrical and hydraulic build.
 template <typename Comp>
 void execute_component_adapter(void* instance, SimulationState& st, double dt) {

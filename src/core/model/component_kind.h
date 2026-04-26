@@ -67,6 +67,9 @@ enum class ComponentKind : uint8_t {
     PD,
     PI,
     PID,
+    PneumaticCompressor,
+    PneumaticRef,
+    PneumaticValve,
     Positive_V_to_Bool,
     PressureRef,
     Radiator,
@@ -145,6 +148,9 @@ inline std::optional<ComponentKind> parse_component_kind(std::string_view name) 
     if (name == "PD") return ComponentKind::PD;
     if (name == "PI") return ComponentKind::PI;
     if (name == "PID") return ComponentKind::PID;
+    if (name == "PneumaticCompressor") return ComponentKind::PneumaticCompressor;
+    if (name == "PneumaticRef") return ComponentKind::PneumaticRef;
+    if (name == "PneumaticValve") return ComponentKind::PneumaticValve;
     if (name == "Positive_V_to_Bool") return ComponentKind::Positive_V_to_Bool;
     if (name == "PressureRef") return ComponentKind::PressureRef;
     if (name == "Radiator") return ComponentKind::Radiator;
@@ -223,6 +229,9 @@ inline constexpr std::string_view component_kind_classname(ComponentKind kind) {
         case ComponentKind::PD: return "PD";
         case ComponentKind::PI: return "PI";
         case ComponentKind::PID: return "PID";
+        case ComponentKind::PneumaticCompressor: return "PneumaticCompressor";
+        case ComponentKind::PneumaticRef: return "PneumaticRef";
+        case ComponentKind::PneumaticValve: return "PneumaticValve";
         case ComponentKind::Positive_V_to_Bool: return "Positive_V_to_Bool";
         case ComponentKind::PressureRef: return "PressureRef";
         case ComponentKind::Radiator: return "Radiator";

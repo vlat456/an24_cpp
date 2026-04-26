@@ -73,6 +73,7 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
         {"power", PortNames::power},
         {"primary", PortNames::primary},
         {"reset", PortNames::reset},
+        {"rpm_in", PortNames::rpm_in},
         {"rpm_out", PortNames::rpm_out},
         {"secondary", PortNames::secondary},
         {"setpoint", PortNames::setpoint},

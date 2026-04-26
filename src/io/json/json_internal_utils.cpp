@@ -10,11 +10,12 @@ Domain parse_domain_string(const std::string& s) {
     if (s == "Hydraulic") return Domain::Hydraulic;
     if (s == "Mechanical") return Domain::Mechanical;
     if (s == "Thermal") return Domain::Thermal;
+    if (s == "Pneumatic") return Domain::Pneumatic;
     throw std::runtime_error("Unknown domain: " + s);
 }
 
 Domain parse_domain_mask_int(int v) {
-    if (v <= 0 || (v & ~31) != 0) {
+    if (v <= 0 || (v & ~63) != 0) {
         throw std::runtime_error("Invalid domain bitmask value: " + std::to_string(v));
     }
     return static_cast<Domain>(static_cast<uint8_t>(v));

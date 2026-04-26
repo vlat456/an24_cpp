@@ -1,0 +1,45 @@
+{
+  "version": "3.0",
+  "id": "PneumaticRef",
+  "display_name": "PneumaticRef",
+  "scheduler_role": "Source",
+  "interface": [
+    {
+      "name": "p",
+      "domain": 32,
+      "direction": 1,
+      "type": "Pressure",
+      "source_writer": false
+    }
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Fixed pneumatic pressure reference (boundary condition)",
+  "domains": [
+    "Pneumatic"
+  ],
+  "param_defaults": {
+    "pressure": "0.0"
+  },
+  "param_schema": {
+    "pressure": {
+      "type": "float"
+    }
+  },
+  "solver_role": {
+    "kind": "FixedPressureNode",
+    "domain": "Pneumatic",
+    "ports": {
+      "node": "p"
+    },
+    "params": {
+      "pressure": "pressure"
+    },
+    "values": {
+      "bind_handle": 0.0
+    }
+  },
+  "render_hint": "ref"
+}

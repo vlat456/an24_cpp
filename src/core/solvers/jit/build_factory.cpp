@@ -245,6 +245,22 @@ static void consume_params(PID<JitProvider>& comp, ParamReader& param_reader) {
     comp.output_min = param_reader.consume_float_optional("output_min", -1000.0f);
 }
 
+static void consume_params(PneumaticCompressor<JitProvider>& comp, ParamReader& param_reader) {
+    comp.internal_r = param_reader.consume_float_optional("internal_r", 0.05f);
+    comp.max_pressure = param_reader.consume_float_optional("max_pressure", 700.0f);
+    comp.rated_rpm = param_reader.consume_float_optional("rated_rpm", 24000.0f);
+}
+
+static void consume_params(PneumaticRef<JitProvider>& comp, ParamReader& param_reader) {
+    comp.pressure = param_reader.consume_float_optional("pressure", 0.0f);
+}
+
+static void consume_params(PneumaticValve<JitProvider>& comp, ParamReader& param_reader) {
+    comp.g_closed = param_reader.consume_float_optional("g_closed", 0.0001f);
+    comp.g_open = param_reader.consume_float_optional("g_open", 5.0f);
+    comp.normally_closed = param_reader.consume_bool_optional("normally_closed", true);
+}
+
 static void consume_params(Positive_V_to_Bool<JitProvider>& comp, ParamReader& param_reader) {
     (void)comp; (void)param_reader;  // no params
 }
@@ -470,6 +486,9 @@ static const BuildFn BUILD_TABLE[] = {
     build_generic<PD<JitProvider>, SchedulerRoleKind::Consumer>,  // PD
     build_generic<PI<JitProvider>, SchedulerRoleKind::Consumer>,  // PI
     build_generic<PID<JitProvider>, SchedulerRoleKind::Consumer>,  // PID
+    build_generic<PneumaticCompressor<JitProvider>, SchedulerRoleKind::Consumer>,  // PneumaticCompressor
+    build_generic<PneumaticRef<JitProvider>, SchedulerRoleKind::Source>,  // PneumaticRef
+    build_generic<PneumaticValve<JitProvider>, SchedulerRoleKind::Consumer>,  // PneumaticValve
     build_generic<Positive_V_to_Bool<JitProvider>, SchedulerRoleKind::Consumer>,  // Positive_V_to_Bool
     build_generic<PressureRef<JitProvider>, SchedulerRoleKind::Source>,  // PressureRef
     build_generic<Radiator<JitProvider>, SchedulerRoleKind::Consumer>,  // Radiator

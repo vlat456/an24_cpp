@@ -1,0 +1,69 @@
+{
+  "version": "3.0",
+  "id": "PneumaticCompressor",
+  "display_name": "PneumaticCompressor",
+  "scheduler_role": "Consumer",
+  "interface": [
+    {
+      "name": "rpm_in",
+      "domain": 4,
+      "direction": 0,
+      "type": "RPM",
+      "source_writer": false
+    },
+    {
+      "name": "p_out",
+      "domain": 32,
+      "direction": 1,
+      "type": "Pressure",
+      "source_writer": true
+    },
+    {
+      "name": "p_ref",
+      "domain": 32,
+      "direction": 1,
+      "type": "Pressure",
+      "source_writer": false
+    },
+    {
+      "name": "p_source",
+      "domain": 2,
+      "direction": 1,
+      "type": "Signal",
+      "source_writer": false
+    }
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "RPM-driven pneumatic pressure source (solver-owned)",
+  "domains": [
+    "Pneumatic"
+  ],
+  "param_defaults": {
+    "max_pressure": "700.0",
+    "internal_r": "0.05",
+    "rated_rpm": "24000.0"
+  },
+  "param_schema": {
+    "max_pressure": {"type": "float"},
+    "internal_r": {"type": "float"},
+    "rated_rpm": {"type": "float"}
+  },
+  "solver_role": {
+    "kind": "PressureSource",
+    "domain": "Pneumatic",
+    "ports": {
+      "pos": "p_out",
+      "neg": "p_ref"
+    },
+    "params": {
+      "resistance": "internal_r"
+    },
+    "values": {
+      "pressure": 0.0,
+      "bind_handle": 1.0
+    }
+  }
+}

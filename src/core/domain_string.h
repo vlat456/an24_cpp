@@ -11,6 +11,7 @@ inline std::string domain_to_string(Domain d) {
         case Domain::Mechanical: return "Mechanical";
         case Domain::Hydraulic: return "Hydraulic";
         case Domain::Thermal: return "Thermal";
+        case Domain::Pneumatic: return "Pneumatic";
     }
     return "Unknown";
 }
