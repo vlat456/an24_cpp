@@ -68,6 +68,7 @@ enum class ComponentKind : uint8_t {
     PI,
     PID,
     Positive_V_to_Bool,
+    PressureRef,
     Radiator,
     RefNode,
     Relay,
@@ -145,6 +146,7 @@ inline std::optional<ComponentKind> parse_component_kind(std::string_view name) 
     if (name == "PI") return ComponentKind::PI;
     if (name == "PID") return ComponentKind::PID;
     if (name == "Positive_V_to_Bool") return ComponentKind::Positive_V_to_Bool;
+    if (name == "PressureRef") return ComponentKind::PressureRef;
     if (name == "Radiator") return ComponentKind::Radiator;
     if (name == "RefNode") return ComponentKind::RefNode;
     if (name == "Relay") return ComponentKind::Relay;
@@ -222,6 +224,7 @@ inline constexpr std::string_view component_kind_classname(ComponentKind kind) {
         case ComponentKind::PI: return "PI";
         case ComponentKind::PID: return "PID";
         case ComponentKind::Positive_V_to_Bool: return "Positive_V_to_Bool";
+        case ComponentKind::PressureRef: return "PressureRef";
         case ComponentKind::Radiator: return "Radiator";
         case ComponentKind::RefNode: return "RefNode";
         case ComponentKind::Relay: return "Relay";

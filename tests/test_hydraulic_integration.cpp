@@ -2,66 +2,100 @@
 #include "core/solvers/jit/jit_solver.h"
 #include "core/solvers/jit/simulator.h"
 #include "core/solvers/jit/state.h"
-#include "core/solvers/jit/build_common.h"
 #include "core/solvers/jit/subsolvers/hydraulic_subsolver_types.h"
-#include "core/solvers/jit/subsolvers/hydraulic_subsolver.h"
-#include "core/solvers/jit/subsolvers/electrical_subsolver.h"
 #include "jit_build_input_test_helper.h"
 #include <cmath>
 
 // ============================================================================
-// Hydraulic Integration Tests — #301-E / #305
+// Hydraulic Integration Tests — #301-E / #305 / #309
 // Validates end-to-end hydraulic build + solve through the Simulator.
+// Uses PressureRef as hydraulic boundary (FixedPressureNode, P=0).
+//
+// Circuit topology (all tests):
+//   FuelTank.flow_out ── SolenoidValve.flow_in     (junction, unknown P)
+//   SolenoidValve.flow_out ── PressureRef.p         (drain, P=0 fixed)
+//   FuelTank.p_ref ── PressureRef.p                 (atmospheric reference)
+//   Value(24V) ── SolenoidValve.ctrl               (opens normally_closed valve)
 // ============================================================================
 
 namespace {
 
-/// Build a FuelTank → SolenoidValve circuit and return the simulator.
-/// Circuit topology:
-///   FuelTank.flow_out ── SolenoidValve.flow_in
-///   SolenoidValve.flow_out ── drain (atmospheric, signal 0 = 0 kPa)
-///
-/// The FuelTank is a PressureSource (Thevenin: P_th=gravity_pressure, R=internal_r).
-/// The SolenoidValve is a FlowBranch (BoolSwitch: g_open=10, g_closed=1e-4).
-/// Atmospheric drain is implicit (signal 0 = 0 kPa reference).
-///
-/// The fuel_tank blueprint also has a p_source port that the component writes
-/// gravity pressure to. The CopySignal patch op copies p_source → element_value_a.
-/// One-frame delay: component writes in frame N, solver reads in frame N+1.
-std::pair<BuildResult, SimulationState> build_tank_valve_circuit() {
-    // Devices: tank, valve, value node for ctrl, value node for atm drain
-    std::vector<DeviceInstance> devices = {
+// ---- Physical constants for hand-computed expected values ----
+constexpr float GRAVITY = 9.81f;
+constexpr float DENSITY = 0.78f;       // TS-1 kerosene (kg/L)
+constexpr float TANK_HEIGHT = 1.0f;    // meters
+constexpr float INTERNAL_R = 0.1f;    // kPa·s/L
+constexpr float G_SRC = 1.0f / INTERNAL_R;  // = 10 L/(s·kPa)
+
+// Full tank: level_frac = 1.0
+constexpr float P_TH_FULL = DENSITY * GRAVITY * TANK_HEIGHT * 1.0f;
+
+// ---- Shared hydraulic circuit topology ----
+
+/// Hydraulic-only devices: FuelTank + SolenoidValve + Value(ctrl) + PressureRef(drain).
+std::vector<DeviceInstance> hydraulic_devices() {
+    return {
         make_device("tank", "FuelTank", {
-            {"capacity", "1000.0"}, {"density", "0.78"}, {"level", "1000.0"},
-            {"consumption_rate", "0.0"}, {"internal_r", "0.1"}, {"tank_height", "1.0"}
+            {"capacity", "1000.0"}, {"density", std::to_string(DENSITY)},
+            {"level", "1000.0"}, {"consumption_rate", "0.0"},
+            {"internal_r", std::to_string(INTERNAL_R)},
+            {"tank_height", std::to_string(TANK_HEIGHT)}
         }),
         make_device("valve", "SolenoidValve", {
             {"normally_closed", "true"}, {"g_open", "10.0"}, {"g_closed", "0.0001"}
         }),
-        make_device("ctrl_src", "Value", {{"value", "0.0"}}),
-        make_device("drain", "RefNode", {{"value", "0.0"}})
+        make_device("ctrl_src", "Value", {{"value", "24.0"}}),
+        make_device("drain", "PressureRef", {{"pressure", "0.0"}})
     };
+}
 
-    // Signal groups (shared signal indices):
-    //   0: tank.flow_out ── valve.flow_in
-    //   1: valve.flow_out ── drain.v (atmospheric, P=0)
-    //   2: ctrl_src.o ── valve.ctrl
-    //   3: tank.level_out (isolated)
-    //   4: tank.p_source (isolated — component writes here)
-    //   5: valve.state (isolated — component writes here)
-    std::vector<std::vector<std::string>> signal_groups = {
-        {"tank.flow_out", "valve.flow_in"},       // 0: junction pressure
-        {"valve.flow_out", "drain.v"},             // 1: drain (atm)
-        {"ctrl_src.o", "valve.ctrl"},               // 2: control voltage
-        {"tank.level_out"},                          // 3: level fraction
-        {"tank.p_source"},                           // 4: source pressure
-        {"valve.state"}                              // 5: valve state
+/// Signal groups for the hydraulic-only circuit.
+///   0: tank.flow_out ── valve.flow_in       (junction, unknown P)
+///   1: valve.flow_out ── drain.p ── tank.p_ref  (drain + atmospheric ref)
+///   2: ctrl_src.o ── valve.ctrl
+///   3+: isolated component signals
+std::vector<std::vector<std::string>> hydraulic_signal_groups() {
+    return {
+        {"tank.flow_out", "valve.flow_in"},
+        {"valve.flow_out", "drain.p", "tank.p_ref"},
+        {"ctrl_src.o", "valve.ctrl"},
+        {"tank.level_out"},
+        {"tank.p_source"},
+        {"valve.state"}
     };
+}
 
-    auto input = make_jit_input(devices, signal_groups);
+// ---- Shared combined (electrical + hydraulic) circuit topology ----
+
+/// Combined electrical + hydraulic devices.
+std::vector<DeviceInstance> combined_devices() {
+    auto devs = std::vector<DeviceInstance>{
+        make_device("battery", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}}),
+        make_device("resistor", "Resistor", {{"conductance", "1.0"}}),
+        make_device("refnode", "RefNode", {{"value", "0.0"}})
+    };
+    auto hydraulic = hydraulic_devices();
+    devs.insert(devs.end(), hydraulic.begin(), hydraulic.end());
+    return devs;
+}
+
+/// Signal groups for the combined circuit.
+std::vector<std::vector<std::string>> combined_signal_groups() {
+    auto groups = std::vector<std::vector<std::string>>{
+        {"battery.v_out", "resistor.v_in"},
+        {"resistor.v_out", "refnode.v", "battery.v_in"}
+    };
+    auto hydraulic = hydraulic_signal_groups();
+    groups.insert(groups.end(), hydraulic.begin(), hydraulic.end());
+    return groups;
+}
+
+/// Build a FuelTank → SolenoidValve → PressureRef circuit (build pipeline).
+/// For Tests 1-3 that verify BuildResult directly.
+std::pair<BuildResult, SimulationState> build_tank_valve_circuit() {
+    auto input = make_jit_input(hydraulic_devices(), hydraulic_signal_groups());
     auto result = build_systems_dev(input);
 
-    // Build sim state
     SimulationState st;
     for (uint32_t i = 0; i < result.signal_count; ++i) {
         (void)st.allocate_signal(0.0f);
@@ -73,32 +107,33 @@ std::pair<BuildResult, SimulationState> build_tank_valve_circuit() {
 } // anonymous namespace
 
 // ============================================================================
-// Test 1: Build pipeline produces correct hydraulic plan
+// Test 1: Build pipeline produces correct hydraulic plan with 3 elements
 // ============================================================================
 
 TEST(HydraulicIntegration, BuildProducesHydraulicIslands) {
     auto [result, st] = build_tank_valve_circuit();
 
-    // Should have exactly 1 hydraulic island (all connected)
+    // All three hydraulic elements are connected → 1 island
     ASSERT_EQ(result.hydraulic.plan.islands.size(), 1u);
 
     const auto& island = result.hydraulic.plan.islands[0];
 
-    // FuelTank → PressureSource, SolenoidValve → FlowBranch
-    // Plus the RefNode creates a FixedPressureNode? No — RefNode is electrical.
-    // The drain RefNode is NOT a hydraulic component — it's a generic Value/RefNode.
-    // So we have 2 hydraulic elements: PressureSource + FlowBranch
-    ASSERT_EQ(island.elements.size(), 2u);
+    // PressureSource + FlowBranch + FixedPressureNode
+    ASSERT_EQ(island.elements.size(), 3u);
 
-    // Collect kinds
     int pressure_sources = 0;
     int flow_branches = 0;
+    int fixed_nodes = 0;
     for (const auto& elem : island.elements) {
-        if (elem.kind == HydraulicElementKind::PressureSource) pressure_sources++;
-        if (elem.kind == HydraulicElementKind::FlowBranch) flow_branches++;
+        switch (elem.kind) {
+            case HydraulicElementKind::PressureSource:  pressure_sources++; break;
+            case HydraulicElementKind::FlowBranch:      flow_branches++; break;
+            case HydraulicElementKind::FixedPressureNode: fixed_nodes++; break;
+        }
     }
     EXPECT_EQ(pressure_sources, 1);
     EXPECT_EQ(flow_branches, 1);
+    EXPECT_EQ(fixed_nodes, 1);
 }
 
 // ============================================================================
@@ -108,13 +143,11 @@ TEST(HydraulicIntegration, BuildProducesHydraulicIslands) {
 TEST(HydraulicIntegration, HandlesAssignedToComponents) {
     auto [result, st] = build_tank_valve_circuit();
 
-    // Check that FuelTank got a hydraulic_handle
     auto& tank_var = result.devices.at("tank");
     const auto* tank = std::get_if<FuelTank<JitProvider>>(&tank_var);
     ASSERT_NE(tank, nullptr);
     EXPECT_TRUE(is_valid(tank->hydraulic_handle));
 
-    // Check that SolenoidValve got a hydraulic_handle
     auto& valve_var = result.devices.at("valve");
     const auto* valve = std::get_if<SolenoidValve<JitProvider>>(&valve_var);
     ASSERT_NE(valve, nullptr);
@@ -128,207 +161,124 @@ TEST(HydraulicIntegration, HandlesAssignedToComponents) {
 TEST(HydraulicIntegration, PatchOpsCreated) {
     auto [result, st] = build_tank_valve_circuit();
 
-    // Should have 2 patch ops: CopySignal (FuelTank) + BoolSwitch (SolenoidValve)
     ASSERT_EQ(result.hydraulic.patch_ops.size(), 2u);
 
     int copy_signals = 0;
     int bool_switches = 0;
     for (const auto& op : result.hydraulic.patch_ops) {
-        if (op.kind == HydraulicPatchKind::CopySignal) copy_signals++;
-        if (op.kind == HydraulicPatchKind::BoolSwitch) bool_switches++;
+        switch (op.kind) {
+            case HydraulicPatchKind::CopySignal:  copy_signals++; break;
+            case HydraulicPatchKind::BoolSwitch:  bool_switches++; break;
+        }
     }
     EXPECT_EQ(copy_signals, 1);
     EXPECT_EQ(bool_switches, 1);
 }
 
 // ============================================================================
-// Test 4: Solve produces correct pressure distribution
+// Test 4: Pressure solve with hand-computed expected values (Simulator API)
 // ============================================================================
 
 TEST(HydraulicIntegration, SolvePressureDistribution) {
-    auto [result, st] = build_tank_valve_circuit();
-
-    // The drain RefNode is electrical-only — it has NO hydraulic solver_role,
-    // so the hydraulic island has no FixedPressureNode. Without a pressure
-    // reference, the nodal matrix is singular (underdetermined).
-    //
-    // This test verifies the solver detects the singular condition and
-    // gracefully falls back to preserving previous signal state.
-
-    // Run a solve directly on the hydraulic plan
-    HydraulicRuntimeState rt;
-    solve_hydraulic(result.hydraulic.plan, st, rt, 1.0 / 60.0);
-
-    // Solver must detect singular island and use fallback path.
-    EXPECT_EQ(rt.counters.singular_fallbacks, 1u);
-
-    // Signals should remain at their initial value (0.0f) — fallback preserves state.
-    uint32_t flow_out_sig = jit_signal_of(result, "tank.flow_out");
-    ASSERT_NE(flow_out_sig, UINT32_MAX);
-    EXPECT_FLOAT_EQ(st.values[flow_out_sig], 0.0f);
-}
-
-// ============================================================================
-// Test 5: Electrical + hydraulic domains coexist without interference
-// ============================================================================
-
-TEST(HydraulicIntegration, ElectricalAndHydraulicCoexist) {
-    // Build a mixed circuit: Battery + Resistor (electrical) + FuelTank (hydraulic)
-    std::vector<DeviceInstance> devices = {
-        make_device("battery", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}}),
-        make_device("resistor", "Resistor", {{"conductance", "1.0"}}),
-        make_device("refnode", "RefNode", {{"value", "0.0"}}),
-        make_device("tank", "FuelTank", {
-            {"capacity", "1000.0"}, {"density", "0.78"}, {"level", "1000.0"},
-            {"consumption_rate", "0.0"}, {"internal_r", "0.1"}, {"tank_height", "1.0"}
-        }),
-        make_device("drain", "RefNode", {{"value", "0.0"}})
-    };
-
-    std::vector<std::vector<std::string>> signal_groups = {
-        {"battery.v_out", "resistor.v_in"},              // 0: electrical
-        {"resistor.v_out", "refnode.v", "battery.v_in"}, // 1: electrical ground
-        {"tank.flow_out"},                                // 2: hydraulic (isolated)
-        {"tank.level_out"},                               // 3: hydraulic (isolated)
-        {"tank.p_source"},                                // 4: hydraulic (isolated)
-        {"drain.v"}                                       // 5: hydraulic drain
-    };
-
-    auto input = make_jit_input(devices, signal_groups);
-    auto result = build_systems_dev(input);
-
-    // Both domains should have plans
-    EXPECT_FALSE(result.electrical.plan.islands.empty());
-    EXPECT_FALSE(result.hydraulic.plan.islands.empty());
-
-    // 2 electrical islands: main circuit + isolated drain RefNode (FixedVoltageNode)
-    ASSERT_EQ(result.electrical.plan.islands.size(), 2u);
-
-    // Main island has 3 elements: TheveninSource, ConductanceBranch, FixedVoltageNode
-    // Drain island has 1 element: FixedVoltageNode (isolated drain RefNode)
-    int main_island_elements = 0;
-    int drain_island_elements = 0;
-    for (const auto& isl : result.electrical.plan.islands) {
-        if (isl.elements.size() >= 3) main_island_elements = static_cast<int>(isl.elements.size());
-        else drain_island_elements = static_cast<int>(isl.elements.size());
-    }
-    EXPECT_EQ(main_island_elements, 3);
-    EXPECT_EQ(drain_island_elements, 1);
-
-    // Hydraulic island should have 1 element: PressureSource
-    ASSERT_EQ(result.hydraulic.plan.islands.size(), 1u);
-    EXPECT_EQ(result.hydraulic.plan.islands[0].elements.size(), 1u);
-
-    // Run the simulator to verify no cross-domain interference
-    SimulationState st;
-    for (uint32_t i = 0; i < result.signal_count; ++i) {
-        (void)st.allocate_signal(0.0f);
-    }
-
-    // Run bootstrap
-    jit_solver_impl::build_common::init_element_values_from_plan(result.electrical.plan, result.electrical.runtime);
-    jit_solver_impl::build_common::init_element_values_from_plan(result.hydraulic.plan, result.hydraulic.runtime);
-
-    // Run electrical solve
-    st.electrical_rt = &result.electrical.runtime;
-    solve_electrical(result.electrical.plan, result.electrical.runtime.element_value_a, st, result.electrical.runtime, 1.0/60.0);
-
-    // Verify electrical solve worked.
-    // Expected: V_junction = V_source * (R_load / (R_source + R_load))
-    //         = 28.0 * (1.0 / (0.01 + 1.0)) ≈ 27.72V
-    const float expected_v_junction = 28.0f * (1.0f / (0.01f + 1.0f));
-    uint32_t v_junction_sig = jit_signal_of(result, "battery.v_out");
-    ASSERT_NE(v_junction_sig, UINT32_MAX);
-    EXPECT_NEAR(st.values[v_junction_sig], expected_v_junction, 0.1f);
-
-    // Electrical ground should be 0V
-    uint32_t v_ground_sig = jit_signal_of(result, "refnode.v");
-    ASSERT_NE(v_ground_sig, UINT32_MAX);
-    EXPECT_NEAR(st.values[v_ground_sig], 0.0f, 0.01f);
-
-    // Hydraulic signals should be untouched (isolated island, singular → fallback)
-    uint32_t flow_out_sig = jit_signal_of(result, "tank.flow_out");
-    ASSERT_NE(flow_out_sig, UINT32_MAX);
-    EXPECT_FLOAT_EQ(st.values[flow_out_sig], 0.0f);
-
-    st.electrical_rt = nullptr;
-}
-
-// ============================================================================
-// Test 6: Simulator full pipeline — electrical + hydraulic with valve control
-// ============================================================================
-
-TEST(HydraulicIntegration, SimulatorStepWithHydraulic) {
-    // Circuit topology (electrical + hydraulic combined):
-    //   Electrical: Battery → Resistor → ground (RefNode)
-    //   Hydraulic:  FuelTank → SolenoidValve → atmospheric drain
-    //   Control:    Value(24V) → valve.ctrl (valve normally_closed, opens at >12V)
-    std::vector<DeviceInstance> devices = {
-        make_device("battery", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}}),
-        make_device("resistor", "Resistor", {{"conductance", "1.0"}}),
-        make_device("refnode", "RefNode", {{"value", "0.0"}}),
-        make_device("tank", "FuelTank", {
-            {"capacity", "1000.0"}, {"density", "0.78"}, {"level", "1000.0"},
-            {"consumption_rate", "0.0"}, {"internal_r", "0.1"}, {"tank_height", "1.0"}
-        }),
-        make_device("valve", "SolenoidValve", {
-            {"normally_closed", "true"}, {"g_open", "10.0"}, {"g_closed", "0.0001"}
-        }),
-        make_device("ctrl_src", "Value", {{"value", "24.0"}}),
-        make_device("drain", "RefNode", {{"value", "0.0"}})
-    };
-
-    // Signal groups:
-    //   0: battery.v_out ── resistor.v_in (electrical junction)
-    //   1: resistor.v_out ── refnode.v ── battery.v_in (electrical ground)
-    //   2: tank.flow_out ── valve.flow_in (hydraulic junction)
-    //   3: valve.flow_out ── drain.v (atmospheric drain — NOTE: drain is
-    //      electrical RefNode, not hydraulic FixedPressureNode, so this
-    //      hydraulic island is singular. This test focuses on component
-    //      execute/commit through the Simulator, not pressure solve.)
-    //   4: ctrl_src.o ── valve.ctrl
-    //   5+: isolated component signals (level_out, p_source, state, etc.)
-    std::vector<std::vector<std::string>> signal_groups = {
-        {"battery.v_out", "resistor.v_in"},
-        {"resistor.v_out", "refnode.v", "battery.v_in"},
-        {"tank.flow_out", "valve.flow_in"},
-        {"valve.flow_out", "drain.v"},
-        {"ctrl_src.o", "valve.ctrl"}
-    };
-
-    auto input = make_jit_input(devices, signal_groups);
-
+    // Use the Simulator pipeline for correct one-frame-delay convergence.
+    // Manual bootstrap is error-prone — the Simulator handles execute→patch→solve→commit.
     Simulator<JIT_Solver> sim;
+    auto input = make_jit_input(hydraulic_devices(), hydraulic_signal_groups());
     sim.start(input);
 
-    // Run enough steps for one-frame-delay pipeline to converge:
-    //   Frame 0: commit writes valve.open=true (ctrl=24V > 12V)
-    //   Frame 1: BoolSwitch patches g_open into element_value_a
-    //   Frame 2+: steady state
+    // Run enough steps for one-frame-delay convergence
     for (int i = 0; i < 5; ++i) {
         sim.step(1.0 / 60.0);
     }
 
-    // Electrical: V_junction = V_source * (R_load / (R_source + R_load))
-    const float expected_v_junction = 28.0f * (1.0f / (0.01f + 1.0f));
+    // Expected: P_junction = G_SRC * P_TH_FULL / (G_SRC + g_open)
+    // = 10 * 7.6518 / (10 + 10) = 3.8259 kPa
+    const float g_open = 10.0f;
+    const float expected_p_junction = G_SRC * P_TH_FULL / (G_SRC + g_open);
+
+    auto junction_key = sim.resolve_signal_key("tank", "flow_out");
+    EXPECT_NEAR(sim.get_signal_value(junction_key), expected_p_junction, 0.05f);
+
+    // Drain should be 0 kPa (FixedPressureNode)
+    auto drain_key = sim.resolve_signal_key("drain", "p");
+    EXPECT_NEAR(sim.get_signal_value(drain_key), 0.0f, 0.01f);
+}
+
+// ============================================================================
+// Test 5: Electrical + hydraulic coexist without interference (Simulator API)
+// ============================================================================
+
+TEST(HydraulicIntegration, ElectricalAndHydraulicCoexist) {
+    auto input = make_jit_input(combined_devices(), combined_signal_groups());
+
+    Simulator<JIT_Solver> sim;
+    sim.start(input);
+
+    // Run enough steps for one-frame-delay convergence
+    for (int i = 0; i < 5; ++i) {
+        sim.step(1.0 / 60.0);
+    }
+
+    // Electrical: V_junction = V_src * R_load / (R_src + R_load)
+    const float expected_v_junction = 28.0f * 1.0f / (0.01f + 1.0f);
     auto v_key = sim.resolve_signal_key("battery", "v_out");
-    float voltage = sim.get_signal_value(v_key);
-    EXPECT_NEAR(voltage, expected_v_junction, 0.1f);
+    EXPECT_NEAR(sim.get_signal_value(v_key), expected_v_junction, 0.1f);
 
-    // Hydraulic: level_out should show 1.0 (full tank, no consumption)
+    // Electrical ground should be 0V
+    auto gnd_key = sim.resolve_signal_key("refnode", "v");
+    EXPECT_NEAR(sim.get_signal_value(gnd_key), 0.0f, 0.01f);
+
+    // Hydraulic: P_junction = G_SRC * P_TH_FULL / (G_SRC + g_open)
+    const float expected_p_junction = G_SRC * P_TH_FULL / (G_SRC + 10.0f);
+    auto junction_key = sim.resolve_signal_key("tank", "flow_out");
+    EXPECT_NEAR(sim.get_signal_value(junction_key), expected_p_junction, 0.05f);
+
+    // Drain should be 0 kPa
+    auto drain_key = sim.resolve_signal_key("drain", "p");
+    EXPECT_NEAR(sim.get_signal_value(drain_key), 0.0f, 0.01f);
+
+    // Tank level should be 1.0 (full, no consumption)
     auto level_key = sim.resolve_signal_key("tank", "level_out");
-    float level = sim.get_signal_value(level_key);
-    EXPECT_NEAR(level, 1.0f, 0.01f);
+    EXPECT_NEAR(sim.get_signal_value(level_key), 1.0f, 0.01f);
+}
 
-    // p_source should show gravity pressure for full tank:
-    // P = density * g * height * level_frac = 0.78 * 9.81 * 1.0 * 1.0
-    const float expected_p_source = 0.78f * 9.81f * 1.0f * 1.0f;
+// ============================================================================
+// Test 6: Simulator full pipeline — valve control + pressure solve
+// ============================================================================
+
+TEST(HydraulicIntegration, SimulatorStepWithHydraulic) {
+    auto input = make_jit_input(combined_devices(), combined_signal_groups());
+
+    Simulator<JIT_Solver> sim;
+    sim.start(input);
+
+    // Run enough steps for one-frame-delay convergence:
+    //   Frame 0: commit writes valve.open=true (ctrl=24V > threshold)
+    //   Frame 1: BoolSwitch patches g_open into element_value_a
+    //   Frame 2+: steady state with correct pressure solve
+    for (int i = 0; i < 5; ++i) {
+        sim.step(1.0 / 60.0);
+    }
+
+    // Electrical verification
+    const float expected_v = 28.0f * 1.0f / (0.01f + 1.0f);
+    EXPECT_NEAR(sim.get_signal_value(sim.resolve_signal_key("battery", "v_out")),
+                expected_v, 0.1f);
+
+    // Hydraulic: p_source should show gravity pressure for full tank
+    const float expected_p_source = DENSITY * GRAVITY * TANK_HEIGHT * 1.0f;
     auto p_key = sim.resolve_signal_key("tank", "p_source");
-    float pressure = sim.get_signal_value(p_key);
-    EXPECT_NEAR(pressure, expected_p_source, 0.1f);
+    EXPECT_NEAR(sim.get_signal_value(p_key), expected_p_source, 0.1f);
 
-    // Valve state signal should be 1.0 (open: ctrl=24V > 12V threshold)
+    // Valve state should be 1.0 (open: ctrl=24V)
     auto state_key = sim.resolve_signal_key("valve", "state");
-    float valve_state = sim.get_signal_value(state_key);
-    EXPECT_FLOAT_EQ(valve_state, 1.0f);
+    EXPECT_FLOAT_EQ(sim.get_signal_value(state_key), 1.0f);
+
+    // Junction pressure: P = G_SRC * P_TH / (G_SRC + g_open) ≈ 3.826 kPa
+    const float expected_p_junction = G_SRC * P_TH_FULL / (G_SRC + 10.0f);
+    auto junction_key = sim.resolve_signal_key("tank", "flow_out");
+    EXPECT_NEAR(sim.get_signal_value(junction_key), expected_p_junction, 0.05f);
+
+    // Drain should be 0 kPa
+    EXPECT_NEAR(sim.get_signal_value(sim.resolve_signal_key("drain", "p")), 0.0f, 0.01f);
 }

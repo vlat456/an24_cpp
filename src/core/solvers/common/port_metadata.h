@@ -112,6 +112,7 @@ constexpr PortMeta PORT_META[] = {
     // FuelTank
     {"flow_out", bp2::Direction::Output, 8, true},
     {"level_out", bp2::Direction::Output, 2, false},
+    {"p_ref", bp2::Direction::Output, 8, false},
     {"p_source", bp2::Direction::Output, 2, false},
     // Generator
     {"v_in", bp2::Direction::Input, 1, false},
@@ -233,6 +234,8 @@ constexpr PortMeta PORT_META[] = {
     // Positive_V_to_Bool
     {"Vin", bp2::Direction::Input, 1, false},
     {"o", bp2::Direction::Output, 2, false},
+    // PressureRef
+    {"p", bp2::Direction::Output, 8, false},
     // Radiator
     {"heat_in", bp2::Direction::Input, 1, false},
     {"heat_out", bp2::Direction::Output, 16, false},
@@ -348,64 +351,65 @@ constexpr ComponentPortInfo COMPONENT_PORT_INFO[] = {
     {50, 2, false, true, true},  // ElectricalConductance
     {52, 2, false, true, true},  // ElectricalSource
     {54, 2, false, false, false},  // FastTMO
-    {56, 3, false, false, true},  // FuelTank
-    {59, 2, true, true, true},  // Generator
-    {61, 2, false, false, false},  // GidroAccumulator
-    {63, 3, false, false, false},  // Greater
-    {66, 3, false, false, false},  // GreaterEq
-    {69, 1, false, false, false},  // Gyroscope
-    {70, 4, false, true, true},  // HoldButton
-    {74, 3, false, false, true},  // IndicatorLight
-    {77, 5, false, false, false},  // InertiaNode
-    {82, 4, false, false, false},  // Integrator
-    {86, 2, false, false, false},  // Inverter
-    {88, 8, false, true, true},  // KnobSwitch
-    {96, 2, false, false, false},  // LUT
-    {98, 2, false, false, false},  // LerpNode
-    {100, 3, false, false, false},  // Lesser
-    {103, 3, false, false, false},  // LesserEq
-    {106, 3, false, false, false},  // Max
-    {109, 3, false, false, false},  // Merger
-    {112, 3, false, false, false},  // Min
-    {115, 2, false, false, false},  // Monostable
-    {117, 3, false, false, false},  // Multiply
-    {120, 3, false, false, false},  // NAND
-    {123, 2, false, false, false},  // NOT
-    {125, 4, false, false, false},  // Normalize
-    {129, 3, false, false, false},  // OR
-    {132, 3, false, false, false},  // P
-    {135, 3, false, false, false},  // PD
-    {138, 7, false, false, false},  // PI
-    {145, 3, false, false, false},  // PID
-    {148, 2, false, false, false},  // Positive_V_to_Bool
-    {150, 2, false, false, false},  // Radiator
-    {152, 1, true, false, true},  // RefNode
-    {153, 5, false, true, true},  // Relay
-    {158, 2, false, true, true},  // Resistor
-    {160, 8, false, true, true},  // RotarySwitch1ToN
-    {168, 8, false, true, true},  // RotarySwitchNTo1
-    {176, 3, false, false, false},  // SampleHold
-    {179, 2, false, false, false},  // SlewRate
-    {181, 2, false, false, false},  // Slider
-    {183, 4, false, false, true},  // SolenoidValve
-    {187, 3, false, false, false},  // Splitter
-    {190, 3, false, false, false},  // Spring
-    {193, 3, false, false, false},  // Subtract
-    {196, 4, false, false, false},  // Switch
-    {200, 2, false, false, false},  // TempSensor
-    {202, 2, false, false, false},  // TimeDelay
-    {204, 2, false, false, false},  // Transformer
-    {206, 1, true, false, false},  // Value
-    {207, 5, false, true, true},  // VariableConductance
-    {212, 5, false, false, false},  // VoltageSense
-    {217, 1, false, false, false},  // Voltmeter
-    {218, 3, false, false, false},  // XOR
+    {56, 4, false, false, true},  // FuelTank
+    {60, 2, true, true, true},  // Generator
+    {62, 2, false, false, false},  // GidroAccumulator
+    {64, 3, false, false, false},  // Greater
+    {67, 3, false, false, false},  // GreaterEq
+    {70, 1, false, false, false},  // Gyroscope
+    {71, 4, false, true, true},  // HoldButton
+    {75, 3, false, false, true},  // IndicatorLight
+    {78, 5, false, false, false},  // InertiaNode
+    {83, 4, false, false, false},  // Integrator
+    {87, 2, false, false, false},  // Inverter
+    {89, 8, false, true, true},  // KnobSwitch
+    {97, 2, false, false, false},  // LUT
+    {99, 2, false, false, false},  // LerpNode
+    {101, 3, false, false, false},  // Lesser
+    {104, 3, false, false, false},  // LesserEq
+    {107, 3, false, false, false},  // Max
+    {110, 3, false, false, false},  // Merger
+    {113, 3, false, false, false},  // Min
+    {116, 2, false, false, false},  // Monostable
+    {118, 3, false, false, false},  // Multiply
+    {121, 3, false, false, false},  // NAND
+    {124, 2, false, false, false},  // NOT
+    {126, 4, false, false, false},  // Normalize
+    {130, 3, false, false, false},  // OR
+    {133, 3, false, false, false},  // P
+    {136, 3, false, false, false},  // PD
+    {139, 7, false, false, false},  // PI
+    {146, 3, false, false, false},  // PID
+    {149, 2, false, false, false},  // Positive_V_to_Bool
+    {151, 1, true, false, true},  // PressureRef
+    {152, 2, false, false, false},  // Radiator
+    {154, 1, true, false, true},  // RefNode
+    {155, 5, false, true, true},  // Relay
+    {160, 2, false, true, true},  // Resistor
+    {162, 8, false, true, true},  // RotarySwitch1ToN
+    {170, 8, false, true, true},  // RotarySwitchNTo1
+    {178, 3, false, false, false},  // SampleHold
+    {181, 2, false, false, false},  // SlewRate
+    {183, 2, false, false, false},  // Slider
+    {185, 4, false, false, true},  // SolenoidValve
+    {189, 3, false, false, false},  // Splitter
+    {192, 3, false, false, false},  // Spring
+    {195, 3, false, false, false},  // Subtract
+    {198, 4, false, false, false},  // Switch
+    {202, 2, false, false, false},  // TempSensor
+    {204, 2, false, false, false},  // TimeDelay
+    {206, 2, false, false, false},  // Transformer
+    {208, 1, true, false, false},  // Value
+    {209, 5, false, true, true},  // VariableConductance
+    {214, 5, false, false, false},  // VoltageSense
+    {219, 1, false, false, false},  // Voltmeter
+    {220, 3, false, false, false},  // XOR
     {0, 0, false, false, false},  // Unknown (sentinel)
 };
 
 static_assert(sizeof(COMPONENT_PORT_INFO) / sizeof(COMPONENT_PORT_INFO[0]) == static_cast<size_t>(ComponentKind::_COUNT),
     "COMPONENT_PORT_INFO size must match ComponentKind count");
-static_assert(221 == sizeof(PORT_META) / sizeof(PORT_META[0]),
+static_assert(223 == sizeof(PORT_META) / sizeof(PORT_META[0]),
     "PORT_META total entries must match sum of all component port counts");
 
 /// Number of ports for a given ComponentKind. Returns 0 for Unknown.

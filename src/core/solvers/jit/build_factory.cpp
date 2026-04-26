@@ -251,6 +251,10 @@ static void consume_params(Positive_V_to_Bool<JitProvider>& comp, ParamReader& p
     (void)comp; (void)param_reader;  // no params
 }
 
+static void consume_params(PressureRef<JitProvider>& comp, ParamReader& param_reader) {
+    comp.pressure = param_reader.consume_float_optional("pressure", 0.0f);
+}
+
 static void consume_params(Radiator<JitProvider>& comp, ParamReader& param_reader) {
     comp.cooling_capacity = param_reader.consume_float_optional("cooling_capacity", 1000.0f);
 }
@@ -471,6 +475,7 @@ static const BuildFn BUILD_TABLE[] = {
     build_generic<PI<JitProvider>, SchedulerRole::Consumer>,  // PI
     build_generic<PID<JitProvider>, SchedulerRole::Consumer>,  // PID
     build_generic<Positive_V_to_Bool<JitProvider>, SchedulerRole::Consumer>,  // Positive_V_to_Bool
+    build_generic<PressureRef<JitProvider>, SchedulerRole::Source>,  // PressureRef
     build_generic<Radiator<JitProvider>, SchedulerRole::Consumer>,  // Radiator
     build_RefNode,  // RefNode (special: fixed signals)
     build_generic<Relay<JitProvider>, SchedulerRole::None>,  // Relay

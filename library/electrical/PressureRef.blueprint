@@ -1,0 +1,46 @@
+{
+  "version": "3.0",
+  "id": "PressureRef",
+  "display_name": "PressureRef",
+  "scheduler_source": true,
+  "solver_owned_electrical": false,
+  "interface": [
+    {
+      "name": "p",
+      "domain": 8,
+      "direction": 1,
+      "type": "Pressure",
+      "source_writer": false
+    }
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Fixed hydraulic pressure reference (boundary condition). Hydraulic analog of RefNode.",
+  "domains": [
+    "Hydraulic"
+  ],
+  "param_defaults": {
+    "pressure": "0.0"
+  },
+  "param_schema": {
+    "pressure": {
+      "type": "float"
+    }
+  },
+  "solver_role": {
+    "kind": "FixedPressureNode",
+    "domain": "Hydraulic",
+    "ports": {
+      "node": "p"
+    },
+    "params": {
+      "pressure": "pressure"
+    },
+    "values": {
+      "bind_handle": 0.0
+    }
+  },
+  "render_hint": "ref"
+}

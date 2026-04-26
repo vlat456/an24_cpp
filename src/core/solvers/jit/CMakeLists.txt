@@ -70,6 +70,7 @@ add_library(jit_solver
     components/gyroscope.cpp
     components/inertia_node.cpp
     components/inverter.cpp
+    components/pressure_ref.cpp
     components/radiator.cpp
     components/solenoid_valve.cpp
     components/spring.cpp

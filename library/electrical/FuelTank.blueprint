@@ -14,6 +14,13 @@
       "source_writer": true
     },
     {
+      "name": "p_ref",
+      "domain": 8,
+      "direction": 1,
+      "type": "Pressure",
+      "source_writer": false
+    },
+    {
       "name": "level_out",
       "domain": 2,
       "direction": 1,
@@ -56,7 +63,8 @@
     "kind": "PressureSource",
     "domain": "Hydraulic",
     "ports": {
-      "pos": "flow_out"
+      "pos": "flow_out",
+      "neg": "p_ref"
     },
     "params": {
       "resistance": "internal_r"

@@ -109,11 +109,18 @@ void solve_hydraulic(
         // Stamp all elements into conductance matrix
         for (const auto& elem : island.elements) {
             int node_a_idx = nodal::find_node_index(rt.island_nodes, elem.node_a);
-            int node_b_idx = (elem.node_b != UINT32_MAX)
-                ? nodal::find_node_index(rt.island_nodes, elem.node_b) : -1;
 
-            if (node_a_idx == -1 || (elem.node_b != UINT32_MAX && node_b_idx == -1)) {
-                assert(false && "Element references node not in island");
+            // FixedPressureNode is a single-node boundary condition — no node_b.
+            // PressureSource and FlowBranch are two-terminal elements requiring both nodes.
+            int node_b_idx = (elem.kind == HydraulicElementKind::FixedPressureNode)
+                ? -1 : nodal::find_node_index(rt.island_nodes, elem.node_b);
+
+            if (node_a_idx == -1) {
+                assert(false && "Element node_a not in island");
+                continue;
+            }
+            if (node_b_idx == -1 && elem.kind != HydraulicElementKind::FixedPressureNode) {
+                assert(false && "Element node_b not in island");
                 continue;
             }
 

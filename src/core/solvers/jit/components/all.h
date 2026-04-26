@@ -75,5 +75,6 @@
 #include "electrical_conductance.h"
 #include "electrical_source.h"
 #include "value.h"
+#include "pressure_ref.h"
 
 // No class declarations here - all are in their respective headers

@@ -62,14 +62,7 @@ static void extract_pressure_source(
     float pressure = build_common::read_role_param_required(dev, role, "pressure");
     float resistance = build_common::read_role_param_required(dev, role, "resistance");
     uint32_t node_pos = build_common::resolve_role_port(dev, role, "pos", pts, intern);
-
-    // PressureSource with single-ended port: neg node defaults to atmospheric ground.
-    // If the blueprint specifies a "neg" port, use it; otherwise default to signal 0.
-    uint32_t node_neg = 0;
-    auto it_neg = role.port_map.find("neg");
-    if (it_neg != role.port_map.end()) {
-        node_neg = build_common::resolve_port(dev, it_neg->second, pts, intern);
-    }
+    uint32_t node_neg = build_common::resolve_role_port(dev, role, "neg", pts, intern);
 
     out.push_back({HydraulicElementKind::PressureSource,
         node_pos, node_neg, pressure, resistance,
