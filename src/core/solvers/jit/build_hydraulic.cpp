@@ -34,7 +34,7 @@ using Extractor = build_common::ElementExtractor<RawElement>;
 // ---- Extractor functions ----
 
 static void extract_pressure_source(
-    const ResolvedDevice& dev, const SolverRole& role,
+    const SolverDevice& dev, const SolverRole& role,
     const PortToSignal& pts, const core::StringInterner& intern,
     bool bind_handle, std::vector<RawElement>& out, size_t& element_idx)
 {
@@ -49,7 +49,7 @@ static void extract_pressure_source(
 }
 
 static void extract_flow_branch(
-    const ResolvedDevice& dev, const SolverRole& role,
+    const SolverDevice& dev, const SolverRole& role,
     const PortToSignal& pts, const core::StringInterner& intern,
     bool bind_handle, std::vector<RawElement>& out, size_t& element_idx)
 {
@@ -62,7 +62,7 @@ static void extract_flow_branch(
 }
 
 static void extract_fixed_pressure_node(
-    const ResolvedDevice& dev, const SolverRole& role,
+    const SolverDevice& dev, const SolverRole& role,
     const PortToSignal& pts, const core::StringInterner& intern,
     bool bind_handle, std::vector<RawElement>& out, size_t& element_idx)
 {
@@ -86,7 +86,7 @@ static const Extractor k_hydraulic_extractors[] = {
 // =====================================================================
 
 static std::vector<RawElement> extract_hydraulic_raw_elements(
-    const std::vector<ResolvedDevice>& devices,
+    const std::vector<SolverDevice>& devices,
     const PortToSignal& port_to_signal,
     const core::StringInterner& signal_key_interner)
 {
@@ -167,7 +167,7 @@ static void assign_hydraulic_handles(
 
 void build_hydraulic_islands(
     BuildResult& result,
-    const std::vector<ResolvedDevice>& devices)
+    const std::vector<SolverDevice>& devices)
 {
     auto raw_elements = extract_hydraulic_raw_elements(
         devices, result.port_to_signal, result.signal_key_interner);

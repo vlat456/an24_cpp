@@ -60,7 +60,11 @@ JitBuildInput elaborate_for_jit(
     // --- Phase 1: Build resolved devices (fill_defaults=false for JIT) ---
     auto collected = detail::collect_devices(netlist, arena, interner, type_registry,
                                              /*fill_defaults=*/false);
-    result.devices = std::move(collected.devices);
+    // Convert to solver-facing view — strips editor-only fields.
+    result.devices.reserve(collected.devices.size());
+    for (auto& rd : collected.devices) {
+        result.devices.push_back(to_solver_device(rd));
+    }
 
     // --- Phase 2: Build port_to_signal with InternedId keys ---
     auto sig_result = detail::collect_port_signals(netlist, arena, interner,

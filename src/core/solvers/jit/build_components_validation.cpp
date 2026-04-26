@@ -9,7 +9,7 @@ namespace jit_solver_impl {
 
 void validate_source_writer_conflicts(
     const BuildResult& result,
-    const std::vector<ResolvedDevice>& devices)
+    const std::vector<SolverDevice>& devices)
 {
     std::unordered_map<uint32_t, std::vector<std::string>> writers_by_signal;
 
@@ -44,13 +44,13 @@ void validate_source_writer_conflicts(
 void validate_consumer_guardrails(
     const BuildResult& result,
     const std::vector<std::string>& consumer_device_names,
-    const std::vector<ResolvedDevice>& devices)
+    const std::vector<SolverDevice>& devices)
 {
     (void)result;
 
     for (const auto& name : consumer_device_names) {
         auto it_dev = std::find_if(devices.begin(), devices.end(),
-            [&name](const ResolvedDevice& d) { return d.name == name; });
+            [&name](const SolverDevice& d) { return d.name == name; });
         if (it_dev != devices.end()) {
             if (it_dev->solver_owned_electrical) {
                 throw std::runtime_error(
@@ -66,13 +66,13 @@ void validate_consumer_guardrails(
 void topological_sort_consumers(
     BuildResult& result,
     std::vector<std::string>& consumer_device_names,
-    const std::vector<ResolvedDevice>& devices)
+    const std::vector<SolverDevice>& devices)
 {
     if (consumer_device_names.empty()) {
         return;
     }
 
-    std::unordered_map<std::string, const ResolvedDevice*> device_by_name;
+    std::unordered_map<std::string, const SolverDevice*> device_by_name;
     device_by_name.reserve(devices.size());
     for (const auto& dev : devices) {
         device_by_name[dev.name] = &dev;
@@ -91,7 +91,7 @@ void topological_sort_consumers(
             continue;
         }
 
-        const ResolvedDevice& dev = *it_dev->second;
+        const SolverDevice& dev = *it_dev->second;
         const auto output_ports = output_ports_for_class(dev.kind);
         auto& io = io_by_consumer[name];
 

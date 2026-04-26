@@ -106,8 +106,9 @@ std::vector<Connection> reconstruct_connections(
 
 /// Run the signal_alloc pipeline directly (Path B: JIT UnionFind path).
 /// Produces a string-keyed port_to_signal map.
+template<typename DeviceT>
 std::unordered_map<std::string, uint32_t> run_signal_alloc_pipeline(
-    const std::vector<ResolvedDevice>& devices,
+    const std::vector<DeviceT>& devices,
     const std::vector<BridgePortDefinition>& bridges,
     const std::vector<Connection>& connections,
     uint32_t& out_signal_count)

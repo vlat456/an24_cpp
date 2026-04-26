@@ -2,7 +2,7 @@
 
 #include "core/model/component_types.h"
 #include "core/model/connection.h"
-#include "core/model/resolved_device.h"
+#include "core/model/port.h"
 #include "signal_key.h"
 
 #include <cstdint>

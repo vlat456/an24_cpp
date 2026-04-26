@@ -363,7 +363,7 @@ static void consume_params(XOR<JitProvider>& comp, ParamReader& param_reader) {
 /// Generic builder template: construct → consume_params → build_finish.
 /// Handles 69/71 components — only LUT (arena) and RefNode (fixed signals) need custom builders.
 template <typename CompType, SchedulerRole Role>
-static void build_generic(BuildResult& result, const ResolvedDevice& dev, ParamReader& param_reader) {
+static void build_generic(BuildResult& result, const SolverDevice& dev, ParamReader& param_reader) {
     CompType comp;
     consume_params(comp, param_reader);
     if constexpr (requires { comp.pre_load(); }) { comp.pre_load(); }
@@ -377,7 +377,7 @@ static void build_generic(BuildResult& result, const ResolvedDevice& dev, ParamR
 }
 
 /// Special builder: LUT — table arena allocation before pre_load.
-static void build_LUT(BuildResult& result, const ResolvedDevice& dev, ParamReader& param_reader) {
+static void build_LUT(BuildResult& result, const SolverDevice& dev, ParamReader& param_reader) {
     LUT<JitProvider> comp;
     consume_params(comp, param_reader);
     if (auto it = dev.params.find("table"); it != dev.params.end()) {
@@ -397,7 +397,7 @@ static void build_LUT(BuildResult& result, const ResolvedDevice& dev, ParamReade
 }
 
 /// Special builder: RefNode — fixed signal registration after scheduler add.
-static void build_RefNode(BuildResult& result, const ResolvedDevice& dev, ParamReader& param_reader) {
+static void build_RefNode(BuildResult& result, const SolverDevice& dev, ParamReader& param_reader) {
     RefNode<JitProvider> comp;
     consume_params(comp, param_reader);
     setup_component_ports(result, dev, comp);
@@ -415,11 +415,11 @@ static void build_RefNode(BuildResult& result, const ResolvedDevice& dev, ParamR
 }
 
 /// Dispatch table — one entry per ComponentKind, indexed by enum value.
-using BuildFn = void(*)(BuildResult&, const ResolvedDevice&, ParamReader&);
+using BuildFn = void(*)(BuildResult&, const SolverDevice&, ParamReader&);
 
 /// Sentinel for unsupported ComponentKind values (Unknown).
 /// Should never be called — guarded by has_component_metadata() check in the main loop.
-[[noreturn]] static void build_unsupported(BuildResult&, const ResolvedDevice& dev, ParamReader&) {
+[[noreturn]] static void build_unsupported(BuildResult&, const SolverDevice& dev, ParamReader&) {
     throw std::runtime_error("No factory handler for component '" + dev.classname + "'");
 }
 
@@ -504,7 +504,7 @@ static_assert(sizeof(BUILD_TABLE) / sizeof(BUILD_TABLE[0]) == static_cast<size_t
 
 void build_and_register_components(
     BuildResult& result,
-    const std::vector<ResolvedDevice>& devices)
+    const std::vector<SolverDevice>& devices)
 {
     result.devices.reserve(devices.size());  // Prevent rehash invalidating scheduler pointers
 

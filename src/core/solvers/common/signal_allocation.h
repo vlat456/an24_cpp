@@ -20,8 +20,10 @@
 #include "core/model/component_types.h"
 #include "core/model/connection.h"
 
+#include <algorithm>
 #include <cstdint>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <vector>
 
@@ -31,6 +33,8 @@ using UnionFind = core::utils::UnionFind;
 
 /// Phase 1: Enumerate all ports across devices and bridge ports.
 /// Populates `out_all_ports` (ordered list) and `out_port_to_idx` (name → flat index).
+/// Port names are sorted per device for deterministic enumeration regardless
+/// of unordered_map bucket layout — critical for InternedId parity across paths.
 template <typename DeviceT>
 void build_port_index_map(
     const std::vector<DeviceT>& devices,
@@ -39,8 +43,17 @@ void build_port_index_map(
     std::unordered_map<std::string, uint32_t>& out_port_to_idx
 ) {
     for (const auto& dev : devices) {
+        // Collect and sort port names for deterministic enumeration.
+        // Typical port count is 2–6 per device, so sort cost is negligible.
+        std::vector<std::string_view> sorted_names;
+        sorted_names.reserve(dev.ports.size());
         for (const auto& [port_name, port] : dev.ports) {
             (void)port;
+            sorted_names.push_back(port_name);
+        }
+        std::sort(sorted_names.begin(), sorted_names.end());
+
+        for (const auto& port_name : sorted_names) {
             std::string full_port = signal_key::make_node_port_key(dev.name, port_name);
             uint32_t idx = static_cast<uint32_t>(out_all_ports.size());
             out_all_ports.push_back(full_port);

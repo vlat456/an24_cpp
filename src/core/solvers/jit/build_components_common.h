@@ -9,7 +9,7 @@ namespace jit_solver_impl {
 template <typename Comp>
 inline void setup_component_ports(
     BuildResult& result,
-    const ResolvedDevice& dev,
+    const SolverDevice& dev,
     Comp& comp)
 {
     for (const auto& [port_name, port] : dev.ports) {

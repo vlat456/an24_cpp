@@ -41,7 +41,7 @@ using Extractor = build_common::ElementExtractor<RawElement>;
 // ---- Extractor functions ----
 
 static void extract_fixed_voltage_node(
-    const ResolvedDevice& dev, const SolverRole& role,
+    const SolverDevice& dev, const SolverRole& role,
     const PortToSignal& pts, const core::StringInterner& intern,
     bool bind_handle, std::vector<RawElement>& out, size_t& element_idx)
 {
@@ -53,7 +53,7 @@ static void extract_fixed_voltage_node(
 }
 
 static void extract_thevenin_source(
-    const ResolvedDevice& dev, const SolverRole& role,
+    const SolverDevice& dev, const SolverRole& role,
     const PortToSignal& pts, const core::StringInterner& intern,
     bool bind_handle, std::vector<RawElement>& out, size_t& element_idx)
 {
@@ -67,7 +67,7 @@ static void extract_thevenin_source(
 }
 
 static void extract_conductance_branch(
-    const ResolvedDevice& dev, const SolverRole& role,
+    const SolverDevice& dev, const SolverRole& role,
     const PortToSignal& pts, const core::StringInterner& intern,
     bool bind_handle, std::vector<RawElement>& out, size_t& element_idx)
 {
@@ -80,7 +80,7 @@ static void extract_conductance_branch(
 }
 
 static void extract_knob_switch_branches(
-    const ResolvedDevice& dev, const SolverRole& role,
+    const SolverDevice& dev, const SolverRole& role,
     const PortToSignal& pts, const core::StringInterner& intern,
     bool bind_handle, std::vector<RawElement>& out, size_t& element_idx)
 {
@@ -121,7 +121,7 @@ static const Extractor k_electrical_extractors[] = {
 /// Extract raw electrical elements from all devices that have a solver_role.
 /// Dispatches to registered extractor functions — no if-else chain.
 static std::vector<RawElement> extract_raw_elements(
-    const std::vector<ResolvedDevice>& devices,
+    const std::vector<SolverDevice>& devices,
     const PortToSignal& port_to_signal,
     const core::StringInterner& signal_key_interner)
 {
@@ -220,7 +220,7 @@ static void assign_handles(
 
 void build_electrical_islands(
     BuildResult& result,
-    const std::vector<ResolvedDevice>& devices)
+    const std::vector<SolverDevice>& devices)
 {
     auto raw_elements = extract_raw_elements(devices, result.port_to_signal, result.signal_key_interner);
     build_common::group_into_islands<RawElement, ElectricalIslandPlan>(raw_elements, result.electrical.plan);

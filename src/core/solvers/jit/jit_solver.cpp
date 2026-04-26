@@ -3,6 +3,7 @@
 #include "core/solvers/common/signal_allocation.h"
 #include "io/json/parse_json_api.h"
 
+#include <algorithm>
 #include <spdlog/spdlog.h>
 
 using namespace jit_solver_impl;
@@ -14,7 +15,7 @@ static void compute_signal_mapping(
     const std::vector<BridgePortDefinition>& bridge_ports,
     const std::vector<Connection>& connections)
 {
-    // Phase 1: enumerate all ports
+    // Phase 1: enumerate all ports (sorted for determinism)
     std::vector<std::string> all_ports;
     std::unordered_map<std::string, uint32_t> port_to_idx;
     signal_alloc::build_port_index_map(devices, bridge_ports, all_ports, port_to_idx);
@@ -41,9 +42,17 @@ static void compute_signal_mapping(
     uint32_t signal_count = 0;
     auto string_p2s = signal_alloc::finalize_signal_indices(uf, all_ports, port_to_idx, signal_count);
 
-    // Intern the string keys for typed output
+    // Intern string keys in sorted order for reproducible InternedId assignment.
+    std::vector<std::string> sorted_keys;
+    sorted_keys.reserve(string_p2s.size());
     for (const auto& [port_str, sig] : string_p2s) {
-        result.port_to_signal[result.signal_key_interner.intern(port_str)] = sig;
+        (void)sig;
+        sorted_keys.emplace_back(port_str);
+    }
+    std::sort(sorted_keys.begin(), sorted_keys.end());
+
+    for (const auto& port_str : sorted_keys) {
+        result.port_to_signal[result.signal_key_interner.intern(port_str)] = string_p2s.at(port_str);
     }
 
     result.signal_count = signal_count;
@@ -53,7 +62,7 @@ static void compute_signal_mapping(
 /// Assumes result.port_to_signal and result.signal_count are already populated.
 static BuildResult build_from_signals(
     BuildResult result,
-    const std::vector<ResolvedDevice>& devices
+    const std::vector<SolverDevice>& devices
 ) {
     if (result.signal_count <= 1) {
         // Empty system, sentinel only
@@ -102,11 +111,16 @@ BuildResult build_systems_dev(const JitBuildInput& input) {
 JitBuildInput build_input_from_json(const std::string& json_str) {
     auto ctx = parse_json(json_str);
 
-    std::vector<ResolvedDevice> devices = ctx.devices;
-
-    // Compute port_to_signal mapping via shared signal_alloc pipeline
+    // Signal allocation on original devices (deterministic via sorted port names).
     BuildResult temp_result{};
-    compute_signal_mapping(temp_result, devices, ctx.bridge_ports, ctx.connections);
+    compute_signal_mapping(temp_result, ctx.devices, ctx.bridge_ports, ctx.connections);
+
+    // Convert to solver-facing view — strips editor-only fields.
+    std::vector<SolverDevice> devices;
+    devices.reserve(ctx.devices.size());
+    for (const auto& rd : ctx.devices) {
+        devices.push_back(to_solver_device(rd));
+    }
 
     return JitBuildInput{
         std::move(devices),

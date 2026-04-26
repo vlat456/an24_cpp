@@ -20,7 +20,7 @@ namespace build_common {
 // =====================================================================
 
 inline uint32_t resolve_port(
-    const ResolvedDevice& dev,
+    const SolverDevice& dev,
     const std::string& port_name,
     const PortToSignal& port_to_signal,
     const core::StringInterner& signal_key_interner)
@@ -42,7 +42,7 @@ inline uint32_t resolve_port(
 }
 
 inline float read_param_float_required(
-    const ResolvedDevice& dev,
+    const SolverDevice& dev,
     const std::string& param_key,
     const std::string& role_key)
 {
@@ -56,7 +56,7 @@ inline float read_param_float_required(
 }
 
 inline uint32_t resolve_role_port(
-    const ResolvedDevice& dev,
+    const SolverDevice& dev,
     const SolverRole& role,
     const std::string& role_key,
     const PortToSignal& port_to_signal,
@@ -71,7 +71,7 @@ inline uint32_t resolve_role_port(
 }
 
 inline float read_role_param_required(
-    const ResolvedDevice& dev,
+    const SolverDevice& dev,
     const SolverRole& role,
     const std::string& role_key)
 {
@@ -221,7 +221,7 @@ void init_element_values_from_plan(const BuildPlan& plan, RuntimeState& rt) {
 /// Extractor function signature: converts a device's solver_role into raw elements.
 template<typename RawElem>
 using ExtractorFn = void(*)(
-    const ResolvedDevice& dev,
+    const SolverDevice& dev,
     const SolverRole& role,
     const PortToSignal& port_to_signal,
     const core::StringInterner& interner,

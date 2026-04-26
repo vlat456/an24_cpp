@@ -154,20 +154,33 @@ inline ResolvedDevice make_raw_resolved_device(
 }
 
 inline JitBuildInput make_jit_input_from_resolved(
-    std::vector<ResolvedDevice> devices,
+    std::vector<ResolvedDevice> resolved_devices,
     std::unordered_map<std::string, float> initial_values = {})
 {
     JitBuildInput input;
-    input.devices = std::move(devices);
     input.initial_values = std::move(initial_values);
 
+    // Signal allocation with sorted port names for deterministic InternedId assignment.
+    // Each device's ports are sorted alphabetically (same as build_port_index_map).
     uint32_t next_signal = 0;
-    for (const auto& dev : input.devices) {
+    for (const auto& dev : resolved_devices) {
+        std::vector<std::string_view> sorted_names;
+        sorted_names.reserve(dev.ports.size());
         for (const auto& [port_name, port] : dev.ports) {
             (void)port;
-            const std::string full_port = dev.name + "." + port_name;
+            sorted_names.push_back(port_name);
+        }
+        std::sort(sorted_names.begin(), sorted_names.end());
+        for (const auto& port_name : sorted_names) {
+            const std::string full_port = dev.name + "." + std::string(port_name);
             input.port_to_signal[input.signal_key_interner.intern(full_port)] = next_signal++;
         }
+    }
+
+    // Convert to solver-facing view after signal mapping.
+    input.devices.reserve(resolved_devices.size());
+    for (const auto& rd : resolved_devices) {
+        input.devices.push_back(to_solver_device(rd));
     }
 
     input.signal_count = next_signal + 1;
@@ -175,13 +188,18 @@ inline JitBuildInput make_jit_input_from_resolved(
 }
 
 inline JitBuildInput make_jit_input_resolved(
-    std::vector<ResolvedDevice> devices,
+    std::vector<ResolvedDevice> resolved_devices,
     const std::vector<std::vector<std::string>>& signal_groups,
     std::unordered_map<std::string, float> initial_values = {})
 {
     JitBuildInput input;
-    input.devices = std::move(devices);
     input.initial_values = std::move(initial_values);
+
+    // Convert to solver-facing view first (needed for port enumeration below).
+    input.devices.reserve(resolved_devices.size());
+    for (const auto& rd : resolved_devices) {
+        input.devices.push_back(to_solver_device(rd));
+    }
 
     std::unordered_set<std::string> seen_ports;
 
@@ -198,9 +216,12 @@ inline JitBuildInput make_jit_input_resolved(
 
     uint32_t next_signal = static_cast<uint32_t>(signal_groups.size());
     for (const auto& dev : input.devices) {
-        for (const auto& [port_name, port] : dev.ports) {
-            (void)port;
-            const std::string full_port = dev.name + "." + port_name;
+        std::vector<std::string_view> sorted_names;
+        sorted_names.reserve(dev.ports.size());
+        for (const auto& [pn, p] : dev.ports) { (void)p; sorted_names.push_back(pn); }
+        std::sort(sorted_names.begin(), sorted_names.end());
+        for (const auto& port_name : sorted_names) {
+            const std::string full_port = dev.name + "." + std::string(port_name);
             if (seen_ports.insert(full_port).second) {
                 input.port_to_signal[input.signal_key_interner.intern(full_port)] = next_signal++;
             }
@@ -234,7 +255,7 @@ inline JitBuildInput make_jit_input(
             throw std::runtime_error("make_jit_input missing spec for device '" + dev.name +
                 "' (classname: " + dev.classname + ")");
         }
-        input.devices.push_back(resolve_component(dev, *spec));
+        input.devices.push_back(to_solver_device(resolve_component(dev, *spec)));
     }
     
     std::unordered_set<std::string> seen_ports;
@@ -253,9 +274,12 @@ inline JitBuildInput make_jit_input(
 
     uint32_t next_signal = static_cast<uint32_t>(signal_groups.size());
     for (const auto& dev : input.devices) {
-        for (const auto& [port_name, port] : dev.ports) {
-            (void)port;
-            const std::string full_port = dev.name + "." + port_name;
+        std::vector<std::string_view> sorted_names;
+        sorted_names.reserve(dev.ports.size());
+        for (const auto& [pn, p] : dev.ports) { (void)p; sorted_names.push_back(pn); }
+        std::sort(sorted_names.begin(), sorted_names.end());
+        for (const auto& port_name : sorted_names) {
+            const std::string full_port = dev.name + "." + std::string(port_name);
             if (seen_ports.insert(full_port).second) {
                 input.port_to_signal[input.signal_key_interner.intern(full_port)] = next_signal++;
             }
@@ -294,7 +318,7 @@ inline JitBuildInput make_jit_input_from_composite(
                 continue;
             }
         }
-        input.devices.push_back(resolve_component(dev, *spec));
+        input.devices.push_back(to_solver_device(resolve_component(dev, *spec)));
     }
     
     // Build port index map from all declared device ports
@@ -312,9 +336,13 @@ inline JitBuildInput make_jit_input_from_composite(
     uint32_t signal_count = 0;
     const auto string_p2s =
         signal_alloc::finalize_signal_indices(uf, all_ports, port_to_idx, signal_count);
-    // Convert string-keyed map to InternedId-keyed map
-    for (const auto& [port_str, sig] : string_p2s) {
-        input.port_to_signal[input.signal_key_interner.intern(port_str)] = sig;
+    // Convert string-keyed map to InternedId-keyed map (sorted for determinism)
+    std::vector<std::string> sorted_keys;
+    sorted_keys.reserve(string_p2s.size());
+    for (const auto& [ps, sg] : string_p2s) { (void)sg; sorted_keys.emplace_back(ps); }
+    std::sort(sorted_keys.begin(), sorted_keys.end());
+    for (const auto& port_str : sorted_keys) {
+        input.port_to_signal[input.signal_key_interner.intern(port_str)] = string_p2s.at(port_str);
     }
 
     input.signal_count = signal_count;
