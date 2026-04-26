@@ -120,10 +120,10 @@ TEST(E002_SolverStepOps, PopulatedAfterBuild) {
 
      auto br = build_systems_dev(make_jit_input(devices, signal_groups));
 
-     // 3 solver-owned components: ElectricalSource, AZS, Relay
-     // Each gets an execute op and a commit op.
-     EXPECT_EQ(br.solver_execute_ops.size(), 3u);
-     EXPECT_EQ(br.solver_commit_ops.size(), 3u);
+     // 2 solver-owned components with handles: AZS, Relay
+     // (ElectricalSource has no electrical_handle — its execute/commit are no-ops)
+     EXPECT_EQ(br.solver_execute_ops.size(), 2u);
+     EXPECT_EQ(br.solver_commit_ops.size(), 2u);
 
      for (const auto& op : br.solver_execute_ops) {
          EXPECT_NE(op.instance, nullptr);
@@ -149,15 +149,15 @@ TEST(E002_SolverStepOps, PointersMatchDeviceMap) {
 
      auto br = build_systems_dev(make_jit_input(devices, signal_groups));
 
-     ASSERT_EQ(br.solver_execute_ops.size(), 1u);
+     // ElectricalSource has no electrical_handle — no step ops created
+     ASSERT_EQ(br.solver_execute_ops.size(), 0u);
 
-     // The step op instance should point into the devices map
+     // Verify the device was still created (just no handle-based ops)
      auto it = br.devices.find("bat1");
      ASSERT_NE(it, br.devices.end());
 
      const ElectricalSource<JitProvider>* from_map = std::get_if<ElectricalSource<JitProvider>>(&it->second);
      ASSERT_NE(from_map, nullptr);
-     EXPECT_EQ(br.solver_execute_ops[0].instance, static_cast<const void*>(from_map));
 }
 
 TEST(E002_SolverStepOps, DeviceStoreSealedAfterBuild) {

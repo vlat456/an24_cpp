@@ -13,6 +13,7 @@
 #include "components/resistor.h"
 #include "core/solvers/common/provider.h"
 #include <algorithm>
+#include <concepts>
 #include <map>
 #include <queue>
 #include <set>
@@ -64,13 +65,15 @@ static uint32_t resolve_port(
     const std::string full_port = signal_key::make_node_port_key(dev.name, port_name);
     const ui::InternedId key = signal_key_interner.lookup(full_port);
     if (key.empty()) {
-        throw std::runtime_error("Missing required port mapping '" + full_port +
-            "' for component '" + dev.name + "' (classname: " + dev.classname + ")");
+        throw std::runtime_error("Port '" + full_port +
+            "' not interned for component '" + dev.name + "' (classname: " + dev.classname +
+            ") — signal key was never registered during allocation");
     }
     auto it = port_to_signal.find(key);
     if (it == port_to_signal.end()) {
-        throw std::runtime_error("Missing required port mapping '" + full_port +
-            "' for component '" + dev.name + "' (classname: " + dev.classname + ")");
+        throw std::runtime_error("Interned port '" + full_port +
+            "' has no signal mapping for component '" + dev.name + "' (classname: " + dev.classname +
+            ") — interner/port_to_signal desync");
     }
     return it->second;
 }
@@ -421,21 +424,15 @@ static void assign_handles(
             handle.element_id = elem.element_id;
 
             std::visit([&](auto& comp) {
-                using CompType = std::decay_t<decltype(comp)>;
-                if constexpr (std::is_same_v<CompType, KnobSwitch<JitProvider>> ||
-                              std::is_same_v<CompType, RotarySwitch1ToN<JitProvider>> ||
-                              std::is_same_v<CompType, RotarySwitchNTo1<JitProvider>>) {
-                    if (comp.num_handles < KnobSwitch<JitProvider>::MAX_POSITIONS) {
+                using T = std::decay_t<decltype(comp)>;
+                // Multi-handle: KnobSwitch/RotarySwitch (has electrical_handles[] + num_handles)
+                if constexpr (requires { comp.electrical_handles; comp.num_handles; }) {
+                    if (comp.num_handles < T::MAX_POSITIONS) {
                         comp.electrical_handles[comp.num_handles++] = handle;
                     }
-                } else if constexpr (std::is_same_v<CompType, Generator<JitProvider>> ||
-                              std::is_same_v<CompType, IndicatorLight<JitProvider>> ||
-                              std::is_same_v<CompType, CurrentSense<JitProvider>> ||
-                              std::is_same_v<CompType, ControlledVoltageSource<JitProvider>> ||
-                              std::is_same_v<CompType, VariableConductance<JitProvider>> ||
-                              std::is_same_v<CompType, AZS<JitProvider>> ||
-                              std::is_same_v<CompType, HoldButton<JitProvider>> ||
-                              std::is_same_v<CompType, Relay<JitProvider>>) {
+                }
+                // Single-handle: all other solver-owned components (has electrical_handle)
+                else if constexpr (requires { comp.electrical_handle; }) {
                     comp.electrical_handle = handle;
                 }
             }, *variant);
@@ -532,20 +529,15 @@ void build_electrical_patch_ops(BuildResult& result)
 }
 
 // Trait: true for component types that participate in the electrical solver's
-// per-frame execute/commit cycle (solver-owned electrical components).
-template<typename T> constexpr bool is_solver_owned_v = false;
-template<typename P> constexpr bool is_solver_owned_v<ControlledVoltageSource<P>> = true;
-template<typename P> constexpr bool is_solver_owned_v<VariableConductance<P>> = true;
-template<typename P> constexpr bool is_solver_owned_v<AZS<P>> = true;
-template<typename P> constexpr bool is_solver_owned_v<HoldButton<P>> = true;
-template<typename P> constexpr bool is_solver_owned_v<Relay<P>> = true;
-template<typename P> constexpr bool is_solver_owned_v<KnobSwitch<P>> = true;
-template<typename P> constexpr bool is_solver_owned_v<RotarySwitch1ToN<P>> = true;
-template<typename P> constexpr bool is_solver_owned_v<RotarySwitchNTo1<P>> = true;
-template<typename P> constexpr bool is_solver_owned_v<Generator<P>> = true;
-template<typename P> constexpr bool is_solver_owned_v<Resistor<P>> = true;
-template<typename P> constexpr bool is_solver_owned_v<ElectricalConductance<P>> = true;
-template<typename P> constexpr bool is_solver_owned_v<ElectricalSource<P>> = true;
+// per-frame execute/commit cycle. Structural — any component with an
+// electrical_handle or electrical_handles member qualifies. New components
+// with handles automatically get step ops without editing this file.
+template<typename T>
+constexpr bool is_solver_owned_v = requires(T t) {
+    { t.electrical_handle } -> std::same_as<ElectricalPrimitiveHandle&>;
+} || requires(T t) {
+    { t.electrical_handles } -> std::same_as<ElectricalPrimitiveHandle*&>;
+};
 
 void build_solver_step_ops(BuildResult& result)
 {
