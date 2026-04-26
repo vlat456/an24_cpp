@@ -5,6 +5,7 @@
 
 #include "jit_solver.h"
 #include "core/solvers/common/signal_key.h"
+#include "core/utils/union_find.h"
 #include "../../../parse_number.h"
 #include <algorithm>
 #include <map>
@@ -92,43 +93,6 @@ inline bool should_bind_handle(const SolverRole& role) {
 }
 
 // =====================================================================
-// Union-Find — identical algorithm for all domains.
-// =====================================================================
-
-struct NodeUnionFind {
-    std::unordered_map<uint32_t, uint32_t> parent;
-    std::unordered_map<uint32_t, uint32_t> rank;
-
-    explicit NodeUnionFind(const std::unordered_set<uint32_t>& nodes) {
-        for (uint32_t n : nodes) {
-            parent[n] = n;
-            rank[n] = 0;
-        }
-    }
-
-    uint32_t find(uint32_t x) {
-        auto it = parent.find(x);
-        if (it == parent.end() || it->second == x) return x;
-        it->second = find(it->second);
-        return it->second;
-    }
-
-    void unite(uint32_t a, uint32_t b) {
-        uint32_t ra = find(a);
-        uint32_t rb = find(b);
-        if (ra == rb) return;
-        if (rank[ra] < rank[rb]) {
-            parent[ra] = rb;
-        } else if (rank[ra] > rank[rb]) {
-            parent[rb] = ra;
-        } else {
-            parent[rb] = ra;
-            rank[ra]++;
-        }
-    }
-};
-
-// =====================================================================
 // Generic island grouping — works for any domain's raw elements.
 // =====================================================================
 
@@ -162,7 +126,14 @@ void group_into_islands(
         }
     }
 
-    NodeUnionFind uf(all_nodes);
+    // Size UnionFind to cover all node indices (may be sparse, e.g. {5, 17, 42}).
+    // Over-allocating to max_node+1 is negligible for typical signal counts.
+    uint32_t max_node = 0;
+    for (uint32_t n : all_nodes) {
+        max_node = std::max(max_node, n);
+    }
+    core::utils::UnionFind uf(static_cast<size_t>(max_node) + 1);
+
     for (const auto& elem : raw_elements) {
         if (elem.node_b != UINT32_MAX) {
             uf.unite(elem.node_a, elem.node_b);
