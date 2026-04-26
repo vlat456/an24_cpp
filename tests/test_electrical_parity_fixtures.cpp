@@ -261,7 +261,7 @@ static void run_aot_electrical(
     SimulationState& out_state,
     ElectricalRuntimeState& out_rt,
     PortToSignal& out_port_to_signal,
-    ui::StringInterner& out_interner
+    core::StringInterner& out_interner
 ) {
     std::vector<std::string> all_ports;
     std::unordered_map<std::string, uint32_t> port_to_idx;
@@ -333,7 +333,7 @@ static void set_refnode_values(
     SimulationState& st,
     const std::vector<ResolvedDevice>& devices,
     const PortToSignal& port_to_signal,
-    const ui::StringInterner& interner
+    const core::StringInterner& interner
 ) {
     for (const auto& dev : devices) {
         if (dev.classname == "RefNode") {
@@ -353,7 +353,7 @@ static void set_refnode_values(
 
 // Helper: get voltage at a port from SimulationState
 static float get_voltage(const SimulationState& st, const PortToSignal& port_to_signal,
-                         const ui::StringInterner& interner,
+                         const core::StringInterner& interner,
                          const std::string& device_name, const std::string& port_name) {
     std::string key = device_name + "." + port_name;
     auto it = port_to_signal.find(interner.lookup(key));
@@ -386,7 +386,7 @@ TEST(ElectricalAotParity, SimpleTheveninDivider) {
         (void)jit_state.allocate_signal(0.0f);
     set_refnode_values(jit_state, jit_input.devices, jit_result.port_to_signal, jit_result.signal_key_interner);
     ElectricalRuntimeState jit_rt;
-    solve_electrical(jit_result.electrical_plan, jit_state, jit_rt, 1.0f / 60.0f);
+    solve_electrical(jit_result.electrical.plan, jit_state, jit_rt, 1.0f / 60.0f);
 
     // AOT path
     auto ctx = parse_json(json);
@@ -394,12 +394,12 @@ TEST(ElectricalAotParity, SimpleTheveninDivider) {
     SimulationState aot_state;
     ElectricalRuntimeState aot_rt;
     PortToSignal aot_port_to_signal;
-    ui::StringInterner aot_interner;
+    core::StringInterner aot_interner;
     run_aot_electrical(resolve_all_devices(ctx), ctx.connections,
                        aot_plan, aot_state, aot_rt, aot_port_to_signal, aot_interner);
 
     // Compare signal values
-    ASSERT_EQ(jit_result.electrical_plan.islands.size(), aot_plan.islands.size());
+    ASSERT_EQ(jit_result.electrical.plan.islands.size(), aot_plan.islands.size());
     for (const auto& [port, jit_sig] : jit_result.port_to_signal) {
         auto it_aot = aot_port_to_signal.find(port);
         ASSERT_NE(it_aot, aot_port_to_signal.end()) << "Missing AOT port: " << port.raw();
@@ -441,13 +441,13 @@ TEST(ElectricalAotParity, SeriesChainTwoResistors) {
         (void)jit_state.allocate_signal(0.0f);
     set_refnode_values(jit_state, jit_input.devices, jit_result.port_to_signal, jit_result.signal_key_interner);
     ElectricalRuntimeState jit_rt;
-    solve_electrical(jit_result.electrical_plan, jit_state, jit_rt, 1.0f / 60.0f);
+    solve_electrical(jit_result.electrical.plan, jit_state, jit_rt, 1.0f / 60.0f);
 
     ElectricalBuildPlan aot_plan;
     SimulationState aot_state;
     ElectricalRuntimeState aot_rt;
     PortToSignal aot_port_to_signal;
-    ui::StringInterner aot_interner;
+    core::StringInterner aot_interner;
     run_aot_electrical(resolve_all_devices(ctx), ctx.connections,
                        aot_plan, aot_state, aot_rt, aot_port_to_signal, aot_interner);
 
@@ -492,13 +492,13 @@ TEST(ElectricalAotParity, ParallelBranchSplit) {
         (void)jit_state.allocate_signal(0.0f);
     set_refnode_values(jit_state, jit_input.devices, jit_result.port_to_signal, jit_result.signal_key_interner);
     ElectricalRuntimeState jit_rt;
-    solve_electrical(jit_result.electrical_plan, jit_state, jit_rt, 1.0f / 60.0f);
+    solve_electrical(jit_result.electrical.plan, jit_state, jit_rt, 1.0f / 60.0f);
 
     ElectricalBuildPlan aot_plan;
     SimulationState aot_state;
     ElectricalRuntimeState aot_rt;
     PortToSignal aot_port_to_signal;
-    ui::StringInterner aot_interner;
+    core::StringInterner aot_interner;
     run_aot_electrical(resolve_all_devices(ctx), ctx.connections,
                        aot_plan, aot_state, aot_rt, aot_port_to_signal, aot_interner);
 
@@ -541,17 +541,17 @@ TEST(ElectricalAotParity, MultiIsland) {
         (void)jit_state.allocate_signal(0.0f);
     set_refnode_values(jit_state, jit_input.devices, jit_result.port_to_signal, jit_result.signal_key_interner);
     ElectricalRuntimeState jit_rt;
-    solve_electrical(jit_result.electrical_plan, jit_state, jit_rt, 1.0f / 60.0f);
+    solve_electrical(jit_result.electrical.plan, jit_state, jit_rt, 1.0f / 60.0f);
 
     ElectricalBuildPlan aot_plan;
     SimulationState aot_state;
     ElectricalRuntimeState aot_rt;
     PortToSignal aot_port_to_signal;
-    ui::StringInterner aot_interner;
+    core::StringInterner aot_interner;
     run_aot_electrical(resolve_all_devices(ctx), ctx.connections,
                        aot_plan, aot_state, aot_rt, aot_port_to_signal, aot_interner);
 
-    ASSERT_EQ(jit_result.electrical_plan.islands.size(), aot_plan.islands.size());
+    ASSERT_EQ(jit_result.electrical.plan.islands.size(), aot_plan.islands.size());
 
     for (const auto& [port, jit_sig] : jit_result.port_to_signal) {
         auto it_aot = aot_port_to_signal.find(port);
@@ -586,13 +586,13 @@ TEST(ElectricalAotParity, NearShortHighConductance) {
         (void)jit_state.allocate_signal(0.0f);
     set_refnode_values(jit_state, jit_input.devices, jit_result.port_to_signal, jit_result.signal_key_interner);
     ElectricalRuntimeState jit_rt;
-    solve_electrical(jit_result.electrical_plan, jit_state, jit_rt, 1.0f / 60.0f);
+    solve_electrical(jit_result.electrical.plan, jit_state, jit_rt, 1.0f / 60.0f);
 
     ElectricalBuildPlan aot_plan;
     SimulationState aot_state;
     ElectricalRuntimeState aot_rt;
     PortToSignal aot_port_to_signal;
-    ui::StringInterner aot_interner;
+    core::StringInterner aot_interner;
     run_aot_electrical(resolve_all_devices(ctx), ctx.connections,
                        aot_plan, aot_state, aot_rt, aot_port_to_signal, aot_interner);
 

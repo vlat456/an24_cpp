@@ -4,6 +4,7 @@
 #include "core/solvers/common/port_registry.h"
 #include "scheduler.h"
 #include "subsolvers/subsolver_types.h"
+#include "subsolvers/hydraulic_subsolver_types.h"
 #include <cstddef>
 #include <cstdint>
 #include <stdexcept>
@@ -134,6 +135,58 @@ inline Domain get_component_domain_mask(const ComponentVariant& variant) {
     }, variant);
 }
 
+/// Electrical-domain solver state — groups build artifacts + mutable runtime.
+/// Produced by build_electrical.cpp at build time. Runtime state is mutated
+/// each frame by the simulator.
+struct ElectricalArtifacts {
+    // Build-time artifacts (immutable after build)
+    ElectricalBuildPlan plan;
+    std::vector<ElectricalPatchOp> patch_ops;
+    std::vector<SolverStepOp> execute_ops;
+    std::vector<SolverStepOp> commit_ops;
+
+    // Per-frame mutable runtime state
+    ElectricalRuntimeState runtime;
+};
+
+// ---- Hydraulic patch operation types ----
+
+/// Kind of hydraulic patch operation applied before each solve.
+enum class HydraulicPatchKind : uint8_t {
+    BoolSwitch,     ///< Switch between open/closed conductance (SolenoidValve)
+    CopySignal      ///< Copy a signal value to element_value_a (FuelTank pressure)
+};
+
+/// Compiled pre-solve hydraulic patch operation.
+/// Fully signal-driven — all inputs read from st.values[]. No raw pointers.
+struct HydraulicPatchOp {
+    HydraulicPatchKind kind = HydraulicPatchKind::BoolSwitch;
+    uint32_t element_id = UINT32_MAX;
+
+    // Signal-driven operands.
+    // BoolSwitch: s0=state_signal (>0.5f == true)
+    // CopySignal: s0=source_signal (pressure value to copy)
+    uint32_t s0 = UINT32_MAX;
+
+    // Constant outputs for BoolSwitch.
+    float open_value = 0.0f;
+    float closed_value = 0.0f;
+};
+
+/// Hydraulic-domain solver state — groups build artifacts + mutable runtime.
+/// Produced by build_hydraulic.cpp at build time. Runtime state is mutated
+/// each frame by the simulator.
+struct HydraulicArtifacts {
+    // Build-time artifacts (immutable after build)
+    HydraulicBuildPlan plan;
+    std::vector<HydraulicPatchOp> patch_ops;
+    std::vector<SolverStepOp> execute_ops;
+    std::vector<SolverStepOp> commit_ops;
+
+    // Per-frame mutable runtime state
+    HydraulicRuntimeState runtime;
+};
+
 /// Build port-to-signal mapping from devices and connections
 /// For AOT, this is used by codegen to generate component bindings
 struct BuildResult {
@@ -150,7 +203,7 @@ struct BuildResult {
 
     /// Build-scoped interner for signal keys. Owns the string storage backing
     /// the InternedIds in port_to_signal. Destroyed on rebuild.
-    ui::StringInterner signal_key_interner;
+    core::StringInterner signal_key_interner;
 
     /// Dynamic components for JIT mode (Editor).
     /// Storage: device name -> ComponentVariant (type-safe storage container).
@@ -162,24 +215,15 @@ struct BuildResult {
     /// Push scheduler populated at build time.
     PushScheduler scheduler;
 
-    /// Electrical network build plan (for subsolver)
-    ElectricalBuildPlan electrical_plan;
+    /// Electrical-domain build artifacts (plan, patch ops, step ops).
+    ElectricalArtifacts electrical;
+
+    /// Hydraulic-domain build artifacts (plan, patch ops, step ops).
+    HydraulicArtifacts hydraulic;
 
     /// LUT table arena - accumulated during build, moved to SimulationState at start
     std::vector<float> lut_keys;
     std::vector<float> lut_values;
-
-    /// Compiled pre-solve electrical patch operations.
-    /// Each op writes current-frame mutable element values by element_id.
-    std::vector<ElectricalPatchOp> electrical_patch_ops;
-
-    /// Compiled post-solve execute operations for solver-owned components.
-    /// Runs after solve_electrical so components can read branch currents.
-    std::vector<SolverStepOp> solver_execute_ops;
-
-    /// Compiled post-solve commit operations for solver-owned components.
-    /// Eliminates per-frame per-type commit loops in simulator.
-    std::vector<SolverStepOp> solver_commit_ops;
 };
 
 /// Build solver runtime from pre-computed input (canonical path).

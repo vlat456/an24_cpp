@@ -7,7 +7,7 @@
 #include "core/model/presentation_spec.h"
 #include "editor/data/node_state.h"
 #include "../../ui/math/pt.h"
-#include "../../ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include <string>
 #include <optional>
 #include <cstdint>
@@ -69,13 +69,13 @@ inline ui::Pt get_default_node_size(const std::string& type_name, const Componen
 
 /// [Issue #132] Helper to resolve param value from instance params map or defaults
 /// Lookup order: params_map[key] → fallback
-inline float get_param_float_from_map(const std::unordered_map<ui::InternedId, float>& params,
+inline float get_param_float_from_map(const std::unordered_map<core::InternedId, float>& params,
                                       const std::unordered_map<std::string, std::string>& string_params,
                                       const std::string& key,
-                                      ui::StringInterner& interner,
+                                      core::StringInterner& interner,
                                       float fallback = 0.0f) {
     // Try numeric params first
-    const ui::InternedId key_iid = interner.intern(key);
+    const core::InternedId key_iid = interner.intern(key);
     auto it = params.find(key_iid);
     if (it != params.end()) {
         return it->second;
@@ -95,13 +95,13 @@ inline float get_param_float_from_map(const std::unordered_map<ui::InternedId, f
 }
 
 /// [Issue #132] Helper to resolve param bool value from instance params or defaults
-inline bool get_param_bool_from_map(const std::unordered_map<ui::InternedId, float>& params,
+inline bool get_param_bool_from_map(const std::unordered_map<core::InternedId, float>& params,
                                     const std::unordered_map<std::string, std::string>& string_params,
                                     const std::string& key,
-                                    ui::StringInterner& interner,
+                                    core::StringInterner& interner,
                                     bool fallback = false) {
     // Try numeric params (0 = false, != 0 = true)
-    const ui::InternedId key_iid = interner.intern(key);
+    const core::InternedId key_iid = interner.intern(key);
     auto it = params.find(key_iid);
     if (it != params.end()) {
         return it->second != 0.0f;
@@ -122,9 +122,9 @@ inline bool get_param_bool_from_map(const std::unordered_map<ui::InternedId, flo
 /// using instance params first, then type definition defaults.
 inline NodeContent create_node_content(const ComponentSpec& def,
                                        const TypePresentation* pres,
-                                       const std::unordered_map<ui::InternedId, float>& instance_params,
+                                       const std::unordered_map<core::InternedId, float>& instance_params,
                                        const std::unordered_map<std::string, std::string>& instance_string_params,
-                                       ui::StringInterner& interner) {
+                                       core::StringInterner& interner) {
     NodeContent content;
     const bp2::NodeContentType ct = pres ? pres->content_type : bp2::NodeContentType::None;
     content.type = ct;
@@ -209,7 +209,7 @@ inline NodeContent create_node_content(const ComponentSpec& def,
 inline NodeContent create_runtime_node_content(const bp2::Blueprint::Node& node,
                                                const ComponentSpec& def,
                                                const TypePresentation* pres,
-                                               ui::StringInterner& interner,
+                                               core::StringInterner& interner,
                                                const editor::RuntimeNodeState* runtime_state = nullptr) {
     NodeContent content = create_node_content(def, pres, node.semantic.params, node.semantic.string_params, interner);
 

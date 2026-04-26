@@ -7,9 +7,9 @@ namespace editor::commands::extract_detail {
 
 PortType find_port_type(const bp2::Blueprint& bp,
                         const bp2::Blueprint::Node* node,
-                        ui::InternedId port_name,
+                        core::InternedId port_name,
                         const ComponentRegistry& registry,
-                        ui::StringInterner& interner) {
+                        core::StringInterner& interner) {
     if (!node) {
         return PortType::Any;
     }
@@ -28,8 +28,8 @@ PortType find_port_type(const bp2::Blueprint& bp,
 
 bool path_to_node_port(const bp2::Path& path,
                        const bp2::PathArena& arena,
-                       ui::InternedId& out_node,
-                       ui::InternedId& out_port) {
+                       core::InternedId& out_node,
+                       core::InternedId& out_port) {
     if (path.kind() != bp2::PathKind::Port) {
         return false;
     }
@@ -44,8 +44,8 @@ bool path_to_node_port(const bp2::Path& path,
 
 bool path_to_node_port(const bp2::WireEndpoint& ep,
                        const bp2::PathArena& /*arena*/,
-                       ui::InternedId& out_node,
-                       ui::InternedId& out_port) {
+                       core::InternedId& out_node,
+                       core::InternedId& out_port) {
     out_node = ep.node;
     out_port = ep.port;
     return !out_node.empty() && !out_port.empty();
@@ -67,12 +67,12 @@ std::string dedupe_name(const std::string& base,
     return base + "_overflow";
 }
 
-ui::InternedId next_unique_id(ui::StringInterner& interner,
-                              const std::unordered_set<ui::InternedId>& used,
+core::InternedId next_unique_id(core::StringInterner& interner,
+                              const std::unordered_set<core::InternedId>& used,
                               const std::string& prefix) {
     for (int i = 1; i < 1000000; ++i) {
         std::string candidate = prefix + std::to_string(i);
-        ui::InternedId id = interner.lookup(candidate);
+        core::InternedId id = interner.lookup(candidate);
         if (id.empty() || used.find(id) == used.end()) {
             return interner.intern(candidate);
         }
@@ -80,8 +80,8 @@ ui::InternedId next_unique_id(ui::StringInterner& interner,
     return {};
 }
 
-std::unordered_set<ui::InternedId> collect_used_node_ids(const bp2::Blueprint& bp) {
-    std::unordered_set<ui::InternedId> out;
+std::unordered_set<core::InternedId> collect_used_node_ids(const bp2::Blueprint& bp) {
+    std::unordered_set<core::InternedId> out;
     out.reserve(bp.nodes().size());
     for (const auto& n : bp.nodes()) {
         out.insert(n.semantic.id);
@@ -89,8 +89,8 @@ std::unordered_set<ui::InternedId> collect_used_node_ids(const bp2::Blueprint& b
     return out;
 }
 
-std::unordered_set<ui::InternedId> collect_used_wire_ids(const bp2::Blueprint& bp) {
-    std::unordered_set<ui::InternedId> out;
+std::unordered_set<core::InternedId> collect_used_wire_ids(const bp2::Blueprint& bp) {
+    std::unordered_set<core::InternedId> out;
     out.reserve(bp.wires().size());
     for (const auto& w : bp.wires()) {
         out.insert(w.id);
@@ -110,7 +110,7 @@ bool compare_external(const ExternalConnection& a, const ExternalConnection& b) 
 std::vector<bp2::PortDescriptor> build_iface_ports(
     const std::vector<ExternalConnection>& inputs,
     const std::vector<ExternalConnection>& outputs,
-    ui::StringInterner& interner) {
+    core::StringInterner& interner) {
     std::vector<bp2::PortDescriptor> ports;
     ports.reserve(inputs.size() + outputs.size());
     for (const auto& ec : inputs) {
@@ -132,9 +132,9 @@ std::vector<bp2::PortDescriptor> build_iface_ports(
     return ports;
 }
 
-std::unordered_map<ui::InternedId, float> build_node_center_y_map(
+std::unordered_map<core::InternedId, float> build_node_center_y_map(
     const std::vector<bp2::Blueprint::Node>& nodes) {
-    std::unordered_map<ui::InternedId, float> out;
+    std::unordered_map<core::InternedId, float> out;
     out.reserve(nodes.size());
     for (const auto& n : nodes) {
         const float h = n.layout.height.value_or(kDefaultNodeHeight);
@@ -147,8 +147,8 @@ float fallback_lane_y(size_t index) {
     return kFallbackLaneStartY + static_cast<float>(index) * kFallbackLaneStepY;
 }
 
-ui::InternedId make_iface_bridge_id(ui::StringInterner& interner,
-                                    ui::InternedId nested_instance_id,
+core::InternedId make_iface_bridge_id(core::StringInterner& interner,
+                                    core::InternedId nested_instance_id,
                                     const std::string& iface_name) {
     std::string id = std::string(interner.resolve(nested_instance_id));
     id += ":";

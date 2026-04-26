@@ -41,23 +41,22 @@ public:
     // === Typed signal API (zero allocation at steady state) ===
 
     /// Look up signal value by interned key. O(1) integer hash lookup.
-    float get_signal_value(ui::InternedId key) const;
+    float get_signal_value(core::InternedId key) const;
 
     /// Apply signal overrides by interned key.
-    void apply_typed_overrides(const std::vector<std::pair<ui::InternedId, float>>& overrides);
+    void apply_typed_overrides(const std::vector<std::pair<core::InternedId, float>>& overrides);
 
     /// Access the build-scoped signal key interner.
-    const ui::StringInterner& signal_key_interner() const;
+    const core::StringInterner& signal_key_interner() const;
 
     /// Resolve a (node_id, port_name) pair to an InternedId via the interner.
     /// Returns empty InternedId if not found. String construction is required
     /// here — use only at setup time, not in the hot path.
-    ui::InternedId resolve_signal_key(std::string_view node_id, std::string_view port_name) const;
+    core::InternedId resolve_signal_key(std::string_view node_id, std::string_view port_name) const;
 
 private:
     std::optional<BuildResult> build_result_;
     SimulationState state_;
-    ElectricalRuntimeState electrical_rt_;
 
     bool running_ = false;
     double time_ = 0.0;

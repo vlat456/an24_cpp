@@ -122,14 +122,14 @@ TEST(E002_SolverStepOps, PopulatedAfterBuild) {
 
      // 2 solver-owned components with handles: AZS, Relay
      // (ElectricalSource has no electrical_handle — its execute/commit are no-ops)
-     EXPECT_EQ(br.solver_execute_ops.size(), 2u);
-     EXPECT_EQ(br.solver_commit_ops.size(), 2u);
+     EXPECT_EQ(br.electrical.execute_ops.size(), 2u);
+     EXPECT_EQ(br.electrical.commit_ops.size(), 2u);
 
-     for (const auto& op : br.solver_execute_ops) {
+     for (const auto& op : br.electrical.execute_ops) {
          EXPECT_NE(op.instance, nullptr);
          EXPECT_NE(op.fn, nullptr);
      }
-     for (const auto& op : br.solver_commit_ops) {
+     for (const auto& op : br.electrical.commit_ops) {
          EXPECT_NE(op.instance, nullptr);
          EXPECT_NE(op.fn, nullptr);
      }
@@ -150,7 +150,7 @@ TEST(E002_SolverStepOps, PointersMatchDeviceMap) {
      auto br = build_systems_dev(make_jit_input(devices, signal_groups));
 
      // ElectricalSource has no electrical_handle — no step ops created
-     ASSERT_EQ(br.solver_execute_ops.size(), 0u);
+     ASSERT_EQ(br.electrical.execute_ops.size(), 0u);
 
      // Verify the device was still created (just no handle-based ops)
      auto it = br.devices.find("bat1");
@@ -187,8 +187,8 @@ TEST(E002_SolverStepOps, EmptyCircuitHasNoOps) {
 
      auto br = build_systems_dev(make_jit_input(devices, signal_groups));
 
-     EXPECT_TRUE(br.solver_execute_ops.empty());
-     EXPECT_TRUE(br.solver_commit_ops.empty());
+     EXPECT_TRUE(br.electrical.execute_ops.empty());
+     EXPECT_TRUE(br.electrical.commit_ops.empty());
 }
 
 TEST(E002_SolverStepOps, KnobSwitchGetsStepOps) {
@@ -210,9 +210,9 @@ TEST(E002_SolverStepOps, KnobSwitchGetsStepOps) {
      auto br = build_systems_dev(make_jit_input(devices, signal_groups));
 
      // KnobSwitch must get step ops — its commit() reads control and writes position
-     EXPECT_GE(br.solver_execute_ops.size(), 1u)
+     EXPECT_GE(br.electrical.execute_ops.size(), 1u)
           << "KnobSwitch must get solver step ops";
-     EXPECT_GE(br.solver_commit_ops.size(), 1u)
+     EXPECT_GE(br.electrical.commit_ops.size(), 1u)
           << "KnobSwitch must get solver commit ops";
 
      // Verify position output updates on simulation step

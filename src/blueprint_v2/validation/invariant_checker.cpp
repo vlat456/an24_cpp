@@ -8,7 +8,7 @@
 
 namespace {
 
-static std::string iid_to_string(ui::InternedId id) {
+static std::string iid_to_string(core::InternedId id) {
     return std::to_string(id.raw());
 }
 
@@ -19,11 +19,11 @@ namespace bp2 {
 InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
                                                     PathArena const& arena,
                                                     const ::ComponentRegistry& parser_registry,
-                                                    ui::StringInterner& interner) {
+                                                    core::StringInterner& interner) {
     Result out;
     out.valid = false;
 
-    std::unordered_set<ui::InternedId> node_ids;
+    std::unordered_set<core::InternedId> node_ids;
     for (auto const& n : bp.nodes()) {
         if (!node_ids.insert(n.semantic.id).second) {
             out.error = "duplicate node ID: " + iid_to_string(n.semantic.id);
@@ -31,7 +31,7 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
         }
     }
 
-    std::unordered_set<ui::InternedId> wire_ids;
+    std::unordered_set<core::InternedId> wire_ids;
     for (auto const& w : bp.wires()) {
         if (!wire_ids.insert(w.id).second) {
             out.error = "duplicate wire ID: " + iid_to_string(w.id);
@@ -119,8 +119,8 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
 
             const Interface bridge_iface = interface_from_bridge_port(
                 bridge.direction, bridge.port_type, interner);
-            const ui::InternedId ext_id = interner.intern("ext");
-            const ui::InternedId port_id = interner.intern("port");
+            const core::InternedId ext_id = interner.intern("ext");
+            const core::InternedId port_id = interner.intern("port");
             const auto ext = bridge_iface.at(ext_id);
             const auto port = bridge_iface.at(port_id);
             const Domain expected_domain = domain_for_port_type(bridge.port_type);

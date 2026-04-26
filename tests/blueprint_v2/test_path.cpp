@@ -1,17 +1,17 @@
 #include <gtest/gtest.h>
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include "blueprint_v2/path/path.h"
 #include <optional>
 
 TEST(PathArena, RootPathHasKindRoot) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::Path root = arena.root();
     EXPECT_EQ(root.kind(), bp2::PathKind::Root);
 }
 
 TEST(PathArena, MakeNodeReturnsNodeKind) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::Path root = arena.root();
     bp2::Path node = arena.make_node(root, interner.intern("battery1"));
@@ -20,7 +20,7 @@ TEST(PathArena, MakeNodeReturnsNodeKind) {
 }
 
 TEST(PathArena, MakePortReturnsPortKind) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::Path node = arena.make_node(arena.root(), interner.intern("bat1"));
     bp2::Path port = arena.make_port(node, interner.intern("v_out"));
@@ -29,21 +29,21 @@ TEST(PathArena, MakePortReturnsPortKind) {
 }
 
 TEST(PathArena, MakeNestedReturnsNestedKind) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::Path nested = arena.make_nested(arena.root(), interner.intern("sub1"));
     EXPECT_EQ(nested.kind(), bp2::PathKind::Nested);
 }
 
 TEST(PathArena, MakeWireReturnsWireKind) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::Path wire = arena.make_wire(arena.root(), interner.intern("w1"));
     EXPECT_EQ(wire.kind(), bp2::PathKind::Wire);
 }
 
 TEST(PathArena, ParentOfNodeIsRoot) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::Path root = arena.root();
     bp2::Path node = arena.make_node(root, interner.intern("r1"));
@@ -51,7 +51,7 @@ TEST(PathArena, ParentOfNodeIsRoot) {
 }
 
 TEST(PathArena, ParentOfPortIsNode) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::Path node = arena.make_node(arena.root(), interner.intern("r1"));
     bp2::Path port = arena.make_port(node, interner.intern("in"));
@@ -59,26 +59,26 @@ TEST(PathArena, ParentOfPortIsNode) {
 }
 
 TEST(PathArena, ParentOfRootIsRoot) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     EXPECT_EQ(arena.parent(arena.root()), arena.root());
 }
 
 TEST(PathToString, RootIsSlash) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     EXPECT_EQ(arena.to_string(arena.root()), "/");
 }
 
 TEST(PathToString, NodePath) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::Path node = arena.make_node(arena.root(), interner.intern("bat1"));
     EXPECT_EQ(arena.to_string(node), "/bat1");
 }
 
 TEST(PathToString, PortPath) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::Path node = arena.make_node(arena.root(), interner.intern("bat1"));
     bp2::Path port = arena.make_port(node, interner.intern("v_out"));
@@ -86,7 +86,7 @@ TEST(PathToString, PortPath) {
 }
 
 TEST(PathToString, NestedNodePort) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::Path sub = arena.make_nested(arena.root(), interner.intern("sub1"));
     bp2::Path node = arena.make_node(sub, interner.intern("r1"));
@@ -95,7 +95,7 @@ TEST(PathToString, NestedNodePort) {
 }
 
 TEST(PathToString, DeepNesting) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::Path s1 = arena.make_nested(arena.root(), interner.intern("a"));
     bp2::Path s2 = arena.make_nested(s1, interner.intern("b"));
@@ -104,7 +104,7 @@ TEST(PathToString, DeepNesting) {
 }
 
 TEST(PathParse, ParseRoot) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     auto result = arena.parse("/");
     ASSERT_TRUE(result.has_value());
@@ -112,7 +112,7 @@ TEST(PathParse, ParseRoot) {
 }
 
 TEST(PathParse, ParseNode) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     auto result = arena.parse("/battery1");
     ASSERT_TRUE(result.has_value());
@@ -121,7 +121,7 @@ TEST(PathParse, ParseNode) {
 }
 
 TEST(PathParse, ParsePort) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     auto result = arena.parse("/bat1:v_out");
     ASSERT_TRUE(result.has_value());
@@ -130,7 +130,7 @@ TEST(PathParse, ParsePort) {
 }
 
 TEST(PathParse, ParseNestedNodePort) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     auto result = arena.parse("/sub1/r1:in");
     ASSERT_TRUE(result.has_value());
@@ -139,7 +139,7 @@ TEST(PathParse, ParseNestedNodePort) {
 }
 
 TEST(PathParse, RoundTrip) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     std::string original = "/a/b/c:port";
     auto parsed = arena.parse(original);
@@ -148,14 +148,14 @@ TEST(PathParse, RoundTrip) {
 }
 
 TEST(PathParse, EmptyStringFails) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     auto result = arena.parse("");
     EXPECT_FALSE(result.has_value());
 }
 
 TEST(PathParse, NoLeadingSlashFails) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     auto result = arena.parse("bat1:v_out");
     EXPECT_FALSE(result.has_value());
@@ -164,7 +164,7 @@ TEST(PathParse, NoLeadingSlashFails) {
 // Step 1.8: Path equality and hash
 
 TEST(PathEquality, SamePathsAreEqual) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::Path a = arena.make_node(arena.root(), interner.intern("x"));
     bp2::Path b = arena.make_node(arena.root(), interner.intern("x"));
@@ -172,7 +172,7 @@ TEST(PathEquality, SamePathsAreEqual) {
 }
 
 TEST(PathEquality, DifferentPathsAreNotEqual) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::Path a = arena.make_node(arena.root(), interner.intern("x"));
     bp2::Path b = arena.make_node(arena.root(), interner.intern("y"));
@@ -180,7 +180,7 @@ TEST(PathEquality, DifferentPathsAreNotEqual) {
 }
 
 TEST(PathHash, SamePathsSameHash) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::Path a = arena.make_node(arena.root(), interner.intern("x"));
     bp2::Path b = arena.make_node(arena.root(), interner.intern("x"));

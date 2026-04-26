@@ -9,24 +9,24 @@ namespace {
 
 PresentationNode make_column_fragment(const PresentationSpec& /*spec*/) {
     PresentationNode root;
-    root.element_id = ui::InternedId(1);
+    root.element_id = core::InternedId(1);
     root.layout = LayoutKind::Column;
     root.gap = 6.0f;
 
     PresentationNode top;
-    top.element_id = ui::InternedId(2);
+    top.element_id = core::InternedId(2);
 
     PresentationNode bottom;
-    bottom.element_id = ui::InternedId(3);
+    bottom.element_id = core::InternedId(3);
 
     root.children.push_back(std::move(top));
     root.children.push_back(std::move(bottom));
     return root;
 }
 
-NodePresentation make_presentation(ui::InternedId type_id = ui::InternedId(100)) {
+NodePresentation make_presentation(core::InternedId type_id = core::InternedId(100)) {
     PresentationSpec spec;
-    spec.node_id = ui::InternedId(10);
+    spec.node_id = core::InternedId(10);
     spec.type_id = type_id;
     spec.title = "Test Node";
 
@@ -45,7 +45,7 @@ const ui::Rect* find_slot(const NodeSlotLayout& layout, NodeSlot slot) {
     return nullptr;
 }
 
-const ui::Rect* find_placement(const NodeSlotLayout& layout, ui::InternedId element_id) {
+const ui::Rect* find_placement(const NodeSlotLayout& layout, core::InternedId element_id) {
     for (const FragmentPlacement& placement : layout.placements) {
         if (placement.element_id == element_id) {
             return &placement.bounds;
@@ -56,7 +56,7 @@ const ui::Rect* find_placement(const NodeSlotLayout& layout, ui::InternedId elem
 
 /// Helper to build a PresentationSpec and compile with a custom presenter lambda.
 template <typename Fn>
-NodePresentation compile_with_presenter(ui::InternedId node_id, ui::InternedId type_id,
+NodePresentation compile_with_presenter(core::InternedId node_id, core::InternedId type_id,
                                         const std::string& title, Fn presenter_fn) {
     PresentationSpec spec;
     spec.node_id = node_id;
@@ -107,7 +107,7 @@ TEST(NodeSlotLayoutTest, PlacesFragmentWithinBodySlotPadding) {
     NodePresentation presentation = make_presentation();
     NodeSlotLayout layout = layout_node_presentation(presentation, ui::Pt(180.0f, 120.0f));
 
-    const ui::Rect* root = find_placement(layout, ui::InternedId(1));
+    const ui::Rect* root = find_placement(layout, core::InternedId(1));
     ASSERT_NE(root, nullptr);
     EXPECT_FLOAT_EQ(root->x, 28.0f);
     EXPECT_FLOAT_EQ(root->y, 32.0f);
@@ -119,8 +119,8 @@ TEST(NodeSlotLayoutTest, SplitsColumnChildrenEvenlyUsingGap) {
     NodePresentation presentation = make_presentation();
     NodeSlotLayout layout = layout_node_presentation(presentation, ui::Pt(180.0f, 120.0f));
 
-    const ui::Rect* top = find_placement(layout, ui::InternedId(2));
-    const ui::Rect* bottom = find_placement(layout, ui::InternedId(3));
+    const ui::Rect* top = find_placement(layout, core::InternedId(2));
+    const ui::Rect* bottom = find_placement(layout, core::InternedId(3));
     ASSERT_NE(top, nullptr);
     ASSERT_NE(bottom, nullptr);
 
@@ -133,24 +133,24 @@ TEST(NodeSlotLayoutTest, SplitsColumnChildrenEvenlyUsingGap) {
 
 TEST(NodeSlotLayoutTest, OverlayChildrenReuseParentBounds) {
     auto presentation = compile_with_presenter(
-        ui::InternedId(11), ui::InternedId(200), "Overlay",
+        core::InternedId(11), core::InternedId(200), "Overlay",
         +[](const PresentationSpec&) -> PresentationNode {
             PresentationNode root;
-            root.element_id = ui::InternedId(20);
+            root.element_id = core::InternedId(20);
             root.layout = LayoutKind::Overlay;
             PresentationNode a;
-            a.element_id = ui::InternedId(21);
+            a.element_id = core::InternedId(21);
             PresentationNode b;
-            b.element_id = ui::InternedId(22);
+            b.element_id = core::InternedId(22);
             root.children.push_back(std::move(a));
             root.children.push_back(std::move(b));
             return root;
         });
     NodeSlotLayout layout = layout_node_presentation(presentation, ui::Pt(180.0f, 120.0f));
 
-    const ui::Rect* root = find_placement(layout, ui::InternedId(20));
-    const ui::Rect* a = find_placement(layout, ui::InternedId(21));
-    const ui::Rect* b = find_placement(layout, ui::InternedId(22));
+    const ui::Rect* root = find_placement(layout, core::InternedId(20));
+    const ui::Rect* a = find_placement(layout, core::InternedId(21));
+    const ui::Rect* b = find_placement(layout, core::InternedId(22));
     ASSERT_NE(root, nullptr);
     ASSERT_NE(a, nullptr);
     ASSERT_NE(b, nullptr);
@@ -167,24 +167,24 @@ TEST(NodeSlotLayoutTest, OverlayChildrenReuseParentBounds) {
 
 TEST(NodeSlotLayoutTest, PerNodeGapOverridesDefault) {
     auto presentation = compile_with_presenter(
-        ui::InternedId(30), ui::InternedId(300), "CustomGap",
+        core::InternedId(30), core::InternedId(300), "CustomGap",
         +[](const PresentationSpec&) -> PresentationNode {
             PresentationNode root;
-            root.element_id = ui::InternedId(31);
+            root.element_id = core::InternedId(31);
             root.layout = LayoutKind::Column;
             root.gap = 10.0f;
             PresentationNode a;
-            a.element_id = ui::InternedId(32);
+            a.element_id = core::InternedId(32);
             PresentationNode b;
-            b.element_id = ui::InternedId(33);
+            b.element_id = core::InternedId(33);
             root.children.push_back(std::move(a));
             root.children.push_back(std::move(b));
             return root;
         });
     NodeSlotLayout layout = layout_node_presentation(presentation, ui::Pt(180.0f, 120.0f));
 
-    const ui::Rect* a = find_placement(layout, ui::InternedId(32));
-    const ui::Rect* b = find_placement(layout, ui::InternedId(33));
+    const ui::Rect* a = find_placement(layout, core::InternedId(32));
+    const ui::Rect* b = find_placement(layout, core::InternedId(33));
     ASSERT_NE(a, nullptr);
     ASSERT_NE(b, nullptr);
 
@@ -195,24 +195,24 @@ TEST(NodeSlotLayoutTest, PerNodeGapOverridesDefault) {
 
 TEST(NodeSlotLayoutTest, ZeroGapNodePacksChildrenTightly) {
     auto presentation = compile_with_presenter(
-        ui::InternedId(40), ui::InternedId(400), "NoGap",
+        core::InternedId(40), core::InternedId(400), "NoGap",
         +[](const PresentationSpec&) -> PresentationNode {
             PresentationNode root;
-            root.element_id = ui::InternedId(41);
+            root.element_id = core::InternedId(41);
             root.layout = LayoutKind::Column;
             root.gap = 0.0f;
             PresentationNode a;
-            a.element_id = ui::InternedId(42);
+            a.element_id = core::InternedId(42);
             PresentationNode b;
-            b.element_id = ui::InternedId(43);
+            b.element_id = core::InternedId(43);
             root.children.push_back(std::move(a));
             root.children.push_back(std::move(b));
             return root;
         });
     NodeSlotLayout layout = layout_node_presentation(presentation, ui::Pt(180.0f, 120.0f));
 
-    const ui::Rect* a = find_placement(layout, ui::InternedId(42));
-    const ui::Rect* b = find_placement(layout, ui::InternedId(43));
+    const ui::Rect* a = find_placement(layout, core::InternedId(42));
+    const ui::Rect* b = find_placement(layout, core::InternedId(43));
     ASSERT_NE(a, nullptr);
     ASSERT_NE(b, nullptr);
 
@@ -223,24 +223,24 @@ TEST(NodeSlotLayoutTest, ZeroGapNodePacksChildrenTightly) {
 
 TEST(NodeSlotLayoutTest, RowLayoutSplitsHorizontally) {
     auto presentation = compile_with_presenter(
-        ui::InternedId(50), ui::InternedId(500), "Row",
+        core::InternedId(50), core::InternedId(500), "Row",
         +[](const PresentationSpec&) -> PresentationNode {
             PresentationNode root;
-            root.element_id = ui::InternedId(51);
+            root.element_id = core::InternedId(51);
             root.layout = LayoutKind::Row;
             root.gap = 4.0f;
             PresentationNode a;
-            a.element_id = ui::InternedId(52);
+            a.element_id = core::InternedId(52);
             PresentationNode b;
-            b.element_id = ui::InternedId(53);
+            b.element_id = core::InternedId(53);
             root.children.push_back(std::move(a));
             root.children.push_back(std::move(b));
             return root;
         });
     NodeSlotLayout layout = layout_node_presentation(presentation, ui::Pt(180.0f, 120.0f));
 
-    const ui::Rect* a = find_placement(layout, ui::InternedId(52));
-    const ui::Rect* b = find_placement(layout, ui::InternedId(53));
+    const ui::Rect* a = find_placement(layout, core::InternedId(52));
+    const ui::Rect* b = find_placement(layout, core::InternedId(53));
     ASSERT_NE(a, nullptr);
     ASSERT_NE(b, nullptr);
 
@@ -252,13 +252,13 @@ TEST(NodeSlotLayoutTest, RowLayoutSplitsHorizontally) {
 TEST(NodeSlotLayoutTest, NoneLayoutWithChildrenDiesInDebug) {
 #ifndef NDEBUG
     auto presentation = compile_with_presenter(
-        ui::InternedId(60), ui::InternedId(600), "Invalid",
+        core::InternedId(60), core::InternedId(600), "Invalid",
         +[](const PresentationSpec&) -> PresentationNode {
             PresentationNode root;
-            root.element_id = ui::InternedId(61);
+            root.element_id = core::InternedId(61);
             root.layout = LayoutKind::None;
             PresentationNode child;
-            child.element_id = ui::InternedId(62);
+            child.element_id = core::InternedId(62);
             root.children.push_back(std::move(child));
             return root;
         });

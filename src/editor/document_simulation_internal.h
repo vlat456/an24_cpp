@@ -8,7 +8,7 @@
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "data/node_content.h"
 #include "data/node_state.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include "window/window_scope_id.h"
 
 #include <functional>
@@ -23,21 +23,21 @@ namespace editor {
 
 /// Select the appropriate readback port for a slider-type node.
 std::optional<std::string_view> select_slider_readback_port(const bp2::Blueprint::Node& node,
-                                                             ui::StringInterner& interner);
+                                                             core::StringInterner& interner);
 
 /// Recursively walk all nodes in a blueprint (including embedded blueprints),
 /// building a typed instance_path as the recursion descends. The callback
 /// receives each node and its current instance_path.
 void walk_blueprint_nodes(
     const bp2::Blueprint& bp,
-    std::vector<ui::InternedId>& instance_path,
-    const std::function<void(const bp2::Blueprint::Node&, std::span<const ui::InternedId>)>& fn);
+    std::vector<core::InternedId>& instance_path,
+    const std::function<void(const bp2::Blueprint::Node&, std::span<const core::InternedId>)>& fn);
 
 /// Convert a typed instance path to a colon-delimited scope string for
 /// simulation signal key construction. Returns "" for root scope (empty path).
 inline std::string instance_path_to_scope_string(
-    const ui::StringInterner& interner,
-    std::span<const ui::InternedId> path) {
+    const core::StringInterner& interner,
+    std::span<const core::InternedId> path) {
     if (path.empty()) return "";
     std::string result;
     for (size_t i = 0; i < path.size(); ++i) {
@@ -61,26 +61,26 @@ inline std::string instance_path_to_scope_string(
 // construction, zero hash table lookup.
 
 struct GaugePorts {
-    ui::InternedId v_in;
+    core::InternedId v_in;
 };
 
 struct IndicatorPorts {
-    ui::InternedId brightness;
+    core::InternedId brightness;
 };
 
 struct SwitchPorts {
-    ui::InternedId state;
-    ui::InternedId control;
+    core::InternedId state;
+    core::InternedId control;
 };
 
 struct SliderPorts {
-    ui::InternedId readback;   ///< Either "out" or "control", resolved at cache build
-    ui::InternedId control;
+    core::InternedId readback;   ///< Either "out" or "control", resolved at cache build
+    core::InternedId control;
 };
 
 struct KnobPorts {
-    ui::InternedId position;
-    ui::InternedId control;
+    core::InternedId position;
+    core::InternedId control;
 };
 
 /// Discriminated union of per-content-type port sets.
@@ -116,6 +116,6 @@ using SignalCache = std::unordered_map<NodeInstanceKey, NodeSignalCache, NodeIns
 /// Pre-resolved wire energization InternedId — built once at simulation start.
 /// Maps wire InternedId → signal InternedId for the wire's source endpoint.
 /// buildEnergizedWireSet() iterates this cache per-frame — zero resolver calls.
-using WireSignalCache = std::unordered_map<ui::InternedId, ui::InternedId, std::hash<ui::InternedId>>;
+using WireSignalCache = std::unordered_map<core::InternedId, core::InternedId, std::hash<core::InternedId>>;
 
 } // namespace editor

@@ -15,7 +15,7 @@
 #include "blueprint_v2/interface/port_descriptor.h"
 #include "blueprint_v2/path/path.h"
 #include "core/solvers/common/signal_key.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include "io/json/component_registry_json_loader.h"
 #include "elaboration_parity_fixtures.h"
 
@@ -48,7 +48,7 @@ bool same_signal_codegen(const bp2::elaboration::CodegenBuildInput& input,
 // ==============================================================================
 
 TEST(CodegenExportParity, FlatTwoDevicesMatchJit) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
     bp2::BlueprintLibrary library;
 
@@ -108,7 +108,7 @@ TEST(CodegenExportParity, FlatTwoDevicesMatchJit) {
 // ==============================================================================
 
 TEST(CodegenExportParity, SingleLevelBridgeKeysMatchJit) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
     bp2::BlueprintLibrary library;
 
@@ -188,7 +188,7 @@ TEST(CodegenExportParity, SingleLevelBridgeKeysMatchJit) {
 // ==============================================================================
 
 TEST(CodegenExportParity, SignalKeysAreNodeDotPort) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
     bp2::BlueprintLibrary library;
 
@@ -231,7 +231,7 @@ TEST(CodegenExportParity, SignalKeysAreNodeDotPort) {
 // ==============================================================================
 
 TEST(CodegenExportParity, DefaultParamsAreFilled) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
     bp2::BlueprintLibrary library;
 
@@ -273,7 +273,7 @@ TEST(CodegenExportParity, DefaultParamsAreFilled) {
 // ==============================================================================
 
 TEST(CodegenExportParity, VisualOnlyComponentFilteredOut) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
     bp2::BlueprintLibrary library;
 

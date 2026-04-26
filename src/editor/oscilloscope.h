@@ -2,7 +2,7 @@
 
 #include "identity.h"
 #include "window/window_scope_id.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include "ui/math/pt.h"
 #include <algorithm>
 #include <cmath>
@@ -22,7 +22,7 @@ struct WindowScopeIdHash {
     size_t operator()(const WindowScopeId& id) const noexcept {
         size_t h = static_cast<size_t>(id.mode());
         for (auto seg : id.path()) {
-            h = h * 31 + std::hash<ui::InternedId>{}(seg);
+            h = h * 31 + std::hash<core::InternedId>{}(seg);
         }
         return h;
     }
@@ -38,8 +38,8 @@ struct WindowScopeIdHash {
 /// No probe_id string, no document_id field — the partition owns those.
 /// scope_id lives in the ProbeKey (map key), not duplicated here.
 struct OscilloscopeProbe {
-    ui::InternedId wire_iid;       ///< Interned wire identity from the document's interner.
-    ui::InternedId signal_iid;     ///< Resolved InternedId for zero-lookup sampling. Invalid after sim rebuild.
+    core::InternedId wire_iid;       ///< Interned wire identity from the document's interner.
+    core::InternedId signal_iid;     ///< Resolved InternedId for zero-lookup sampling. Invalid after sim rebuild.
     std::string label;             ///< Display label (wire_id or resolved key string).
     ui::Pt world_pos;              ///< Anchor position on the wire for marker rendering.
     uint32_t color = 0;
@@ -53,7 +53,7 @@ struct OscilloscopeProbe {
 /// Composite key: a probe is uniquely identified by its scope + wire.
 struct ProbeKey {
     WindowScopeId scope_id;
-    ui::InternedId wire_iid;
+    core::InternedId wire_iid;
 
     bool operator==(const ProbeKey& other) const {
         return scope_id == other.scope_id && wire_iid == other.wire_iid;
@@ -64,7 +64,7 @@ struct ProbeKeyHash {
     size_t operator()(const ProbeKey& k) const noexcept {
         // boost::hash_combine: h ^= std::hash<T>{}(v) + 0x9e3779b9 + (h << 6) + (h >> 2);
         size_t h = WindowScopeIdHash{}(k.scope_id);
-        h ^= std::hash<ui::InternedId>{}(k.wire_iid) + 0x9e3779b9 + (h << 6) + (h >> 2);
+        h ^= std::hash<core::InternedId>{}(k.wire_iid) + 0x9e3779b9 + (h << 6) + (h >> 2);
         return h;
     }
 };
@@ -78,7 +78,7 @@ public:
     /// Toggle a probe on/off for a wire within a scope.
     void toggle_probe(Document& doc,
                       const WindowScopeId& scope_id,
-                      ui::InternedId wire_iid,
+                      core::InternedId wire_iid,
                       const ui::Pt* click_world = nullptr);
 
     /// Remove all probes and samples for a document being closed.
@@ -95,10 +95,10 @@ public:
 
     // -- Hover state (per-document) --
 
-    void set_hover_signal(const editor::DocumentId& doc_id, ui::InternedId signal_iid);
+    void set_hover_signal(const editor::DocumentId& doc_id, core::InternedId signal_iid);
     void clear_hover_signal(const editor::DocumentId& doc_id);
     const std::deque<float>& hover_samples(const editor::DocumentId& doc_id) const;
-    ui::InternedId hover_signal_key(const editor::DocumentId& doc_id) const;
+    core::InternedId hover_signal_key(const editor::DocumentId& doc_id) const;
 
     /// Clear all hover state for a document being closed.
     void purge_hover_for(const editor::DocumentId& doc_id);
@@ -192,7 +192,7 @@ private:
     // -- Hover state (per-document) --
 
     struct HoverState {
-        ui::InternedId signal_iid;   ///< Resolved for zero-lookup sampling.
+        core::InternedId signal_iid;   ///< Resolved for zero-lookup sampling.
         std::string label;           ///< Display label.
         std::deque<float> samples;
     };

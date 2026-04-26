@@ -14,12 +14,12 @@ namespace {
 /// has no resolvable signal key (e.g. wire deleted from blueprint).
 bool resolve_probe_signal(Document& doc,
                                  const WindowScopeId& scope_id,
-                                 ui::InternedId wire_iid,
-                                 ui::InternedId& out_key,
+                                 core::InternedId wire_iid,
+                                 core::InternedId& out_key,
                                  std::string& out_label) {
     const std::string_view wire_sv = doc.interner().resolve(wire_iid);
     if (wire_sv.empty()) return false;
-    ui::InternedId key_iid = doc.resolve_wire_signal_key(scope_id, wire_sv);
+    core::InternedId key_iid = doc.resolve_wire_signal_key(scope_id, wire_sv);
     if (key_iid.empty()) return false;
     out_key = key_iid;
     out_label = std::string{wire_sv};
@@ -28,7 +28,7 @@ bool resolve_probe_signal(Document& doc,
 
 /// Find the world-space anchor point on a wire's polyline.
 bool resolve_probe_anchor(Document& doc,
-                                 ui::InternedId wire_iid,
+                                 core::InternedId wire_iid,
                                  const WindowScopeId& scope_id,
                                  const ui::Pt* preferred_world,
                                  ui::Pt& out_world) {
@@ -122,7 +122,7 @@ uint32_t OscilloscopeModel::color_for_index(size_t i) {
 
 void OscilloscopeModel::toggle_probe(Document& doc,
                                      const WindowScopeId& scope_id,
-                                     ui::InternedId wire_iid,
+                                     core::InternedId wire_iid,
                                      const ui::Pt* click_world) {
     if (wire_iid.empty()) return;
 
@@ -201,7 +201,7 @@ void OscilloscopeModel::on_blueprint_changed(Document& doc) {
     // Will be re-resolved lazily on next sample() call.
     auto hover_it = hover_states_.find(doc.id());
     if (hover_it != hover_states_.end()) {
-        hover_it->second.signal_iid = ui::InternedId{};
+        hover_it->second.signal_iid = core::InternedId{};
     }
 }
 
@@ -243,7 +243,7 @@ void OscilloscopeModel::sample(Document& doc, bool simulation_running, float sam
 // OscilloscopeModel — hover state
 // =============================================================================
 
-void OscilloscopeModel::set_hover_signal(const editor::DocumentId& doc_id, ui::InternedId signal_iid) {
+void OscilloscopeModel::set_hover_signal(const editor::DocumentId& doc_id, core::InternedId signal_iid) {
     auto& state = hover_states_[doc_id];
     state.signal_iid = signal_iid;
 }
@@ -251,7 +251,7 @@ void OscilloscopeModel::set_hover_signal(const editor::DocumentId& doc_id, ui::I
 void OscilloscopeModel::clear_hover_signal(const editor::DocumentId& doc_id) {
     auto it = hover_states_.find(doc_id);
     if (it != hover_states_.end()) {
-        it->second.signal_iid = ui::InternedId{};
+        it->second.signal_iid = core::InternedId{};
     }
 }
 
@@ -261,9 +261,9 @@ const std::deque<float>& OscilloscopeModel::hover_samples(const editor::Document
     return (it != hover_states_.end()) ? it->second.samples : empty;
 }
 
-ui::InternedId OscilloscopeModel::hover_signal_key(const editor::DocumentId& doc_id) const {
+core::InternedId OscilloscopeModel::hover_signal_key(const editor::DocumentId& doc_id) const {
     auto it = hover_states_.find(doc_id);
-    return (it != hover_states_.end()) ? it->second.signal_iid : ui::InternedId{};
+    return (it != hover_states_.end()) ? it->second.signal_iid : core::InternedId{};
 }
 
 void OscilloscopeModel::purge_hover_for(const editor::DocumentId& doc_id) {

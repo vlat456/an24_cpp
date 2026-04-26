@@ -41,18 +41,18 @@ bool is_wildcard_port_type(PortType type) {
 }
 
 bool is_bridge_node(const Blueprint::Node& node,
-                    ui::StringInterner& /*interner*/) {
+                    core::StringInterner& /*interner*/) {
     return node.is_bridge_port();
 }
 
-bool is_bridge_port_name(ui::InternedId port_name,
-                         ui::StringInterner& interner) {
+bool is_bridge_port_name(core::InternedId port_name,
+                         core::StringInterner& interner) {
     const std::string_view name = interner.resolve(port_name);
     return name == "ext" || name == "port";
 }
 
-std::optional<ui::InternedId> bridge_exposed_port_name(const Blueprint::Node& node,
-                                                       ui::StringInterner& /*interner*/) {
+std::optional<core::InternedId> bridge_exposed_port_name(const Blueprint::Node& node,
+                                                       core::StringInterner& /*interner*/) {
     if (node.is_bridge_port() && !node.bridge_port().exposed_port.empty()) {
         return node.bridge_port().exposed_port;
     }
@@ -60,10 +60,10 @@ std::optional<ui::InternedId> bridge_exposed_port_name(const Blueprint::Node& no
 }
 
 std::optional<PortDescriptor> node_port_descriptor(const Blueprint::Node& node,
-                                                   ui::InternedId port_name,
+                                                   core::InternedId port_name,
                                                    const Blueprint& bp,
                                                    const ComponentRegistry* parser_registry,
-                                                   ui::StringInterner& interner) {
+                                                   core::StringInterner& interner) {
     if (node.is_blueprint_instance() && parser_registry == nullptr && !node.has_embedded_blueprint()) {
         return std::nullopt;
     }
@@ -103,7 +103,7 @@ std::optional<PortDescriptor> node_port_descriptor(const Blueprint::Node& node,
 std::optional<PortDescriptor> find_port_descriptor(const Blueprint& bp,
                                                    WireEndpoint endpoint,
                                                    const ComponentRegistry* parser_registry,
-                                                   ui::StringInterner& interner) {
+                                                   core::StringInterner& interner) {
     const auto* node = bp.find_node(endpoint.node);
     if (!node) {
         return std::nullopt;
@@ -113,12 +113,12 @@ std::optional<PortDescriptor> find_port_descriptor(const Blueprint& bp,
 
 IndexedSignalGraph build_indexed_signal_graph(const Blueprint& bp,
                                               const ComponentRegistry* parser_registry,
-                                              ui::StringInterner& interner) {
+                                              core::StringInterner& interner) {
     std::vector<SignalPortRef> ports;
     ports.reserve(bp.nodes().size() * 4 + bp.iface().size());
 
     for (const auto& port : bp.iface().ports()) {
-        ports.push_back({WireEndpoint{ui::InternedId{}, port.name}, port});
+        ports.push_back({WireEndpoint{core::InternedId{}, port.name}, port});
     }
 
     for (const auto& node : bp.nodes()) {
@@ -190,7 +190,7 @@ IndexedSignalGraph build_indexed_signal_graph(const Blueprint& bp,
             continue;
         }
 
-        auto root_it = graph.port_to_index.find(WireEndpoint{ui::InternedId{}, *exposed_name});
+        auto root_it = graph.port_to_index.find(WireEndpoint{core::InternedId{}, *exposed_name});
         if (root_it == graph.port_to_index.end()) {
             continue;
         }
@@ -217,7 +217,7 @@ IndexedSignalGraph build_indexed_signal_graph(const Blueprint& bp,
 }
 
 SignalTypingResult resolve_signal_group_typing(const Blueprint& bp,
-                                               ui::StringInterner& interner,
+                                               core::StringInterner& interner,
                                                const IndexedSignalGraph& graph,
                                                uint32_t root) {
     std::optional<Domain> concrete_domain;
@@ -289,7 +289,7 @@ SignalTypingResult resolve_signal_group_typing(const Blueprint& bp,
 
 SignalTypingResult resolve_signal_typing(const Blueprint& bp,
                                          const ComponentRegistry* parser_registry,
-                                         ui::StringInterner& interner,
+                                         core::StringInterner& interner,
                                          WireEndpoint endpoint_a,
                                          WireEndpoint endpoint_b) {
     auto graph = build_indexed_signal_graph(bp, parser_registry, interner);

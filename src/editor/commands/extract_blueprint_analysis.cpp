@@ -15,20 +15,20 @@ bool node_allowed_in_scope(const bp2::Blueprint::Node& node, const WindowScopeId
     if (!scope_id.is_embedded()) {
         return false;
     }
-    return node.semantic.id != ui::InternedId{};
+    return node.semantic.id != core::InternedId{};
 }
 
-std::string default_iface_name_for(const ExternalConnection& ec, ui::StringInterner& interner) {
+std::string default_iface_name_for(const ExternalConnection& ec, core::StringInterner& interner) {
     const auto* port_name = interner.resolve(ec.internal_port).data();
     (void)port_name;
     return std::string(interner.resolve(ec.internal_port));
 }
 
 bool find_embedded_provider_blueprint(const bp2::Blueprint& bp,
-                                      ui::InternedId blueprint_id,
+                                      core::InternedId blueprint_id,
                                       const bp2::Blueprint** out_provider) {
     const bp2::Blueprint* best = nullptr;
-    ui::InternedId best_node_id;
+    core::InternedId best_node_id;
 
     for (const auto& node : bp.nodes()) {
         if (!node.has_embedded_blueprint()) {
@@ -57,7 +57,7 @@ bool inline_nonembedded_descendants(bp2::Blueprint& bp,
                                     bool allow_nonembedded_descendant_refs,
                                     DescendantRemapStats* stats,
                                     std::string* error_out,
-                                    ui::StringInterner& interner) {
+                                    core::StringInterner& interner) {
     for (const auto& node_src : bp.nodes()) {
         if (!node_src.has_embedded_blueprint()) {
             continue;
@@ -121,7 +121,7 @@ bool contains_nonembedded_descendant_nested(const bp2::Blueprint& bp) {
 }
 
 bool validate_selected_embedded_nested_merge_safety(const bp2::Blueprint& source,
-                                                    const std::unordered_set<ui::InternedId>& selected_set,
+                                                    const std::unordered_set<core::InternedId>& selected_set,
                                                     std::string* error_out) {
     (void)source;
     (void)selected_set;
@@ -131,14 +131,14 @@ bool validate_selected_embedded_nested_merge_safety(const bp2::Blueprint& source
 
 bool validate_blueprint_name_for_extract(const bp2::Blueprint& source,
                                          const std::string& blueprint_name,
-                                         ui::StringInterner& interner,
-                                         ui::InternedId* blueprint_iid_out,
+                                         core::StringInterner& interner,
+                                         core::InternedId* blueprint_iid_out,
                                          std::string* error_out) {
     if (blueprint_name.empty()) {
         return set_error(error_out, "extracted blueprint name must be non-empty");
     }
 
-    ui::InternedId blueprint_iid = interner.intern(blueprint_name);
+    core::InternedId blueprint_iid = interner.intern(blueprint_name);
     for (const auto& node : source.nodes()) {
         if (!node.is_blueprint_instance()) {
             continue;
@@ -156,7 +156,7 @@ bool validate_blueprint_name_for_extract(const bp2::Blueprint& source,
 
 DescendantRemapStats collect_descendant_remap_stats(
     const bp2::Blueprint& bp,
-    const std::unordered_set<ui::InternedId>& selected_set,
+    const std::unordered_set<core::InternedId>& selected_set,
     bool allow_nonembedded) {
     DescendantRemapStats stats;
     for (const auto& node : bp.nodes()) {
@@ -191,10 +191,10 @@ DescendantRemapStats collect_descendant_remap_stats(
 }
 
 std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
-                                                  const std::vector<ui::InternedId>& selected_ids,
+                                                  const std::vector<core::InternedId>& selected_ids,
                                                   const WindowScopeId& scope_id,
                                                    bool allow_nonembedded,
-                                                   ui::StringInterner& interner,
+                                                   core::StringInterner& interner,
                                                    const bp2::PathArena& arena,
                                                    const ComponentRegistry& registry,
                                                    std::string* error_out) {
@@ -202,7 +202,7 @@ std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
         return set_error(error_out, "extract selection must include at least 2 nodes"), std::nullopt;
     }
 
-    std::unordered_set<ui::InternedId> selected_set(selected_ids.begin(), selected_ids.end());
+    std::unordered_set<core::InternedId> selected_set(selected_ids.begin(), selected_ids.end());
     if (selected_set.size() < 2) {
         return set_error(error_out, "extract selection must include at least 2 nodes"), std::nullopt;
     }
@@ -214,7 +214,7 @@ std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
     plan.max_x = std::numeric_limits<float>::lowest();
     plan.max_y = std::numeric_limits<float>::lowest();
 
-    for (ui::InternedId node_id : selected_ids) {
+    for (core::InternedId node_id : selected_ids) {
         const auto* node = bp.find_node(node_id);
         if (!node) {
             return set_error(error_out, "selected node not found"), std::nullopt;
@@ -248,10 +248,10 @@ std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
     }
 
     for (const auto& wire : bp.wires()) {
-        ui::InternedId src_node;
-        ui::InternedId src_port;
-        ui::InternedId tgt_node;
-        ui::InternedId tgt_port;
+        core::InternedId src_node;
+        core::InternedId src_port;
+        core::InternedId tgt_node;
+        core::InternedId tgt_port;
         if (!path_to_node_port(wire.source, arena, src_node, src_port)
             || !path_to_node_port(wire.target, arena, tgt_node, tgt_port)) {
             continue;

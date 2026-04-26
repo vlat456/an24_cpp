@@ -10,7 +10,7 @@ namespace {
 /// Build a BlueprintLibrary from all composite types in the registry.
 bp2::BlueprintLibrary build_library_from_registry(
     const ComponentRegistry& registry,
-    ui::StringInterner& interner)
+    core::StringInterner& interner)
 {
     bp2::BlueprintLibrary library;
     for (const auto& [name, spec] : registry.all_types()) {
@@ -26,7 +26,7 @@ bp2::BlueprintLibrary build_library_from_registry(
 CompositeCodegenResult flatten_and_generate(
     const CompositeSpec& td,
     const ComponentRegistry& registry,
-    ui::StringInterner& interner,
+    core::StringInterner& interner,
     const bp2::BlueprintLibrary& library)
 {
     auto bp = bp2::blueprint_from_type_definition(ComponentSpec{td}, interner, registry);
@@ -56,13 +56,13 @@ CompositeCodegenResult CodeGen::generate_composite_systems(
     const CompositeSpec& td,
     const ComponentRegistry& registry)
 {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     auto library = build_library_from_registry(registry, interner);
     return flatten_and_generate(td, registry, interner, library);
 }
 
 std::map<std::string, CompositeCodegenResult> CodeGen::generate_all_composites(const ComponentRegistry& registry) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     auto library = build_library_from_registry(registry, interner);
 
     auto order = registry.get_composites_topo_sorted();

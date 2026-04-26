@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/blueprint/node_color.h"
 #include "blueprint_v2/interface/interface.h"
@@ -12,7 +12,7 @@
 #include "../bp2_test_helpers.h"
 
 TEST(BlueprintNode, ConstructAndAccess) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("bat1");
     node.semantic.type = interner.intern("Battery");
@@ -24,7 +24,7 @@ TEST(BlueprintNode, ConstructAndAccess) {
 }
 
 TEST(BlueprintWire, ConstructAndAccess) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::WireEndpoint src{interner.intern("b1"), interner.intern("v_out")};
     bp2::WireEndpoint tgt{interner.intern("r1"), interner.intern("in")};
@@ -41,7 +41,7 @@ TEST(BlueprintWire, ConstructAndAccess) {
 }
 
 TEST(BlueprintNode, ReferenceInstanceMode) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("sub1");
     node.content = bp2::Blueprint::Node::BlueprintInstanceData{
@@ -53,7 +53,7 @@ TEST(BlueprintNode, ReferenceInstanceMode) {
 }
 
 TEST(BlueprintNode, EmbeddedInstanceMode) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("sub1");
     node.content = bp2::Blueprint::Node::BlueprintInstanceData{
@@ -69,7 +69,7 @@ TEST(BlueprintNode, EmbeddedInstanceMode) {
 // ============================================================================
 
 TEST(BlueprintNodeSource, MakeEmbeddedRejectsNullInlineDef) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     EXPECT_THROW(
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
             nullptr),
@@ -77,15 +77,15 @@ TEST(BlueprintNodeSource, MakeEmbeddedRejectsNullInlineDef) {
 }
 
 TEST(BlueprintNodeSource, MakeReferenceRejectsEmptyBlueprintId) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     EXPECT_THROW(
         bp2::Blueprint::Node::BlueprintSource::make_reference(
-            ui::InternedId{}),
+            core::InternedId{}),
         std::logic_error);
 }
 
 TEST(BlueprintNodeSource, EmbeddedBlueprintSourceExposesInlineBlueprint) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     auto iface = bp2::Interface({
         {interner.intern("v_in"), Domain::Electrical, bp2::Direction::Input}
     });
@@ -101,7 +101,7 @@ TEST(BlueprintNodeSource, EmbeddedBlueprintSourceExposesInlineBlueprint) {
 }
 
 TEST(BlueprintNodeSource, ReferenceSourceStoresOnlyBlueprintId) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
 
     auto source = bp2::Blueprint::Node::BlueprintSource::make_reference(
         interner.intern("power_system"));
@@ -112,7 +112,7 @@ TEST(BlueprintNodeSource, ReferenceSourceStoresOnlyBlueprintId) {
 }
 
 TEST(BlueprintNodeSource, ReferenceEqualityTracksBlueprintIdOnly) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
 
     auto source = bp2::Blueprint::Node::BlueprintSource::make_reference(
         interner.intern("power_system"));
@@ -121,7 +121,7 @@ TEST(BlueprintNodeSource, ReferenceEqualityTracksBlueprintIdOnly) {
 }
 
 TEST(BlueprintNodeSource, CopyPreservesVariantMode) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
 
     // Embedded copy
     auto embedded = bp2::Blueprint::Node::BlueprintSource::make_embedded(
@@ -139,7 +139,7 @@ TEST(BlueprintNodeSource, CopyPreservesVariantMode) {
 }
 
 TEST(BlueprintNodeSource, SetInlineDefReplacesDefinition) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     auto source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
         std::make_unique<bp2::Blueprint>(bp2::Blueprint().with_id(interner.intern("bp1"))));
 
@@ -152,7 +152,7 @@ TEST(BlueprintNodeSource, SetInlineDefReplacesDefinition) {
 }
 
 TEST(BlueprintNodeSource, SetInlineDefRejectsNull) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     auto source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
         std::make_unique<bp2::Blueprint>(bp2::Blueprint().with_id(interner.intern("bp1"))));
 
@@ -160,7 +160,7 @@ TEST(BlueprintNodeSource, SetInlineDefRejectsNull) {
 }
 
 TEST(BlueprintNodeSource, SetInlineDefThrowsOnReference) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     auto source = bp2::Blueprint::Node::BlueprintSource::make_reference(
         interner.intern("power_system"));
 
@@ -170,7 +170,7 @@ TEST(BlueprintNodeSource, SetInlineDefThrowsOnReference) {
 }
 
 TEST(BlueprintNodeSource, ConvertToEmbedded) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     auto source = bp2::Blueprint::Node::BlueprintSource::make_reference(
         interner.intern("power_system"));
 
@@ -183,7 +183,7 @@ TEST(BlueprintNodeSource, ConvertToEmbedded) {
 }
 
 TEST(BlueprintNodeSource, ConvertToEmbeddedRejectsNull) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     EXPECT_THROW(
         bp2::Blueprint::Node::BlueprintSource::make_embedded(
             nullptr),
@@ -197,7 +197,7 @@ TEST(Blueprint, EmptyByDefault) {
 }
 
 TEST(Blueprint, AddNodeAndFind) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::Blueprint bp;
 
     bp2::Blueprint::Node node;
@@ -213,13 +213,13 @@ TEST(Blueprint, AddNodeAndFind) {
 }
 
 TEST(Blueprint, FindNodeNotFound) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::Blueprint bp;
     EXPECT_EQ(bp.find_node(interner.intern("nope")), nullptr);
 }
 
 TEST(Blueprint, FindBlueprintInstanceNode) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
 
     bp2::Blueprint::Node host;
     host.semantic.id = interner.intern("comp1");
@@ -239,7 +239,7 @@ TEST(Blueprint, FindBlueprintInstanceNode) {
 }
 
 TEST(Blueprint, BlueprintInstanceNodeWithEmbeddedSource) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
 
     bp2::Blueprint::Node host;
     host.semantic.id = interner.intern("comp1");
@@ -259,7 +259,7 @@ TEST(Blueprint, BlueprintInstanceNodeWithEmbeddedSource) {
 }
 
 TEST(Blueprint, BlueprintInstanceNodeWithReferenceSource) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
 
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("comp1");
@@ -279,7 +279,7 @@ TEST(Blueprint, BlueprintInstanceNodeWithReferenceSource) {
 }
 
 TEST(Blueprint, EffectiveNodeIfaceUsesEmbeddedBlueprintWhenPresent) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
 
     bp2::Blueprint inner;
     inner = inner.with_interface(bp2::Interface({
@@ -308,7 +308,7 @@ TEST(Blueprint, EffectiveNodeIfaceUsesEmbeddedBlueprintWhenPresent) {
 }
 
 TEST(Blueprint, EffectiveNodeIfaceFallsBackToNodeIfaceWithoutHostedNested) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
 
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("n1");
@@ -327,7 +327,7 @@ TEST(Blueprint, EffectiveNodeIfaceFallsBackToNodeIfaceWithoutHostedNested) {
 }
 
 TEST(Blueprint, ResolveNodeIfaceReferenceRequiresRegistryAuthority) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("ref1");
     node.semantic.type = interner.intern("CompositeType");
@@ -344,7 +344,7 @@ TEST(Blueprint, ResolveNodeIfaceReferenceRequiresRegistryAuthority) {
 }
 
 TEST(Blueprint, ResolveNodeIfaceRejectsReferencedPrimitiveAuthority) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     ComponentRegistry registry;
 
     PrimitiveSpec primitive;
@@ -370,7 +370,7 @@ TEST(Blueprint, ResolveNodeIfaceRejectsReferencedPrimitiveAuthority) {
 }
 
 TEST(Blueprint, WithNodeDoesNotMutateOriginal) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::Blueprint original;
 
     bp2::Blueprint::Node node;
@@ -383,7 +383,7 @@ TEST(Blueprint, WithNodeDoesNotMutateOriginal) {
 }
 
 TEST(Blueprint, AddWireAndFind) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::Blueprint bp;
 
     bp2::Blueprint::Wire wire;
@@ -400,7 +400,7 @@ TEST(Blueprint, AddWireAndFind) {
 }
 
 TEST(Blueprint, WithoutWire) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::Blueprint bp;
 
     bp2::Blueprint::Wire wire;
@@ -417,7 +417,7 @@ TEST(Blueprint, WithoutWire) {
 }
 
 TEST(Blueprint, AddBlueprintInstanceNodeAndFind) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::Blueprint bp;
 
     bp2::Blueprint::Node node;
@@ -436,7 +436,7 @@ TEST(Blueprint, AddBlueprintInstanceNodeAndFind) {
 }
 
 TEST(Blueprint, WithoutNode) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::Blueprint bp;
 
     bp2::Blueprint::Node node;
@@ -452,7 +452,7 @@ TEST(Blueprint, WithoutNode) {
 }
 
 TEST(Blueprint, WithId) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("my_bp"));
     EXPECT_EQ(interner.resolve(bp.id()), "my_bp");
@@ -465,7 +465,7 @@ TEST(Blueprint, WithName) {
 }
 
 TEST(Blueprint, WithInterface) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::Interface iface({
         {interner.intern("v_in"), Domain::Electrical, bp2::Direction::Input}
     });
@@ -480,14 +480,14 @@ TEST(Blueprint, EqualEmptyBlueprints) {
 }
 
 TEST(Blueprint, UnequalById) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     auto bp_a = bp2::Blueprint().with_id(interner.intern("a"));
     auto bp_b = bp2::Blueprint().with_id(interner.intern("b"));
     EXPECT_NE(bp_a, bp_b);
 }
 
 TEST(Blueprint, UnequalByNodes) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("n1");
     node.semantic.type = interner.intern("T");
@@ -502,7 +502,7 @@ TEST(Blueprint, UnequalByNodes) {
 // ============================================================================
 
 TEST(NodeSplit, SemanticFieldsAreIsolatedFromLayout) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::Blueprint::Node a, b;
     a.semantic.id = interner.intern("n1");
     a.semantic.type = interner.intern("Battery");
@@ -521,7 +521,7 @@ TEST(NodeSplit, SemanticFieldsAreIsolatedFromLayout) {
 }
 
 TEST(NodeSplit, ViewFieldsAreIsolatedFromSemantic) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::Blueprint::Node a, b;
     a.semantic.id = interner.intern("n1");
     a.semantic.type = interner.intern("Resistor");
@@ -537,7 +537,7 @@ TEST(NodeSplit, ViewFieldsAreIsolatedFromSemantic) {
 }
 
 TEST(NodeSplit, EqualityRequiresAllThreeSubStructs) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::Blueprint::Node a, b;
     a.semantic.id = interner.intern("n1");
     a.semantic.type = interner.intern("Battery");
@@ -559,7 +559,7 @@ TEST(NodeSplit, EqualityRequiresAllThreeSubStructs) {
 }
 
 TEST(NodeSplit, PortListsLiveInSemanticIface) {
-     ui::StringInterner interner;
+     core::StringInterner interner;
      bp2::Blueprint::Node node;
      node.semantic.id = interner.intern("n1");
      set_iface(node, {
@@ -589,7 +589,7 @@ TEST(BlueprintNaming, SingleNameField_WithNameSetsName) {
 }
 
 TEST(BlueprintNaming, EqualityUsesName) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     auto a = bp2::Blueprint().with_id(interner.intern("x")).with_name("A");
     auto b = bp2::Blueprint().with_id(interner.intern("x")).with_name("A");
     auto c = bp2::Blueprint().with_id(interner.intern("x")).with_name("B");
@@ -598,7 +598,7 @@ TEST(BlueprintNaming, EqualityUsesName) {
 }
 
 TEST(BlueprintNaming, CloneUpdatesName) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     auto bp = bp2::Blueprint()
         .with_id(interner.intern("orig"))
         .with_name("Original");
@@ -610,7 +610,7 @@ TEST(BlueprintNaming, CloneUpdatesName) {
 TEST(BlueprintNaming, RoundTripEquality) {
     // Verifies that a Blueprint constructed with with_name() compares equal
     // to itself after a copy — no hidden fields can cause divergence.
-    ui::StringInterner interner;
+    core::StringInterner interner;
     auto bp = bp2::Blueprint()
         .with_id(interner.intern("rt"))
         .with_name("Round Trip");
@@ -619,7 +619,7 @@ TEST(BlueprintNaming, RoundTripEquality) {
 }
 
 TEST(BlueprintCanonicalEq, DependsOnlyOnCanonicalViewFields) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
 
     bp2::Blueprint::Node a;
     a.semantic.id = interner.intern("n1");

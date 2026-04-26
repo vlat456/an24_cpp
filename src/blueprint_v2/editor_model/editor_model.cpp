@@ -58,7 +58,7 @@ bool EditorModel::add_node(Blueprint::Node node) {
     return true;
 }
 
-bool EditorModel::remove_node(ui::InternedId id) {
+bool EditorModel::remove_node(core::InternedId id) {
     if (!current_.find_node(id)) return false;
     push_checkpoint_if_enabled();
     current_ = current_.without_node(id);
@@ -75,7 +75,7 @@ bool EditorModel::add_wire(Blueprint::Wire wire) {
     return true;
 }
 
-bool EditorModel::remove_wire(ui::InternedId id) {
+bool EditorModel::remove_wire(core::InternedId id) {
     if (!current_.find_wire(id)) return false;
     push_checkpoint_if_enabled();
     current_ = current_.without_wire(id);
@@ -83,7 +83,7 @@ bool EditorModel::remove_wire(ui::InternedId id) {
     return true;
 }
 
-bool EditorModel::update_node(ui::InternedId id, std::function<void(Blueprint::Node&)> fn) {
+bool EditorModel::update_node(core::InternedId id, std::function<void(Blueprint::Node&)> fn) {
     Blueprint next = current_;
     const MutationResult result = try_update_node(next, id, fn);
     if (result != MutationResult::Changed) {
@@ -95,7 +95,7 @@ bool EditorModel::update_node(ui::InternedId id, std::function<void(Blueprint::N
     return true;
 }
 
-bool EditorModel::update_wire(ui::InternedId id, std::function<void(Blueprint::Wire&)> fn) {
+bool EditorModel::update_wire(core::InternedId id, std::function<void(Blueprint::Wire&)> fn) {
     Blueprint next = current_;
     const MutationResult result = try_update_wire(next, id, fn);
     if (result != MutationResult::Changed) {
@@ -107,7 +107,7 @@ bool EditorModel::update_wire(ui::InternedId id, std::function<void(Blueprint::W
     return true;
 }
 
-bool EditorModel::update_node_position(ui::InternedId id, float x, float y) {
+bool EditorModel::update_node_position(core::InternedId id, float x, float y) {
     return update_node(id, [x, y](Blueprint::Node& n) {
         n.layout.x = x;
         n.layout.y = y;
@@ -164,9 +164,9 @@ void EditorModel::ensure_indices() const {
     indices_.valid = true;
 }
 
-std::vector<ui::InternedId> EditorModel::nodes_in_rect(Rect const& r) const {
+std::vector<core::InternedId> EditorModel::nodes_in_rect(Rect const& r) const {
     ensure_indices();
-    std::vector<ui::InternedId> out;
+    std::vector<core::InternedId> out;
     for (auto const& kv : indices_.node_pos) {
         if (r.contains(kv.second.first, kv.second.second)) {
             out.push_back(kv.first);
@@ -181,7 +181,7 @@ bool EditorModel::wire_exists(WireEndpoint const& source, WireEndpoint const& ta
 }
 
 std::string EditorModel::generate_unique_node_id(
-        std::string const& base, ui::StringInterner const& interner) const {
+        std::string const& base, core::StringInterner const& interner) const {
     std::string lower = base;
     for (auto& c : lower)
         c = static_cast<char>(::tolower(static_cast<unsigned char>(c)));
@@ -194,7 +194,7 @@ std::string EditorModel::generate_unique_node_id(
 }
 
 MutationResult EditorModel::mutate_embedded(
-    std::span<const ui::InternedId> path,
+    std::span<const core::InternedId> path,
     const std::function<Blueprint(const Blueprint&)>& mutation)
 {
     if (path.empty()) return MutationResult::NotFound;
@@ -217,8 +217,8 @@ MutationResult EditorModel::mutate_embedded(
 }
 
 bool EditorModel::update_embedded_node(
-    std::span<const ui::InternedId> path,
-    ui::InternedId node_id,
+    std::span<const core::InternedId> path,
+    core::InternedId node_id,
     const std::function<void(Blueprint::Node&)>& fn)
 {
     const MutationResult result = mutate_embedded(path,

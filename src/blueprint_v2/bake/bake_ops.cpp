@@ -9,12 +9,12 @@ namespace {
 
 Blueprint bake_all_impl(Blueprint const& bp,
                         BlueprintLibrary const& library,
-                        std::unordered_set<ui::InternedId>& active_refs);
+                        std::unordered_set<core::InternedId>& active_refs);
 
 } // namespace
 
 Blueprint bake_node_blueprint_instance(Blueprint const& bp,
-                                       ui::InternedId node_id,
+                                       core::InternedId node_id,
                                        BlueprintLibrary const& library) {
     auto const* node = bp.find_blueprint_instance(node_id);
     if (!node) {
@@ -40,7 +40,7 @@ namespace {
 
 Blueprint bake_all_impl(Blueprint const& bp,
                         BlueprintLibrary const& library,
-                        std::unordered_set<ui::InternedId>& active_refs) {
+                        std::unordered_set<core::InternedId>& active_refs) {
     Blueprint result = bp;
 
     for (auto const& node : bp.nodes()) {
@@ -49,7 +49,7 @@ Blueprint bake_all_impl(Blueprint const& bp,
         }
 
         bool inserted_ref = false;
-        ui::InternedId ref_id;
+        core::InternedId ref_id;
 
         if (node.blueprint_instance().source.is_reference()) {
             ref_id = node.blueprint_instance().source.blueprint_id();
@@ -82,7 +82,7 @@ Blueprint bake_all_impl(Blueprint const& bp,
 } // namespace
 
 std::optional<UnbakeResult> try_unbake(Blueprint const& bp,
-                                       ui::InternedId node_id,
+                                       core::InternedId node_id,
                                        BlueprintLibrary const& library) {
     auto const* node = bp.find_blueprint_instance(node_id);
     if (!node || !node->has_embedded_blueprint()) {
@@ -109,7 +109,7 @@ std::optional<UnbakeResult> try_unbake(Blueprint const& bp,
 
 Blueprint bake_all(Blueprint const& bp,
                    BlueprintLibrary const& library) {
-    std::unordered_set<ui::InternedId> active_refs;
+    std::unordered_set<core::InternedId> active_refs;
     return bake_all_impl(bp, library, active_refs);
 }
 

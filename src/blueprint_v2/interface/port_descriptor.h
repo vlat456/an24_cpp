@@ -1,7 +1,7 @@
 #pragma once
 
 #include "direction.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include "core/domain_types.h"
 #include <cstdint>
 #include <optional>
@@ -9,11 +9,11 @@
 namespace bp2 {
 
 struct PortDescriptor {
-    ui::InternedId name;
+    core::InternedId name;
     Domain domain;
     Direction direction;
     PortType port_type = PortType::Any;
-    std::optional<ui::InternedId> alias;
+    std::optional<core::InternedId> alias;
     bool source_writer = false;
 
     bool operator==(PortDescriptor const& o) const {

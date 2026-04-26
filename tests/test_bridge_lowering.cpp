@@ -7,7 +7,7 @@
 #include "io/json/component_registry_json_loader.h"
 #include "core/registry/component_resolution.h"
 #include "jit_build_input_test_helper.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 
 namespace {
 
@@ -44,8 +44,8 @@ TEST(BridgeLowering, BuildSkipsBridgeRuntimeComponents) {
     };
 
     std::vector<Connection> connections = {
-        {"vin.port", "load.v_in", {}},
-        {"load.v_out", "vout.port", {}},
+        {"vin.port", "load.v_in"},
+        {"load.v_out", "vout.port"},
     };
 
     BuildResult result = build_systems_dev(make_jit_input_from_composite(devices, bridges, connections));
@@ -63,7 +63,7 @@ TEST(BridgeLowering, BridgeSignalsStillUnifiedForAliasContract) {
     };
 
     std::vector<Connection> connections = {
-        {"vin.port", "load.v_in", {}},
+        {"vin.port", "load.v_in"},
     };
 
     BuildResult result = build_systems_dev(make_jit_input_from_composite(devices, bridges, connections));
@@ -85,8 +85,8 @@ TEST(BridgeLowering, BridgeNodesDoNotEnterScheduler) {
     };
 
     std::vector<Connection> connections = {
-        {"vin.port", "load.v_in", {}},
-        {"load.v_out", "vout.port", {}},
+        {"vin.port", "load.v_in"},
+        {"load.v_out", "vout.port"},
     };
 
     BuildResult result = build_systems_dev(make_jit_input_from_composite(devices, bridges, connections));

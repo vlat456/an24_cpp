@@ -122,7 +122,7 @@ TEST(OwnershipIsolation, PurgeHoverRemovesEntireState) {
 // == External scope rejection for properties ==
 
 TEST(OwnershipIsolation, ExternalScopeIdIsExternal) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     const auto ext = WindowScopeId::external({interner.intern("inst_1")});
     EXPECT_TRUE(ext.is_external());
     EXPECT_FALSE(ext.is_root());

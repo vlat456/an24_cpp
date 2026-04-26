@@ -109,7 +109,9 @@ static void consume_params(FuelTank<JitProvider>& comp, ParamReader& param_reade
     comp.capacity = param_reader.consume_float_optional("capacity", 1000.0f);
     comp.consumption_rate = param_reader.consume_float_optional("consumption_rate", 0.0f);
     comp.density = param_reader.consume_float_optional("density", 0.78f);
+    comp.internal_r = param_reader.consume_float_optional("internal_r", 0.1f);
     comp.level = param_reader.consume_float_optional("level", 1000.0f);
+    comp.tank_height = param_reader.consume_float_optional("tank_height", 1.0f);
 }
 
 static void consume_params(Generator<JitProvider>& comp, ParamReader& param_reader) {
@@ -296,6 +298,8 @@ static void consume_params(Slider<JitProvider>& comp, ParamReader& param_reader)
 }
 
 static void consume_params(SolenoidValve<JitProvider>& comp, ParamReader& param_reader) {
+    comp.g_closed = param_reader.consume_float_optional("g_closed", 0.0001f);
+    comp.g_open = param_reader.consume_float_optional("g_open", 10.0f);
     comp.normally_closed = param_reader.consume_bool_optional("normally_closed", true);
 }
 
@@ -400,7 +404,7 @@ static void build_RefNode(BuildResult& result, const ResolvedDevice& dev, ParamR
     result.scheduler.add_source(&std::get<RefNode<JitProvider>>(result.devices[dev.name]));
     {
         const std::string key = dev.name + ".v";
-        const ui::InternedId iid = result.signal_key_interner.lookup(key);
+        const core::InternedId iid = result.signal_key_interner.lookup(key);
         auto it_sig = result.port_to_signal.find(iid);
         if (it_sig != result.port_to_signal.end()) {
             result.fixed_signals.push_back(it_sig->second);

@@ -65,7 +65,7 @@ auto port_a = std::make_unique<visual::Port>("out", bp2::Direction::Output, Port
         node_b->addChild(std::move(port_b));
         scene.add(std::move(node_b));
 
-auto wire = std::make_unique<visual::Wire>(ui::InternedId{}, "w1", "a", "out", "b", "in");
+auto wire = std::make_unique<visual::Wire>(core::InternedId{}, "w1", "a", "out", "b", "in");
         wire_ptr = wire.get();
         scene.add(std::move(wire));
     }
@@ -76,7 +76,7 @@ auto wire = std::make_unique<visual::Wire>(ui::InternedId{}, "w1", "a", "out", "
 // ============================================================
 
 TEST(WireTest, Construction) {
-    visual::Wire wire(ui::InternedId{}, "w1", "a", "out", "b", "in");
+    visual::Wire wire(core::InternedId{}, "w1", "a", "out", "b", "in");
 
     EXPECT_EQ(wire.startEndpoint().node_id, "a");
     EXPECT_EQ(wire.startEndpoint().port_name, "out");
@@ -85,12 +85,12 @@ TEST(WireTest, Construction) {
 }
 
 TEST(WireTest, Id) {
-    visual::Wire wire(ui::InternedId{}, "wire_42", "a", "out", "b", "in");
+    visual::Wire wire(core::InternedId{}, "wire_42", "a", "out", "b", "in");
     EXPECT_EQ(wire.id(), "wire_42");
 }
 
 TEST(WireTest, WireIsClickable) {
-    visual::Wire wire(ui::InternedId{}, "w", "a", "out", "b", "in");
+    visual::Wire wire(core::InternedId{}, "w", "a", "out", "b", "in");
     EXPECT_TRUE(wire.isClickable());
 }
 
@@ -148,7 +148,7 @@ TEST(WireTest, PolylineWithRouting) {
 
 TEST(WireTest, PolylineUnresolvableEndpoints) {
     // Wire with no scene — endpoints cannot resolve
-    visual::Wire wire(ui::InternedId{}, "w1", "a", "out", "b", "in");
+    visual::Wire wire(core::InternedId{}, "w1", "a", "out", "b", "in");
     auto pl = wire.polyline();
     EXPECT_TRUE(pl.empty());
 }
@@ -163,7 +163,7 @@ TEST(WireTest, PolylineOneEndResolvable) {
     scene.add(std::move(node_a));
 
     // No node "b" in scene — end endpoint unresolvable
-    auto wire = std::make_unique<visual::Wire>(ui::InternedId{}, "w1", "a", "out", "b", "in");
+    auto wire = std::make_unique<visual::Wire>(core::InternedId{}, "w1", "a", "out", "b", "in");
     auto* w = wire.get();
     scene.add(std::move(wire));
 
@@ -201,7 +201,7 @@ TEST(WireTest, BoundsFromPolyline) {
 }
 
 TEST(WireTest, BoundsEmptyPolyline) {
-    visual::Wire wire(ui::InternedId{}, "w", "a", "out", "b", "in");
+    visual::Wire wire(core::InternedId{}, "w", "a", "out", "b", "in");
     Pt mn = wire.worldMin();
     Pt mx = wire.worldMax();
     EXPECT_FLOAT_EQ(mn.x, 0.0f);
@@ -235,14 +235,14 @@ TEST(WireTest, BoundsVirtualDispatch) {
 // ============================================================
 
 TEST(WireTest, AddRoutingPoint) {
-    visual::Wire wire(ui::InternedId{}, "w", "a", "out", "b", "in");
+    visual::Wire wire(core::InternedId{}, "w", "a", "out", "b", "in");
     auto* rp = wire.addRoutingPoint(Pt(50, 60), 0);
     EXPECT_NE(rp, nullptr);
     EXPECT_EQ(wire.children().size(), 1u);
 }
 
 TEST(WireTest, AddRoutingPointOrdered) {
-    visual::Wire wire(ui::InternedId{}, "w", "a", "out", "b", "in");
+    visual::Wire wire(core::InternedId{}, "w", "a", "out", "b", "in");
     wire.addRoutingPoint(Pt(10, 0), 0);
     wire.addRoutingPoint(Pt(30, 0), 1);
     wire.addRoutingPoint(Pt(20, 0), 1); // insert between
@@ -254,7 +254,7 @@ TEST(WireTest, AddRoutingPointOrdered) {
 }
 
 TEST(WireTest, RemoveRoutingPoint) {
-    visual::Wire wire(ui::InternedId{}, "w", "a", "out", "b", "in");
+    visual::Wire wire(core::InternedId{}, "w", "a", "out", "b", "in");
     wire.addRoutingPoint(Pt(50, 60), 0);
     EXPECT_EQ(wire.children().size(), 1u);
     wire.removeRoutingPoint(0);
@@ -295,7 +295,7 @@ TEST(WireTest, WireRemovedWhenNodeRemoved) {
 }
 
 TEST(WireTest, RenderNoCrash) {
-    visual::Wire wire(ui::InternedId{}, "w", "a", "out", "b", "in");
+    visual::Wire wire(core::InternedId{}, "w", "a", "out", "b", "in");
     visual::RenderContext ctx;
     ctx.zoom = 1.0f;
     EXPECT_NO_FATAL_FAILURE(wire.render(nullptr, ctx));
@@ -310,7 +310,7 @@ TEST(WireTest, RenderNoCrash) {
 static visual::Wire* makePolylineWire(visual::Scene& scene,
                                        const std::string& id,
                                        const std::vector<Pt>& pts) {
-    auto wire = std::make_unique<visual::Wire>(ui::InternedId{}, id, "", "", "", "");
+    auto wire = std::make_unique<visual::Wire>(core::InternedId{}, id, "", "", "", "");
     auto* w = wire.get();
     // Add routing points to define the polyline
     for (size_t i = 0; i < pts.size(); ++i) {

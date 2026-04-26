@@ -24,7 +24,7 @@ void write_file(const fs::path& path, const std::string& contents) {
     out << contents;
 }
 
-bp2::Blueprint make_root_blueprint(ui::StringInterner& interner) {
+bp2::Blueprint make_root_blueprint(core::StringInterner& interner) {
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("workspace_doc"));
     bp = bp.with_name("Workspace Doc");
@@ -69,7 +69,7 @@ TEST(DocumentWorkspaceSession, SaveAndLoadRoundTripAppliesViewportAndReopensWind
     index.entries["FirstOrderLag"] = "library/math/FirstOrderLag.blueprint";
     doc.setLibraryIndex(&index);
 
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::Blueprint bp = make_root_blueprint(interner);
 

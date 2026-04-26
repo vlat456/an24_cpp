@@ -28,7 +28,7 @@
 #include "blueprint_v2/path/path.h"
 #include "core/solvers/common/signal_key.h"
 #include "io/json/component_registry_json_loader.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <sstream>
@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
     std::string raw_json = buf.str();
 
     // Blueprint file — canonical path via Flattener + elaborate_for_jit.
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry registry = load_component_registry("library/");
 
@@ -224,7 +224,7 @@ int main(int argc, char* argv[]) {
 
     // Validate probes
     for (const auto& p : probes) {
-        const ui::InternedId key = build_input.signal_key_interner.lookup(p);
+        const core::InternedId key = build_input.signal_key_interner.lookup(p);
         if (build_input.port_to_signal.find(key) == build_input.port_to_signal.end()) {
             std::cerr << "WARNING: probe '" << p << "' not found in signal map.\n";
         }

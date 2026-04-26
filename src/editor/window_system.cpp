@@ -36,12 +36,12 @@ std::unique_ptr<EditingHost> create_scoped_host(Document& doc, const WindowScope
     }
 
     // scope_id.path() already returns InternedId vector - use directly
-    return create_pathful_embedded_host(doc.model(), std::vector<ui::InternedId>(scope_id.path().begin(), scope_id.path().end()));
+    return create_pathful_embedded_host(doc.model(), std::vector<core::InternedId>(scope_id.path().begin(), scope_id.path().end()));
 }
 
 bool scoped_node_still_exists(Document& doc,
                               const WindowScopeId& scope_id,
-                              ui::InternedId node_id) {
+                              core::InternedId node_id) {
     return doc.find_node_in_scope(scope_id, node_id) != nullptr;
 }
 
@@ -268,7 +268,7 @@ void WindowSystem::removeClosedDocuments() {
     // This method exists for future deferred removal if needed
 }
 
-void WindowSystem::openPropertiesForNode(ui::InternedId node_id,
+void WindowSystem::openPropertiesForNode(core::InternedId node_id,
                                          const WindowScopeId& scope_id,
                                          Document& doc) {
     // External-scope windows are read-only references — property editing is
@@ -287,7 +287,7 @@ void WindowSystem::openPropertiesForNode(ui::InternedId node_id,
     } else if (scope_id.is_embedded()) {
         // scope_id.path() already returns InternedId vector - use directly
         owned_host = create_pathful_embedded_host(doc.model(),
-            std::vector<ui::InternedId>(scope_id.path().begin(), scope_id.path().end()));
+            std::vector<core::InternedId>(scope_id.path().begin(), scope_id.path().end()));
     }
 
     if (!owned_host) {
@@ -297,7 +297,7 @@ void WindowSystem::openPropertiesForNode(ui::InternedId node_id,
     const editor::DocumentId owner_id = doc.id();
     properties_window_.open(*node, node_id, std::move(owned_host), doc.interner(),
         doc.type_registry(),
-        [this, owner_id](ui::InternedId nid) {
+        [this, owner_id](core::InternedId nid) {
             (void)nid;
             if (Document* owner = findDocumentById(owner_id)) {
                 owner->rebuildAllWindows();
@@ -310,7 +310,7 @@ void WindowSystem::openPropertiesForNode(ui::InternedId node_id,
     properties_window_.set_owner_document_id(doc.id());
 }
 
-void WindowSystem::openColorPickerForNode(ui::InternedId node_id, const WindowScopeId& scope_id, Document& doc) {
+void WindowSystem::openColorPickerForNode(core::InternedId node_id, const WindowScopeId& scope_id, Document& doc) {
     if (scope_id.is_external()) {
         return;
     }
@@ -336,7 +336,7 @@ void WindowSystem::openColorPickerForNode(ui::InternedId node_id, const WindowSc
     }
 }
 
-void WindowSystem::openInlineValueEditorForNode(ui::InternedId node_id,
+void WindowSystem::openInlineValueEditorForNode(core::InternedId node_id,
                                                 const WindowScopeId& scope_id,
                                                 Document& doc,
                                                 const ui::Pt* anchor_screen) {
@@ -344,7 +344,7 @@ void WindowSystem::openInlineValueEditorForNode(ui::InternedId node_id,
     if (!node) return;
     if (node->semantic.type != doc.interner().intern("Value")) return;
 
-    const ui::InternedId value_key = doc.interner().intern("value");
+    const core::InternedId value_key = doc.interner().intern("value");
     float current = 0.0f;
     auto it = node->semantic.params.find(value_key);
     if (it != node->semantic.params.end()) {
@@ -357,7 +357,7 @@ void WindowSystem::openInlineValueEditorForNode(ui::InternedId node_id,
     if (scope_id.is_embedded()) {
         // scope_id.path() already returns InternedId vector - use directly
         inlineValueEditor.cached_host = create_pathful_embedded_host(doc.model(),
-            std::vector<ui::InternedId>(scope_id.path().begin(), scope_id.path().end()));
+            std::vector<core::InternedId>(scope_id.path().begin(), scope_id.path().end()));
     }
 
     inlineValueEditor.open = true;
@@ -427,7 +427,7 @@ void WindowSystem::reconcile_owner_bound_ui() {
                 pendingExtract.reset();
             } else {
                 bool all_selected_exist = true;
-                for (ui::InternedId iid : pendingExtract.selected_node_ids) {
+                for (core::InternedId iid : pendingExtract.selected_node_ids) {
                     if (!host->find_node(iid)) {
                         all_selected_exist = false;
                         break;

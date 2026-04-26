@@ -85,12 +85,12 @@ TEST(ElectricalPrimitives, ResistorAndConductancePrimitiveEquivalent) {
     auto result_b = build_systems_dev(make_jit_input_resolved(devices_b, signal_groups_b));
 
     // Both should produce exactly 1 island
-    ASSERT_EQ(result_a.electrical_plan.islands.size(), 1u);
-    ASSERT_EQ(result_b.electrical_plan.islands.size(), 1u);
+    ASSERT_EQ(result_a.electrical.plan.islands.size(), 1u);
+    ASSERT_EQ(result_b.electrical.plan.islands.size(), 1u);
 
     // Both islands should have 3 elements: TheveninSource + FixedVoltageNode + ConductanceBranch
-    ASSERT_EQ(result_a.electrical_plan.islands[0].elements.size(), 3u);
-    ASSERT_EQ(result_b.electrical_plan.islands[0].elements.size(), 3u);
+    ASSERT_EQ(result_a.electrical.plan.islands[0].elements.size(), 3u);
+    ASSERT_EQ(result_b.electrical.plan.islands[0].elements.size(), 3u);
 
     // Solve both circuits
     auto st_a = make_state(result_a.signal_count);
@@ -253,9 +253,9 @@ TEST(ElectricalPrimitives, BuildPlanIncludesPrimitiveElements) {
     auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     // Should produce exactly 1 island
-    ASSERT_EQ(result.electrical_plan.islands.size(), 1u);
+    ASSERT_EQ(result.electrical.plan.islands.size(), 1u);
 
-    const auto& island = result.electrical_plan.islands[0];
+    const auto& island = result.electrical.plan.islands[0];
 
     // 3 elements: TheveninSource (ElectricalSource) + ConductanceBranch (ElectricalConductance) + FixedVoltageNode (RefNode)
     ASSERT_EQ(island.elements.size(), 3u);
@@ -478,8 +478,11 @@ TEST(ElectricalPrimitives, DefaultParametersWork) {
     auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     // Verify defaults in the electrical plan
-    ASSERT_EQ(result.electrical_plan.islands.size(), 1u);
-    const auto& island = result.electrical_plan.islands[0];
+ASSERT_EQ(result.electrical.plan.islands.size(), 1u);
+
+    const auto& island = result.electrical.plan.islands[0];
+
+    // 3 elements: TheveninSource (ElectricalSource) + ConductanceBranch (ElectricalConductance) + FixedVoltageNode (RefNode)
     ASSERT_EQ(island.elements.size(), 3u);
 
     for (const auto& elem : island.elements) {
@@ -556,9 +559,9 @@ TEST(ElectricalPrimitives, MetadataProducesCorrectElementKind) {
     // -- ConductanceBranch via solver_role --
     {
         ResolvedDevice dev = make_resolved_device_with_role("cond1", "ElectricalConductance", {{"conductance", "0.5"}}, SolverRole{
-            "ConductanceBranch",
-            {{"a", "v_in"}, {"b", "v_out"}},
-            {{"g", "conductance"}}
+            .kind = "ConductanceBranch",
+            .port_map = {{"a", "v_in"}, {"b", "v_out"}},
+            .param_map = {{"g", "conductance"}}
         });
 
         ResolvedDevice gnd = make_resolved_device("gnd", "RefNode", {{"value", "0.0"}});
@@ -571,8 +574,8 @@ TEST(ElectricalPrimitives, MetadataProducesCorrectElementKind) {
         };
 
         auto result = build_systems_dev(make_jit_input_resolved(devices, signal_groups));
-        ASSERT_EQ(result.electrical_plan.islands.size(), 1);
-        const auto& island = result.electrical_plan.islands[0];
+        ASSERT_EQ(result.electrical.plan.islands.size(), 1);
+        const auto& island = result.electrical.plan.islands[0];
 
         // Find the element that came from cond1 (ConductanceBranch with g=0.5)
         bool found = false;
@@ -589,9 +592,9 @@ TEST(ElectricalPrimitives, MetadataProducesCorrectElementKind) {
     // -- TheveninSource via solver_role --
     {
         ResolvedDevice dev = make_resolved_device_with_role("src1", "ElectricalSource", {{"voltage", "12.0"}, {"resistance", "0.05"}}, SolverRole{
-            "TheveninSource",
-            {{"pos", "v_out"}, {"neg", "v_in"}},
-            {{"voltage", "voltage"}, {"resistance", "resistance"}}
+            .kind = "TheveninSource",
+            .port_map = {{"pos", "v_out"}, {"neg", "v_in"}},
+            .param_map = {{"voltage", "voltage"}, {"resistance", "resistance"}}
         });
 
         ResolvedDevice gnd = make_resolved_device("gnd", "RefNode", {{"value", "0.0"}});
@@ -604,8 +607,8 @@ TEST(ElectricalPrimitives, MetadataProducesCorrectElementKind) {
         };
 
         auto result = build_systems_dev(make_jit_input_resolved(devices, signal_groups));
-        ASSERT_EQ(result.electrical_plan.islands.size(), 1);
-        const auto& island = result.electrical_plan.islands[0];
+        ASSERT_EQ(result.electrical.plan.islands.size(), 1);
+        const auto& island = result.electrical.plan.islands[0];
 
         bool found = false;
         for (const auto& elem : island.elements) {
@@ -622,9 +625,9 @@ TEST(ElectricalPrimitives, MetadataProducesCorrectElementKind) {
     // -- FixedVoltageNode via solver_role --
     {
         ResolvedDevice dev = make_resolved_device_with_role("ref1", "RefNode", {{"value", "5.0"}}, SolverRole{
-            "FixedVoltageNode",
-            {{"node", "v"}},
-            {{"voltage", "value"}}
+            .kind = "FixedVoltageNode",
+            .port_map = {{"node", "v"}},
+            .param_map = {{"voltage", "value"}}
         });
 
         ResolvedDevice bat = make_resolved_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.1"}});
@@ -637,8 +640,8 @@ TEST(ElectricalPrimitives, MetadataProducesCorrectElementKind) {
         };
 
         auto result = build_systems_dev(make_jit_input_resolved(devices, signal_groups));
-        ASSERT_EQ(result.electrical_plan.islands.size(), 1);
-        const auto& island = result.electrical_plan.islands[0];
+        ASSERT_EQ(result.electrical.plan.islands.size(), 1);
+        const auto& island = result.electrical.plan.islands[0];
 
         bool found = false;
         for (const auto& elem : island.elements) {
@@ -660,9 +663,9 @@ TEST(ElectricalPrimitives, MetadataMissingPortKeyThrows) {
     // ConductanceBranch requires port keys "a" and "b". Test with "a" missing.
     {
         ResolvedDevice dev = make_resolved_device_with_role("cond1", "ElectricalConductance", {{"conductance", "0.5"}}, SolverRole{
-            "ConductanceBranch",
-            {{"b", "v_out"}},  // Missing "a" key
-            {{"g", "conductance"}}
+            .kind = "ConductanceBranch",
+            .port_map = {{"b", "v_out"}},  // Missing "a" key
+            .param_map = {{"g", "conductance"}}
         });
 
         ResolvedDevice gnd = make_resolved_device("gnd", "RefNode", {{"value", "0.0"}});
@@ -681,9 +684,9 @@ TEST(ElectricalPrimitives, MetadataMissingPortKeyThrows) {
     // TheveninSource requires "pos" and "neg". Test with "neg" missing.
     {
         ResolvedDevice dev = make_resolved_device_with_role("src1", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}}, SolverRole{
-            "TheveninSource",
-            {{"pos", "v_out"}},  // Missing "neg" key
-            {{"voltage", "voltage"}, {"resistance", "resistance"}}
+            .kind = "TheveninSource",
+            .port_map = {{"pos", "v_out"}},  // Missing "neg" key
+            .param_map = {{"voltage", "voltage"}, {"resistance", "resistance"}}
         });
 
         ResolvedDevice gnd = make_resolved_device("gnd", "RefNode", {{"value", "0.0"}});
@@ -702,9 +705,9 @@ TEST(ElectricalPrimitives, MetadataMissingPortKeyThrows) {
     // FixedVoltageNode requires "node". Test with empty port_map.
     {
         ResolvedDevice dev = make_resolved_device_with_role("ref1", "RefNode", {{"value", "0.0"}}, SolverRole{
-            "FixedVoltageNode",
-            {},  // Missing "node" key
-            {{"voltage", "value"}}
+            .kind = "FixedVoltageNode",
+            .port_map = {},  // Missing "node" key
+            .param_map = {{"voltage", "value"}}
         });
 
         ResolvedDevice bat = make_resolved_device("bat", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.1"}});
@@ -729,9 +732,9 @@ TEST(ElectricalPrimitives, MetadataMissingParamKeyThrows) {
     // ConductanceBranch requires param key "g". Test with it missing.
     {
         ResolvedDevice dev = make_resolved_device_with_role("cond1", "ElectricalConductance", {{"conductance", "0.5"}}, SolverRole{
-            "ConductanceBranch",
-            {{"a", "v_in"}, {"b", "v_out"}},
-            {}  // Missing "g" key
+            .kind = "ConductanceBranch",
+            .port_map = {{"a", "v_in"}, {"b", "v_out"}},
+            .param_map = {}  // Missing "g" key
         });
 
         ResolvedDevice gnd = make_resolved_device("gnd", "RefNode", {{"value", "0.0"}});
@@ -750,9 +753,9 @@ TEST(ElectricalPrimitives, MetadataMissingParamKeyThrows) {
     // TheveninSource requires "voltage" and "resistance". Test with "resistance" missing.
     {
         ResolvedDevice dev = make_resolved_device_with_role("src1", "ElectricalSource", {{"voltage", "28.0"}, {"resistance", "0.01"}}, SolverRole{
-            "TheveninSource",
-            {{"pos", "v_out"}, {"neg", "v_in"}},
-            {{"voltage", "voltage"}}  // Missing "resistance" key
+            .kind = "TheveninSource",
+            .port_map = {{"pos", "v_out"}, {"neg", "v_in"}},
+            .param_map = {{"voltage", "voltage"}}  // Missing "resistance" key
         });
 
         ResolvedDevice gnd = make_resolved_device("gnd", "RefNode", {{"value", "0.0"}});

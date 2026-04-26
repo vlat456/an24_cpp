@@ -6,7 +6,7 @@ namespace bp2 {
 
 inline Interface interface_from_bridge_port(bp2::BridgeDirection direction,
                                             PortType port_type,
-                                            ui::StringInterner& interner) {
+                                            core::StringInterner& interner) {
     const Domain domain = domain_for_port_type(port_type);
     if (direction == bp2::BridgeDirection::Input) {
         return Interface({

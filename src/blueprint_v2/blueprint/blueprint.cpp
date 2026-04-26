@@ -56,7 +56,7 @@ Blueprint::Node::BlueprintSource::make_embedded(std::unique_ptr<Blueprint> bluep
 }
 
 Blueprint::Node::BlueprintSource
-Blueprint::Node::BlueprintSource::make_reference(ui::InternedId blueprint_id) {
+Blueprint::Node::BlueprintSource::make_reference(core::InternedId blueprint_id) {
     if (blueprint_id.empty()) {
         throw std::logic_error("BlueprintSource::make_reference requires non-empty blueprint_id");
     }
@@ -71,7 +71,7 @@ bool Blueprint::Node::BlueprintSource::is_reference() const {
     return std::holds_alternative<Reference>(value);
 }
 
-ui::InternedId Blueprint::Node::BlueprintSource::blueprint_id() const {
+core::InternedId Blueprint::Node::BlueprintSource::blueprint_id() const {
     if (auto* embedded = std::get_if<Embedded>(&value)) {
         return embedded->blueprint->id();
     }
@@ -210,7 +210,7 @@ void Blueprint::ensure_node_index() const {
     node_idx_valid_ = true;
 }
 
-Blueprint::Node const* Blueprint::find_node(ui::InternedId id) const {
+Blueprint::Node const* Blueprint::find_node(core::InternedId id) const {
     ensure_node_index();
     auto it = node_idx_.find(id);
     if (it == node_idx_.end()) {
@@ -219,7 +219,7 @@ Blueprint::Node const* Blueprint::find_node(ui::InternedId id) const {
     return &nodes_[it->second];
 }
 
-Blueprint::Node const* Blueprint::find_blueprint_instance(ui::InternedId id) const {
+Blueprint::Node const* Blueprint::find_blueprint_instance(core::InternedId id) const {
     const auto* node = find_node(id);
     if (!node || !node->is_blueprint_instance()) {
         return nullptr;
@@ -263,7 +263,7 @@ Blueprint Blueprint::with_node(Node node) const {
     return copy;
 }
 
-Blueprint Blueprint::without_node(ui::InternedId id) const {
+Blueprint Blueprint::without_node(core::InternedId id) const {
     Blueprint copy = *this;
     copy.nodes_.erase(
         std::remove_if(copy.nodes_.begin(), copy.nodes_.end(),
@@ -285,7 +285,7 @@ void Blueprint::ensure_wire_index() const {
     wire_idx_valid_ = true;
 }
 
-Blueprint::Wire const* Blueprint::find_wire(ui::InternedId id) const {
+Blueprint::Wire const* Blueprint::find_wire(core::InternedId id) const {
     ensure_wire_index();
     auto it = wire_idx_.find(id);
     if (it == wire_idx_.end()) {
@@ -301,7 +301,7 @@ Blueprint Blueprint::with_wire(Wire wire) const {
     return copy;
 }
 
-Blueprint Blueprint::without_wire(ui::InternedId id) const {
+Blueprint Blueprint::without_wire(core::InternedId id) const {
     Blueprint copy = *this;
     copy.wires_.erase(
         std::remove_if(copy.wires_.begin(), copy.wires_.end(),
@@ -338,7 +338,7 @@ Interface Blueprint::resolve_node_iface(Node const& node,
     return node.component().iface;
 }
 
-Blueprint Blueprint::with_id(ui::InternedId id) const {
+Blueprint Blueprint::with_id(core::InternedId id) const {
     Blueprint copy = *this;
     copy.id_ = id;
     return copy;
@@ -379,7 +379,7 @@ bool Blueprint::canonical_eq(Blueprint const& other) const {
     return true;
 }
 
-Blueprint Blueprint::clone(ui::InternedId new_id) const {
+Blueprint Blueprint::clone(core::InternedId new_id) const {
     Blueprint copy = *this;
     copy.id_ = new_id;
     copy.name_ = std::string("Copy of ") + name_;
@@ -388,13 +388,13 @@ Blueprint Blueprint::clone(ui::InternedId new_id) const {
 
 std::vector<std::pair<Path, PortDescriptor>> Blueprint::all_ports(PathArena& arena,
                                                                   ::ComponentRegistry const& parser_registry,
-                                                                  ui::StringInterner& interner) const {
+                                                                  core::StringInterner& interner) const {
     std::vector<std::pair<Path, PortDescriptor>> result;
     collect_ports_recursive(result, arena, arena.root(), parser_registry, interner);
     return result;
 }
 
-void Blueprint::validate(::ComponentRegistry const& parser_registry, ui::StringInterner& interner) const {
+void Blueprint::validate(::ComponentRegistry const& parser_registry, core::StringInterner& interner) const {
     PathArena arena(interner);
     auto result = InvariantChecker::validate(*this, arena, parser_registry, interner);
     if (!result.valid) {
@@ -403,7 +403,7 @@ void Blueprint::validate(::ComponentRegistry const& parser_registry, ui::StringI
 }
 
 void Blueprint::validate(::ComponentRegistry const& parser_registry,
-                         ui::StringInterner& interner,
+                         core::StringInterner& interner,
                          PathArena const& arena) const {
     auto result = InvariantChecker::validate(*this, arena, parser_registry, interner);
     if (!result.valid) {
@@ -416,7 +416,7 @@ void Blueprint::collect_ports_recursive(
     PathArena& arena,
     Path prefix,
     ::ComponentRegistry const& parser_registry,
-    ui::StringInterner& interner) const {
+    core::StringInterner& interner) const {
     for (auto const& port : iface_.ports()) {
         result.push_back({arena.make_port(prefix, port.name), port});
     }

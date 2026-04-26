@@ -2,7 +2,7 @@
 
 #include "editor/subwindow_open_target.h"
 #include "blueprint_v2/library/library_index.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 
 /// Create a minimal test LibraryIndex with math/FirstOrderLag for testing
 static bp2::LibraryIndex make_test_index() {
@@ -12,7 +12,7 @@ static bp2::LibraryIndex make_test_index() {
 }
 
 TEST(SubWindowOpenTarget, ResolvesNestedFirst) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::Blueprint bp;
     auto index = make_test_index();
 
@@ -32,7 +32,7 @@ TEST(SubWindowOpenTarget, ResolvesNestedFirst) {
 }
 
 TEST(SubWindowOpenTarget, ReferencedNestedWithoutBlueprintPathResolvesWithIndex) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::Blueprint bp;
     auto index = make_test_index();
 
@@ -54,7 +54,7 @@ TEST(SubWindowOpenTarget, ReferencedNestedWithoutBlueprintPathResolvesWithIndex)
 }
 
 TEST(SubWindowOpenTarget, ReferencedNestedMissingIndexEntryReportsFailure) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::Blueprint bp;
     bp2::LibraryIndex index;  // empty index
 
@@ -73,7 +73,7 @@ TEST(SubWindowOpenTarget, ReferencedNestedMissingIndexEntryReportsFailure) {
 }
 
 TEST(SubWindowOpenTarget, ResolvesEmbeddedNestedKind) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::Blueprint bp;
     auto index = make_test_index();
 
@@ -93,7 +93,7 @@ TEST(SubWindowOpenTarget, ResolvesEmbeddedNestedKind) {
 }
 
 TEST(SubWindowOpenTarget, ResolvesExternalBlueprintPath) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::Blueprint bp;
     auto index = make_test_index();
 
@@ -113,7 +113,7 @@ TEST(SubWindowOpenTarget, ResolvesExternalBlueprintPath) {
 }
 
 TEST(SubWindowOpenTarget, ReferencedNestedWinsEvenIfHostMirrorPathIsPresent) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::Blueprint bp;
     auto index = make_test_index();
 
@@ -133,7 +133,7 @@ TEST(SubWindowOpenTarget, ReferencedNestedWinsEvenIfHostMirrorPathIsPresent) {
 }
 
 TEST(SubWindowOpenTarget, UnknownNodeReportsFailure) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::Blueprint bp;
     auto index = make_test_index();
 
@@ -147,7 +147,7 @@ TEST(SubWindowOpenTarget, UnknownNodeReportsFailure) {
 // The old "embedded=true but null inline_def" state is now structurally impossible.
 // This test verifies that an embedded nested with an empty inline_def still resolves.
 TEST(SubWindowOpenTarget, EmbeddedNestedWithEmptyInlineDefStillResolvesEmbedded) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::Blueprint bp;
     auto index = make_test_index();
 
@@ -173,7 +173,7 @@ TEST(SubWindowOpenTarget, EmbeddedNestedWithEmptyInlineDefStillResolvesEmbedded)
 // Verify nested priority: nested lookup takes precedence over node lookup
 // for both embedded and non-embedded cases.
 TEST(SubWindowOpenTarget, EmbeddedNestedTakesPriorityOverExpandableNode) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::Blueprint bp;
     auto index = make_test_index();
 
@@ -193,7 +193,7 @@ TEST(SubWindowOpenTarget, EmbeddedNestedTakesPriorityOverExpandableNode) {
 }
 
 TEST(SubWindowOpenTarget, NonBlueprintInstanceReportsFailure) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::Blueprint bp;
     auto index = make_test_index();
 

@@ -5,8 +5,8 @@
 namespace semantic_test {
 
 inline editor::presentation::SceneHitObject make_content_region(
-    ui::InternedId node_id, ui::InternedId element_id,
-    ui::InternedId region_id, const ui::Rect& bounds) {
+    core::InternedId node_id, core::InternedId element_id,
+    core::InternedId region_id, const ui::Rect& bounds) {
     editor::presentation::SceneHitObject object;
     object.node_id = node_id;
     object.element_id = element_id;
@@ -17,8 +17,8 @@ inline editor::presentation::SceneHitObject make_content_region(
 }
 
 inline editor::presentation::InteractionBinding make_binding(
-    ui::InternedId region_id, editor::presentation::InteractionKind kind,
-    ui::InternedId action_id) {
+    core::InternedId region_id, editor::presentation::InteractionKind kind,
+    core::InternedId action_id) {
     editor::presentation::InteractionBinding binding;
     binding.region_id = region_id;
     binding.kind = kind;

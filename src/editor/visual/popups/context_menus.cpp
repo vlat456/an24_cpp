@@ -119,7 +119,7 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
                  while (idx < 100000) {
                      std::string candidate = "extracted_blueprint_" + std::to_string(idx);
                      bool used = false;
-                     ui::InternedId cid = doc->interner().lookup(candidate);
+                     core::InternedId cid = doc->interner().lookup(candidate);
                      if (!cid.empty()) {
                          for (const auto& nn : doc->blueprint().nodes()) {
                              if (nn.is_blueprint_instance() && nn.semantic.type == cid) {

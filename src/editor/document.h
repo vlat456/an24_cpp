@@ -14,7 +14,7 @@
 #include "visual/render_context.h"
 #include "blueprint_v2/editor_model/editor_model.h"
 #include "blueprint_v2/path/path.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include "identity.h"
 #include <string>
 #include <string_view>
@@ -28,7 +28,7 @@ class Document {
 public:
     struct ResolvedSignalScope {
         const bp2::Blueprint* blueprint = nullptr;
-        const ui::StringInterner* interner = nullptr;
+        const core::StringInterner* interner = nullptr;
         editor::SignalKeyContext context = editor::root_signal_context();
     };
 
@@ -85,7 +85,7 @@ public:
     bp2::EditorModel& model() { return model_; }
     const bp2::EditorModel& model() const { return model_; }
 
-    ui::StringInterner& interner() { return interner_; }
+    core::StringInterner& interner() { return interner_; }
     bp2::PathArena& arena() { return arena_; }
 
     /// Re-seed next wire id counter from current blueprint wires.
@@ -147,15 +147,15 @@ public:
     void purge_transient_node_state();
 
     [[nodiscard]] std::optional<editor::NodeColor> node_color_for_scope(const WindowScopeId& scope_id,
-                                                                         ui::InternedId node_id) const;
+                                                                         core::InternedId node_id) const;
     void set_node_color_for_scope(const WindowScopeId& scope_id,
-                                  ui::InternedId node_id,
+                                  core::InternedId node_id,
                                   std::optional<editor::NodeColor> color);
 
     /// Find a node by id within a scoped blueprint (root, embedded, or external).
     /// Returns nullptr if the scope or node does not exist.
     [[nodiscard]] const bp2::Blueprint::Node* find_node_in_scope(
-        const WindowScopeId& scope_id, ui::InternedId node_id) const;
+        const WindowScopeId& scope_id, core::InternedId node_id) const;
 
     [[nodiscard]] const editor::RuntimeNodeStateStore& runtime_node_states() const { return runtime_node_states_; }
 
@@ -165,23 +165,23 @@ public:
         const WindowScopeId& scope_id) const;
 
 ResolvedSignalScope resolve_signal_scope(const WindowScopeId& scope_id) const;
-    ui::InternedId resolve_endpoint_signal_key(const WindowScopeId& scope_id,
+    core::InternedId resolve_endpoint_signal_key(const WindowScopeId& scope_id,
                                                std::string_view node_id,
                                                std::string_view port_name) const;
-    ui::InternedId resolve_wire_signal_key(const WindowScopeId& scope_id,
+    core::InternedId resolve_wire_signal_key(const WindowScopeId& scope_id,
                                         std::string_view wire_id) const;
 
     // ── Signal overrides (switch/button clicks) ──
 
     /// Direct access to typed overrides for edge cases.
     /// InternedId must be resolved against simulation's signal_key_interner().
-    std::vector<std::pair<ui::InternedId, float>>& typedOverrides() { return typed_overrides_; }
+    std::vector<std::pair<core::InternedId, float>>& typedOverrides() { return typed_overrides_; }
 
-    void triggerSwitch(ui::InternedId node_id, const WindowScopeId& scope_id = WindowScopeId::root());
-    void setSliderValue(ui::InternedId node_id, float value, const WindowScopeId& scope_id = WindowScopeId::root());
-    void setKnobPosition(ui::InternedId node_id, int position, const WindowScopeId& scope_id = WindowScopeId::root());
-    void holdButtonPress(ui::InternedId node_id, const WindowScopeId& scope_id = WindowScopeId::root());
-    void holdButtonRelease(ui::InternedId node_id, const WindowScopeId& scope_id = WindowScopeId::root());
+    void triggerSwitch(core::InternedId node_id, const WindowScopeId& scope_id = WindowScopeId::root());
+    void setSliderValue(core::InternedId node_id, float value, const WindowScopeId& scope_id = WindowScopeId::root());
+    void setKnobPosition(core::InternedId node_id, int position, const WindowScopeId& scope_id = WindowScopeId::root());
+    void holdButtonPress(core::InternedId node_id, const WindowScopeId& scope_id = WindowScopeId::root());
+    void holdButtonRelease(core::InternedId node_id, const WindowScopeId& scope_id = WindowScopeId::root());
 
     // ── Component/blueprint addition ──
 
@@ -196,7 +196,7 @@ ResolvedSignalScope resolve_signal_scope(const WindowScopeId& scope_id) const;
     /// When preserve_manual is true, nodes explicitly marked manual_size are left unchanged.
     bool normalizeNodeSizesToFit(bool preserve_manual = true);
 
-    bool extractToBlueprint(const std::vector<ui::InternedId>& selected_node_ids,
+    bool extractToBlueprint(const std::vector<core::InternedId>& selected_node_ids,
                            const std::string& blueprint_name,
                            const WindowScopeId& scope_id,
                            std::string* error_out = nullptr,
@@ -205,7 +205,7 @@ ResolvedSignalScope resolve_signal_scope(const WindowScopeId& scope_id) const;
     // ── Sub-windows ──
 
     void openSubWindow(const WindowScopeId& target_scope);
-    void openSubWindow(const WindowScopeId& parent_scope, ui::InternedId local_node_id);
+    void openSubWindow(const WindowScopeId& parent_scope, core::InternedId local_node_id);
 
     /// Open a parent-bound external reference window for a composite node.
     /// Loads the external blueprint and creates a read-only sub-window with
@@ -221,16 +221,16 @@ ResolvedSignalScope resolve_signal_scope(const WindowScopeId& scope_id) const;
         WindowScopeId context_menu_scope_id = WindowScopeId::root();
 
         bool show_node_context_menu = false;
-        ui::InternedId context_menu_node_id;
+        core::InternedId context_menu_node_id;
         WindowScopeId node_context_menu_scope_id = WindowScopeId::root();
 
-        ui::InternedId toggle_probe_wire_id;
+        core::InternedId toggle_probe_wire_id;
         WindowScopeId toggle_probe_scope_id = WindowScopeId::root();
         bool has_toggle_probe_world_pos = false;
         Pt toggle_probe_world_pos;
 
         bool open_inline_value_editor = false;
-        ui::InternedId inline_value_editor_node_id;
+        core::InternedId inline_value_editor_node_id;
         WindowScopeId inline_value_editor_scope_id = WindowScopeId::root();
         bool has_inline_value_editor_screen_pos = false;
         Pt inline_value_editor_screen_pos;
@@ -256,7 +256,7 @@ private:
     /// Extract (node_id, port_name) InternedId pair from a bp2::Path
     /// (expects PathKind::Port with Node parent). Returns empty pair on error.
     /// arena_ is mutable because PathArena::parent() may lazily build cache.
-    std::pair<ui::InternedId, ui::InternedId>
+    std::pair<core::InternedId, core::InternedId>
     bp2_path_to_node_port(const bp2::Path& path) const;
 
     /// Build the pre-resolved signal cache from current blueprint + simulation interner.
@@ -264,7 +264,7 @@ private:
     void build_signal_cache();
 
     /// Overload for WireEndpoint — trivially extracts node/port.
-    std::pair<ui::InternedId, ui::InternedId>
+    std::pair<core::InternedId, core::InternedId>
     bp2_path_to_node_port(const bp2::WireEndpoint& ep) const;
 
     // ── Private data ──
@@ -273,7 +273,7 @@ private:
     std::string filepath_;
     std::string display_name_ = "Untitled";
 
-    ui::StringInterner interner_;
+    core::StringInterner interner_;
     bp2::PathArena arena_{interner_};
     bp2::EditorModel model_;
     WindowManager window_manager_{model_, interner_, arena_};
@@ -289,15 +289,15 @@ private:
     editor::WireSignalCache wire_signal_cache_;
 
     // Typed signal overrides — InternedId resolved once at interaction time.
-    std::vector<std::pair<ui::InternedId, float>> typed_overrides_;
+    std::vector<std::pair<core::InternedId, float>> typed_overrides_;
 
     // Persistent merge buffer for overrides — cleared each frame, capacity preserved.
     // Avoids per-frame heap allocation in updateSimulationStep().
-    std::vector<std::pair<ui::InternedId, float>> override_buffer_;
+    std::vector<std::pair<core::InternedId, float>> override_buffer_;
 
     // Held buttons — key is NodeInstanceKey, value is pre-resolved
     // control port InternedId (resolved at press time, not per-frame).
-    std::unordered_map<editor::NodeInstanceKey, ui::InternedId, editor::NodeInstanceKeyHash> held_buttons_;
+    std::unordered_map<editor::NodeInstanceKey, core::InternedId, editor::NodeInstanceKeyHash> held_buttons_;
 
     editor::RuntimeNodeStateStore runtime_node_states_;
     const ComponentRegistry* type_registry_ = nullptr;

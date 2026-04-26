@@ -41,13 +41,13 @@ void write_file(const std::filesystem::path& path, const std::string& contents) 
     out << contents;
 }
 
-const bp2::Blueprint::Node* require_node(const bp2::Blueprint& bp, ui::StringInterner& interner, const char* id) {
+const bp2::Blueprint::Node* require_node(const bp2::Blueprint& bp, core::StringInterner& interner, const char* id) {
     auto* node = bp.find_node(interner.lookup(id));
     EXPECT_NE(node, nullptr) << id;
     return node;
 }
 
-bp2::Blueprint::Wire make_wire(ui::StringInterner& I,
+bp2::Blueprint::Wire make_wire(core::StringInterner& I,
                                const char* wire_id,
                                const char* src_node,
                                const char* src_port,
@@ -62,7 +62,7 @@ bp2::Blueprint::Wire make_wire(ui::StringInterner& I,
 }
 
 /// Build a Component node whose interface matches the ComponentRegistry exactly.
-bp2::Blueprint::Node make_typed_node(ui::StringInterner& I,
+bp2::Blueprint::Node make_typed_node(core::StringInterner& I,
                                      const ComponentRegistry& registry,
                                      const char* id,
                                      const char* type,
@@ -82,7 +82,7 @@ bp2::Blueprint::Node make_typed_node(ui::StringInterner& I,
 
 NodeContent resolve_node_content(const bp2::Blueprint::Node& node,
                                  const ComponentRegistry& registry,
-                                 ui::StringInterner& interner) {
+                                 core::StringInterner& interner) {
     const std::string type_name(interner.resolve(node.semantic.type));
     const auto* def = registry.get(type_name);
     EXPECT_NE(def, nullptr);
@@ -90,7 +90,7 @@ NodeContent resolve_node_content(const bp2::Blueprint::Node& node,
                                node.semantic.params, node.semantic.string_params, interner);
 }
 
-bp2::Blueprint::Node make_bridge_node(ui::StringInterner& I,
+bp2::Blueprint::Node make_bridge_node(core::StringInterner& I,
                                       const char* id,
                                       bool input_bridge,
                                       PortType t = PortType::V) {
@@ -120,7 +120,7 @@ bp2::Blueprint::Node make_bridge_node(ui::StringInterner& I,
 ///   w0: ext_in.port  → a.v_in
 ///   w1: a.v_out      → b.v_in       (internal to selection {a,b})
 ///   w2: b.v_out      → ext_out.port
-bp2::Blueprint make_extract_roundtrip_fixture(ui::StringInterner& I,
+bp2::Blueprint make_extract_roundtrip_fixture(core::StringInterner& I,
                                               const ComponentRegistry& registry) {
     bp2::Blueprint bp;
     bp = bp.with_id(I.intern("bp_extract_doc"));
@@ -175,7 +175,7 @@ TEST(DocumentSafety, LoadHydratesRootNodeViewFromComponentRegistry) {
     const fs::path dir = make_temp_dir("an24_doc_load_hydrate_root");
     const fs::path bp_path = dir / "root.blueprint";
 
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("root_hydrate"));
@@ -226,7 +226,7 @@ TEST(DocumentSafety, LoadHydratesEmbeddedInlineBlueprintNodeViewFromComponentReg
     const fs::path dir = make_temp_dir("an24_doc_load_hydrate_embedded");
     const fs::path bp_path = dir / "embedded.blueprint";
 
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     bp2::Blueprint inline_bp;
@@ -279,7 +279,7 @@ TEST(DocumentSafety, SetSliderValuePreservesCanonicalStaticContent) {
     ComponentRegistry registry = load_component_registry("library/");
     doc.setComponentRegistry(&registry);
 
-    ui::StringInterner& I = doc.interner();
+    core::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
     bp = bp.with_id(I.intern("slider_doc"));
     bp = bp.with_name("Slider Doc");
@@ -311,7 +311,7 @@ TEST(DocumentSafety, SetKnobPositionPreservesCanonicalStaticContent) {
     ComponentRegistry registry = load_component_registry("library/");
     doc.setComponentRegistry(&registry);
 
-    ui::StringInterner& I = doc.interner();
+    core::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
     bp = bp.with_id(I.intern("knob_doc"));
     bp = bp.with_name("Knob Doc");
@@ -347,7 +347,7 @@ TEST(DocumentSafety, LoadHydratesNonDefaultKnobPositionsFromInstanceParams) {
     const fs::path dir = make_temp_dir("an24_doc_knob_positions_load");
     const fs::path bp_path = dir / "knob_positions.blueprint";
 
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("knob_positions_root"));
@@ -385,7 +385,7 @@ TEST(DocumentSafety, LoadHydratesNonDefaultGaugeRangeAndUnitFromInstanceParams) 
     const fs::path dir = make_temp_dir("an24_doc_gauge_params_load");
     const fs::path bp_path = dir / "gauge_params.blueprint";
 
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("gauge_params_root"));
@@ -429,7 +429,7 @@ TEST(DocumentSafety, LoadHydratesHoldButtonAsSwitchLikeContent) {
     const fs::path dir = make_temp_dir("an24_doc_hold_button_load");
     const fs::path bp_path = dir / "hold_button.blueprint";
 
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("hold_button_root"));
@@ -465,7 +465,7 @@ TEST(DocumentSafety, PropertiesApplyRebuildsSliderWidgetAndInteractionFromEdited
     ComponentRegistry registry = load_component_registry("library/");
     doc.setComponentRegistry(&registry);
 
-    ui::StringInterner& I = doc.interner();
+    core::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
     bp = bp.with_id(I.intern("slider_apply_doc"));
     bp = bp.with_name("Slider Apply Doc");
@@ -483,7 +483,7 @@ TEST(DocumentSafety, PropertiesApplyRebuildsSliderWidgetAndInteractionFromEdited
 
     PropertiesWindow props;
     props.open(*original, I.intern("slider_apply"), create_editor_model_host(doc.model()), doc.interner(), &registry,
-               [&doc](ui::InternedId) { doc.rebuildAllWindows(); });
+               [&doc](core::InternedId) { doc.rebuildAllWindows(); });
     props.set_pending_param("min", -10.0f);
     props.set_pending_param("max", 200.0f);
     props.apply();
@@ -529,7 +529,7 @@ TEST(DocumentSafety, PropertiesApplyRebuildsKnobWidgetAndInteractionFromEditedPa
     ComponentRegistry registry = load_component_registry("library/");
     doc.setComponentRegistry(&registry);
 
-    ui::StringInterner& I = doc.interner();
+    core::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
     bp = bp.with_id(I.intern("knob_apply_doc"));
     bp = bp.with_name("Knob Apply Doc");
@@ -547,7 +547,7 @@ TEST(DocumentSafety, PropertiesApplyRebuildsKnobWidgetAndInteractionFromEditedPa
 
     PropertiesWindow props;
     props.open(*original, I.intern("knob_apply"), create_editor_model_host(doc.model()), doc.interner(), &registry,
-               [&doc](ui::InternedId) { doc.rebuildAllWindows(); });
+               [&doc](core::InternedId) { doc.rebuildAllWindows(); });
     props.set_pending_param("positions", 5.0f);
     props.apply();
 
@@ -586,7 +586,7 @@ TEST(DocumentSafety, PropertiesApplyRebuildsGaugeWidgetFromEditedParams) {
     ComponentRegistry registry = load_component_registry("library/");
     doc.setComponentRegistry(&registry);
 
-    ui::StringInterner& I = doc.interner();
+    core::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
     bp = bp.with_id(I.intern("gauge_apply_doc"));
     bp = bp.with_name("Gauge Apply Doc");
@@ -604,7 +604,7 @@ TEST(DocumentSafety, PropertiesApplyRebuildsGaugeWidgetFromEditedParams) {
 
     PropertiesWindow props;
     props.open(*original, I.intern("gauge_apply"), create_editor_model_host(doc.model()), doc.interner(), &registry,
-               [&doc](ui::InternedId) { doc.rebuildAllWindows(); });
+               [&doc](core::InternedId) { doc.rebuildAllWindows(); });
     props.set_pending_param("min", -20.0f);
     props.set_pending_param("max", 60.0f);
     props.apply();
@@ -636,7 +636,7 @@ TEST(DocumentSafety, PropertiesApplyRebuildsSwitchWidgetFromEditedClosedState) {
     ComponentRegistry registry = load_component_registry("library/");
     doc.setComponentRegistry(&registry);
 
-    ui::StringInterner& I = doc.interner();
+    core::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
     bp = bp.with_id(I.intern("switch_apply_doc"));
     bp = bp.with_name("Switch Apply Doc");
@@ -653,7 +653,7 @@ TEST(DocumentSafety, PropertiesApplyRebuildsSwitchWidgetFromEditedClosedState) {
 
     PropertiesWindow props;
     props.open(*original, I.intern("switch_apply"), create_editor_model_host(doc.model()), doc.interner(), &registry,
-               [&doc](ui::InternedId) { doc.rebuildAllWindows(); });
+               [&doc](core::InternedId) { doc.rebuildAllWindows(); });
     props.set_pending_param("closed", 1.0f);
     props.apply();
 
@@ -677,7 +677,7 @@ TEST(DocumentSafety, PropertiesApplyRebuildsAzsVerticalToggleFromEditedClosedSta
     ComponentRegistry registry = load_component_registry("library/");
     doc.setComponentRegistry(&registry);
 
-    ui::StringInterner& I = doc.interner();
+    core::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
     bp = bp.with_id(I.intern("azs_apply_doc"));
     bp = bp.with_name("AZS Apply Doc");
@@ -694,7 +694,7 @@ TEST(DocumentSafety, PropertiesApplyRebuildsAzsVerticalToggleFromEditedClosedSta
 
     PropertiesWindow props;
     props.open(*original, I.intern("azs_apply"), create_editor_model_host(doc.model()), doc.interner(), &registry,
-               [&doc](ui::InternedId) { doc.rebuildAllWindows(); });
+               [&doc](core::InternedId) { doc.rebuildAllWindows(); });
     props.set_pending_param("closed", 1.0f);
     props.apply();
 
@@ -718,7 +718,7 @@ TEST(DocumentSafety, PropertiesApplyRebuildsRelaySwitchFromEditedClosedState) {
     ComponentRegistry registry = load_component_registry("library/");
     doc.setComponentRegistry(&registry);
 
-    ui::StringInterner& I = doc.interner();
+    core::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
     bp = bp.with_id(I.intern("relay_apply_doc"));
     bp = bp.with_name("Relay Apply Doc");
@@ -735,7 +735,7 @@ TEST(DocumentSafety, PropertiesApplyRebuildsRelaySwitchFromEditedClosedState) {
 
     PropertiesWindow props;
     props.open(*original, I.intern("relay_apply"), create_editor_model_host(doc.model()), doc.interner(), &registry,
-               [&doc](ui::InternedId) { doc.rebuildAllWindows(); });
+               [&doc](core::InternedId) { doc.rebuildAllWindows(); });
     props.set_pending_param("closed", 1.0f);
     props.apply();
 
@@ -755,7 +755,7 @@ TEST(DocumentSafety, PropertiesApplyRebuildsRelaySwitchFromEditedClosedState) {
 }
 
 TEST(DocumentSafety, SliderRuntimeReadbackUsesOutPortWhenPresent) {
-    ui::StringInterner I;
+    core::StringInterner I;
     ComponentRegistry registry = load_component_registry("library/");
 
     auto slider = make_typed_node(I, registry, "slider1", "Slider", 40.0f, 20.0f);
@@ -769,7 +769,7 @@ TEST(DocumentSafety, SliderRuntimeReadbackUsesOutPortWhenPresent) {
 }
 
 TEST(DocumentSafety, SliderRuntimeReadbackUsesControlPortWhenOutMissing) {
-    ui::StringInterner I;
+    core::StringInterner I;
     ComponentRegistry registry = load_component_registry("library/");
 
     auto slider = make_typed_node(I, registry, "slider1", "Slider", 40.0f, 20.0f);
@@ -783,7 +783,7 @@ TEST(DocumentSafety, SliderRuntimeReadbackUsesControlPortWhenOutMissing) {
 }
 
 TEST(DocumentSafety, SliderRuntimeReadbackPrefersOutOverControlWhenBothExist) {
-    ui::StringInterner I;
+    core::StringInterner I;
     ComponentRegistry registry = load_component_registry("library/");
 
     auto slider = make_typed_node(I, registry, "slider1", "Slider", 40.0f, 20.0f);
@@ -798,7 +798,7 @@ TEST(DocumentSafety, SliderRuntimeReadbackPrefersOutOverControlWhenBothExist) {
 }
 
 TEST(DocumentSafety, SliderRuntimeReadbackReturnsNulloptWhenNoRelevantPorts) {
-    ui::StringInterner I;
+    core::StringInterner I;
 
     bp2::Blueprint::Node slider;
     slider.semantic.id = I.intern("slider1");
@@ -820,7 +820,7 @@ TEST(DocumentSafety, LoadNormalizesLegacyAutosizeWithoutDirtyingOrCreatingUndoHi
     const fs::path dir = make_temp_dir("an24_doc_load_normalize_sizes");
     const fs::path bp_path = dir / "normalize.blueprint";
 
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("normalize_root"));
@@ -881,7 +881,7 @@ TEST(DocumentSafety, OpenExternalRefWindowHydratesNodeViewFromComponentRegistry)
     index.entries["external_test"] = ext_path.string();
     doc.setLibraryIndex(&index);
 
-    ui::StringInterner ext_interner;
+    core::StringInterner ext_interner;
     bp2::PathArena ext_arena(ext_interner);
     bp2::Blueprint ext_bp;
     ext_bp = ext_bp.with_id(ext_interner.intern("external_test"));
@@ -942,7 +942,7 @@ TEST(DocumentSafety, NestedExternalRefWindowUsesNestedHostNodeTitle) {
     index.entries["external_test"] = ext_path.string();
     doc.setLibraryIndex(&index);
 
-    ui::StringInterner ext_interner;
+    core::StringInterner ext_interner;
     bp2::PathArena ext_arena(ext_interner);
     bp2::Blueprint ext_bp;
     ext_bp = ext_bp.with_id(ext_interner.intern("external_test"));
@@ -991,7 +991,7 @@ TEST(DocumentSafety, ClosingDocumentClosesPropertiesWindowOwnedByThatDocument) {
     WindowSystem ws;
 
     Document& first = *ws.activeDocument();
-    ui::StringInterner& interner = first.interner();
+    core::StringInterner& interner = first.interner();
 
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("root_bp"));
@@ -1074,7 +1074,7 @@ TEST(DocumentSafety, SaveLoadRoundTripPreservesCanonicalNodeColor) {
     const fs::path dir = make_temp_dir("an24_doc_save_load_color_session_only");
     const fs::path bp_path = dir / "color.blueprint";
 
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::Blueprint seed;
     seed = seed.with_id(interner.intern("color_seed"));
@@ -1203,7 +1203,7 @@ TEST(DocumentSafety, InspectorEditedParamsRoundTripPreservesRebuiltWidgetAuthori
     ComponentRegistry registry = load_component_registry("library/");
     doc.setComponentRegistry(&registry);
 
-    ui::StringInterner& I = doc.interner();
+    core::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
     bp = bp.with_id(I.intern("inspector_roundtrip"));
     bp = bp.with_name("Inspector Roundtrip");
@@ -1231,7 +1231,7 @@ TEST(DocumentSafety, InspectorEditedParamsRoundTripPreservesRebuiltWidgetAuthori
         ASSERT_NE(slider_node, nullptr);
         PropertiesWindow props;
         props.open(*slider_node, I.intern("slider_rt"), create_editor_model_host(doc.model()), doc.interner(), &registry,
-                   [&doc](ui::InternedId) { doc.rebuildAllWindows(); });
+                   [&doc](core::InternedId) { doc.rebuildAllWindows(); });
         props.set_pending_param("min", -10.0f);
         props.set_pending_param("max", 200.0f);
         props.apply();
@@ -1242,7 +1242,7 @@ TEST(DocumentSafety, InspectorEditedParamsRoundTripPreservesRebuiltWidgetAuthori
         ASSERT_NE(knob_node, nullptr);
         PropertiesWindow props;
         props.open(*knob_node, I.intern("knob_rt"), create_editor_model_host(doc.model()), doc.interner(), &registry,
-                   [&doc](ui::InternedId) { doc.rebuildAllWindows(); });
+                   [&doc](core::InternedId) { doc.rebuildAllWindows(); });
         props.set_pending_param("positions", 5.0f);
         props.apply();
     }
@@ -1252,7 +1252,7 @@ TEST(DocumentSafety, InspectorEditedParamsRoundTripPreservesRebuiltWidgetAuthori
         ASSERT_NE(gauge_node, nullptr);
         PropertiesWindow props;
         props.open(*gauge_node, I.intern("gauge_rt"), create_editor_model_host(doc.model()), doc.interner(), &registry,
-                   [&doc](ui::InternedId) { doc.rebuildAllWindows(); });
+                   [&doc](core::InternedId) { doc.rebuildAllWindows(); });
         props.set_pending_param("min", -20.0f);
         props.set_pending_param("max", 60.0f);
         props.apply();
@@ -1376,7 +1376,7 @@ TEST(DocumentSafety, InspectorEditedAzsClosedRoundTripPreservesVerticalToggleAut
     ComponentRegistry registry = load_component_registry("library/");
     doc.setComponentRegistry(&registry);
 
-    ui::StringInterner& I = doc.interner();
+    core::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
     bp = bp.with_id(I.intern("azs_roundtrip"));
     bp = bp.with_name("AZS Roundtrip");
@@ -1393,7 +1393,7 @@ TEST(DocumentSafety, InspectorEditedAzsClosedRoundTripPreservesVerticalToggleAut
         ASSERT_NE(azs_node, nullptr);
         PropertiesWindow props;
         props.open(*azs_node, I.intern("azs_rt"), create_editor_model_host(doc.model()), doc.interner(), &registry,
-                   [&doc](ui::InternedId) { doc.rebuildAllWindows(); });
+                   [&doc](core::InternedId) { doc.rebuildAllWindows(); });
         props.set_pending_param("closed", 1.0f);
         props.apply();
     }
@@ -1429,7 +1429,7 @@ TEST(DocumentSafety, InspectorEditedRelayClosedRoundTripPreservesSwitchAuthority
     ComponentRegistry registry = load_component_registry("library/");
     doc.setComponentRegistry(&registry);
 
-    ui::StringInterner& I = doc.interner();
+    core::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
     bp = bp.with_id(I.intern("relay_roundtrip"));
     bp = bp.with_name("Relay Roundtrip");
@@ -1446,7 +1446,7 @@ TEST(DocumentSafety, InspectorEditedRelayClosedRoundTripPreservesSwitchAuthority
         ASSERT_NE(relay_node, nullptr);
         PropertiesWindow props;
         props.open(*relay_node, I.intern("relay_rt"), create_editor_model_host(doc.model()), doc.interner(), &registry,
-                   [&doc](ui::InternedId) { doc.rebuildAllWindows(); });
+                   [&doc](core::InternedId) { doc.rebuildAllWindows(); });
         props.set_pending_param("closed", 1.0f);
         props.apply();
     }
@@ -1482,7 +1482,7 @@ TEST(DocumentSafety, InspectorEditedHoldButtonParamsRoundTripPreservesSwitchLike
     ComponentRegistry registry = load_component_registry("library/");
     doc.setComponentRegistry(&registry);
 
-    ui::StringInterner& I = doc.interner();
+    core::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
     bp = bp.with_id(I.intern("hold_button_roundtrip"));
     bp = bp.with_name("HoldButton Roundtrip");
@@ -1500,7 +1500,7 @@ TEST(DocumentSafety, InspectorEditedHoldButtonParamsRoundTripPreservesSwitchLike
         ASSERT_NE(btn_node, nullptr);
         PropertiesWindow props;
         props.open(*btn_node, I.intern("btn_rt"), create_editor_model_host(doc.model()), doc.interner(), &registry,
-                   [&doc](ui::InternedId) { doc.rebuildAllWindows(); });
+                   [&doc](core::InternedId) { doc.rebuildAllWindows(); });
         props.set_pending_param("idle", 2.5f);
         props.set_pending_param("g_closed", 321.0f);
         props.apply();
@@ -1582,7 +1582,7 @@ TEST(DocumentSafety, AddBlueprintToEmbeddedScopeAddsNodeInsideInlineBlueprint) {
     ComponentRegistry registry = load_component_registry("library/");
     doc.setComponentRegistry(&registry);
 
-    ui::StringInterner& I = doc.interner();
+    core::StringInterner& I = doc.interner();
 
     bp2::Blueprint inner;
     inner = inner.with_id(I.intern("inner_bp"));
@@ -1766,7 +1766,7 @@ TEST(DocumentSafety, WorkspaceSessionOmitsNodeColorsWhenNoneSet) {
         Document doc;
         doc.setComponentRegistry(&registry);
 
-        ui::StringInterner& I = doc.interner();
+        core::StringInterner& I = doc.interner();
         bp2::Blueprint bp;
         bp = bp.with_id(I.intern("no_color_test"));
         bp = bp.with_name("No Color Test");
@@ -1921,7 +1921,7 @@ TEST(DocumentSafety, EmbeddedNodeColorRoundTripMarksDirtyAndRestoresAfterLoad) {
 }
 
 TEST(DocumentSafety, WalkBlueprintNodesProducesNestedInstancePaths) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
 
     // Build a 3-level nesting: root → group_A → group_B → leaf
     bp2::Blueprint::Node leaf;
@@ -1958,9 +1958,9 @@ TEST(DocumentSafety, WalkBlueprintNodesProducesNestedInstancePaths) {
 
     // Walk and collect (instance_path, node_id) pairs
     std::vector<std::pair<std::vector<std::string>, std::string>> visited;
-    std::vector<ui::InternedId> path;
+    std::vector<core::InternedId> path;
     editor::walk_blueprint_nodes(root_bp, path, [&](const bp2::Blueprint::Node& node,
-                                             std::span<const ui::InternedId> instance_path) {
+                                             std::span<const core::InternedId> instance_path) {
         std::vector<std::string> path_strs;
         for (auto seg : instance_path) {
             path_strs.push_back(std::string(interner.resolve(seg)));

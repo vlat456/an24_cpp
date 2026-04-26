@@ -10,14 +10,14 @@
 
 namespace editor {
 
-std::optional<std::vector<ui::InternedId>> intern_scope_path(
-    const ui::StringInterner& interner,
+std::optional<std::vector<core::InternedId>> intern_scope_path(
+    const core::StringInterner& interner,
     std::span<const std::string> scope_path)
 {
-    std::vector<ui::InternedId> iid_path;
+    std::vector<core::InternedId> iid_path;
     iid_path.reserve(scope_path.size());
     for (const std::string& segment : scope_path) {
-        const ui::InternedId iid = interner.lookup(segment);
+        const core::InternedId iid = interner.lookup(segment);
         if (iid.empty()) return std::nullopt;
         iid_path.push_back(iid);
     }

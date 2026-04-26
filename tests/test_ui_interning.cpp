@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 
 #include <unordered_set>
 #include <unordered_map>
@@ -7,8 +7,8 @@
 #include <vector>
 #include <algorithm>
 
-using ui::InternedId;
-using ui::StringInterner;
+using core::InternedId;
+using core::StringInterner;
 
 // =============================================================================
 // InternedId — Value Type Tests

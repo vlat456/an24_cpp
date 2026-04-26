@@ -26,17 +26,17 @@ Interface::Interface(std::vector<PortDescriptor> ports)
     }
 }
 
-std::optional<PortDescriptor> Interface::find(ui::InternedId name) const {
+std::optional<PortDescriptor> Interface::find(core::InternedId name) const {
     auto it = name_to_idx_.find(name);
     if (it == name_to_idx_.end()) return std::nullopt;
     return ports_[it->second];
 }
 
-bool Interface::has(ui::InternedId name) const {
+bool Interface::has(core::InternedId name) const {
     return name_to_idx_.count(name) > 0;
 }
 
-PortDescriptor const& Interface::at(ui::InternedId name) const {
+PortDescriptor const& Interface::at(core::InternedId name) const {
     auto it = name_to_idx_.find(name);
     if (it == name_to_idx_.end()) {
         throw std::out_of_range("Interface::at: port name not found");

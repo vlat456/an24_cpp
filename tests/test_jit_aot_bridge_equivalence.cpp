@@ -6,6 +6,7 @@
 #include "core/registry/component_resolution.h"
 #include "jit_build_input_test_helper.h"
 #include "core/model/component_registry.h"
+#include "core/domain_types.h"
 
 namespace {
 
@@ -259,4 +260,95 @@ TEST(JitAotBridgeEquivalence, VisualOnlyDevicesIgnoredByBothPaths) {
 
     EXPECT_EQ(jit.devices.count("vin"), 0u);
     EXPECT_EQ(jit.devices.count("vout"), 0u);
+}
+
+// =============================================================================
+// Regression: Hydraulic solver_roles must not crash AOT codegen (issue #306)
+//
+// FuelTank and SolenoidValve have solver_role entries with domain="Hydraulic".
+// The AOT electrical extraction loop must skip non-electrical solver_roles,
+// not throw "unsupported solver_role kind". Previously, the JIT path had the
+// domain guard but the AOT path did not.
+// =============================================================================
+
+TEST(JitAotBridgeEquivalence, HydraulicSolverRolesSkippedInAotCodegen) {
+    ComponentRegistry registry;
+    register_from_library(registry, {"FuelTank", "SolenoidValve", "Value", "RefNode"});
+
+    std::vector<DeviceInstance> devices;
+
+    DeviceInstance d_gnd;
+    d_gnd.name = "gnd";
+    d_gnd.classname = "RefNode";
+    d_gnd.params["value"] = "0";
+    devices.push_back(d_gnd);
+
+    DeviceInstance d_tank;
+    d_tank.name = "tank1";
+    d_tank.classname = "FuelTank";
+    d_tank.params["capacity"] = "500";
+    d_tank.params["density"] = "0.78";
+    d_tank.params["level"] = "500";
+    d_tank.params["internal_r"] = "0.1";
+    d_tank.params["tank_height"] = "1.0";
+    for (const auto& port_name : get_component_ports(ComponentKind::FuelTank)) {
+        d_tank.ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
+    }
+    devices.push_back(d_tank);
+
+    DeviceInstance d_valve;
+    d_valve.name = "valve1";
+    d_valve.classname = "SolenoidValve";
+    d_valve.params["normally_closed"] = "true";
+    d_valve.params["g_open"] = "10.0";
+    d_valve.params["g_closed"] = "0.0001";
+    for (const auto& port_name : get_component_ports(ComponentKind::SolenoidValve)) {
+        d_valve.ports[port_name] = Port{bp2::Direction::InOut, PortType::Any};
+    }
+    devices.push_back(d_valve);
+
+    const std::vector<ResolvedDevice> resolved = resolve_all_devices(devices, registry);
+
+    // Verify the solver_role is present and has Hydraulic domain
+    const ResolvedDevice* tank_dev = nullptr;
+    const ResolvedDevice* valve_dev = nullptr;
+    for (const auto& r : resolved) {
+        if (r.name == "tank1") tank_dev = &r;
+        if (r.name == "valve1") valve_dev = &r;
+    }
+    ASSERT_NE(tank_dev, nullptr);
+    ASSERT_NE(valve_dev, nullptr);
+    ASSERT_TRUE(tank_dev->solver_role.has_value());
+    ASSERT_TRUE(valve_dev->solver_role.has_value());
+    EXPECT_EQ(tank_dev->solver_role->domain, Domain::Hydraulic);
+    EXPECT_EQ(valve_dev->solver_role->domain, Domain::Hydraulic);
+
+    // Build port-to-signal map for AOT codegen
+    std::unordered_map<std::string, uint32_t> port_to_signal;
+    uint32_t next_signal = 0;
+    for (const auto& dev : resolved) {
+        for (const auto& [port_name, _] : dev.ports) {
+            port_to_signal[dev.name + "." + port_name] = next_signal++;
+        }
+    }
+
+    // AOT codegen must NOT throw — hydraulic solver_roles must be silently skipped
+    ElectricalPlanCodegen plan;
+    EXPECT_NO_THROW({
+        plan = extract_electrical_plan(resolved, port_to_signal);
+    }) << "AOT codegen must not crash on hydraulic solver_roles (domain guard required)";
+
+    // Hydraulic components must not appear in the electrical plan.
+    // component_debug tracks every element's origin device.
+    for (const auto& dbg : plan.component_debug) {
+        EXPECT_NE(dbg.device_name, "tank1")
+            << "FuelTank (hydraulic solver_role) must not appear in electrical plan";
+        EXPECT_NE(dbg.device_name, "valve1")
+            << "SolenoidValve (hydraulic solver_role) must not appear in electrical plan";
+    }
+
+    // JIT path must also succeed
+    EXPECT_NO_THROW({
+        build_systems_dev(make_jit_input(devices, {}));
+    }) << "JIT path must handle hydraulic solver_roles gracefully";
 }

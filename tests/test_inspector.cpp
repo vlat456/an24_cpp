@@ -5,14 +5,14 @@
 #include "blueprint_v2/path/path.h"
 #include "blueprint_v2/interface/interface.h"
 #include "blueprint_v2/interface/port_descriptor.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 
 // Shared bp2 test helpers (make_port, set_iface)
 #include "bp2_test_helpers.h"
 
 // Helper to create a simple test scene using bp2::Blueprint
 struct InspectorTestScene {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena;
     bp2::Blueprint bp;
 

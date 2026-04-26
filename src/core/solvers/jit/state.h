@@ -2,6 +2,7 @@
 
 #include "core/domain_types.h"
 #include "subsolvers/subsolver_types.h"
+#include "subsolvers/hydraulic_subsolver_types.h"
 #include <cstdint>
 #include <vector>
 
@@ -24,6 +25,11 @@ struct SimulationState {
     // Set by simulator before scheduler.step() each frame.
     // Null if electrical solving is not active.
     ElectricalRuntimeState* electrical_rt = nullptr;
+
+    // Pointer to currently active hydraulic runtime state.
+    // Set by simulator before scheduler.step() each frame.
+    // Null if hydraulic solving is not active.
+    HydraulicRuntimeState* hydraulic_rt = nullptr;
 
     SimulationState() = default;
 

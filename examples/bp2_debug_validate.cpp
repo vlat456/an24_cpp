@@ -7,7 +7,7 @@
 #include "blueprint_v2/validation/invariant_checker.h"
 #include "blueprint_v2/validation/path_resolver.h"
 #include "io/json/component_registry_json_loader.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 
 #include <fstream>
 #include <iostream>
@@ -15,7 +15,7 @@
 
 namespace {
 
-std::string ep_to_string(const bp2::WireEndpoint& ep, ui::StringInterner const& interner) {
+std::string ep_to_string(const bp2::WireEndpoint& ep, core::StringInterner const& interner) {
     return "/" + std::string(interner.resolve(ep.node)) + ":" + std::string(interner.resolve(ep.port));
 }
 
@@ -50,7 +50,7 @@ nlohmann::json encode_ports_from_iface(const bp2::Interface& iface) {
 
 void overwrite_ports_from_iface(nlohmann::json& node,
                                 const bp2::Interface& iface,
-                                ui::StringInterner& interner) {
+                                core::StringInterner& interner) {
     nlohmann::json ports = nlohmann::json::object();
     for (const auto& p : iface.ports()) {
         nlohmann::json entry;
@@ -76,7 +76,7 @@ std::optional<PortType> port_type_from_exposed_string(const std::string& s) {
     return std::nullopt;
 }
 
-bp2::Interface bridge_iface_for_json_node(const nlohmann::json& node, ui::StringInterner& interner) {
+bp2::Interface bridge_iface_for_json_node(const nlohmann::json& node, core::StringInterner& interner) {
     const std::string type = node.at("type").get<std::string>();
     const bool is_input = (type == "BlueprintInput");
     const auto& sparams = node.value("string_params", nlohmann::json::object());
@@ -100,7 +100,7 @@ bp2::Interface bridge_iface_for_json_node(const nlohmann::json& node, ui::String
 }
 
 
-void normalize_node_ports_recursive(nlohmann::json& root, const ComponentRegistry& reg, ui::StringInterner& interner) {
+void normalize_node_ports_recursive(nlohmann::json& root, const ComponentRegistry& reg, core::StringInterner& interner) {
      if (!root.contains("nodes") || !root["nodes"].is_array()) {
          return;
      }
@@ -138,7 +138,7 @@ void normalize_node_ports_recursive(nlohmann::json& root, const ComponentRegistr
  }
 
 bool canonicalize_wire_orientation(nlohmann::json& root,
-                                    ui::StringInterner& interner,
+                                    core::StringInterner& interner,
                                     const ComponentRegistry& reg) {
      if (!root.contains("wires") || !root["wires"].is_array()) {
          return false;
@@ -165,7 +165,7 @@ bool canonicalize_wire_orientation(nlohmann::json& root,
      bp2::PathResolver resolver;
      bool changed = false;
      for (auto& wire_json : root["wires"]) {
-         const ui::InternedId wire_id = interner.lookup(wire_json.at("id").get<std::string>());
+         const core::InternedId wire_id = interner.lookup(wire_json.at("id").get<std::string>());
          const auto* wire = partial.find_wire(wire_id);
          if (!wire) {
              continue;
@@ -205,7 +205,7 @@ int main(int argc, char** argv) {
         return 2;
     }
 
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg = load_component_registry("library/");
 
@@ -238,7 +238,7 @@ int main(int argc, char** argv) {
              changed = canonicalize_wire_orientation(j, interner, reg);
              
              // Check if strict decode succeeds after canonicalization pass
-             ui::StringInterner check_interner;
+             core::StringInterner check_interner;
              bp2::PathArena check_arena(check_interner);
              bp2::DecodeError check_err;
              auto rewritten = bp2::BlueprintCodec::decode(j.dump(), check_interner, check_arena, reg, &check_err);
@@ -259,7 +259,7 @@ int main(int argc, char** argv) {
          out.close();
 
          try {
-             ui::StringInterner diag_interner;
+             core::StringInterner diag_interner;
              bp2::PathArena diag_arena(diag_interner);
              bp2::Blueprint partial;
              partial = partial.with_id(diag_interner.intern(j.value("id", std::string{})));

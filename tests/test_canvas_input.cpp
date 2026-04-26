@@ -32,7 +32,7 @@ namespace {
 // Shared bp2 test helpers (make_port, set_iface)
 #include "bp2_test_helpers.h"
 
-static bp2::Blueprint::Node make_node(ui::StringInterner& I,
+static bp2::Blueprint::Node make_node(core::StringInterner& I,
                                       const char* id,
                                       const char* type,
                                       float x,
@@ -66,10 +66,10 @@ static void update_dynamic(visual::Scene& scene, const char* node_id,
 /// Compare hit result node_id with expected string via interner
 static testing::AssertionResult hit_node_id_matches(
     const char* /*expr*/,
-    ui::InternedId actual_id,
-    ui::StringInterner& I,
+    core::InternedId actual_id,
+    core::StringInterner& I,
     const char* expected_str) {
-    ui::InternedId expected_id = I.intern(expected_str);
+    core::InternedId expected_id = I.intern(expected_str);
     if (actual_id == expected_id) {
         return testing::AssertionSuccess();
     }
@@ -79,13 +79,13 @@ static testing::AssertionResult hit_node_id_matches(
 }
 
 static visual::HitResult snapshot_hit_test(const visual::Scene& scene,
-                                            ui::StringInterner& I,
+                                            core::StringInterner& I,
                                             Pt world) {
     auto snapshot = editor::presentation::build_canvas_scene_snapshot(scene, I);
     return editor::presentation::hit_test_canvas_scene(snapshot, world);
 }
 
-static bp2::Blueprint::Wire make_wire(ui::StringInterner& I,
+static bp2::Blueprint::Wire make_wire(core::StringInterner& I,
                                        bp2::PathArena& /*arena*/,
                                        const char* wire_id,
                                        const char* src_node,
@@ -171,16 +171,16 @@ static ui::Pt port_center(visual::Port* p) {
     return p->worldPos() + ui::Pt(visual::PortConstants::RADIUS, visual::PortConstants::RADIUS);
 }
 
-static std::pair<ui::InternedId, ui::InternedId> endpoint_node_port(const bp2::Path& path,
+static std::pair<core::InternedId, core::InternedId> endpoint_node_port(const bp2::Path& path,
                                                                      const bp2::PathArena& arena) {
     if (path.kind() != bp2::PathKind::Port) return {};
-    ui::InternedId port = path.segment();
+    core::InternedId port = path.segment();
     bp2::Path parent = arena.parent(path);
     if (parent.kind() != bp2::PathKind::Node) return {};
     return {parent.segment(), port};
 }
 
-static std::pair<ui::InternedId, ui::InternedId> endpoint_node_port(const bp2::WireEndpoint& ep,
+static std::pair<core::InternedId, core::InternedId> endpoint_node_port(const bp2::WireEndpoint& ep,
                                                                      const bp2::PathArena& /*arena*/) {
     return {ep.node, ep.port};
 }
@@ -188,7 +188,7 @@ static std::pair<ui::InternedId, ui::InternedId> endpoint_node_port(const bp2::W
 } // namespace
 
 TEST(CanvasInputBus, AliasReconnectUsesSelectedWireNotFirst) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto bus = make_node(I, "bus", "Bus", 200.0f, 120.0f, "bus");
@@ -222,7 +222,7 @@ TEST(CanvasInputBus, AliasReconnectUsesSelectedWireNotFirst) {
     bp2::EditorModel model(bp);
     model.next_wire_id_ = 1;
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* bus_widget = dynamic_cast<visual::BusNodeWidget*>(scene.find("bus"));
     ASSERT_NE(bus_widget, nullptr);
@@ -262,7 +262,7 @@ TEST(CanvasInputBus, AliasReconnectUsesSelectedWireNotFirst) {
 }
 
 TEST(CanvasInputBus, AliasToAliasReconnectSwapsWireOrder) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto bus = make_node(I, "bus", "Bus", 200.0f, 120.0f, "bus");
@@ -291,7 +291,7 @@ TEST(CanvasInputBus, AliasToAliasReconnectSwapsWireOrder) {
     bp2::EditorModel model(bp);
     model.next_wire_id_ = 1;
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* bus_widget = dynamic_cast<visual::BusNodeWidget*>(scene.find("bus"));
     ASSERT_NE(bus_widget, nullptr);
@@ -317,7 +317,7 @@ TEST(CanvasInputBus, AliasToAliasReconnectSwapsWireOrder) {
 }
 
 TEST(CanvasInputBus, BasePortStartsCreateWireAndUsesCanonicalBusPort) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto bus = make_node(I, "bus", "Bus", 200.0f, 120.0f, "bus");
@@ -339,7 +339,7 @@ TEST(CanvasInputBus, BasePortStartsCreateWireAndUsesCanonicalBusPort) {
     bp2::EditorModel model(bp);
     model.next_wire_id_ = 1;
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* bus_widget = dynamic_cast<visual::BusNodeWidget*>(scene.find("bus"));
     ASSERT_NE(bus_widget, nullptr);
@@ -385,7 +385,7 @@ TEST(CanvasInputBus, BasePortStartsCreateWireAndUsesCanonicalBusPort) {
 }
 
 TEST(CanvasInputValidation, RejectsIncompatiblePortTypesOnWireCreate) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto src = make_node(I, "src", "TypeSrc", 40.0f, 120.0f);
@@ -404,7 +404,7 @@ TEST(CanvasInputValidation, RejectsIncompatiblePortTypesOnWireCreate) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* src_w = dynamic_cast<visual::Widget*>(scene.find("src"));
     auto* sink_w = dynamic_cast<visual::Widget*>(scene.find("sink"));
@@ -427,7 +427,7 @@ TEST(CanvasInputValidation, RejectsIncompatiblePortTypesOnWireCreate) {
 }
 
 TEST(CanvasInputValidation, RejectsCrossDomainWireCreate) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto src = make_node(I, "src", "TypeSrc", 40.0f, 120.0f);
@@ -446,7 +446,7 @@ TEST(CanvasInputValidation, RejectsCrossDomainWireCreate) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* src_w = dynamic_cast<visual::Widget*>(scene.find("src"));
     auto* sink_w = dynamic_cast<visual::Widget*>(scene.find("sink"));
@@ -469,7 +469,7 @@ TEST(CanvasInputValidation, RejectsCrossDomainWireCreate) {
 }
 
 TEST(CanvasInputReconnect, ReconnectUpdatesSelectedWireEndpoint) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto s1 = make_node(I, "s1", "Battery", 40.0f, 60.0f);
@@ -499,7 +499,7 @@ TEST(CanvasInputReconnect, ReconnectUpdatesSelectedWireEndpoint) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* l2_widget = dynamic_cast<visual::Widget*>(scene.find("l2"));
     ASSERT_NE(l2_widget, nullptr);
@@ -541,7 +541,7 @@ TEST(CanvasInputReconnect, ReconnectUpdatesSelectedWireEndpoint) {
 }
 
 TEST(CanvasInputReconnect, ReconnectDropOnEmptyRemovesWire) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto s1 = make_node(I, "s1", "Battery", 40.0f, 60.0f);
@@ -560,7 +560,7 @@ TEST(CanvasInputReconnect, ReconnectDropOnEmptyRemovesWire) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* l1_widget = dynamic_cast<visual::Widget*>(scene.find("l1"));
     ASSERT_NE(l1_widget, nullptr);
@@ -581,7 +581,7 @@ TEST(CanvasInputReconnect, ReconnectDropOnEmptyRemovesWire) {
 }
 
 TEST(CanvasInputReconnect, ReconnectWithRoutingPointsStillChecksTypeCompatibility) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto src = make_node(I, "src", "TypeSrc", 40.0f, 120.0f);
@@ -610,7 +610,7 @@ TEST(CanvasInputReconnect, ReconnectWithRoutingPointsStillChecksTypeCompatibilit
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* sink_ok_w = dynamic_cast<visual::Widget*>(scene.find("sink_ok"));
     auto* sink_bad_w = dynamic_cast<visual::Widget*>(scene.find("sink_bad"));
@@ -642,7 +642,7 @@ TEST(CanvasInputReconnect, ReconnectWithRoutingPointsStillChecksTypeCompatibilit
 }
 
 TEST(CanvasInputReconnect, ReconnectWithRoutingPointsStillAcceptsCompatibleTarget) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto src = make_node(I, "src", "TypeSrc", 40.0f, 120.0f);
@@ -671,7 +671,7 @@ TEST(CanvasInputReconnect, ReconnectWithRoutingPointsStillAcceptsCompatibleTarge
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* sink_a_w = dynamic_cast<visual::Widget*>(scene.find("sink_a"));
     auto* sink_b_w = dynamic_cast<visual::Widget*>(scene.find("sink_b"));
@@ -700,7 +700,7 @@ TEST(CanvasInputReconnect, ReconnectWithRoutingPointsStillAcceptsCompatibleTarge
 }
 
 TEST(CanvasInputCreateWire, EmbeddedAnyInputUsesConcreteSourceDomain) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto slider = make_node(I, "slider_1", "Slider", 40.0f, 120.0f);
@@ -727,7 +727,7 @@ TEST(CanvasInputCreateWire, EmbeddedAnyInputUsesConcreteSourceDomain) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* slider_w = dynamic_cast<visual::Widget*>(scene.find("slider_1"));
     auto* host_w = dynamic_cast<visual::Widget*>(scene.find("extract_inst_4"));
@@ -751,7 +751,7 @@ TEST(CanvasInputCreateWire, EmbeddedAnyInputUsesConcreteSourceDomain) {
 }
 
 TEST(CanvasInputReconnect, EmbeddedAnyInputUsesConcreteSourceDomain) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto slider = make_node(I, "slider_1", "Slider", 40.0f, 120.0f);
@@ -787,7 +787,7 @@ TEST(CanvasInputReconnect, EmbeddedAnyInputUsesConcreteSourceDomain) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* sink_a_w = dynamic_cast<visual::Widget*>(scene.find("sink_a"));
     auto* host_w = dynamic_cast<visual::Widget*>(scene.find("extract_inst_4"));
@@ -816,7 +816,7 @@ TEST(CanvasInputReconnect, EmbeddedAnyInputUsesConcreteSourceDomain) {
 }
 
 TEST(CanvasInputBus, DeleteNodeRemovesConnectedWiresBeforeRecreate) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto src = make_node(I, "src", "Battery", 40.0f, 120.0f);
@@ -844,7 +844,7 @@ TEST(CanvasInputBus, DeleteNodeRemovesConnectedWiresBeforeRecreate) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     Viewport vp;
     auto host = create_editor_model_host(model);
@@ -877,7 +877,7 @@ TEST(CanvasInputBus, DeleteNodeRemovesConnectedWiresBeforeRecreate) {
 }
 
 TEST(CanvasInputWireProbe, ShiftClickWireRequestsProbeToggle) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto src = make_node(I, "src", "Battery", 40.0f, 120.0f);
@@ -896,7 +896,7 @@ TEST(CanvasInputWireProbe, ShiftClickWireRequestsProbeToggle) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* wire = dynamic_cast<visual::Wire*>(scene.find("wire_probe"));
     ASSERT_NE(wire, nullptr);
@@ -939,7 +939,7 @@ TEST(CanvasInputWireProbe, ShiftClickWireRequestsProbeToggle) {
 }
 
 TEST(CanvasInputSelection, ClickNodeDoesNotMarkModelDirty) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto node = make_node(I, "n1", "Battery", 120.0f, 80.0f);
@@ -948,7 +948,7 @@ TEST(CanvasInputSelection, ClickNodeDoesNotMarkModelDirty) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::Widget*>(scene.find("n1"));
     ASSERT_NE(widget, nullptr);
@@ -973,7 +973,7 @@ TEST(CanvasInputSelection, ClickNodeDoesNotMarkModelDirty) {
 }
 
 TEST(CanvasInputDelete, DeleteNodeWithConnectedWiresIsSingleUndoStep) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto bat = make_node(I, "bat1", "Battery", 120.0f, 80.0f);
@@ -992,7 +992,7 @@ TEST(CanvasInputDelete, DeleteNodeWithConnectedWiresIsSingleUndoStep) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::Widget*>(scene.find("bat1"));
     ASSERT_NE(widget, nullptr);
@@ -1018,7 +1018,7 @@ TEST(CanvasInputDelete, DeleteNodeWithConnectedWiresIsSingleUndoStep) {
 }
 
 TEST(CanvasInputDelete, MultiNodeDeleteIsSingleUndoStep) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto n1 = make_node(I, "n1", "Battery", 120.0f, 80.0f);
@@ -1042,7 +1042,7 @@ TEST(CanvasInputDelete, MultiNodeDeleteIsSingleUndoStep) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     Viewport vp;
     auto host = create_editor_model_host(model);
@@ -1082,7 +1082,7 @@ TEST(CanvasInputDelete, MultiNodeDeleteIsSingleUndoStep) {
 }
 
 TEST(CanvasInputDelete, DeleteEmbeddedHostRemovesHostedNested) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto host_node = make_node(I, "host1", "CompositeType", 120.0f, 80.0f);
@@ -1105,7 +1105,7 @@ TEST(CanvasInputDelete, DeleteEmbeddedHostRemovesHostedNested) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     Viewport vp;
     auto host = create_editor_model_host(model);
@@ -1118,7 +1118,7 @@ TEST(CanvasInputDelete, DeleteEmbeddedHostRemovesHostedNested) {
 }
 
 TEST(CanvasInputDrag, MultiNodeDragIsSingleUndoStep) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto n1 = make_node(I, "n1", "Battery", 120.0f, 80.0f);
@@ -1129,7 +1129,7 @@ TEST(CanvasInputDrag, MultiNodeDragIsSingleUndoStep) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* w1 = dynamic_cast<visual::Widget*>(scene.find("n1"));
     auto* w2 = dynamic_cast<visual::Widget*>(scene.find("n2"));
@@ -1156,7 +1156,7 @@ TEST(CanvasInputDrag, MultiNodeDragIsSingleUndoStep) {
     input.on_mouse_down(p1, MouseButton::Left, canvas_min);
     input.on_mouse_drag(MouseButton::Left, ui::Pt(40.0f, 20.0f), canvas_min);
     input.on_mouse_up(MouseButton::Left, p1 + ui::Pt(40.0f, 20.0f), canvas_min);
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     ASSERT_EQ(model.undo_depth(), undo_before + 1);
     ASSERT_NE(model.current().find_node(I.intern("n1")), nullptr);
@@ -1170,14 +1170,14 @@ TEST(CanvasInputDrag, MultiNodeDragIsSingleUndoStep) {
 }
 
 TEST(CanvasInputGridStep, GridStepChangeDoesNotTouchBlueprintUndoHistory) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     bp2::Blueprint bp;
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.grid_step = 16.0f;
@@ -1193,7 +1193,7 @@ TEST(CanvasInputGridStep, GridStepChangeDoesNotTouchBlueprintUndoHistory) {
 }
 
 TEST(CanvasInputRoutingPoints, RoutingPointChangeIsSingleUndoStep) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto n1 = make_node(I, "n1", "Battery", 0.0f, 0.0f);
@@ -1213,7 +1213,7 @@ TEST(CanvasInputRoutingPoints, RoutingPointChangeIsSingleUndoStep) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     Viewport vp;
     auto host = create_editor_model_host(model);
@@ -1244,7 +1244,7 @@ TEST(CanvasInputRoutingPoints, RoutingPointChangeIsSingleUndoStep) {
 }
 
 TEST(CanvasInputDoubleClick, ValueNodeOpensInlineValueEditor) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto value_node = make_node(I, "val1", "Value", 120.0f, 80.0f);
@@ -1253,7 +1253,7 @@ TEST(CanvasInputDoubleClick, ValueNodeOpensInlineValueEditor) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::Widget*>(scene.find("val1"));
     ASSERT_NE(widget, nullptr);
@@ -1271,7 +1271,7 @@ TEST(CanvasInputDoubleClick, ValueNodeOpensInlineValueEditor) {
 }
 
 TEST(CanvasInputDoubleClick, NonValueNodeKeepsExistingDoubleClickBehavior) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto group = make_node(I, "grp1", "Composite", 120.0f, 80.0f);
@@ -1285,7 +1285,7 @@ TEST(CanvasInputDoubleClick, NonValueNodeKeepsExistingDoubleClickBehavior) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::Widget*>(scene.find("grp1"));
     ASSERT_NE(widget, nullptr);
@@ -1307,11 +1307,11 @@ TEST(CanvasInputDoubleClick, NonValueNodeKeepsExistingDoubleClickBehavior) {
 // ============================================================================
 
 TEST(PathToNodePort, ValidPortPath_ReturnsNodeAndPortIds) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
-    ui::InternedId node_id = I.intern("battery1");
-    ui::InternedId port_name = I.intern("v_out");
+    core::InternedId node_id = I.intern("battery1");
+    core::InternedId port_name = I.intern("v_out");
 
     bp2::Path node_path = arena.make_node(arena.root(), node_id);
     bp2::Path port_path = arena.make_port(node_path, port_name);
@@ -1322,7 +1322,7 @@ TEST(PathToNodePort, ValidPortPath_ReturnsNodeAndPortIds) {
 }
 
 TEST(PathToNodePort, NonPortPath_ReturnsEmpty) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     // A Node path (not a Port path) should return empty.
@@ -1334,7 +1334,7 @@ TEST(PathToNodePort, NonPortPath_ReturnsEmpty) {
 }
 
 TEST(PathToNodePort, RootPath_ReturnsEmpty) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto [result_node, result_port] = editor_math::path_to_node_port(arena.root(), arena);
@@ -1384,7 +1384,7 @@ TEST(SideFromRelativePosition, DiagonalTiesGoHorizontal) {
 TEST(CanvasInputRefOrientation, DragRefNodeReorientsTowardConnectedNode) {
     // When a ref node is dragged from the right side of its connected node
     // to below it, the port layout side should change accordingly.
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     // Create a normal node at (200, 200)
@@ -1409,7 +1409,7 @@ TEST(CanvasInputRefOrientation, DragRefNodeReorientsTowardConnectedNode) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     // Verify initial orientation: ref is to the right of bat → port should face Left
     auto* ref_widget = dynamic_cast<visual::RefNodeWidget*>(scene.find("gnd"));
@@ -1437,7 +1437,7 @@ TEST(CanvasInputRefOrientation, DragRefNodeReorientsTowardConnectedNode) {
     input.on_mouse_up(MouseButton::Left, click_pos + drag_delta, canvas_min);
 
     // Rebuild scene to reflect committed data
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     // After rebuild, the ref node should have its port oriented toward the battery
     // The ref node is now below the battery → port should face Top
@@ -1459,7 +1459,7 @@ TEST(CanvasInputContentToggle, VerticalToggleContentBoundsWideEnough) {
     // Regression: VerticalToggle content_widget was inside a flex column,
     // but preferredSize() didn't account for the content widget's width,
     // resulting in a 6.2px wide clickable area.
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     // Create an AZS-like node with VerticalToggle content and left/right ports
@@ -1474,7 +1474,7 @@ TEST(CanvasInputContentToggle, VerticalToggleContentBoundsWideEnough) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("azs_1"));
     ASSERT_NE(widget, nullptr);
@@ -1498,7 +1498,7 @@ TEST(CanvasInputContentToggle, VerticalToggleContentBoundsWideEnough) {
 
 TEST(CanvasInputContentToggle, ClickOnVerticalToggleContentReturnsToggle) {
     // Verify that clicking in the center of the content area triggers a toggle
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto azs = make_node(I, "azs_1", "AZS", 100.0f, 100.0f);
@@ -1512,7 +1512,7 @@ TEST(CanvasInputContentToggle, ClickOnVerticalToggleContentReturnsToggle) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;
@@ -1541,7 +1541,7 @@ TEST(CanvasInputContentToggle, ClickOnVerticalToggleContentReturnsToggle) {
 }
 
 TEST(CanvasInputContentToggle, EdgeClickOnVerticalToggleContentReturnsToggle) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto azs = make_node(I, "azs_1", "AZS", 100.0f, 100.0f);
@@ -1555,7 +1555,7 @@ TEST(CanvasInputContentToggle, EdgeClickOnVerticalToggleContentReturnsToggle) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;
@@ -1576,7 +1576,7 @@ TEST(CanvasInputContentToggle, EdgeClickOnVerticalToggleContentReturnsToggle) {
 }
 
 TEST(CanvasInputLayoutSizing, ExplicitUndersizedNodeExpandsToRequiredMinimum) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto volt = make_node(I, "volt_1", "Voltmeter", 100.0f, 100.0f);
@@ -1592,7 +1592,7 @@ TEST(CanvasInputLayoutSizing, ExplicitUndersizedNodeExpandsToRequiredMinimum) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
     update_dynamic(scene, "volt_1", [](NodeContent& c) { c.value = 27.5f; });
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("volt_1"));
@@ -1604,7 +1604,7 @@ TEST(CanvasInputLayoutSizing, ExplicitUndersizedNodeExpandsToRequiredMinimum) {
 }
 
 TEST(CanvasInputLayoutSizing, ManualResizeCannotShrinkBelowRequiredMinimum) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto volt = make_node(I, "volt_1", "Voltmeter", 100.0f, 100.0f);
@@ -1618,7 +1618,7 @@ TEST(CanvasInputLayoutSizing, ManualResizeCannotShrinkBelowRequiredMinimum) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
     update_dynamic(scene, "volt_1", [](NodeContent& c) { c.value = 27.5f; });
 
     Viewport vp;
@@ -1657,7 +1657,7 @@ TEST(CanvasInputLayoutSizing, ManualResizeCannotShrinkBelowRequiredMinimum) {
 }
 
 TEST(CanvasInputLayoutSizing, ResizeSnapToGridDoesNotShrinkBelowRequiredMinimum) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto volt = make_node(I, "volt_1", "Voltmeter", 100.0f, 100.0f);
@@ -1671,7 +1671,7 @@ TEST(CanvasInputLayoutSizing, ResizeSnapToGridDoesNotShrinkBelowRequiredMinimum)
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
     update_dynamic(scene, "volt_1", [](NodeContent& c) { c.value = 27.5f; });
 
     Viewport vp;
@@ -1705,7 +1705,7 @@ TEST(CanvasInputLayoutSizing, ResizeSnapToGridDoesNotShrinkBelowRequiredMinimum)
 }
 
 TEST(CanvasInputLayoutSizing, VerticalToggleMinimumHeightDoesNotAddFullContentStackHeight) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto azs = make_node(I, "azs_1", "AZS", 100.0f, 100.0f);
@@ -1719,7 +1719,7 @@ TEST(CanvasInputLayoutSizing, VerticalToggleMinimumHeightDoesNotAddFullContentSt
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("azs_1"));
     ASSERT_NE(widget, nullptr);
@@ -1736,7 +1736,7 @@ TEST(CanvasInputLayoutSizing, VerticalToggleMinimumHeightDoesNotAddFullContentSt
 TEST(CanvasInputSimMode, SimModeBlocksNodeDrag) {
     // In simulation mode, clicking on a node body should NOT enter
     // DraggingNode state and should NOT select the node.
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto node = make_node(I, "n1", "Battery", 120.0f, 80.0f);
@@ -1745,7 +1745,7 @@ TEST(CanvasInputSimMode, SimModeBlocksNodeDrag) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::Widget*>(scene.find("n1"));
     ASSERT_NE(widget, nullptr);
@@ -1770,7 +1770,7 @@ TEST(CanvasInputSimMode, SimModeBlocksNodeDrag) {
 
 TEST(CanvasInputSimMode, SimModeBlocksWireCreation) {
     // In simulation mode, clicking on a port should NOT enter wire creation.
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto src = make_node(I, "src", "Battery", 40.0f, 120.0f);
@@ -1783,7 +1783,7 @@ TEST(CanvasInputSimMode, SimModeBlocksWireCreation) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* src_w = dynamic_cast<visual::Widget*>(scene.find("src"));
     ASSERT_NE(src_w, nullptr);
@@ -1806,7 +1806,7 @@ TEST(CanvasInputSimMode, SimModeBlocksWireCreation) {
 
 TEST(CanvasInputSimMode, SimModeBlocksDeleteKey) {
     // In simulation mode, pressing Delete with a selected node must NOT remove it.
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto node = make_node(I, "n1", "Battery", 120.0f, 80.0f);
@@ -1815,7 +1815,7 @@ TEST(CanvasInputSimMode, SimModeBlocksDeleteKey) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     Viewport vp;
     auto host = create_editor_model_host(model);
@@ -1834,7 +1834,7 @@ TEST(CanvasInputSimMode, SimModeBlocksDeleteKey) {
 TEST(CanvasInputSimMode, SimModeAllowsToggleInteraction) {
     // In simulation mode, clicking on a VerticalToggle content area should
     // still return toggle_switch_node_id.
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto azs = make_node(I, "azs_1", "AZS", 100.0f, 100.0f);
@@ -1848,7 +1848,7 @@ TEST(CanvasInputSimMode, SimModeAllowsToggleInteraction) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;
@@ -1875,7 +1875,7 @@ TEST(CanvasInputSimMode, SimModeAllowsToggleInteraction) {
 TEST(CanvasInputSimMode, SimModeAllowsKnobInteraction) {
     // In simulation mode, clicking on a Knob content area should still
     // enter DraggingKnob state and return knob_node_id.
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto knob = make_node(I, "knob_1", "KnobSwitch", 100.0f, 100.0f);
@@ -1890,7 +1890,7 @@ TEST(CanvasInputSimMode, SimModeAllowsKnobInteraction) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;
@@ -1919,7 +1919,7 @@ TEST(CanvasInputSimMode, SimModeAllowsKnobInteraction) {
 TEST(CanvasInputSimMode, SimModeAllowsSliderInteraction) {
     // In simulation mode, clicking on a Slider content area should still
     // enter DraggingSlider state and return slider_node_id.
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto slider = make_node(I, "slider_1", "Slider", 100.0f, 100.0f);
@@ -1934,7 +1934,7 @@ TEST(CanvasInputSimMode, SimModeAllowsSliderInteraction) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;
@@ -1961,7 +1961,7 @@ TEST(CanvasInputSimMode, SimModeAllowsSliderInteraction) {
 }
 
 TEST(CanvasInputSimMode, SimModeAllowsSliderInteractionAtEdge) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto slider = make_node(I, "slider_1", "Slider", 100.0f, 100.0f);
@@ -1976,7 +1976,7 @@ TEST(CanvasInputSimMode, SimModeAllowsSliderInteractionAtEdge) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;
@@ -2000,7 +2000,7 @@ TEST(CanvasInputSimMode, SimModeAllowsSliderInteractionAtEdge) {
 }
 
 TEST(HitTestInteractionTarget, VerticalToggleReturnsToggleRole) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto azs = make_node(I, "azs_1", "AZS", 100.0f, 100.0f);
@@ -2014,7 +2014,7 @@ TEST(HitTestInteractionTarget, VerticalToggleReturnsToggleRole) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("azs_1"));
     ASSERT_NE(widget, nullptr);
@@ -2037,7 +2037,7 @@ TEST(HitTestInteractionTarget, VerticalToggleReturnsToggleRole) {
 }
 
 TEST(HitTestInteractionTarget, KnobReturnsDiscreteSelectorRole) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto knob = make_node(I, "knob_1", "KnobSwitch", 100.0f, 100.0f);
@@ -2052,7 +2052,7 @@ TEST(HitTestInteractionTarget, KnobReturnsDiscreteSelectorRole) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
     ASSERT_NE(widget, nullptr);
@@ -2075,7 +2075,7 @@ TEST(HitTestInteractionTarget, KnobReturnsDiscreteSelectorRole) {
 }
 
 TEST(HitTestInteractionTarget, KnobContentBoundsCoverVisibleKnobSize) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto knob = make_node(I, "knob_1", "KnobSwitch", 100.0f, 100.0f);
@@ -2090,7 +2090,7 @@ TEST(HitTestInteractionTarget, KnobContentBoundsCoverVisibleKnobSize) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
     ASSERT_NE(widget, nullptr);
@@ -2101,7 +2101,7 @@ TEST(HitTestInteractionTarget, KnobContentBoundsCoverVisibleKnobSize) {
 }
 
 TEST(HitTestInteractionTarget, SliderReturnsContinuousScalarRole) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto slider = make_node(I, "slider_1", "Slider", 100.0f, 100.0f);
@@ -2116,7 +2116,7 @@ TEST(HitTestInteractionTarget, SliderReturnsContinuousScalarRole) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
     ASSERT_NE(widget, nullptr);
@@ -2139,7 +2139,7 @@ TEST(HitTestInteractionTarget, SliderReturnsContinuousScalarRole) {
 }
 
 TEST(HitTestInteractionTarget, InteractionTargetWinsOverGenericNodeBodyHit) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto slider = make_node(I, "slider_1", "Slider", 100.0f, 100.0f);
@@ -2154,7 +2154,7 @@ TEST(HitTestInteractionTarget, InteractionTargetWinsOverGenericNodeBodyHit) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
     ASSERT_NE(widget, nullptr);
@@ -2171,7 +2171,7 @@ TEST(HitTestInteractionTarget, InteractionTargetWinsOverGenericNodeBodyHit) {
 }
 
 TEST(HitTestInteractionTarget, ZoomedVerticalToggleStillReturnsToggleRole) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto azs = make_node(I, "azs_1", "AZS", 100.0f, 100.0f);
@@ -2185,7 +2185,7 @@ TEST(HitTestInteractionTarget, ZoomedVerticalToggleStillReturnsToggleRole) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 2.0f;
@@ -2214,7 +2214,7 @@ TEST(HitTestInteractionTarget, ZoomedVerticalToggleStillReturnsToggleRole) {
 }
 
 TEST(CanvasInputInteractionTarget, VerticalTogglePublishesToggleRole) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto azs = make_node(I, "azs_1", "AZS", 100.0f, 100.0f);
@@ -2228,7 +2228,7 @@ TEST(CanvasInputInteractionTarget, VerticalTogglePublishesToggleRole) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("azs_1"));
     ASSERT_NE(widget, nullptr);
@@ -2249,7 +2249,7 @@ TEST(CanvasInputSemanticRender, SwitchProducesRenderObjectsAndHitObjects) {
     // Regression: render objects for Switch were inside the !interaction_info
     // branch, but derive_content_interaction always returns Toggle for Switch,
     // making the render path unreachable — switches were invisible.
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto sw = make_node(I, "sw_1", "Switch", 100.0f, 100.0f);
@@ -2264,7 +2264,7 @@ TEST(CanvasInputSemanticRender, SwitchProducesRenderObjectsAndHitObjects) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("sw_1"));
     ASSERT_NE(widget, nullptr);
@@ -2283,7 +2283,7 @@ TEST(CanvasInputSemanticRender, VerticalToggleStandardLayoutProducesRenderObject
     // Regression: same dead-code bug as Switch — VerticalToggle in standard
     // layout (with layout overrides forcing it off the VerticalToggle layout
     // path) used a Spacer but never populated render objects.
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto azs = make_node(I, "azs_1", "AZS", 100.0f, 100.0f);
@@ -2300,7 +2300,7 @@ TEST(CanvasInputSemanticRender, VerticalToggleStandardLayoutProducesRenderObject
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("azs_1"));
     ASSERT_NE(widget, nullptr);
@@ -2315,7 +2315,7 @@ TEST(CanvasInputSemanticRender, VerticalToggleStandardLayoutProducesRenderObject
 }
 
 TEST(CanvasInputInteractionTarget, KnobPublishesDiscreteSelectorRole) {
-     ui::StringInterner I;
+     core::StringInterner I;
      bp2::PathArena arena(I);
 
      auto knob = make_node(I, "knob_1", "KnobSwitch", 100.0f, 100.0f);
@@ -2330,7 +2330,7 @@ TEST(CanvasInputInteractionTarget, KnobPublishesDiscreteSelectorRole) {
 
      bp2::EditorModel model(std::move(bp));
      visual::Scene scene;
-     visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+     visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
      auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
      ASSERT_NE(widget, nullptr);
@@ -2348,7 +2348,7 @@ TEST(CanvasInputInteractionTarget, KnobPublishesDiscreteSelectorRole) {
  }
 
 TEST(CanvasInputSemanticRender, ContentSnapshotObjectIdsAreUniqueAndFindable) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto knob = make_node(I, "knob_1", "KnobSwitch", 100.0f, 100.0f);
@@ -2363,7 +2363,7 @@ TEST(CanvasInputSemanticRender, ContentSnapshotObjectIdsAreUniqueAndFindable) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
     ASSERT_NE(widget, nullptr);
@@ -2387,7 +2387,7 @@ TEST(CanvasInputSemanticRender, ContentSnapshotObjectIdsAreUniqueAndFindable) {
 }
 
 TEST(CanvasInputSemanticRender, IndicatorAndKnobCirclesUseCenteredRadiusEncoding) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto indicator = make_node(I, "ind_1", "IndicatorLight", 100.0f, 100.0f);
@@ -2408,7 +2408,7 @@ TEST(CanvasInputSemanticRender, IndicatorAndKnobCirclesUseCenteredRadiusEncoding
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
     update_dynamic(scene, "ind_1", [](NodeContent& c) { c.value = 1.0f; });
 
     auto* indicator_widget = dynamic_cast<visual::NodeWidget*>(scene.find("ind_1"));
@@ -2449,7 +2449,7 @@ TEST(CanvasInputSemanticRender, IndicatorAndKnobCirclesUseCenteredRadiusEncoding
 }
 
 TEST(CanvasInputSemanticRender, GaugeRestoresLegacyTextStackAndFullComposition) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto gauge = make_node(I, "volt_1", "Voltmeter", 100.0f, 100.0f);
@@ -2463,7 +2463,7 @@ TEST(CanvasInputSemanticRender, GaugeRestoresLegacyTextStackAndFullComposition) 
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
     update_dynamic(scene, "volt_1", [](NodeContent& c) { c.value = 27.5f; });
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("volt_1"));
@@ -2502,7 +2502,7 @@ TEST(CanvasInputInteractionTarget, KnobTargetCarriesStepsMetadata) {
     // Verify that the knob target publishes steps metadata so that CanvasInput
     // can use this to track positions without reading concrete widget member variables.
     // This is the core contract for issue #136: semantic metadata instead of concrete knowledge.
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto knob = make_node(I, "knob_1", "KnobSwitch", 100.0f, 100.0f);
@@ -2517,7 +2517,7 @@ TEST(CanvasInputInteractionTarget, KnobTargetCarriesStepsMetadata) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
     ASSERT_NE(widget, nullptr);
@@ -2556,7 +2556,7 @@ TEST(CanvasInputInteractionTarget, KnobTargetCarriesStepsMetadata) {
 }
 
 TEST(CanvasInputInteractionTarget, KnobTargetCarriesConfiguredFiveStepsMetadata) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto knob = make_node(I, "knob_5", "KnobSwitch", 100.0f, 100.0f);
@@ -2571,7 +2571,7 @@ TEST(CanvasInputInteractionTarget, KnobTargetCarriesConfiguredFiveStepsMetadata)
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_5"));
     ASSERT_NE(widget, nullptr);
@@ -2589,7 +2589,7 @@ TEST(CanvasInputInteractionTarget, KnobTargetCarriesConfiguredFiveStepsMetadata)
 }
 
 TEST(CanvasInputInteractionTarget, SliderPublishesContinuousScalarRole) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto slider = make_node(I, "slider_1", "Slider", 100.0f, 100.0f);
@@ -2604,7 +2604,7 @@ TEST(CanvasInputInteractionTarget, SliderPublishesContinuousScalarRole) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
     ASSERT_NE(widget, nullptr);
@@ -2625,7 +2625,7 @@ TEST(CanvasInputInteractionTarget, SliderTargetCarriesMappingBoundsNotGeometry) 
     // Verify that the slider target publishes mapping bounds (primary_min, primary_max)
     // and that CanvasInput uses these bounds instead of depending on concrete slider geometry.
     // This is the core contract for issue #136: semantic mapping instead of geometry knowledge.
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto slider = make_node(I, "slider_1", "Slider", 100.0f, 100.0f);
@@ -2640,7 +2640,7 @@ TEST(CanvasInputInteractionTarget, SliderTargetCarriesMappingBoundsNotGeometry) 
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_1"));
     ASSERT_NE(widget, nullptr);
@@ -2686,7 +2686,7 @@ TEST(CanvasInputInteractionTarget, SliderTargetCarriesMappingBoundsNotGeometry) 
 }
 
 TEST(CanvasInputInteractionTarget, SliderTargetUsesConfiguredNonDefaultMinMax) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto slider = make_node(I, "slider_custom", "Slider", 100.0f, 100.0f);
@@ -2701,7 +2701,7 @@ TEST(CanvasInputInteractionTarget, SliderTargetUsesConfiguredNonDefaultMinMax) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_custom"));
     ASSERT_NE(widget, nullptr);
@@ -2739,7 +2739,7 @@ TEST(CanvasInputInteractionTarget, SliderTargetUsesConfiguredNonDefaultMinMax) {
 }
 
 TEST(CanvasInputInteractionTarget, SliderTargetUsesConfiguredNonDefaultMinOnLeftClamp) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto slider = make_node(I, "slider_custom", "Slider", 100.0f, 100.0f);
@@ -2754,7 +2754,7 @@ TEST(CanvasInputInteractionTarget, SliderTargetUsesConfiguredNonDefaultMinOnLeft
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_custom"));
     ASSERT_NE(widget, nullptr);
@@ -2785,7 +2785,7 @@ TEST(CanvasInputInteractionTarget, SliderTargetUsesConfiguredNonDefaultMinOnLeft
 TEST(CanvasInputSimMode, SimModeBlocksRightClickContextMenu) {
 
     // In simulation mode, right-clicking should NOT show context menus.
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto node = make_node(I, "n1", "Battery", 120.0f, 80.0f);
@@ -2794,7 +2794,7 @@ TEST(CanvasInputSimMode, SimModeBlocksRightClickContextMenu) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::Widget*>(scene.find("n1"));
     ASSERT_NE(widget, nullptr);
@@ -2817,13 +2817,13 @@ TEST(CanvasInputSimMode, SimModeBlocksRightClickContextMenu) {
 
 TEST(CanvasInputSimMode, SimModeAllowsPanning) {
     // In simulation mode, clicking on empty space should enter panning.
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     bp2::Blueprint bp;
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     Viewport vp;
     auto host = create_editor_model_host(model);
@@ -2845,7 +2845,7 @@ TEST(CanvasInputSimMode, SimModeAllowsPanning) {
 TEST(CanvasInputSimMode, SimModeBlocksInlineValueEditor) {
     // In simulation mode, double-clicking a Value node must NOT open
     // the inline value editor (editing params won't affect compiled solver).
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto value_node = make_node(I, "val1", "Value", 120.0f, 80.0f);
@@ -2854,7 +2854,7 @@ TEST(CanvasInputSimMode, SimModeBlocksInlineValueEditor) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::Widget*>(scene.find("val1"));
     ASSERT_NE(widget, nullptr);
@@ -2877,7 +2877,7 @@ TEST(CanvasInputSimMode, SimModeBlocksInlineValueEditor) {
 
 TEST(CanvasInputSimMode, ReadOnlyBlocksInlineValueEditor) {
     // read_only mode must also block the inline value editor.
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto value_node = make_node(I, "val1", "Value", 120.0f, 80.0f);
@@ -2886,7 +2886,7 @@ TEST(CanvasInputSimMode, ReadOnlyBlocksInlineValueEditor) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::Widget*>(scene.find("val1"));
     ASSERT_NE(widget, nullptr);
@@ -2918,7 +2918,7 @@ TEST(CanvasInputNodeSnap, ValueNodeSnapsToHalfGridDespiteRefRenderHint) {
     // then calling the snap logic indirectly through the drag handler. We'll verify the snap
     // behavior by examining the node's position after a drag operation that would disambiguate
     // between half-grid and full-grid snap.
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     // Create a Battery as a reference
@@ -2984,7 +2984,7 @@ TEST(CanvasInputNodeSnap, ValueNodeSnapsToHalfGridDespiteRefRenderHint) {
     // is snapped correctly.
     
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* val_widget = dynamic_cast<visual::Widget*>(scene.find("val1"));
     ASSERT_NE(val_widget, nullptr) << "Value widget should exist in scene";
@@ -3014,7 +3014,7 @@ TEST(CanvasInputNodeSnap, ValueNodeSnapsToHalfGridDespiteRefRenderHint) {
         input.on_mouse_up(MouseButton::Left, ref_click + drag_delta, canvas_min);
         
         // Rebuild and check position
-        visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+        visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
         
          Pt ref_pos = dynamic_cast<visual::Widget*>(scene.find("ref1"))->worldPos();
         EXPECT_NEAR(ref_pos.x, 110.0f, 0.1f)
@@ -3031,7 +3031,7 @@ TEST(CanvasInputDoubleClick, DoubleClickOnInteractiveContentOfBlueprintInstanceO
     // (e.g. VerticalToggle), double-clicking the content area should still
     // open the sub-window. Before the fix, hit_test returned HitInteractionTarget
     // but on_double_click only checked HitNode, silently dropping the event.
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     bp2::Interface composite_iface({
@@ -3050,7 +3050,7 @@ TEST(CanvasInputDoubleClick, DoubleClickOnInteractiveContentOfBlueprintInstanceO
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;
@@ -3085,7 +3085,7 @@ TEST(CanvasInputDoubleClick, DoubleClickOnInteractiveContentOfBlueprintInstanceO
 // ============================================================================
 
 TEST(CanvasInputSemanticGate, SliderDragOffHitStillEmitsThroughSemanticContinuation) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto slider = make_node(I, "slider_1", "Slider", 100.0f, 100.0f);
@@ -3100,7 +3100,7 @@ TEST(CanvasInputSemanticGate, SliderDragOffHitStillEmitsThroughSemanticContinuat
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;
@@ -3130,7 +3130,7 @@ TEST(CanvasInputSemanticGate, SliderDragOffHitStillEmitsThroughSemanticContinuat
 }
 
 TEST(CanvasInputSemanticGate, SliderDragLeftFromCenterDoesNotSnapToMaximum) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto slider = make_node(I, "slider_1", "Slider", 100.0f, 100.0f);
@@ -3145,7 +3145,7 @@ TEST(CanvasInputSemanticGate, SliderDragLeftFromCenterDoesNotSnapToMaximum) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
     update_dynamic(scene, "slider_1", [](NodeContent& c) { c.value = 50.0f; });
 
     Viewport vp;
@@ -3175,7 +3175,7 @@ TEST(CanvasInputSemanticGate, SliderDragLeftFromCenterDoesNotSnapToMaximum) {
 }
 
 TEST(CanvasInputSemanticGate, KnobDragOffHitStillEmitsThroughSemanticContinuation) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto knob = make_node(I, "knob_1", "KnobSwitch", 100.0f, 100.0f);
@@ -3190,7 +3190,7 @@ TEST(CanvasInputSemanticGate, KnobDragOffHitStillEmitsThroughSemanticContinuatio
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;
@@ -3220,7 +3220,7 @@ TEST(CanvasInputSemanticGate, KnobDragOffHitStillEmitsThroughSemanticContinuatio
 }
 
 TEST(CanvasInputSemanticGate, SliderReleaseOffHitEndsDragState) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto slider = make_node(I, "slider_1", "Slider", 100.0f, 100.0f);
@@ -3235,7 +3235,7 @@ TEST(CanvasInputSemanticGate, SliderReleaseOffHitEndsDragState) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;
@@ -3264,7 +3264,7 @@ TEST(CanvasInputSemanticGate, SliderReleaseOffHitEndsDragState) {
 }
 
 TEST(CanvasInputSemanticGate, KnobReleaseOffHitEndsDragState) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto knob = make_node(I, "knob_1", "KnobSwitch", 100.0f, 100.0f);
@@ -3279,7 +3279,7 @@ TEST(CanvasInputSemanticGate, KnobReleaseOffHitEndsDragState) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;
@@ -3308,7 +3308,7 @@ TEST(CanvasInputSemanticGate, KnobReleaseOffHitEndsDragState) {
 }
 
 TEST(CanvasInputSemanticGate, SimulationModeSliderDragStillEmitsWhenSemanticActive) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto slider = make_node(I, "slider_1", "Slider", 100.0f, 100.0f);
@@ -3323,7 +3323,7 @@ TEST(CanvasInputSemanticGate, SimulationModeSliderDragStillEmitsWhenSemanticActi
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;
@@ -3352,7 +3352,7 @@ TEST(CanvasInputSemanticGate, SimulationModeSliderDragStillEmitsWhenSemanticActi
 }
 
 TEST(CanvasInputSemanticGate, SimulationModeKnobDragStillEmitsWhenSemanticActive) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto knob = make_node(I, "knob_1", "KnobSwitch", 100.0f, 100.0f);
@@ -3367,7 +3367,7 @@ TEST(CanvasInputSemanticGate, SimulationModeKnobDragStillEmitsWhenSemanticActive
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;
@@ -3396,7 +3396,7 @@ TEST(CanvasInputSemanticGate, SimulationModeKnobDragStillEmitsWhenSemanticActive
 }
 
 TEST(CanvasInputHoverSuppression, DraggingKnobSuppressesWireHover) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto knob = make_node(I, "knob_1", "KnobControl", 100.0f, 100.0f);
@@ -3423,7 +3423,7 @@ TEST(CanvasInputHoverSuppression, DraggingKnobSuppressesWireHover) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
     update_dynamic(scene, "knob_1", [](NodeContent& c) { c.value = 1.0f; });
 
     Viewport vp;
@@ -3455,7 +3455,7 @@ TEST(CanvasInputHoverSuppression, DraggingKnobSuppressesWireHover) {
 }
 
 TEST(CanvasInputHoverSuppression, DraggingSliderSuppressesWireHover) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto slider = make_node(I, "slider_1", "SliderControl", 100.0f, 100.0f);
@@ -3483,7 +3483,7 @@ TEST(CanvasInputHoverSuppression, DraggingSliderSuppressesWireHover) {
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
     update_dynamic(scene, "slider_1", [](NodeContent& c) { c.value = 50.0f; });
 
     Viewport vp;
@@ -3515,7 +3515,7 @@ TEST(CanvasInputHoverSuppression, DraggingSliderSuppressesWireHover) {
 }
 
 TEST(CanvasInputSemanticCancellation, CancelGestureInDraggingKnobReturnsToIdleAndCancelsSemanticSession) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto knob = make_node(I, "knob_1", "KnobControl", 100.0f, 100.0f);
@@ -3529,7 +3529,7 @@ TEST(CanvasInputSemanticCancellation, CancelGestureInDraggingKnobReturnsToIdleAn
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
     update_dynamic(scene, "knob_1", [](NodeContent& c) { c.value = 1.0f; });
 
     Viewport vp;
@@ -3557,7 +3557,7 @@ TEST(CanvasInputSemanticCancellation, CancelGestureInDraggingKnobReturnsToIdleAn
 }
 
 TEST(CanvasInputSemanticCancellation, CancelGestureInDraggingSliderReturnsToIdleAndCancelsSemanticSession) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto slider = make_node(I, "slider_1", "SliderControl", 100.0f, 100.0f);
@@ -3572,7 +3572,7 @@ TEST(CanvasInputSemanticCancellation, CancelGestureInDraggingSliderReturnsToIdle
 
     bp2::EditorModel model(std::move(bp));
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
     update_dynamic(scene, "slider_1", [](NodeContent& c) { c.value = 50.0f; });
 
     Viewport vp;
@@ -3610,7 +3610,7 @@ TEST(CanvasInputNodeSnap, RefNodeDragUsesHalfGridSnap) {
     // We place a single ref node at grid position (160, 160) with grid_step=16.
     // After clicking and starting a drag, we apply a delta that moves the
     // drag anchor to a position where half-grid and full-grid snap differ.
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto ref = make_node(I, "ref1", "RefNode", 160.0f, 160.0f, "ref");
@@ -3633,7 +3633,7 @@ TEST(CanvasInputNodeSnap, RefNodeDragUsesHalfGridSnap) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* ref_widget = dynamic_cast<visual::Widget*>(scene.find("ref1"));
     ASSERT_NE(ref_widget, nullptr);
@@ -3688,7 +3688,7 @@ TEST(CanvasInputNodeSnap, RefNodeDragUsesHalfGridSnap) {
 // rebuildAllWindows), the node must be selectable and resizable without
 // any second insertion or other workaround.
 TEST(CanvasInputLifecycle, NewlyInsertedNodeIsImmediatelySelectable) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     // Start with one pre-existing node (simulates an already-saved blueprint)
@@ -3704,7 +3704,7 @@ TEST(CanvasInputLifecycle, NewlyInsertedNodeIsImmediatelySelectable) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;
@@ -3733,7 +3733,7 @@ TEST(CanvasInputLifecycle, NewlyInsertedNodeIsImmediatelySelectable) {
     // --- Simulate rebuildAllWindows: cancel + rebuild scene + rebuild snapshot ---
     // (Document::rebuildAllWindows does: cancel_gesture → visual::mutations::rebuild → rebuild_snapshot)
     input.cancel_gesture();
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
     input.rebuild_snapshot();
 
     // Verify the new node widget exists in the scene
@@ -3772,7 +3772,7 @@ TEST(CanvasInputLifecycle, NewlyInsertedNodeIsImmediatelySelectable) {
 }
 
 TEST(CanvasInputLifecycle, NewlyInsertedNodeIsImmediatelyResizable) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto existing = make_node(I, "existing", "Battery", 40.0f, 40.0f);
@@ -3787,7 +3787,7 @@ TEST(CanvasInputLifecycle, NewlyInsertedNodeIsImmediatelyResizable) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;
@@ -3813,7 +3813,7 @@ TEST(CanvasInputLifecycle, NewlyInsertedNodeIsImmediatelyResizable) {
     }
 
     input.cancel_gesture();
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
     input.rebuild_snapshot();
 
     auto* new_widget = scene.find("new_lamp");
@@ -3851,7 +3851,7 @@ TEST(CanvasInputDoubleClick, DoubleClickOnRegularNodeDoesNotConsumeEvent) {
     // ImGui sends IsMouseDoubleClicked when two clicks are fast enough, and
     // the old code skipped on_mouse_down entirely even though on_double_click
     // did nothing for regular nodes.
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto node = make_node(I, "bat1", "Battery", 120.0f, 80.0f);
@@ -3860,7 +3860,7 @@ TEST(CanvasInputDoubleClick, DoubleClickOnRegularNodeDoesNotConsumeEvent) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::Widget*>(scene.find("bat1"));
     ASSERT_NE(widget, nullptr);
@@ -3887,7 +3887,7 @@ TEST(CanvasInputDoubleClick, DoubleClickOnRegularNodeDoesNotConsumeEvent) {
 
 TEST(CanvasInputDoubleClick, DoubleClickOnValueNodeConsumesEvent) {
     // Value node double-click opens inline editor — must be consumed.
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto value_node = make_node(I, "val1", "Value", 120.0f, 80.0f);
@@ -3896,7 +3896,7 @@ TEST(CanvasInputDoubleClick, DoubleClickOnValueNodeConsumesEvent) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::Widget*>(scene.find("val1"));
     ASSERT_NE(widget, nullptr);
@@ -3916,7 +3916,7 @@ TEST(CanvasInputDoubleClick, DoubleClickOnValueNodeConsumesEvent) {
 
 TEST(CanvasInputDoubleClick, DoubleClickOnBlueprintInstanceConsumesEvent) {
     // BlueprintInstance double-click opens sub-window — must be consumed.
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto group = make_node(I, "grp1", "Composite", 120.0f, 80.0f);
@@ -3929,7 +3929,7 @@ TEST(CanvasInputDoubleClick, DoubleClickOnBlueprintInstanceConsumesEvent) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     auto* widget = dynamic_cast<visual::Widget*>(scene.find("grp1"));
     ASSERT_NE(widget, nullptr);
@@ -3950,13 +3950,13 @@ TEST(CanvasInputDoubleClick, DoubleClickOnBlueprintInstanceConsumesEvent) {
 TEST(CanvasInputDoubleClick, DoubleClickOnEmptySpaceDoesNotConsume) {
     // Double-clicking on empty space should not consume — handleInput should
     // fall through to on_mouse_down which enters panning.
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     bp2::Blueprint bp;
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     Viewport vp;
     auto host = create_editor_model_host(model);
@@ -3985,7 +3985,7 @@ TEST(CanvasInputSnapshotRegression, ResizeSelectResizeAgainStillWorks) {
     //   2. Resize via bottom-right handle
     //   3. Click node center to re-select
     //   4. Resize via bottom-right handle again — MUST still enter ResizingNode
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto bat = make_node(I, "bat1", "Battery", 100.0f, 100.0f);
@@ -4000,7 +4000,7 @@ TEST(CanvasInputSnapshotRegression, ResizeSelectResizeAgainStillWorks) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;
@@ -4057,7 +4057,7 @@ TEST(CanvasInputSnapshotRegression, ResizeSelectResizeAgainStillWorks) {
 TEST(CanvasInputSnapshotRegression, DragThenResizeStillWorks) {
     // After dragging a node to a new position, the resize handles in the
     // snapshot must reflect the new position.
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto bat = make_node(I, "bat1", "Battery", 50.0f, 50.0f);
@@ -4072,7 +4072,7 @@ TEST(CanvasInputSnapshotRegression, DragThenResizeStillWorks) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;
@@ -4125,7 +4125,7 @@ TEST(CanvasInputSnapshotRegression, DragThenResizeStillWorks) {
 TEST(CanvasInputSnapshotRegression, MultipleResizeCyclesAllSucceed) {
     // Stress test: resize the same node 5 times in a row, re-selecting each
     // time.  Every cycle must enter ResizingNode.
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto bat = make_node(I, "bat1", "Battery", 100.0f, 100.0f);
@@ -4140,7 +4140,7 @@ TEST(CanvasInputSnapshotRegression, MultipleResizeCyclesAllSucceed) {
 
     bp2::EditorModel model(bp);
     visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const ui::InternedId>{}, ci_reg());
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
 
     Viewport vp;
     vp.zoom = 1.0f;

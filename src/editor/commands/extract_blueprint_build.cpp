@@ -17,7 +17,7 @@ namespace {
 bool append_selected_embedded_nested_for_inline(
     bp2::Blueprint& inline_bp,
     const bp2::Blueprint& source,
-    const std::unordered_set<ui::InternedId>& selected_set,
+    const std::unordered_set<core::InternedId>& selected_set,
     bool allow_nonembedded_descendant_refs,
     std::string* error_out) {
     for (const auto& source_node : source.nodes()) {
@@ -75,9 +75,9 @@ std::optional<bp2::Blueprint> build_inline_blueprint(
     const ExtractionPlan& plan,
     const bp2::Blueprint& source,
     bool allow_nonembedded_descendant_refs,
-    ui::StringInterner& interner,
+    core::StringInterner& interner,
     bp2::PathArena& arena,
-    ui::InternedId blueprint_id,
+    core::InternedId blueprint_id,
     std::string* error_out) {
     bp2::Blueprint out;
     out = out.with_id(blueprint_id);
@@ -99,7 +99,7 @@ std::optional<bp2::Blueprint> build_inline_blueprint(
      }
 
     const auto boundary = synthesize_extracted_boundary(
-        plan, ui::InternedId{}, translated_nodes, interner, error_out);
+        plan, core::InternedId{}, translated_nodes, interner, error_out);
     if (!boundary) {
         return std::nullopt;
     }
@@ -135,11 +135,11 @@ std::optional<bp2::Blueprint> build_inline_blueprint(
 std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
     const bp2::Blueprint& source,
     const ExtractionPlan& plan,
-    ui::InternedId blueprint_iid,
+    core::InternedId blueprint_iid,
     const std::string& blueprint_name,
     const WindowScopeId& scope_id,
     bool allow_nonembedded_descendant_refs,
-    ui::StringInterner& interner,
+    core::StringInterner& interner,
     bp2::PathArena& arena,
     std::string* error_out) {
     (void)scope_id;
@@ -149,8 +149,8 @@ std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
     out = out.with_name(source.name());
     out = out.with_interface(source.iface());
 
-    std::unordered_set<ui::InternedId> used_node_ids = collect_used_node_ids(source);
-    ui::InternedId nested_instance_id = next_unique_id(interner, used_node_ids, "extract_inst_");
+    std::unordered_set<core::InternedId> used_node_ids = collect_used_node_ids(source);
+    core::InternedId nested_instance_id = next_unique_id(interner, used_node_ids, "extract_inst_");
     if (nested_instance_id.empty()) {
         set_error(error_out, "failed to allocate nested instance id");
         return std::nullopt;
@@ -165,8 +165,8 @@ std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
      }
 
     for (const auto& w : source.wires()) {
-        ui::InternedId src_node = w.source.node;
-        ui::InternedId tgt_node = w.target.node;
+        core::InternedId src_node = w.source.node;
+        core::InternedId tgt_node = w.target.node;
         if (src_node.empty() || tgt_node.empty()) {
             set_error(error_out, "wire endpoint path unresolved during extraction");
             return std::nullopt;

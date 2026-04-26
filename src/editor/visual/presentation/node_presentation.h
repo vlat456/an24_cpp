@@ -2,7 +2,7 @@
 
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "editor/data/node_state.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include "core/model/presentation_spec.h"
 #include "core/model/component_spec.h"
 #include <cassert>
@@ -141,8 +141,8 @@ constexpr GaugeMetrics gauge_metrics() {
 /// hydrated view data leaks into the compiler contract.
 struct CompiledPresentationSpec {
     // Identity
-    ui::InternedId node_id;
-    ui::InternedId type_id;
+    core::InternedId node_id;
+    core::InternedId type_id;
 
     // Shell
     NodeFrameKind frame_kind = NodeFrameKind::Standard;
@@ -183,7 +183,7 @@ NodeFrameKind resolve_frame_kind(const ComponentSpec* spec, const TypePresentati
 CompiledPresentationSpec make_presentation_spec(const bp2::Blueprint::Node& node,
                                                 const ComponentSpec* def,
                                                 const TypePresentation* pres,
-                                                ui::StringInterner& interner,
+                                                core::StringInterner& interner,
                                                 const editor::RuntimeNodeState* runtime_state = nullptr);
 
 // ============================================================================
@@ -191,7 +191,7 @@ CompiledPresentationSpec make_presentation_spec(const bp2::Blueprint::Node& node
 // ============================================================================
 
 struct PaintCommand {
-    ui::InternedId id;
+    core::InternedId id;
     PaintPrimitiveKind kind = PaintPrimitiveKind::Text;
     PrimitiveGeometry geometry;
     std::string text;
@@ -201,14 +201,14 @@ struct PaintCommand {
 };
 
 struct HitRegion {
-    ui::InternedId id;
+    core::InternedId id;
     HitShapeKind kind = HitShapeKind::Rectangle;
 };
 
 struct InteractionBinding {
-    ui::InternedId region_id;
+    core::InternedId region_id;
     InteractionKind kind = InteractionKind::Click;
-    ui::InternedId action_id;
+    core::InternedId action_id;
     float min_value = 0.0f;
     float max_value = 0.0f;
     float step = 0.0f;
@@ -219,7 +219,7 @@ struct InteractionBinding {
 // ============================================================================
 
 struct PresentationNode {
-    ui::InternedId element_id;
+    core::InternedId element_id;
     LayoutKind layout = LayoutKind::None;
     float gap = 0.0f;
     std::vector<PaintCommand> paint;
@@ -255,11 +255,11 @@ struct NodePresenter {
 
 class NodePresenterRegistry {
 public:
-    void register_presenter(ui::InternedId type_id, NodePresenter presenter);
-    const NodePresenter* find_presenter(ui::InternedId type_id) const;
+    void register_presenter(core::InternedId type_id, NodePresenter presenter);
+    const NodePresenter* find_presenter(core::InternedId type_id) const;
 
 private:
-    std::unordered_map<ui::InternedId, NodePresenter> presenters_;
+    std::unordered_map<core::InternedId, NodePresenter> presenters_;
 };
 
 // ============================================================================
@@ -268,12 +268,12 @@ private:
 
 struct NodePresentationCompileContext {
     const NodePresenterRegistry* registry = nullptr;
-    std::string_view (*resolve_type_name)(ui::InternedId type_id, void* user_data) = nullptr;
+    std::string_view (*resolve_type_name)(core::InternedId type_id, void* user_data) = nullptr;
     void* resolve_type_name_user_data = nullptr;
 };
 
 struct NodePresentation {
-    ui::InternedId node_id;
+    core::InternedId node_id;
     NodeShellModel shell;
     PresentationNode content;
 };

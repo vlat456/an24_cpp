@@ -24,7 +24,7 @@
 #include "core/solvers/jit/jit_solver.h"
 #include "core/registry/component_resolution.h"
 #include "io/json/component_registry_json_loader.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include "bp2_test_helpers.h"
 #include "jit_build_input_test_helper.h"
 
@@ -63,7 +63,7 @@ std::set<std::set<std::string>> extract_topology_from_string_map(
 /// Extract signal topology from a PortToSignal (InternedId-keyed) map.
 std::set<std::set<std::string>> extract_topology(
     const PortToSignal& p2s,
-    const ui::StringInterner& interner)
+    const core::StringInterner& interner)
 {
     std::map<uint32_t, std::set<std::string>> groups;
     for (const auto& [port_id, sig] : p2s) {
@@ -87,7 +87,7 @@ std::set<std::set<std::string>> extract_topology(
 /// direction — they just unite port pairs.
 std::vector<Connection> reconstruct_connections(
     const PortToSignal& p2s,
-    const ui::StringInterner& interner)
+    const core::StringInterner& interner)
 {
     std::map<uint32_t, std::vector<std::string>> groups;
     for (const auto& [port_id, sig] : p2s) {
@@ -129,7 +129,7 @@ std::unordered_map<std::string, uint32_t> run_signal_alloc_pipeline(
 
 // == Shared test library ==
 
-bp2::BlueprintLibrary make_test_library(ui::StringInterner& interner) {
+bp2::BlueprintLibrary make_test_library(core::StringInterner& interner) {
     bp2::BlueprintLibrary library;
 
     bp2::Blueprint bat;
@@ -162,7 +162,7 @@ bp2::BlueprintLibrary make_test_library(ui::StringInterner& interner) {
     return library;
 }
 
-bp2::Blueprint::Node make_bridge_node(ui::StringInterner& I,
+bp2::Blueprint::Node make_bridge_node(core::StringInterner& I,
                                       const char* id,
                                       bool input_side,
                                       Domain domain) {
@@ -299,7 +299,7 @@ static std::string find_library_dir() {
 // ==================================================================
 
 TEST(CrossPathSignalEquivalence, SimpleChainThreeNodes) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
     auto library = make_test_library(I);
 
@@ -379,7 +379,7 @@ TEST(CrossPathSignalEquivalence, SimpleChainThreeNodes) {
 // ==================================================================
 
 TEST(CrossPathSignalEquivalence, NestedCompositeWithBridges) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
     auto library = make_test_library(I);
 
@@ -515,7 +515,7 @@ TEST(CrossPathSignalEquivalence, ClosedCircuitBlueprint) {
 
     ComponentRegistry registry = load_component_registry(lib_dir);
 
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     // Build library from registry (non-primitive composites)
@@ -567,9 +567,9 @@ TEST(CrossPathSignalEquivalence, ClosedCircuitBlueprint) {
         for (const auto& [port_name, _port] : dev.ports) {
             const std::string key = dev.name + "." + port_name;
             auto iid = input_a.signal_key_interner.lookup(key);
-            EXPECT_NE(iid, ui::InternedId{})
+            EXPECT_NE(iid, core::InternedId{})
                 << "Device port '" << key << "' missing from signal map";
-            if (iid != ui::InternedId{}) {
+            if (iid != core::InternedId{}) {
                 EXPECT_NE(input_a.port_to_signal.count(iid), 0u)
                     << "Device port '" << key << "' has no signal assignment";
             }

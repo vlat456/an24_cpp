@@ -2,13 +2,13 @@
 #include <spdlog/spdlog.h>
 #include <functional>
 
-void execute(bp2::EditorModel& model, ui::StringInterner& interner, Command cmd) {
+void execute(bp2::EditorModel& model, core::StringInterner& interner, Command cmd) {
     std::visit([&](auto c) {
         using T = std::decay_t<decltype(c)>;
         if constexpr (std::is_same_v<T, CmdAddNode>) {
             model.add_node(std::move(c.node));
         } else if constexpr (std::is_same_v<T, CmdRemoveNode>) {
-            for (ui::InternedId wid : c.connected_wire_ids) {
+            for (core::InternedId wid : c.connected_wire_ids) {
                 model.remove_wire(wid);
             }
             model.remove_node(c.node_id);

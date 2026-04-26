@@ -32,7 +32,7 @@ TEST(StrictBlueprintPersistence, CodecRejectsLegacyVersion2Json) {
         "wires": []
     })";
 
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry registry = load_component_registry("library/");
     bp2::DecodeError err;
@@ -50,7 +50,7 @@ TEST(StrictBlueprintPersistence, GSCDecodesAsStrictBlueprintIfPresent) {
 
     std::string content = read_file(gsc_path);
 
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry registry = load_component_registry("library/");
     bp2::DecodeError err;

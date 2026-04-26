@@ -3,7 +3,7 @@
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/path/path.h"
 #include "editor/data/node_state.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include <vector>
 #include <cstddef>
 
@@ -19,9 +19,9 @@ namespace visual::mutations {
 /// @param registry  ComponentRegistry for resolving frame kind and content from the
 ///                  canonical source of truth (ComponentSpec). Must not be null.
 void rebuild(Scene& scene, const bp2::Blueprint& bp,
-             ui::StringInterner& interner,
+             core::StringInterner& interner,
              bp2::PathArena& arena,
-             std::span<const ui::InternedId> instance_path,
+             std::span<const core::InternedId> instance_path,
              const ComponentRegistry& registry,
              const editor::RuntimeNodeStateStore* runtime_state_store = nullptr);
 

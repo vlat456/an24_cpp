@@ -20,7 +20,7 @@ void CanvasInput::commit_drag_node() {
      if (drag_current_positions_.empty()) return;
 
      bool any_moved = false;
-     std::vector<ui::InternedId> moved_node_ids;
+     std::vector<core::InternedId> moved_node_ids;
      size_t drag_idx = 0;
      for (const auto& node_id : selected_node_ids()) {
          if (node_id.empty() || !host_->find_node(node_id)) continue;
@@ -46,12 +46,12 @@ void CanvasInput::commit_drag_node() {
           }
       });
 
-     std::unordered_set<ui::InternedId> nodes_to_orient;
-     for (ui::InternedId id : moved_node_ids) {
+     std::unordered_set<core::InternedId> nodes_to_orient;
+     for (core::InternedId id : moved_node_ids) {
          nodes_to_orient.insert(id);
      }
 
-     std::unordered_map<ui::InternedId, ui::InternedId> ref_to_connected;
+     std::unordered_map<core::InternedId, core::InternedId> ref_to_connected;
      for (const bp2::Blueprint::Wire& w : host_->wires()) {
          auto src_node = w.source.node;
          auto tgt_node = w.target.node;
@@ -74,7 +74,7 @@ void CanvasInput::commit_drag_node() {
      for (const auto& [ref_id, connected_id] : ref_to_connected) {
          orient_ref_node_port_impl(ref_id, connected_id);
      }
-     for (ui::InternedId id : moved_node_ids) {
+     for (core::InternedId id : moved_node_ids) {
          const bp2::Blueprint::Node* n = host_->find_node(id);
          if (n && is_ref_node(*n, registry(), *interner_) && ref_to_connected.count(id) == 0) {
              orient_ref_node_port_by_wire_scan(id);
@@ -84,7 +84,7 @@ void CanvasInput::commit_drag_node() {
     debug_validate_command_boundary(host_->current_blueprint(), *interner_, *arena_, parser_registry_);
 }
 
-bool CanvasInput::orient_ref_node_port_impl(ui::InternedId ref_id, ui::InternedId connected_id) {
+bool CanvasInput::orient_ref_node_port_impl(core::InternedId ref_id, core::InternedId connected_id) {
     const bp2::Blueprint::Node* ref_node = host_->find_node(ref_id);
     const bp2::Blueprint::Node* other_node = host_->find_node(connected_id);
     if (!ref_node || !other_node) return false;
@@ -113,12 +113,12 @@ bool CanvasInput::orient_ref_node_port_impl(ui::InternedId ref_id, ui::InternedI
     return true;
 }
 
-void CanvasInput::orient_ref_node_port_by_wire_scan(ui::InternedId ref_node_id) {
+void CanvasInput::orient_ref_node_port_by_wire_scan(core::InternedId ref_node_id) {
      if (ref_node_id.empty()) return;
      const bp2::Blueprint::Node* ref_node = host_->find_node(ref_node_id);
      if (!ref_node || !is_ref_node(*ref_node, registry(), *interner_)) return;
 
-     ui::InternedId connected_node_id;
+     core::InternedId connected_node_id;
      for (const bp2::Blueprint::Wire& w : host_->wires()) {
          auto [src_node, _sp] = editor_math::path_to_node_port(w.source, *arena_);
          auto [tgt_node, _tp] = editor_math::path_to_node_port(w.target, *arena_);
@@ -162,7 +162,7 @@ void CanvasInput::commit_drag_routing_point() {
 void CanvasInput::commit_resize_node() {
      Pt new_pos = resize_current_pos_;
      Pt new_size = resize_current_size_;
-     ui::InternedId node_iid = resize_widget_id_;
+     core::InternedId node_iid = resize_widget_id_;
      if ((new_pos == resize_original_pos_ && new_size == resize_original_size_) || node_iid.empty()) return;
      host_->update_node(node_iid, [&](bp2::Blueprint::Node& n) {
          n.layout.x = new_pos.x;
@@ -236,7 +236,7 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
 
     if (!read_only && !simulation_mode) {
         if (auto* hrp = std::get_if<visual::HitRoutingPoint>(&hit)) {
-            ui::InternedId wire_iid = hrp->wire_id;
+            core::InternedId wire_iid = hrp->wire_id;
             const bp2::Blueprint::Wire* bp2_wire = host_->find_wire(wire_iid);
             if (bp2_wire && hrp->index < bp2_wire->routing_points.size()) {
                 auto new_points = bp2_wire->routing_points;
@@ -255,7 +255,7 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
     // Extract the underlying widget from HitNode.
     // Double-click on content still resolves node-level actions
     // (open sub-window, inline value editor).
-    ui::InternedId dbl_click_node_iid;
+    core::InternedId dbl_click_node_iid;
     if (auto* hn = std::get_if<visual::HitNode>(&hit)) {
         dbl_click_node_iid = hn->node_id;
     }
@@ -279,7 +279,7 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
 
     if (!read_only && !simulation_mode) {
         if (auto* hw = std::get_if<visual::HitWire>(&hit)) {
-            ui::InternedId wire_iid = hw->wire_id;
+            core::InternedId wire_iid = hw->wire_id;
             const bp2::Blueprint::Wire* bp2_wire = host_->find_wire(wire_iid);
             if (bp2_wire) {
                 auto new_points = bp2_wire->routing_points;
@@ -332,7 +332,7 @@ InputResult CanvasInput::on_key(Key key) {
             host_->mutate_atomically([&] {
                 for (const auto& nid : selected_node_ids_) {
                     if (!nid.empty()) {
-                        std::vector<ui::InternedId> connected_wires;
+                        std::vector<core::InternedId> connected_wires;
                         connected_wires.reserve(host_->wires().size());
                         for (const auto& w : host_->wires()) {
 auto [src_node, _src_port] = editor_math::path_to_node_port(w.source, *arena_);

@@ -20,7 +20,7 @@ namespace visual {
 // ============================================================================
 
 BusNodeWidget::BusNodeWidget(const bp2::Blueprint::Node& data,
-                             const ui::StringInterner& interner,
+                             const core::StringInterner& interner,
                              PortEdge port_edge,
                              const std::vector<BusWireRef>& wires,
                              std::optional<editor::NodeColor> color)
@@ -213,8 +213,8 @@ void BusNodeWidget::disconnectWire(const BusWireRef& wire) {
     rebuildPorts();
 }
 
-bool BusNodeWidget::swapAliasPorts(ui::InternedId wire_id_a,
-                                    ui::InternedId wire_id_b) {
+bool BusNodeWidget::swapAliasPorts(core::InternedId wire_id_a,
+                                    core::InternedId wire_id_b) {
     size_t idx_a = SIZE_MAX, idx_b = SIZE_MAX;
     for (size_t i = 0; i < wires_.size(); i++) {
         if (wires_[i].id == wire_id_a) idx_a = i;

@@ -16,7 +16,7 @@
 #include <unordered_map>
 #include <functional>
 
-namespace ui {
+namespace core {
 
 // =============================================================================
 // InternedId
@@ -43,17 +43,17 @@ private:
 static_assert(std::is_trivially_copyable_v<InternedId>);
 static_assert(sizeof(InternedId) == sizeof(uint32_t));
 
-} // namespace ui
+} // namespace core
 
 // std::hash specialization (must be in global namespace)
 template <>
-struct std::hash<ui::InternedId> {
-    size_t operator()(ui::InternedId id) const noexcept {
+struct std::hash<core::InternedId> {
+    size_t operator()(core::InternedId id) const noexcept {
         return std::hash<uint32_t>{}(id.raw());
     }
 };
 
-namespace ui {
+namespace core {
 
 // =============================================================================
 // StringInterner
@@ -163,4 +163,4 @@ private:
     }
 };
 
-} // namespace ui
+} // namespace core

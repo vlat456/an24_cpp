@@ -6,8 +6,8 @@ using namespace editor::presentation;
 
 namespace {
 
-SceneHitObject make_content_region(ui::InternedId node_id, ui::InternedId element_id,
-                                   ui::InternedId region_id, const ui::Rect& bounds) {
+SceneHitObject make_content_region(core::InternedId node_id, core::InternedId element_id,
+                                   core::InternedId region_id, const ui::Rect& bounds) {
     SceneHitObject object;
     object.node_id = node_id;
     object.element_id = element_id;
@@ -17,7 +17,7 @@ SceneHitObject make_content_region(ui::InternedId node_id, ui::InternedId elemen
     return object;
 }
 
-SceneHitObject make_node_body(ui::InternedId node_id, const ui::Rect& bounds) {
+SceneHitObject make_node_body(core::InternedId node_id, const ui::Rect& bounds) {
     SceneHitObject object;
     object.node_id = node_id;
     object.kind = SceneHitObjectKind::NodeBody;
@@ -25,7 +25,7 @@ SceneHitObject make_node_body(ui::InternedId node_id, const ui::Rect& bounds) {
     return object;
 }
 
-InteractionBinding make_binding(InteractionKind kind, ui::InternedId action_id) {
+InteractionBinding make_binding(InteractionKind kind, core::InternedId action_id) {
     InteractionBinding binding;
     binding.kind = kind;
     binding.action_id = action_id;
@@ -52,9 +52,9 @@ TEST(SemanticSceneInputTest, EmptySnapshotReturnsEmptyHit) {
 // Test 2: clicking a content region resolves a click request and clears session through reducer
 TEST(SemanticSceneInputTest, ClickingContentRegionResolvesClickAndClears) {
     SemanticSceneSnapshot snapshot;
-    SceneHitObject region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
-    region.interactions.push_back(make_binding(InteractionKind::Click, ui::InternedId(100)));
+    SceneHitObject region = make_content_region(core::InternedId(10), core::InternedId(20),
+                                                core::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
+    region.interactions.push_back(make_binding(InteractionKind::Click, core::InternedId(100)));
     snapshot.hit_objects.push_back(region);
 
     SemanticInteractionSession session;
@@ -66,7 +66,7 @@ TEST(SemanticSceneInputTest, ClickingContentRegionResolvesClickAndClears) {
     EXPECT_TRUE(std::holds_alternative<SemanticHitContentRegion>(result.hit));
     ASSERT_TRUE(result.resolved_request.has_value());
     EXPECT_EQ(result.resolved_request->kind, InteractionKind::Click);
-    EXPECT_EQ(result.resolved_request->action_id, ui::InternedId(100));
+    EXPECT_EQ(result.resolved_request->action_id, core::InternedId(100));
 
     ASSERT_EQ(result.reduced.emitted_requests.size(), 1);
     EXPECT_EQ(result.reduced.emitted_requests[0].kind, InteractionKind::Click);
@@ -76,9 +76,9 @@ TEST(SemanticSceneInputTest, ClickingContentRegionResolvesClickAndClears) {
 // Test 3: pressing a press-bound region resolves press request and begins session
 TEST(SemanticSceneInputTest, PressingPressRegionBeginsSession) {
     SemanticSceneSnapshot snapshot;
-    SceneHitObject region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
-    region.interactions.push_back(make_binding(InteractionKind::Press, ui::InternedId(101)));
+    SceneHitObject region = make_content_region(core::InternedId(10), core::InternedId(20),
+                                                core::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
+    region.interactions.push_back(make_binding(InteractionKind::Press, core::InternedId(101)));
     snapshot.hit_objects.push_back(region);
 
     SemanticInteractionSession session;
@@ -99,17 +99,17 @@ TEST(SemanticSceneInputTest, PressingPressRegionBeginsSession) {
 // Test 4: dragging with active drag session and matching hit emits continuation via reducer
 TEST(SemanticSceneInputTest, DragContinuationWithMatchingHit) {
     SemanticSceneSnapshot snapshot;
-    SceneHitObject region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
+    SceneHitObject region = make_content_region(core::InternedId(10), core::InternedId(20),
+                                                core::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
     // No drag binding on the region itself - this tests continuation via session
     snapshot.hit_objects.push_back(region);
 
     // Build an active drag session
     SemanticInteractionRequest initial_req;
-    initial_req.node_id = ui::InternedId(10);
-    initial_req.element_id = ui::InternedId(20);
-    initial_req.region_id = ui::InternedId(30);
-    initial_req.action_id = ui::InternedId(100);
+    initial_req.node_id = core::InternedId(10);
+    initial_req.element_id = core::InternedId(20);
+    initial_req.region_id = core::InternedId(30);
+    initial_req.action_id = core::InternedId(100);
     initial_req.kind = InteractionKind::DragScalar;
     SemanticInteractionSession session = begin_semantic_interaction_session(initial_req);
 
@@ -126,16 +126,16 @@ TEST(SemanticSceneInputTest, DragContinuationWithMatchingHit) {
 // Test 5: release with active press session and matching hit emits release continuation and clears
 TEST(SemanticSceneInputTest, ReleaseContinuationWithMatchingHitClears) {
     SemanticSceneSnapshot snapshot;
-    SceneHitObject region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
+    SceneHitObject region = make_content_region(core::InternedId(10), core::InternedId(20),
+                                                core::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
     snapshot.hit_objects.push_back(region);
 
     // Build an active press session
     SemanticInteractionRequest initial_req;
-    initial_req.node_id = ui::InternedId(10);
-    initial_req.element_id = ui::InternedId(20);
-    initial_req.region_id = ui::InternedId(30);
-    initial_req.action_id = ui::InternedId(100);
+    initial_req.node_id = core::InternedId(10);
+    initial_req.element_id = core::InternedId(20);
+    initial_req.region_id = core::InternedId(30);
+    initial_req.action_id = core::InternedId(100);
     initial_req.kind = InteractionKind::Press;
     SemanticInteractionSession session = begin_semantic_interaction_session(initial_req);
 
@@ -152,7 +152,7 @@ TEST(SemanticSceneInputTest, ReleaseContinuationWithMatchingHitClears) {
 // Test 6: node body hit yields node-body hit, null resolved request, and no emitted requests
 TEST(SemanticSceneInputTest, NodeBodyHitYieldsNoRequest) {
     SemanticSceneSnapshot snapshot;
-    SceneHitObject body = make_node_body(ui::InternedId(10), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
+    SceneHitObject body = make_node_body(core::InternedId(10), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
     snapshot.hit_objects.push_back(body);
 
     SemanticInteractionSession session;
@@ -172,13 +172,13 @@ TEST(SemanticSceneInputTest, OverlappingHitsReturnContentHit) {
     SemanticSceneSnapshot snapshot;
 
     // Add node body first (lower priority)
-    SceneHitObject body = make_node_body(ui::InternedId(10), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
+    SceneHitObject body = make_node_body(core::InternedId(10), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
     snapshot.hit_objects.push_back(body);
 
     // Add content region second (higher priority due to reverse iteration in hittest)
-    SceneHitObject region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
-    region.interactions.push_back(make_binding(InteractionKind::Click, ui::InternedId(100)));
+    SceneHitObject region = make_content_region(core::InternedId(10), core::InternedId(20),
+                                                core::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
+    region.interactions.push_back(make_binding(InteractionKind::Click, core::InternedId(100)));
     snapshot.hit_objects.push_back(region);
 
     SemanticInteractionSession session;

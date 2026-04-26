@@ -43,7 +43,7 @@ public:
             return;
         }
 
-        const ui::InternedId node_iid = ws.inlineValueEditor.node_id;
+        const core::InternedId node_iid = ws.inlineValueEditor.node_id;
         if (node_iid.empty()) {
             ws.inlineValueEditor.close();
             return;
@@ -100,7 +100,7 @@ public:
                     !locale_safe::parse_float(ws.inlineValueEditor.buffer, parsed)) {
                     ws.inlineValueEditor.error = "Invalid number";
                 } else {
-                    const ui::InternedId value_key = doc->interner().intern("value");
+                    const core::InternedId value_key = doc->interner().intern("value");
                     host->update_node(node_iid, [&](bp2::Blueprint::Node& updated) {
                         updated.semantic.params[value_key] = parsed;
                     });

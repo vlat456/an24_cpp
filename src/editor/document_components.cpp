@@ -59,14 +59,14 @@ PortType parse_exposed_port_type(const std::string& s) {
 /// Single-pass: mutate_embedded walks the path once, the lambda receives the inline blueprint directly.
 void add_bridge_port_to_composite(
     bp2::EditorModel& model,
-    ui::StringInterner& interner,
+    core::StringInterner& interner,
     const WindowScopeId& scope_id,
     const std::string& iface_name,
     bool is_input_bridge,
     PortType port_type)
 {
     assert(scope_id.is_embedded());
-    const ui::InternedId iface_iid = interner.intern(iface_name);
+    const core::InternedId iface_iid = interner.intern(iface_name);
     const Domain domain = editor::common::domain_for_port_type(port_type);
 
     bp2::PortDescriptor pd;
@@ -277,7 +277,7 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
     iface_ports.reserve(def_ports.size());
 
     for (const auto& [port_name, port_def] : def_ports) {
-        const ui::InternedId pid = interner_.intern(port_name);
+        const core::InternedId pid = interner_.intern(port_name);
         bp2::PortDescriptor pd = bp2::port_descriptor_from_type_port(pid, port_def);
         pd.domain = port_def.domain;
         iface_ports.push_back(std::move(pd));

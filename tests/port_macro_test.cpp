@@ -8,26 +8,26 @@
 // =============================================================================
 
 TEST(PortRegistryTest, CompileTimePortCountValidation) {
-    constexpr size_t es_ports = ElectricalSource_PORT_COUNT;
+    constexpr size_t es_ports = port_count(ComponentKind::ElectricalSource);
     EXPECT_EQ(es_ports, 2);
 }
 
 TEST(PortRegistryTest, AllComponentsHavePortCounts) {
     // Every valid ComponentKind (excluding Unknown/_COUNT) must have accessible metadata.
     // Spot-check a representative sample across the alphabet.
-    EXPECT_GT(AND_PORT_COUNT, 0);
-    EXPECT_GT(Accumulator_PORT_COUNT, 0);
-    EXPECT_GT(ElectricalSource_PORT_COUNT, 0);
-    EXPECT_GT(Generator_PORT_COUNT, 0);
-    EXPECT_GT(Relay_PORT_COUNT, 0);
-    EXPECT_GT(Switch_PORT_COUNT, 0);
-    EXPECT_GT(VariableConductance_PORT_COUNT, 0);
-    EXPECT_GT(XOR_PORT_COUNT, 0);
+    EXPECT_GT(port_count(ComponentKind::AND), 0);
+    EXPECT_GT(port_count(ComponentKind::Accumulator), 0);
+    EXPECT_GT(port_count(ComponentKind::ElectricalSource), 0);
+    EXPECT_GT(port_count(ComponentKind::Generator), 0);
+    EXPECT_GT(port_count(ComponentKind::Relay), 0);
+    EXPECT_GT(port_count(ComponentKind::Switch), 0);
+    EXPECT_GT(port_count(ComponentKind::VariableConductance), 0);
+    EXPECT_GT(port_count(ComponentKind::XOR), 0);
 }
 
 TEST(PortRegistryTest, GetPortNamesReturnsCorrectData) {
     auto es_ports = get_component_ports(ComponentKind::ElectricalSource);
-    EXPECT_EQ(es_ports.size(), ElectricalSource_PORT_COUNT);
+    EXPECT_EQ(es_ports.size(), port_count(ComponentKind::ElectricalSource));
 }
 
 // Verify output port filtering works for a known component.

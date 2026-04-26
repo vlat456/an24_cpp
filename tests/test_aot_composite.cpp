@@ -461,7 +461,7 @@ TEST(AotComposite, ElectricalBindings_StableAcrossConnectionReordering) {
     ComponentRegistry registry;
     register_from_library(registry, {"Generator", "CurrentSense", "RefNode"});
 
-    auto make_circuit = [&](const std::vector<Connection>& conns, const std::string& name) {
+    auto make_circuit = [&](const std::vector<RoutedConnection>& conns, const std::string& name) {
         CompositeSpec td;
         td.classname = name;
 

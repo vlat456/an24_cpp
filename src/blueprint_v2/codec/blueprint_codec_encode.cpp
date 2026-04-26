@@ -26,7 +26,7 @@ std::string encode_node_kind(Blueprint::Node const& node) {
 }
 
 nlohmann::json encode_node_source(const Blueprint::Node& node,
-                                  ui::StringInterner const& interner,
+                                  core::StringInterner const& interner,
                                   PathArena const& arena,
                                   ::ComponentRegistry const* parser_registry) {
     const auto& node_source = node.blueprint_instance().source;
@@ -51,7 +51,7 @@ nlohmann::json encode_node_source(const Blueprint::Node& node,
 } // namespace
 
 nlohmann::json encode_interface(Interface const& iface,
-                                ui::StringInterner const& interner,
+                                core::StringInterner const& interner,
                                 ComponentSpec const* type_def) {
     std::vector<PortDescriptor> sorted = iface.ports();
     std::sort(sorted.begin(), sorted.end(), [&](const PortDescriptor& a, const PortDescriptor& b) {
@@ -83,7 +83,7 @@ nlohmann::json encode_interface(Interface const& iface,
 }
 
 nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
-                            ui::StringInterner const& interner,
+                            core::StringInterner const& interner,
                             PathArena const& arena,
                             ::ComponentRegistry const* parser_registry) {
     (void)parser_registry;
@@ -211,7 +211,7 @@ nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
 }
 
 nlohmann::json encode_wires(std::vector<Blueprint::Wire> const& wires,
-                            ui::StringInterner const& interner) {
+                            core::StringInterner const& interner) {
     auto arr = nlohmann::json::array();
     for (auto const& wire : wires) {
         nlohmann::json w;

@@ -15,7 +15,7 @@ enum class SemanticControlEventKind {
 
 struct SemanticControlEvent {
     SemanticControlEventKind kind = SemanticControlEventKind::None;
-    ui::InternedId node_id;
+    core::InternedId node_id;
     float scalar_value = 0.0f;
     int discrete_value = 0;
 };

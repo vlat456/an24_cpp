@@ -35,7 +35,7 @@ struct PrimitiveSpec : ComponentMeta {
 
 struct CompositeSpec : ComponentMeta {
     std::vector<DeviceInstance> devices;
-    std::vector<Connection> connections;
+    std::vector<RoutedConnection> connections;
     std::vector<BridgePortDefinition> bridge_ports;
     std::vector<SubBlueprintRef> sub_blueprints;
 };

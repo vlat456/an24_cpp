@@ -10,34 +10,34 @@ namespace {
 
 PresentationNode make_snapshot_fragment(const PresentationSpec& /*spec*/) {
     PresentationNode root;
-    root.element_id = ui::InternedId(1);
+    root.element_id = core::InternedId(1);
     root.layout = LayoutKind::Column;
     root.gap = 4.0f;
 
     PresentationNode label;
-    label.element_id = ui::InternedId(2);
+    label.element_id = core::InternedId(2);
     PaintCommand label_paint;
-    label_paint.id = ui::InternedId(3);
+    label_paint.id = core::InternedId(3);
     label_paint.kind = PaintPrimitiveKind::Text;
     label_paint.text = "VOLTS";
     label.paint.push_back(std::move(label_paint));
 
     PresentationNode control;
-    control.element_id = ui::InternedId(4);
+    control.element_id = core::InternedId(4);
     PaintCommand control_paint;
-    control_paint.id = ui::InternedId(5);
+    control_paint.id = core::InternedId(5);
     control_paint.kind = PaintPrimitiveKind::Circle;
     control.paint.push_back(std::move(control_paint));
 
     HitRegion control_region;
-    control_region.id = ui::InternedId(6);
+    control_region.id = core::InternedId(6);
     control_region.kind = HitShapeKind::Circle;
     control.hit_regions.push_back(control_region);
 
     InteractionBinding control_binding;
-    control_binding.region_id = ui::InternedId(6);
+    control_binding.region_id = core::InternedId(6);
     control_binding.kind = InteractionKind::DragDiscrete;
-    control_binding.action_id = ui::InternedId(7);
+    control_binding.action_id = core::InternedId(7);
     control_binding.min_value = 0.0f;
     control_binding.max_value = 3.0f;
     control_binding.step = 1.0f;
@@ -50,18 +50,18 @@ PresentationNode make_snapshot_fragment(const PresentationSpec& /*spec*/) {
 
 NodePresentation make_presentation() {
     PresentationSpec spec;
-    spec.node_id = ui::InternedId(100);
-    spec.type_id = ui::InternedId(200);
+    spec.node_id = core::InternedId(100);
+    spec.type_id = core::InternedId(200);
     spec.title = "AC Bus";
 
     NodePresenterRegistry registry;
-    registry.register_presenter(ui::InternedId(200), NodePresenter{NodeFrameKind::Bus, &make_snapshot_fragment});
+    registry.register_presenter(core::InternedId(200), NodePresenter{NodeFrameKind::Bus, &make_snapshot_fragment});
     return compile_node_presentation(NodePresentationCompileContext{&registry}, spec);
 }
 
 const SceneRenderObject* find_render(const SemanticSceneSnapshot& snapshot,
                                      SceneRenderObjectKind kind,
-                                     ui::InternedId element_id = ui::InternedId()) {
+                                     core::InternedId element_id = core::InternedId()) {
     for (const SceneRenderObject& object : snapshot.render_objects) {
         if (object.kind == kind && (element_id.empty() || object.element_id == element_id)) {
             return &object;
@@ -72,7 +72,7 @@ const SceneRenderObject* find_render(const SemanticSceneSnapshot& snapshot,
 
 const SceneHitObject* find_hit(const SemanticSceneSnapshot& snapshot,
                                SceneHitObjectKind kind,
-                               ui::InternedId region_id = ui::InternedId()) {
+                               core::InternedId region_id = core::InternedId()) {
     for (const SceneHitObject& object : snapshot.hit_objects) {
         if (object.kind == kind && (region_id.empty() || object.region_id == region_id)) {
             return &object;
@@ -124,8 +124,8 @@ TEST(SemanticSceneSnapshotTest, BuildsContentRenderObjectsFromFragmentPaint) {
 
     SemanticSceneSnapshot snapshot = build_semantic_scene_snapshot(presentation, layout);
 
-    const SceneRenderObject* label = find_render(snapshot, SceneRenderObjectKind::ContentPaint, ui::InternedId(2));
-    const SceneRenderObject* control = find_render(snapshot, SceneRenderObjectKind::ContentPaint, ui::InternedId(4));
+    const SceneRenderObject* label = find_render(snapshot, SceneRenderObjectKind::ContentPaint, core::InternedId(2));
+    const SceneRenderObject* control = find_render(snapshot, SceneRenderObjectKind::ContentPaint, core::InternedId(4));
     ASSERT_NE(label, nullptr);
     ASSERT_NE(control, nullptr);
 
@@ -140,7 +140,7 @@ TEST(SemanticSceneSnapshotTest, BuildsContentHitObjectsWithInteractionBindings) 
 
     SemanticSceneSnapshot snapshot = build_semantic_scene_snapshot(presentation, layout);
 
-    const SceneHitObject* control = find_hit(snapshot, SceneHitObjectKind::ContentRegion, ui::InternedId(6));
+    const SceneHitObject* control = find_hit(snapshot, SceneHitObjectKind::ContentRegion, core::InternedId(6));
     ASSERT_NE(control, nullptr);
     EXPECT_EQ(control->shape, HitShapeKind::Circle);
     ASSERT_EQ(control->interactions.size(), 1u);
@@ -154,8 +154,8 @@ TEST(SemanticSceneSnapshotTest, UsesElementPlacementsForContentObjectBounds) {
 
     SemanticSceneSnapshot snapshot = build_semantic_scene_snapshot(presentation, layout);
 
-    const SceneRenderObject* label = find_render(snapshot, SceneRenderObjectKind::ContentPaint, ui::InternedId(2));
-    const SceneHitObject* control = find_hit(snapshot, SceneHitObjectKind::ContentRegion, ui::InternedId(6));
+    const SceneRenderObject* label = find_render(snapshot, SceneRenderObjectKind::ContentPaint, core::InternedId(2));
+    const SceneHitObject* control = find_hit(snapshot, SceneHitObjectKind::ContentRegion, core::InternedId(6));
     ASSERT_NE(label, nullptr);
     ASSERT_NE(control, nullptr);
 
@@ -167,18 +167,18 @@ TEST(SemanticSceneSnapshotTest, UsesElementPlacementsForContentObjectBounds) {
 
 TEST(SemanticSceneSnapshotTest, ContentRootPlacementIsRequiredForNestedContentTrees) {
     NodePresentation presentation;
-    presentation.node_id = ui::InternedId(500);
+    presentation.node_id = core::InternedId(500);
     presentation.shell.frame_kind = NodeFrameKind::Standard;
     presentation.shell.title = "Content Node";
 
     PresentationNode root;
-    root.element_id = ui::InternedId(1);
+    root.element_id = core::InternedId(1);
     root.layout = LayoutKind::Overlay;
 
     PresentationNode child;
-    child.element_id = ui::InternedId(2);
+    child.element_id = core::InternedId(2);
     PaintCommand child_paint;
-    child_paint.id = ui::InternedId(3);
+    child_paint.id = core::InternedId(3);
     child_paint.kind = PaintPrimitiveKind::Rectangle;
     child.paint.push_back(std::move(child_paint));
     root.children.push_back(std::move(child));
@@ -188,12 +188,12 @@ TEST(SemanticSceneSnapshotTest, ContentRootPlacementIsRequiredForNestedContentTr
     layout.node_bounds = ui::Rect{0.0f, 0.0f, 120.0f, 80.0f};
     layout.slots.push_back(SlotAssignment{NodeSlot::Header, ui::Rect{0.0f, 0.0f, 120.0f, 20.0f}});
     layout.slots.push_back(SlotAssignment{NodeSlot::Body, ui::Rect{0.0f, 20.0f, 120.0f, 60.0f}});
-    layout.placements.push_back(FragmentPlacement{ui::InternedId(1), ui::Rect{10.0f, 24.0f, 80.0f, 40.0f}});
-    layout.placements.push_back(FragmentPlacement{ui::InternedId(2), ui::Rect{18.0f, 30.0f, 24.0f, 24.0f}});
+    layout.placements.push_back(FragmentPlacement{core::InternedId(1), ui::Rect{10.0f, 24.0f, 80.0f, 40.0f}});
+    layout.placements.push_back(FragmentPlacement{core::InternedId(2), ui::Rect{18.0f, 30.0f, 24.0f, 24.0f}});
 
     SemanticSceneSnapshot snapshot = build_semantic_scene_snapshot(presentation, layout);
 
-    const SceneRenderObject* content = find_render(snapshot, SceneRenderObjectKind::ContentPaint, ui::InternedId(2));
+    const SceneRenderObject* content = find_render(snapshot, SceneRenderObjectKind::ContentPaint, core::InternedId(2));
     ASSERT_NE(content, nullptr);
     EXPECT_FLOAT_EQ(content->bounds.x, 18.0f);
     EXPECT_FLOAT_EQ(content->bounds.y, 30.0f);
@@ -206,7 +206,7 @@ TEST(SemanticSceneSnapshotTest, MultiNodeBuilderAssignsUniqueObjectIdsAcrossNode
     NodeSlotLayout first_layout = layout_node_presentation(first, ui::Pt(180.0f, 120.0f));
 
     NodePresentation second = make_presentation();
-    second.node_id = ui::InternedId(101);
+    second.node_id = core::InternedId(101);
     second.shell.title = "DC Bus";
     NodeSlotLayout second_layout = layout_node_presentation(second, ui::Pt(200.0f, 140.0f));
 
@@ -236,7 +236,7 @@ TEST(SemanticSceneSnapshotTest, NodeIndexTracksPerNodeObjectRanges) {
     NodeSlotLayout first_layout = layout_node_presentation(first, ui::Pt(180.0f, 120.0f));
 
     NodePresentation second = make_presentation();
-    second.node_id = ui::InternedId(101);
+    second.node_id = core::InternedId(101);
     second.shell.title = "DC Bus";
     NodeSlotLayout second_layout = layout_node_presentation(second, ui::Pt(200.0f, 140.0f));
 
@@ -245,8 +245,8 @@ TEST(SemanticSceneSnapshotTest, NodeIndexTracksPerNodeObjectRanges) {
         SemanticSceneNode{second, second_layout},
     });
 
-    const SceneNodeIndexEntry* first_index = find_scene_node_index(snapshot, ui::InternedId(100));
-    const SceneNodeIndexEntry* second_index = find_scene_node_index(snapshot, ui::InternedId(101));
+    const SceneNodeIndexEntry* first_index = find_scene_node_index(snapshot, core::InternedId(100));
+    const SceneNodeIndexEntry* second_index = find_scene_node_index(snapshot, core::InternedId(101));
     ASSERT_NE(first_index, nullptr);
     ASSERT_NE(second_index, nullptr);
 
@@ -266,7 +266,7 @@ TEST(SemanticSceneSnapshotTest, NodeIndexSupportsNodeLocalRenderRangeIteration) 
     NodeSlotLayout first_layout = layout_node_presentation(first, ui::Pt(180.0f, 120.0f));
 
     NodePresentation second = make_presentation();
-    second.node_id = ui::InternedId(101);
+    second.node_id = core::InternedId(101);
     second.shell.title = "DC Bus";
     NodeSlotLayout second_layout = layout_node_presentation(second, ui::Pt(200.0f, 140.0f));
 
@@ -275,14 +275,14 @@ TEST(SemanticSceneSnapshotTest, NodeIndexSupportsNodeLocalRenderRangeIteration) 
         SemanticSceneNode{second, second_layout},
     });
 
-    const SceneNodeIndexEntry* second_index = find_scene_node_index(snapshot, ui::InternedId(101));
+    const SceneNodeIndexEntry* second_index = find_scene_node_index(snapshot, core::InternedId(101));
     ASSERT_NE(second_index, nullptr);
 
     bool saw_only_second_node = true;
     for (size_t i = 0; i < second_index->render_range.count; ++i) {
         const SceneRenderObject& object =
             snapshot.render_objects[second_index->render_range.offset + i];
-        if (object.node_id != ui::InternedId(101)) {
+        if (object.node_id != core::InternedId(101)) {
             saw_only_second_node = false;
         }
     }
@@ -295,7 +295,7 @@ TEST(SemanticSceneSnapshotTest, MultiNodeBuilderPreservesPerNodeTitles) {
     NodeSlotLayout first_layout = layout_node_presentation(first, ui::Pt(180.0f, 120.0f));
 
     NodePresentation second = make_presentation();
-    second.node_id = ui::InternedId(101);
+    second.node_id = core::InternedId(101);
     second.shell.title = "DC Bus";
     NodeSlotLayout second_layout = layout_node_presentation(second, ui::Pt(200.0f, 140.0f));
 
@@ -360,7 +360,7 @@ TEST(SemanticSceneSnapshotTest, OrderedRenderObjectsSortByKindLayerAndPreserveSt
     NodeSlotLayout first_layout = layout_node_presentation(first, ui::Pt(180.0f, 120.0f));
 
     NodePresentation second = make_presentation();
-    second.node_id = ui::InternedId(101);
+    second.node_id = core::InternedId(101);
     second.shell.title = "DC Bus";
     NodeSlotLayout second_layout = layout_node_presentation(second, ui::Pt(200.0f, 140.0f));
 
@@ -383,10 +383,10 @@ TEST(SemanticSceneSnapshotTest, OrderedRenderObjectsSortByKindLayerAndPreserveSt
     EXPECT_EQ(ordered[7]->kind, SceneRenderObjectKind::ContentPaint);
 
     // Stable ordering within a layer should preserve original scene insertion order.
-    EXPECT_EQ(ordered[0]->node_id, ui::InternedId(100));
-    EXPECT_EQ(ordered[1]->node_id, ui::InternedId(101));
-    EXPECT_EQ(ordered[2]->node_id, ui::InternedId(100));
-    EXPECT_EQ(ordered[3]->node_id, ui::InternedId(101));
+    EXPECT_EQ(ordered[0]->node_id, core::InternedId(100));
+    EXPECT_EQ(ordered[1]->node_id, core::InternedId(101));
+    EXPECT_EQ(ordered[2]->node_id, core::InternedId(100));
+    EXPECT_EQ(ordered[3]->node_id, core::InternedId(101));
 }
 
 TEST(SemanticSceneSnapshotTest, HitLayerOrderIsConsistentWithKind) {
@@ -399,19 +399,19 @@ TEST(SemanticSceneSnapshotTest, OrderedHitObjectsSortByKindLayerAndPreserveStabi
 
     SceneHitObject content_a;
     content_a.id = SceneObjectId(1);
-    content_a.node_id = ui::InternedId(100);
+    content_a.node_id = core::InternedId(100);
     content_a.kind = SceneHitObjectKind::ContentRegion;
     snapshot.hit_objects.push_back(content_a);
 
     SceneHitObject body_a;
     body_a.id = SceneObjectId(2);
-    body_a.node_id = ui::InternedId(100);
+    body_a.node_id = core::InternedId(100);
     body_a.kind = SceneHitObjectKind::NodeBody;
     snapshot.hit_objects.push_back(body_a);
 
     SceneHitObject content_b;
     content_b.id = SceneObjectId(3);
-    content_b.node_id = ui::InternedId(101);
+    content_b.node_id = core::InternedId(101);
     content_b.kind = SceneHitObjectKind::ContentRegion;
     snapshot.hit_objects.push_back(content_b);
 
@@ -432,9 +432,9 @@ TEST(SemanticSceneSnapshotTest, FindHitObjectByRegionIdReturnsMatchingObject) {
     NodeSlotLayout layout = layout_node_presentation(presentation, ui::Pt(180.0f, 120.0f));
     SemanticSceneSnapshot snapshot = build_semantic_scene_snapshot(presentation, layout);
 
-    const SceneHitObject* object = find_hit_object_by_region_id(snapshot, ui::InternedId(6));
+    const SceneHitObject* object = find_hit_object_by_region_id(snapshot, core::InternedId(6));
     ASSERT_NE(object, nullptr);
-    EXPECT_EQ(object->region_id, ui::InternedId(6));
+    EXPECT_EQ(object->region_id, core::InternedId(6));
     EXPECT_EQ(object->kind, SceneHitObjectKind::ContentRegion);
 }
 
@@ -443,7 +443,7 @@ TEST(SemanticSceneSnapshotTest, HitObjectsForNodeReturnsOnlyNodeLocalHits) {
     NodeSlotLayout first_layout = layout_node_presentation(first, ui::Pt(180.0f, 120.0f));
 
     NodePresentation second = make_presentation();
-    second.node_id = ui::InternedId(101);
+    second.node_id = core::InternedId(101);
     second.shell.title = "DC Bus";
     NodeSlotLayout second_layout = layout_node_presentation(second, ui::Pt(200.0f, 140.0f));
 
@@ -452,10 +452,10 @@ TEST(SemanticSceneSnapshotTest, HitObjectsForNodeReturnsOnlyNodeLocalHits) {
         SemanticSceneNode{second, second_layout},
     });
 
-    std::vector<const SceneHitObject*> hits = hit_objects_for_node(snapshot, ui::InternedId(101));
+    std::vector<const SceneHitObject*> hits = hit_objects_for_node(snapshot, core::InternedId(101));
     ASSERT_EQ(hits.size(), 2u);
-    EXPECT_EQ(hits[0]->node_id, ui::InternedId(101));
-    EXPECT_EQ(hits[1]->node_id, ui::InternedId(101));
+    EXPECT_EQ(hits[0]->node_id, core::InternedId(101));
+    EXPECT_EQ(hits[1]->node_id, core::InternedId(101));
 }
 
 TEST(SemanticSceneSnapshotTest, HitObjectsForRegionReturnsMatchingRegionHitsOnly) {
@@ -463,7 +463,7 @@ TEST(SemanticSceneSnapshotTest, HitObjectsForRegionReturnsMatchingRegionHitsOnly
     NodeSlotLayout first_layout = layout_node_presentation(first, ui::Pt(180.0f, 120.0f));
 
     NodePresentation second = make_presentation();
-    second.node_id = ui::InternedId(101);
+    second.node_id = core::InternedId(101);
     second.shell.title = "DC Bus";
     NodeSlotLayout second_layout = layout_node_presentation(second, ui::Pt(200.0f, 140.0f));
 
@@ -472,10 +472,10 @@ TEST(SemanticSceneSnapshotTest, HitObjectsForRegionReturnsMatchingRegionHitsOnly
         SemanticSceneNode{second, second_layout},
     });
 
-    std::vector<const SceneHitObject*> hits = hit_objects_for_region(snapshot, ui::InternedId(6));
+    std::vector<const SceneHitObject*> hits = hit_objects_for_region(snapshot, core::InternedId(6));
     ASSERT_EQ(hits.size(), 2u);
-    EXPECT_EQ(hits[0]->region_id, ui::InternedId(6));
-    EXPECT_EQ(hits[1]->region_id, ui::InternedId(6));
+    EXPECT_EQ(hits[0]->region_id, core::InternedId(6));
+    EXPECT_EQ(hits[1]->region_id, core::InternedId(6));
     EXPECT_EQ(hits[0]->kind, SceneHitObjectKind::ContentRegion);
     EXPECT_EQ(hits[1]->kind, SceneHitObjectKind::ContentRegion);
 }
@@ -501,7 +501,7 @@ TEST(SemanticSceneSnapshotTest, FindSceneNodeIndexReturnsNullptrOnMiss) {
     NodeSlotLayout layout = layout_node_presentation(presentation, ui::Pt(180.0f, 120.0f));
     SemanticSceneSnapshot snapshot = build_semantic_scene_snapshot(presentation, layout);
 
-    EXPECT_EQ(find_scene_node_index(snapshot, ui::InternedId(9999)), nullptr);
+    EXPECT_EQ(find_scene_node_index(snapshot, core::InternedId(9999)), nullptr);
 }
 
 TEST(SemanticSceneSnapshotTest, FindHitObjectByRegionIdReturnsNullptrOnMiss) {
@@ -509,7 +509,7 @@ TEST(SemanticSceneSnapshotTest, FindHitObjectByRegionIdReturnsNullptrOnMiss) {
     NodeSlotLayout layout = layout_node_presentation(presentation, ui::Pt(180.0f, 120.0f));
     SemanticSceneSnapshot snapshot = build_semantic_scene_snapshot(presentation, layout);
 
-    EXPECT_EQ(find_hit_object_by_region_id(snapshot, ui::InternedId(9999)), nullptr);
+    EXPECT_EQ(find_hit_object_by_region_id(snapshot, core::InternedId(9999)), nullptr);
 }
 
 TEST(SemanticSceneSnapshotTest, OrderedViewsAreEmptyForEmptySnapshot) {
@@ -524,7 +524,7 @@ TEST(SemanticSceneSnapshotTest, HitObjectsForNodeReturnsEmptyForMissingNode) {
     NodeSlotLayout layout = layout_node_presentation(presentation, ui::Pt(180.0f, 120.0f));
     SemanticSceneSnapshot snapshot = build_semantic_scene_snapshot(presentation, layout);
 
-    EXPECT_TRUE(hit_objects_for_node(snapshot, ui::InternedId(9999)).empty());
+    EXPECT_TRUE(hit_objects_for_node(snapshot, core::InternedId(9999)).empty());
 }
 
 TEST(SemanticSceneSnapshotTest, HitObjectsForRegionReturnsEmptyForMissingRegion) {
@@ -532,5 +532,5 @@ TEST(SemanticSceneSnapshotTest, HitObjectsForRegionReturnsEmptyForMissingRegion)
     NodeSlotLayout layout = layout_node_presentation(presentation, ui::Pt(180.0f, 120.0f));
     SemanticSceneSnapshot snapshot = build_semantic_scene_snapshot(presentation, layout);
 
-    EXPECT_TRUE(hit_objects_for_region(snapshot, ui::InternedId(9999)).empty());
+    EXPECT_TRUE(hit_objects_for_region(snapshot, core::InternedId(9999)).empty());
 }

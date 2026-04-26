@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <set>
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include "blueprint_v2/flattener/flat_netlist.h"
 #include "blueprint_v2/flattener/flattener.h"
 #include "blueprint_v2/blueprint/blueprint.h"
@@ -12,7 +12,7 @@
 // Helper: Create test library with standard components
 // ==================================================================
 
-static bp2::BlueprintLibrary make_test_library(ui::StringInterner& interner) {
+static bp2::BlueprintLibrary make_test_library(core::StringInterner& interner) {
     bp2::BlueprintLibrary library;
     
     bp2::Blueprint bat;
@@ -45,7 +45,7 @@ static bp2::BlueprintLibrary make_test_library(ui::StringInterner& interner) {
     return library;
 }
 
-static bp2::Blueprint::Node make_bridge_node(ui::StringInterner& I,
+static bp2::Blueprint::Node make_bridge_node(core::StringInterner& I,
                                              const char* id,
                                              bool input_side,
                                              Domain domain) {
@@ -76,7 +76,7 @@ TEST(FlatNetlist, EmptyByDefault) {
 }
 
 TEST(FlatNetlist, ComponentStruct) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     bp2::FlatNetlist::Component comp;
@@ -95,7 +95,7 @@ TEST(FlatNetlist, ComponentStruct) {
 // ==================================================================
 
 TEST(Flattener, SingleNodeNoWires) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     auto library = make_test_library(interner);
     bp2::PathArena arena(interner);
 
@@ -120,7 +120,7 @@ TEST(Flattener, SingleNodeNoWires) {
 // ==================================================================
 
 TEST(Flattener, TwoNodesOneWire) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     auto library = make_test_library(interner);
     bp2::PathArena arena(interner);
 
@@ -173,7 +173,7 @@ TEST(Flattener, TwoNodesOneWire) {
 // ==================================================================
 
 TEST(Flattener, ThreeNodesChainedSignalCount) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     auto library = make_test_library(interner);
     bp2::PathArena arena(interner);
 
@@ -235,7 +235,7 @@ TEST(Flattener, ThreeNodesChainedSignalCount) {
 // ==================================================================
 
 TEST(Flattener, ParamsPreserved) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     auto library = make_test_library(interner);
     bp2::PathArena arena(interner);
 
@@ -263,7 +263,7 @@ TEST(Flattener, ParamsPreserved) {
 // ==================================================================
 
 TEST(Flattener, FlattenEmptyBlueprint) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     auto library = make_test_library(interner);
     bp2::PathArena arena(interner);
 
@@ -291,7 +291,7 @@ TEST(Flattener, FlattenEmptyBlueprint) {
 // Helper for #112 regression tests
 // ==================================================================
 
-static bp2::PortDescriptor make_port(ui::StringInterner& I, const char* name,
+static bp2::PortDescriptor make_port(core::StringInterner& I, const char* name,
                                      Domain domain, bp2::Direction dir) {
     return {I.intern(name), domain, dir};
 }
@@ -301,7 +301,7 @@ static bp2::PortDescriptor make_port(ui::StringInterner& I, const char* name,
 static void assert_no_phantom_paths(
     const bp2::FlatNetlist& netlist,
     bp2::PathArena& arena,
-    const ui::StringInterner& interner) {
+    const core::StringInterner& interner) {
 
     // Collect all emitted component node paths
     std::set<std::string> emitted;
@@ -328,7 +328,7 @@ static void assert_no_phantom_paths(
 // ==================================================================
 
 TEST(Flattener, Regression112_SingleLevelNoPhantomPaths) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
     bp2::BlueprintLibrary library;
 
@@ -423,7 +423,7 @@ TEST(Flattener, Regression112_SingleLevelNoPhantomPaths) {
 // ==================================================================
 
 TEST(Flattener, Regression112_BridgeMatchByExposedPort) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
     bp2::BlueprintLibrary library;
 
@@ -517,7 +517,7 @@ TEST(Flattener, Regression112_BridgeMatchByExposedPort) {
 }
 
 TEST(Flattener, Regression112_ExposedPortTakesPrecedenceOverConflictingLegacyLabel) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
     bp2::BlueprintLibrary library;
 
@@ -638,7 +638,7 @@ TEST(Flattener, Regression112_ExposedPortTakesPrecedenceOverConflictingLegacyLab
 }
 
 TEST(Flattener, MissingWireNodeFailsLoudly) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
     bp2::BlueprintLibrary library;
 
@@ -674,7 +674,7 @@ TEST(Flattener, MissingWireNodeFailsLoudly) {
 // ==================================================================
 
 TEST(Flattener, Regression112_ThreeLevelNesting_NoPhantomPaths) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
     bp2::BlueprintLibrary library;
 
@@ -785,7 +785,7 @@ TEST(Flattener, Regression112_ThreeLevelNesting_NoPhantomPaths) {
 // ==================================================================
 
 TEST(Flattener, Regression112_OutputBridge_NoPhantomPaths) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
     bp2::BlueprintLibrary library;
 
@@ -864,7 +864,7 @@ TEST(Flattener, Regression112_OutputBridge_NoPhantomPaths) {
 // ==================================================================
 
 TEST(Flattener, Regression112_BidirectionalBridge) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
     bp2::BlueprintLibrary library;
 
@@ -983,7 +983,7 @@ TEST(Flattener, Regression112_BidirectionalBridge) {
 // ==================================================================
 
 TEST(Flattener, Regression112_MissingBridgeThrows) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
     bp2::BlueprintLibrary library;
 
@@ -1035,7 +1035,7 @@ TEST(Flattener, Regression112_MissingBridgeThrows) {
 // ==================================================================
 
 TEST(Flattener, Regression112_LibraryReferenceInstance) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
     bp2::BlueprintLibrary library;
 
@@ -1154,7 +1154,7 @@ TEST(Flattener, Regression112_LibraryReferenceInstance) {
 // ==================================================================
 
 TEST(Flattener, Regression112_UnwiredInstance_NoCrash) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
     bp2::BlueprintLibrary library;
 
@@ -1191,7 +1191,7 @@ TEST(Flattener, Regression112_UnwiredInstance_NoCrash) {
 // ==================================================================
 
 TEST(Flattener, ReuseFlattenerProducesCorrectResultsAcrossDifferentBlueprints) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::BlueprintLibrary library;
     bp2::Flattener flattener(library);
 

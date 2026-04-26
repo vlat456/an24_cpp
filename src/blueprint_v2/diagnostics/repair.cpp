@@ -7,7 +7,7 @@ namespace bp2::diagnostics {
 
 namespace {
 
-static std::string iid(ui::InternedId id) {
+static std::string iid(core::InternedId id) {
     return std::to_string(id.raw());
 }
 
@@ -16,10 +16,10 @@ static std::string iid(ui::InternedId id) {
 RepairReport diagnose_and_repair(Blueprint& bp,
                                  PathArena& arena,
                                  const ::ComponentRegistry& parser_registry,
-                                 ui::StringInterner& interner) {
+                                 core::StringInterner& interner) {
     RepairReport report;
 
-    std::unordered_set<ui::InternedId> seen_nodes;
+    std::unordered_set<core::InternedId> seen_nodes;
     for (const auto& n : bp.nodes()) {
         if (!seen_nodes.insert(n.semantic.id).second) {
             report.issues.push_back({
@@ -40,7 +40,7 @@ RepairReport diagnose_and_repair(Blueprint& bp,
         }
     }
 
-    std::unordered_set<ui::InternedId> seen_blueprint_instances;
+    std::unordered_set<core::InternedId> seen_blueprint_instances;
     for (const auto& n : bp.nodes()) {
         if (!n.is_blueprint_instance()) {
             continue;
@@ -60,8 +60,8 @@ RepairReport diagnose_and_repair(Blueprint& bp,
         }
     }
 
-    std::unordered_set<ui::InternedId> seen_wires;
-    std::vector<ui::InternedId> wires_to_remove;
+    std::unordered_set<core::InternedId> seen_wires;
+    std::vector<core::InternedId> wires_to_remove;
     PathResolver resolver;
     for (const auto& w : bp.wires()) {
         if (!seen_wires.insert(w.id).second) {
@@ -82,7 +82,7 @@ RepairReport diagnose_and_repair(Blueprint& bp,
         }
     }
 
-    for (ui::InternedId wid : wires_to_remove) {
+    for (core::InternedId wid : wires_to_remove) {
         bp = bp.without_wire(wid);
     }
     report.removed_wires = wires_to_remove.size();

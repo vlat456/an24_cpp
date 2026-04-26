@@ -11,34 +11,34 @@ namespace {
 
 PresentationNode make_test_fragment(const PresentationSpec& /*spec*/) {
     PresentationNode root;
-    root.element_id = ui::InternedId(1);
+    root.element_id = core::InternedId(1);
     root.layout = LayoutKind::Column;
     root.gap = 4.0f;
 
     PresentationNode label;
-    label.element_id = ui::InternedId(2);
+    label.element_id = core::InternedId(2);
     PaintCommand label_paint;
-    label_paint.id = ui::InternedId(3);
+    label_paint.id = core::InternedId(3);
     label_paint.kind = PaintPrimitiveKind::Text;
     label_paint.text = "TEST";
     label.paint.push_back(std::move(label_paint));
 
     PresentationNode control;
-    control.element_id = ui::InternedId(4);
+    control.element_id = core::InternedId(4);
     PaintCommand control_paint;
-    control_paint.id = ui::InternedId(5);
+    control_paint.id = core::InternedId(5);
     control_paint.kind = PaintPrimitiveKind::Circle;
     control.paint.push_back(std::move(control_paint));
 
     HitRegion control_region;
-    control_region.id = ui::InternedId(6);
+    control_region.id = core::InternedId(6);
     control_region.kind = HitShapeKind::Circle;
     control.hit_regions.push_back(control_region);
 
     InteractionBinding control_binding;
-    control_binding.region_id = ui::InternedId(6);
+    control_binding.region_id = core::InternedId(6);
     control_binding.kind = InteractionKind::Click;
-    control_binding.action_id = ui::InternedId(7);
+    control_binding.action_id = core::InternedId(7);
     control.interactions.push_back(control_binding);
 
     root.children.push_back(std::move(label));
@@ -48,12 +48,12 @@ PresentationNode make_test_fragment(const PresentationSpec& /*spec*/) {
 
 NodePresentation make_test_presentation() {
     PresentationSpec spec;
-    spec.node_id = ui::InternedId(100);
-    spec.type_id = ui::InternedId(200);
+    spec.node_id = core::InternedId(100);
+    spec.type_id = core::InternedId(200);
     spec.title = "Test Node";
 
     NodePresenterRegistry registry;
-    registry.register_presenter(ui::InternedId(200), NodePresenter{NodeFrameKind::Standard, &make_test_fragment});
+    registry.register_presenter(core::InternedId(200), NodePresenter{NodeFrameKind::Standard, &make_test_fragment});
     return compile_node_presentation(NodePresentationCompileContext{&registry}, spec);
 }
 
@@ -117,7 +117,7 @@ TEST(SemanticSceneHitTestTest, ContentRegionWinsOverOverlappingNodeBody) {
 
     SceneHitObject node_body;
     node_body.id = SceneObjectId(1);
-    node_body.node_id = ui::InternedId(10);
+    node_body.node_id = core::InternedId(10);
     node_body.kind = SceneHitObjectKind::NodeBody;
     node_body.shape = HitShapeKind::Rectangle;
     node_body.bounds = ui::Rect{0.0f, 0.0f, 100.0f, 100.0f};
@@ -125,9 +125,9 @@ TEST(SemanticSceneHitTestTest, ContentRegionWinsOverOverlappingNodeBody) {
 
     SceneHitObject content_region;
     content_region.id = SceneObjectId(2);
-    content_region.node_id = ui::InternedId(10);
-    content_region.element_id = ui::InternedId(20);
-    content_region.region_id = ui::InternedId(30);
+    content_region.node_id = core::InternedId(10);
+    content_region.element_id = core::InternedId(20);
+    content_region.region_id = core::InternedId(30);
     content_region.kind = SceneHitObjectKind::ContentRegion;
     content_region.shape = HitShapeKind::Rectangle;
     content_region.bounds = ui::Rect{0.0f, 0.0f, 100.0f, 100.0f};
@@ -143,9 +143,9 @@ TEST(SemanticSceneHitTestTest, LaterOverlappingContentRegionWinsOverEarlier) {
 
     SceneHitObject region1;
     region1.id = SceneObjectId(1);
-    region1.node_id = ui::InternedId(10);
-    region1.element_id = ui::InternedId(20);
-    region1.region_id = ui::InternedId(30);
+    region1.node_id = core::InternedId(10);
+    region1.element_id = core::InternedId(20);
+    region1.region_id = core::InternedId(30);
     region1.kind = SceneHitObjectKind::ContentRegion;
     region1.shape = HitShapeKind::Rectangle;
     region1.bounds = ui::Rect{0.0f, 0.0f, 100.0f, 100.0f};
@@ -153,9 +153,9 @@ TEST(SemanticSceneHitTestTest, LaterOverlappingContentRegionWinsOverEarlier) {
 
     SceneHitObject region2;
     region2.id = SceneObjectId(2);
-    region2.node_id = ui::InternedId(10);
-    region2.element_id = ui::InternedId(21);
-    region2.region_id = ui::InternedId(31);
+    region2.node_id = core::InternedId(10);
+    region2.element_id = core::InternedId(21);
+    region2.region_id = core::InternedId(31);
     region2.kind = SceneHitObjectKind::ContentRegion;
     region2.shape = HitShapeKind::Rectangle;
     region2.bounds = ui::Rect{0.0f, 0.0f, 100.0f, 100.0f};
@@ -173,7 +173,7 @@ TEST(SemanticSceneHitTestTest, RectangleHitIncludesEdges) {
 
     SceneHitObject rect;
     rect.id = SceneObjectId(1);
-    rect.node_id = ui::InternedId(10);
+    rect.node_id = core::InternedId(10);
     rect.kind = SceneHitObjectKind::NodeBody;
     rect.shape = HitShapeKind::Rectangle;
     rect.bounds = ui::Rect{10.0f, 20.0f, 30.0f, 40.0f};
@@ -194,7 +194,7 @@ TEST(SemanticSceneHitTestTest, CircleHitAcceptsPointAtCenterAndRejectsOutside) {
 
     SceneHitObject circle;
     circle.id = SceneObjectId(1);
-    circle.node_id = ui::InternedId(10);
+    circle.node_id = core::InternedId(10);
     circle.kind = SceneHitObjectKind::ContentRegion;
     circle.shape = HitShapeKind::Circle;
     circle.bounds = ui::Rect{0.0f, 0.0f, 40.0f, 40.0f};
@@ -216,7 +216,7 @@ TEST(SemanticSceneHitTestTest, LaterOverlappingNodeBodyWinsOverEarlier) {
 
     SceneHitObject body1;
     body1.id = SceneObjectId(1);
-    body1.node_id = ui::InternedId(10);
+    body1.node_id = core::InternedId(10);
     body1.kind = SceneHitObjectKind::NodeBody;
     body1.shape = HitShapeKind::Rectangle;
     body1.bounds = ui::Rect{0.0f, 0.0f, 100.0f, 100.0f};
@@ -224,7 +224,7 @@ TEST(SemanticSceneHitTestTest, LaterOverlappingNodeBodyWinsOverEarlier) {
 
     SceneHitObject body2;
     body2.id = SceneObjectId(2);
-    body2.node_id = ui::InternedId(11);
+    body2.node_id = core::InternedId(11);
     body2.kind = SceneHitObjectKind::NodeBody;
     body2.shape = HitShapeKind::Rectangle;
     body2.bounds = ui::Rect{0.0f, 0.0f, 100.0f, 100.0f};
@@ -241,7 +241,7 @@ TEST(SemanticSceneHitTestTest, PointOutsideAllObjectsReturnsEmpty) {
 
     SceneHitObject body;
     body.id = SceneObjectId(1);
-    body.node_id = ui::InternedId(10);
+    body.node_id = core::InternedId(10);
     body.kind = SceneHitObjectKind::NodeBody;
     body.shape = HitShapeKind::Rectangle;
     body.bounds = ui::Rect{100.0f, 100.0f, 50.0f, 50.0f};
@@ -249,7 +249,7 @@ TEST(SemanticSceneHitTestTest, PointOutsideAllObjectsReturnsEmpty) {
 
     SceneHitObject region;
     region.id = SceneObjectId(2);
-    region.node_id = ui::InternedId(10);
+    region.node_id = core::InternedId(10);
     region.kind = SceneHitObjectKind::ContentRegion;
     region.shape = HitShapeKind::Rectangle;
     region.bounds = ui::Rect{200.0f, 200.0f, 50.0f, 50.0f};
@@ -264,7 +264,7 @@ TEST(SemanticSceneHitTestTest, CircleWithNonSquareBoundsUsesInscribedRadius) {
 
     SceneHitObject circle;
     circle.id = SceneObjectId(1);
-    circle.node_id = ui::InternedId(10);
+    circle.node_id = core::InternedId(10);
     circle.kind = SceneHitObjectKind::ContentRegion;
     circle.shape = HitShapeKind::Circle;
     circle.bounds = ui::Rect{0.0f, 0.0f, 100.0f, 40.0f};
@@ -286,7 +286,7 @@ TEST(SemanticSceneHitTestTest, ZeroSizeRectangleHitsOnlyAtOrigin) {
 
     SceneHitObject zero_rect;
     zero_rect.id = SceneObjectId(1);
-    zero_rect.node_id = ui::InternedId(10);
+    zero_rect.node_id = core::InternedId(10);
     zero_rect.kind = SceneHitObjectKind::NodeBody;
     zero_rect.shape = HitShapeKind::Rectangle;
     zero_rect.bounds = ui::Rect{50.0f, 50.0f, 0.0f, 0.0f};
@@ -303,7 +303,7 @@ TEST(SemanticSceneHitTestTest, NegativeCoordinatesWorkCorrectly) {
 
     SceneHitObject body;
     body.id = SceneObjectId(1);
-    body.node_id = ui::InternedId(10);
+    body.node_id = core::InternedId(10);
     body.kind = SceneHitObjectKind::NodeBody;
     body.shape = HitShapeKind::Rectangle;
     body.bounds = ui::Rect{-100.0f, -100.0f, 200.0f, 200.0f};
@@ -322,9 +322,9 @@ TEST(SemanticSceneHitTestTest, ContentRegionWinsEvenWhenNodeBodyIsLaterInArray) 
 
     SceneHitObject region;
     region.id = SceneObjectId(1);
-    region.node_id = ui::InternedId(10);
-    region.element_id = ui::InternedId(20);
-    region.region_id = ui::InternedId(30);
+    region.node_id = core::InternedId(10);
+    region.element_id = core::InternedId(20);
+    region.region_id = core::InternedId(30);
     region.kind = SceneHitObjectKind::ContentRegion;
     region.shape = HitShapeKind::Rectangle;
     region.bounds = ui::Rect{0.0f, 0.0f, 100.0f, 100.0f};
@@ -332,7 +332,7 @@ TEST(SemanticSceneHitTestTest, ContentRegionWinsEvenWhenNodeBodyIsLaterInArray) 
 
     SceneHitObject body;
     body.id = SceneObjectId(2);
-    body.node_id = ui::InternedId(10);
+    body.node_id = core::InternedId(10);
     body.kind = SceneHitObjectKind::NodeBody;
     body.shape = HitShapeKind::Rectangle;
     body.bounds = ui::Rect{0.0f, 0.0f, 100.0f, 100.0f};
@@ -349,17 +349,17 @@ TEST(SemanticSceneHitTestTest, HitResultCarriesInteractionBindings) {
 
     SceneHitObject region;
     region.id = SceneObjectId(1);
-    region.node_id = ui::InternedId(10);
-    region.element_id = ui::InternedId(20);
-    region.region_id = ui::InternedId(30);
+    region.node_id = core::InternedId(10);
+    region.element_id = core::InternedId(20);
+    region.region_id = core::InternedId(30);
     region.kind = SceneHitObjectKind::ContentRegion;
     region.shape = HitShapeKind::Rectangle;
     region.bounds = ui::Rect{0.0f, 0.0f, 100.0f, 100.0f};
 
     InteractionBinding binding;
-    binding.region_id = ui::InternedId(30);
+    binding.region_id = core::InternedId(30);
     binding.kind = InteractionKind::Click;
-    binding.action_id = ui::InternedId(42);
+    binding.action_id = core::InternedId(42);
     region.interactions.push_back(binding);
     snapshot.hit_objects.push_back(region);
 
@@ -368,7 +368,7 @@ TEST(SemanticSceneHitTestTest, HitResultCarriesInteractionBindings) {
     ASSERT_TRUE(std::holds_alternative<SemanticHitContentRegion>(result));
     const auto& hit = std::get<SemanticHitContentRegion>(result);
     ASSERT_EQ(hit.object->interactions.size(), 1u);
-    EXPECT_EQ(hit.object->interactions[0].action_id, ui::InternedId(42));
+    EXPECT_EQ(hit.object->interactions[0].action_id, core::InternedId(42));
 }
 
 TEST(SemanticSceneHitTestTest, HitLayerOrderingOverridesArrayOrder) {
@@ -376,7 +376,7 @@ TEST(SemanticSceneHitTestTest, HitLayerOrderingOverridesArrayOrder) {
 
     SceneHitObject body;
     body.id = SceneObjectId(1);
-    body.node_id = ui::InternedId(10);
+    body.node_id = core::InternedId(10);
     body.kind = SceneHitObjectKind::NodeBody;
     body.shape = HitShapeKind::Rectangle;
     body.bounds = ui::Rect{0.0f, 0.0f, 100.0f, 100.0f};
@@ -384,9 +384,9 @@ TEST(SemanticSceneHitTestTest, HitLayerOrderingOverridesArrayOrder) {
 
     SceneHitObject region;
     region.id = SceneObjectId(2);
-    region.node_id = ui::InternedId(10);
-    region.element_id = ui::InternedId(20);
-    region.region_id = ui::InternedId(30);
+    region.node_id = core::InternedId(10);
+    region.element_id = core::InternedId(20);
+    region.region_id = core::InternedId(30);
     region.kind = SceneHitObjectKind::ContentRegion;
     region.shape = HitShapeKind::Rectangle;
     region.bounds = ui::Rect{0.0f, 0.0f, 100.0f, 100.0f};

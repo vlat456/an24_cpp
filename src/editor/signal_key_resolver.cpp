@@ -8,9 +8,9 @@ namespace editor {
 /// for a given interface port. Bridge nodes use the canonical colon convention:
 ///   "proxy_id:port_name"
 /// Returns the bridge node InternedId if found, or empty InternedId.
-static ui::InternedId find_embedded_bridge_node(
+static core::InternedId find_embedded_bridge_node(
     const bp2::Blueprint& bp,
-    const ui::StringInterner& sim_interner,
+    const core::StringInterner& sim_interner,
     std::string_view proxy_id,
     std::string_view port_name) {
 
@@ -28,10 +28,10 @@ static ui::InternedId find_embedded_bridge_node(
     return {};
 }
 
-ui::InternedId resolve_runtime_signal_key(
+core::InternedId resolve_runtime_signal_key(
     const bp2::Blueprint& bp,
-    const ui::StringInterner& bp_interner,
-    const ui::StringInterner& sim_interner,
+    const core::StringInterner& bp_interner,
+    const core::StringInterner& sim_interner,
     const SignalEndpoint& endpoint,
     const SignalKeyContext& context) {
 
@@ -49,7 +49,7 @@ ui::InternedId resolve_runtime_signal_key(
             // For embedded blueprints with materialized children, the bridge
             // node ID may differ from the default colon convention.
             if (endpoint.node->has_embedded_blueprint()) {
-                ui::InternedId bridge_iid = find_embedded_bridge_node(bp, sim_interner, node_sv, port_sv);
+                core::InternedId bridge_iid = find_embedded_bridge_node(bp, sim_interner, node_sv, port_sv);
                 if (!bridge_iid.empty()) {
                     std::string bridge_str(bp_interner.resolve(bridge_iid));
                     std::string exposed_key = signal_key::make_exposed_node_port_from_bridge_node(bridge_str);

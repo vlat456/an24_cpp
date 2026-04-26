@@ -17,7 +17,7 @@
 #include "blueprint_v2/interface/interface.h"
 #include "blueprint_v2/interface/port_descriptor.h"
 #include "blueprint_v2/path/path.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include "blueprint_v2/blueprint/node_content_type.h"
 
 // ============================================================================
@@ -59,7 +59,7 @@ static const ComponentRegistry& scene_reg() {
 }
 
 /// Build a bp2::Blueprint::Node with the given id, type.
-static bp2::Blueprint::Node make_bp2_node(ui::StringInterner& I,
+static bp2::Blueprint::Node make_bp2_node(core::StringInterner& I,
                                            const char* id,
                                            const char* type = "Battery") {
      bp2::Blueprint::Node n;
@@ -69,7 +69,7 @@ static bp2::Blueprint::Node make_bp2_node(ui::StringInterner& I,
  }
 
 /// Build a bp2::Blueprint::Wire connecting src_node:src_port -> dst_node:dst_port.
-static bp2::Blueprint::Wire make_bp2_wire(ui::StringInterner& I,
+static bp2::Blueprint::Wire make_bp2_wire(core::StringInterner& I,
                                            bp2::PathArena& /*arena*/,
                                            const char* wire_id,
                                            const char* src_node, const char* src_port,
@@ -86,7 +86,7 @@ static bp2::Blueprint::Wire make_bp2_wire(ui::StringInterner& I,
 // ============================================================================
 
 TEST(SceneMutations, RebuildCreatesNodeWidgets) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     auto n1 = make_bp2_node(interner, "bat1", "Battery");
@@ -105,7 +105,7 @@ TEST(SceneMutations, RebuildCreatesNodeWidgets) {
     bp = bp.with_node(std::move(n2));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const core::InternedId>{}, scene_reg());
 
     EXPECT_EQ(scene.roots().size(), 2u);
     EXPECT_NE(scene.find("bat1"), nullptr);
@@ -113,7 +113,7 @@ TEST(SceneMutations, RebuildCreatesNodeWidgets) {
 }
 
 TEST(SceneMutations, RebuildFiltersGroupId) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     auto n1 = make_bp2_node(interner, "bat1", "Battery");
@@ -140,7 +140,7 @@ TEST(SceneMutations, RebuildFiltersGroupId) {
     bp = bp.with_node(std::move(host));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const core::InternedId>{}, scene_reg());
 
     // Only the root-level nodes should appear (bat1 + group_A host)
     EXPECT_EQ(scene.roots().size(), 2u);
@@ -149,7 +149,7 @@ TEST(SceneMutations, RebuildFiltersGroupId) {
 }
 
 TEST(SceneMutations, RebuildCreatesWireWidgets) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     auto n1 = make_bp2_node(interner, "bat1", "Battery");
@@ -171,7 +171,7 @@ TEST(SceneMutations, RebuildCreatesWireWidgets) {
     bp = bp.with_wire(std::move(wire));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const core::InternedId>{}, scene_reg());
 
     // 2 nodes + 1 wire = 3 roots
     EXPECT_EQ(scene.roots().size(), 3u);
@@ -179,7 +179,7 @@ TEST(SceneMutations, RebuildCreatesWireWidgets) {
 }
 
 TEST(SceneMutations, RebuildClearsExistingScene) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     auto n1 = make_bp2_node(interner, "bat1", "Battery");
@@ -188,11 +188,11 @@ TEST(SceneMutations, RebuildClearsExistingScene) {
     bp = bp.with_node(std::move(n1));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const core::InternedId>{}, scene_reg());
     EXPECT_EQ(scene.roots().size(), 1u);
 
     // Rebuild again — should clear first
-    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const core::InternedId>{}, scene_reg());
     EXPECT_EQ(scene.roots().size(), 1u);
 }
 
@@ -201,7 +201,7 @@ TEST(SceneMutations, RebuildClearsExistingScene) {
 // ============================================================================
 
 TEST(SceneMutations, RebuildWithBusNodeCreatesAliasPortWires) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     // Bus node
@@ -226,7 +226,7 @@ TEST(SceneMutations, RebuildWithBusNodeCreatesAliasPortWires) {
     bp = bp.with_wire(std::move(wire));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const core::InternedId>{}, scene_reg());
 
     // 2 nodes + 1 wire
     EXPECT_EQ(scene.roots().size(), 3u);
@@ -239,7 +239,7 @@ TEST(SceneMutations, RebuildWithBusNodeCreatesAliasPortWires) {
 // ============================================================================
 
 TEST(SceneMutations, RebuildPreservesNodeColor) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     auto n = make_bp2_node(interner, "bat1", "Battery");
@@ -249,7 +249,7 @@ TEST(SceneMutations, RebuildPreservesNodeColor) {
     bp = bp.with_node(std::move(n));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const core::InternedId>{}, scene_reg());
 
     auto* w = scene.find("bat1");
     ASSERT_NE(w, nullptr);
@@ -257,7 +257,7 @@ TEST(SceneMutations, RebuildPreservesNodeColor) {
 }
 
 TEST(SceneMutations, RebuildPreservesBusNodeColor) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     auto bus = make_bp2_node(interner, "bus1", "Bus");
@@ -267,7 +267,7 @@ TEST(SceneMutations, RebuildPreservesBusNodeColor) {
     bp = bp.with_node(std::move(bus));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const core::InternedId>{}, scene_reg());
 
     auto* w = scene.find("bus1");
     ASSERT_NE(w, nullptr);
@@ -275,7 +275,7 @@ TEST(SceneMutations, RebuildPreservesBusNodeColor) {
 }
 
 TEST(SceneMutations, RebuildNoColorWhenNodeHasNoColor) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     auto n = make_bp2_node(interner, "bat1", "Battery");
@@ -285,7 +285,7 @@ TEST(SceneMutations, RebuildNoColorWhenNodeHasNoColor) {
     bp = bp.with_node(std::move(n));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const core::InternedId>{}, scene_reg());
 
     auto* w = scene.find("bat1");
     ASSERT_NE(w, nullptr);
@@ -297,7 +297,7 @@ TEST(SceneMutations, RebuildNoColorWhenNodeHasNoColor) {
 // ============================================================================
 
 TEST(SceneMutations, RebuildMultipleBusWires) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     auto bus = make_bp2_node(interner, "bus1", "Bus");
@@ -327,7 +327,7 @@ TEST(SceneMutations, RebuildMultipleBusWires) {
     bp = bp.with_wire(std::move(w1));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const core::InternedId>{}, scene_reg());
 
     // 3 nodes + 2 wires = 5
     EXPECT_EQ(scene.roots().size(), 5u);
@@ -347,7 +347,7 @@ TEST(SceneMutations, Regression_GSCLoadHasPortsAndWiresVisible) {
         GTEST_SKIP() << "GSC.blueprint not present (workspace save file, not source-controlled)";
     }
 
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     ComponentRegistry parser_registry = load_component_registry("library/");
@@ -357,7 +357,7 @@ TEST(SceneMutations, Regression_GSCLoadHasPortsAndWiresVisible) {
     }
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, *bp_opt, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
+    visual::mutations::rebuild(scene, *bp_opt, interner, arena, std::span<const core::InternedId>{}, scene_reg());
 
     auto* pi_widget_base = scene.find("pi_1");
     ASSERT_NE(pi_widget_base, nullptr);
@@ -370,7 +370,7 @@ TEST(SceneMutations, Regression_GSCLoadHasPortsAndWiresVisible) {
 }
 
 TEST(SceneMutations, RefNodePortCenteredOnNodeWidth) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     auto ref = make_bp2_node(interner, "ref1", "RefNode");
@@ -382,7 +382,7 @@ TEST(SceneMutations, RefNodePortCenteredOnNodeWidth) {
     bp = bp.with_node(std::move(ref));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const core::InternedId>{}, scene_reg());
 
     auto* ref_widget = dynamic_cast<visual::RefNodeWidget*>(scene.find("ref1"));
     ASSERT_NE(ref_widget, nullptr);
@@ -401,7 +401,7 @@ TEST(SceneMutations, RefNodePortCenteredOnNodeWidth) {
 // ============================================================================
 
 TEST(SceneMutations, RefNodeOrientsFacingConnectedNode_Right) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     // ref at (0,0), battery at (200,0) → ref should face right
@@ -425,7 +425,7 @@ TEST(SceneMutations, RefNodeOrientsFacingConnectedNode_Right) {
     bp = bp.with_wire(std::move(wire));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const core::InternedId>{}, scene_reg());
 
     auto* ref_widget = dynamic_cast<visual::RefNodeWidget*>(scene.find("ref1"));
     ASSERT_NE(ref_widget, nullptr);
@@ -438,7 +438,7 @@ TEST(SceneMutations, RefNodeOrientsFacingConnectedNode_Right) {
 }
 
 TEST(SceneMutations, RefNodeOrientsFacingConnectedNode_Left) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     // ref at (200,0), battery at (0,0) → ref should face left
@@ -462,7 +462,7 @@ TEST(SceneMutations, RefNodeOrientsFacingConnectedNode_Left) {
     bp = bp.with_wire(std::move(wire));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const core::InternedId>{}, scene_reg());
 
     auto* ref_widget = dynamic_cast<visual::RefNodeWidget*>(scene.find("ref1"));
     ASSERT_NE(ref_widget, nullptr);
@@ -475,7 +475,7 @@ TEST(SceneMutations, RefNodeOrientsFacingConnectedNode_Left) {
 }
 
 TEST(SceneMutations, RefNodeOrientsFacingConnectedNode_Bottom) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     // ref at (0,0), battery at (0,200) → ref should face bottom
@@ -499,7 +499,7 @@ TEST(SceneMutations, RefNodeOrientsFacingConnectedNode_Bottom) {
     bp = bp.with_wire(std::move(wire));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const core::InternedId>{}, scene_reg());
 
     auto* ref_widget = dynamic_cast<visual::RefNodeWidget*>(scene.find("ref1"));
     ASSERT_NE(ref_widget, nullptr);
@@ -512,7 +512,7 @@ TEST(SceneMutations, RefNodeOrientsFacingConnectedNode_Bottom) {
 }
 
 TEST(SceneMutations, RefNodeWithoutWireKeepsDefaultTopOrientation) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     auto ref = make_bp2_node(interner, "ref1", "RefNode");
@@ -524,7 +524,7 @@ TEST(SceneMutations, RefNodeWithoutWireKeepsDefaultTopOrientation) {
     bp = bp.with_node(std::move(ref));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const core::InternedId>{}, scene_reg());
 
     auto* ref_widget = dynamic_cast<visual::RefNodeWidget*>(scene.find("ref1"));
     ASSERT_NE(ref_widget, nullptr);
@@ -601,7 +601,7 @@ TEST(SnapMath, SideFromRelativePosition) {
 
 TEST(SceneMutations, InOutPortsNotDuplicatedOnBothSides) {
     // InOut ports are represented once in semantic iface and should render once.
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto knob = make_bp2_node(I, "knob_1", "KnobSwitch");
@@ -614,7 +614,7 @@ TEST(SceneMutations, InOutPortsNotDuplicatedOnBothSides) {
      bp = bp.with_node(std::move(knob));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, I, arena, std::span<const ui::InternedId>{}, scene_reg());
+    visual::mutations::rebuild(scene, bp, I, arena, std::span<const core::InternedId>{}, scene_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
     ASSERT_NE(widget, nullptr);
@@ -635,7 +635,7 @@ TEST(SceneMutations, InOutPortsNotDuplicatedOnBothSides) {
 TEST(SceneMutations, InOutPortsMixedWithRegularPorts) {
     // A node with both regular and InOut ports: regular ports should still
     // appear on their respective sides, InOut ports only on the left.
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto node = make_bp2_node(I, "mixed_1", "MixedComponent");
@@ -649,7 +649,7 @@ TEST(SceneMutations, InOutPortsMixedWithRegularPorts) {
     bp = bp.with_node(std::move(node));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, I, arena, std::span<const ui::InternedId>{}, scene_reg());
+    visual::mutations::rebuild(scene, bp, I, arena, std::span<const core::InternedId>{}, scene_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("mixed_1"));
     ASSERT_NE(widget, nullptr);
@@ -668,7 +668,7 @@ TEST(SceneMutations, InOutPortsMixedWithRegularPorts) {
 }
 
 TEST(SceneMutations, KnobSwitchUsesWiperThrowNamesAndNoDuplication) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
 
     auto knob = make_bp2_node(I, "knob_1", "KnobSwitch");
@@ -681,7 +681,7 @@ TEST(SceneMutations, KnobSwitchUsesWiperThrowNamesAndNoDuplication) {
      bp = bp.with_node(std::move(knob));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, I, arena, std::span<const ui::InternedId>{}, scene_reg());
+    visual::mutations::rebuild(scene, bp, I, arena, std::span<const core::InternedId>{}, scene_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob_1"));
     ASSERT_NE(widget, nullptr);
@@ -715,7 +715,7 @@ TEST(SceneMutations, LongHeaderTextDoesNotInflateMinimumNodeWidth) {
     // left and right port labels. After the fix, both header and footer minimum
     // width is zero (text can be clipped), so minimum node width is driven
     // solely by port rows and content.
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     // Short port names with a very long type name.
@@ -737,7 +737,7 @@ TEST(SceneMutations, LongHeaderTextDoesNotInflateMinimumNodeWidth) {
     bp = bp.with_node(std::move(node_short));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const core::InternedId>{}, scene_reg());
 
     auto* w_long  = dynamic_cast<visual::NodeWidget*>(scene.find("vc1"));
     auto* w_short = dynamic_cast<visual::NodeWidget*>(scene.find("s1"));
@@ -753,7 +753,7 @@ TEST(SceneMutations, LongHeaderTextDoesNotInflateMinimumNodeWidth) {
 TEST(SceneMutations, LongInstanceNameDoesNotInflateMinimumNodeWidth) {
     // Companion to LongHeaderTextDoesNotInflateMinimumNodeWidth:
     // the header (instance name) must not inflate minimum width either.
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     auto node_long = make_bp2_node(interner, "long1", "T");
@@ -775,7 +775,7 @@ TEST(SceneMutations, LongInstanceNameDoesNotInflateMinimumNodeWidth) {
     bp = bp.with_node(std::move(node_short));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const core::InternedId>{}, scene_reg());
 
     auto* w_long  = dynamic_cast<visual::NodeWidget*>(scene.find("long1"));
     auto* w_short = dynamic_cast<visual::NodeWidget*>(scene.find("short1"));
@@ -787,7 +787,7 @@ TEST(SceneMutations, LongInstanceNameDoesNotInflateMinimumNodeWidth) {
 }
 
 TEST(SceneMutations, IndicatorContentNodeMinimumWidthIgnoresLongPortLabels) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     auto long_labels = make_bp2_node(interner, "light_long", "IndicatorLight");
@@ -811,7 +811,7 @@ TEST(SceneMutations, IndicatorContentNodeMinimumWidthIgnoresLongPortLabels) {
     bp = bp.with_node(std::move(short_labels));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, scene_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const core::InternedId>{}, scene_reg());
 
     auto* long_widget = dynamic_cast<visual::NodeWidget*>(scene.find("light_long"));
     auto* short_widget = dynamic_cast<visual::NodeWidget*>(scene.find("light_short"));
@@ -822,7 +822,7 @@ TEST(SceneMutations, IndicatorContentNodeMinimumWidthIgnoresLongPortLabels) {
 }
 
 TEST(SceneMutations, RebuildSeedsWidgetWithLiveDynamicContentState) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     ComponentRegistry reg = scene_reg();
@@ -866,13 +866,13 @@ TEST(SceneMutations, RebuildSeedsWidgetWithLiveDynamicContentState) {
     bp = bp.with_node(std::move(sw));
 
     editor::RuntimeNodeStateStore runtime_state;
-    runtime_state.emplace(editor::make_node_instance_key(std::span<const ui::InternedId>{}, interner.lookup("slider_live")),
+    runtime_state.emplace(editor::make_node_instance_key(std::span<const core::InternedId>{}, interner.lookup("slider_live")),
                           editor::ScalarNodeRuntimeState{42.0f});
-    runtime_state.emplace(editor::make_node_instance_key(std::span<const ui::InternedId>{}, interner.lookup("switch_live")),
+    runtime_state.emplace(editor::make_node_instance_key(std::span<const core::InternedId>{}, interner.lookup("switch_live")),
                           editor::BoolNodeRuntimeState{true});
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, reg, &runtime_state);
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const core::InternedId>{}, reg, &runtime_state);
 
     auto* slider_widget = dynamic_cast<visual::NodeWidget*>(scene.find("slider_live"));
     auto* switch_widget = dynamic_cast<visual::NodeWidget*>(scene.find("switch_live"));

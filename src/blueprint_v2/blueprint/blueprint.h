@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include "blueprint_v2/interface/interface.h"
 #include "blueprint_v2/blueprint/node_color.h"
 #include "blueprint_v2/path/path.h"
@@ -21,7 +21,7 @@ namespace bp2 {
 class Blueprint {
 public:
     struct NodeIfaceAuthority {
-        ui::StringInterner& interner;
+        core::StringInterner& interner;
         ::ComponentRegistry const* registry = nullptr;
     };
 
@@ -38,9 +38,9 @@ public:
 
         // === Semantic/behavioral data ===
         struct SemanticData {
-            ui::InternedId id;
-            ui::InternedId type;
-            std::unordered_map<ui::InternedId, float> params;
+            core::InternedId id;
+            core::InternedId type;
+            std::unordered_map<core::InternedId, float> params;
             /// String-valued parameters (e.g. font_size, text content).
             /// Kept separate from numeric params to avoid stof() failures.
             std::unordered_map<std::string, std::string> string_params;
@@ -67,7 +67,7 @@ public:
 
             struct Reference {
                 /// Sole referenced authority for blueprint-instance sources.
-                ui::InternedId blueprint_id;
+                core::InternedId blueprint_id;
             };
 
             std::variant<Embedded, Reference> value;
@@ -84,11 +84,11 @@ public:
             BlueprintSource& operator=(BlueprintSource&&) noexcept = default;
 
             static BlueprintSource make_embedded(std::unique_ptr<Blueprint> blueprint);
-            static BlueprintSource make_reference(ui::InternedId blueprint_id);
+            static BlueprintSource make_reference(core::InternedId blueprint_id);
 
             bool is_embedded() const;
             bool is_reference() const;
-            ui::InternedId blueprint_id() const;
+            core::InternedId blueprint_id() const;
             Blueprint const* inline_def() const;
             Blueprint* inline_def_mut();
             void set_inline_def(std::unique_ptr<Blueprint> blueprint);
@@ -114,7 +114,7 @@ public:
         };
 
         struct BridgePortData {
-            ui::InternedId exposed_port;
+            core::InternedId exposed_port;
             bp2::BridgeDirection direction = bp2::BridgeDirection::Input;
             PortType port_type = PortType::Contextual;
 
@@ -181,7 +181,7 @@ public:
     };
 
     struct Wire {
-        ui::InternedId id;
+        core::InternedId id;
         WireEndpoint source;
         WireEndpoint target;
         Domain domain = Domain::Electrical;
@@ -200,16 +200,16 @@ public:
     Blueprint& operator=(Blueprint const& other);
     Blueprint& operator=(Blueprint&& other) noexcept;
 
-    ui::InternedId id() const { return id_; }
+    core::InternedId id() const { return id_; }
     std::string const& name() const { return name_; }
     Interface const& iface() const { return iface_; }
 
     std::vector<Node> const& nodes() const { return nodes_; }
     std::vector<Wire> const& wires() const { return wires_; }
 
-    Node const* find_node(ui::InternedId id) const;
-    Wire const* find_wire(ui::InternedId id) const;
-    Node const* find_blueprint_instance(ui::InternedId id) const;
+    Node const* find_node(core::InternedId id) const;
+    Wire const* find_wire(core::InternedId id) const;
+    Node const* find_blueprint_instance(core::InternedId id) const;
     bool is_blueprint_instance_node(Node const& node) const;
     bool is_embedded_blueprint_instance(Node const& node) const;
     bool is_referenced_blueprint_instance(Node const& node) const;
@@ -221,23 +221,23 @@ public:
                                  NodeIfaceAuthority authority) const;
 
     Blueprint with_node(Node n) const;
-    Blueprint without_node(ui::InternedId id) const;
+    Blueprint without_node(core::InternedId id) const;
     Blueprint with_wire(Wire w) const;
-    Blueprint without_wire(ui::InternedId id) const;
-    Blueprint with_id(ui::InternedId id) const;
+    Blueprint without_wire(core::InternedId id) const;
+    Blueprint with_id(core::InternedId id) const;
     Blueprint with_name(std::string n) const;
     Blueprint with_interface(Interface iface) const;
-    Blueprint clone(ui::InternedId new_id) const;
+    Blueprint clone(core::InternedId new_id) const;
 
     /// Returns all (path, port) pairs reachable from this blueprint.
     std::vector<std::pair<Path, PortDescriptor>> all_ports(PathArena& arena,
                                                            ::ComponentRegistry const& parser_registry,
-                                                           ui::StringInterner& interner) const;
+                                                           core::StringInterner& interner) const;
 
     /// Validates all invariants. Throws std::runtime_error on failure.
-    void validate(::ComponentRegistry const& parser_registry, ui::StringInterner& interner) const;
+    void validate(::ComponentRegistry const& parser_registry, core::StringInterner& interner) const;
     void validate(::ComponentRegistry const& parser_registry,
-                  ui::StringInterner& interner,
+                  core::StringInterner& interner,
                   PathArena const& arena) const;
 
     bool canonical_eq(Blueprint const& other) const;
@@ -245,15 +245,15 @@ public:
     bool operator!=(Blueprint const& other) const { return !(*this == other); }
 
 private:
-    ui::InternedId id_;
+    core::InternedId id_;
     std::string name_;
     Interface iface_;
     std::vector<Node> nodes_;
     std::vector<Wire> wires_;
 
-    mutable std::unordered_map<ui::InternedId, size_t> node_idx_;
+    mutable std::unordered_map<core::InternedId, size_t> node_idx_;
     mutable bool node_idx_valid_ = false;
-    mutable std::unordered_map<ui::InternedId, size_t> wire_idx_;
+    mutable std::unordered_map<core::InternedId, size_t> wire_idx_;
     mutable bool wire_idx_valid_ = false;
 
     void ensure_node_index() const;
@@ -264,7 +264,7 @@ private:
         PathArena& arena,
         Path prefix,
         ::ComponentRegistry const& parser_registry,
-        ui::StringInterner& interner) const;
+        core::StringInterner& interner) const;
 };
 
 } // namespace bp2

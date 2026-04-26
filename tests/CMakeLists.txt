@@ -66,6 +66,9 @@ add_sim_test(electrical_handle_build_tests SOURCES test_electrical_handles_build
 # Electrical subsolver tests (Batch 4: actual island solving)
 add_sim_test(electrical_subsolver_tests SOURCES test_electrical_subsolver.cpp LINKS jit_solver)
 
+# Hydraulic subsolver tests (Batch 4: hydraulic domain nodal analysis)
+add_sim_test(hydraulic_subsolver_tests SOURCES test_hydraulic_subsolver.cpp LINKS jit_solver)
+
 # ==...== Architecture Regression Tests ==...==
 
 # Architecture regression tests (E-001, E-002, E-003, E-004)

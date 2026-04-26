@@ -8,7 +8,7 @@
 #include "editor/visual/node/bounds.h"
 #include "editor/window/window_scope_id.h"
 #include "ui/math/pt.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include "blueprint_v2/blueprint/node_port.h"
 #include "core/model/component_registry.h"
 #include "commands/commands.h"
@@ -49,7 +49,7 @@ public:
     /// Construct with optional host. Pass nullptr when the host isn't available
     /// yet (e.g. external windows), then call rebind_host() before first use.
     CanvasInput(visual::Scene& scene, Viewport& viewport,
-                EditingHost* host, ui::StringInterner& interner,
+                EditingHost* host, core::StringInterner& interner,
                 bp2::PathArena& arena, const WindowScopeId& scope_id,
                 const ComponentRegistry* parser_registry = nullptr);
 
@@ -57,7 +57,7 @@ public:
     void rebind_host(EditingHost& host) { host_ = &host; }
 
     /// Rebind identity context (used for external window interner/arena swap).
-    void rebind_identity_context(ui::StringInterner& interner, bp2::PathArena& arena) {
+    void rebind_identity_context(core::StringInterner& interner, bp2::PathArena& arena) {
         interner_ = &interner;
         arena_ = &arena;
     }
@@ -89,7 +89,7 @@ public:
     InputState state() const { return state_; }
 
     /// Selected node IDs (interned handles — O(1) comparison).
-    const std::vector<ui::InternedId>& selected_node_ids() const { return selected_node_ids_; }
+    const std::vector<core::InternedId>& selected_node_ids() const { return selected_node_ids_; }
 
     /// Selected node ids resolved to stable string_views for rendering.
     std::vector<std::string_view> selected_node_id_views() const;
@@ -117,8 +117,8 @@ public:
     // ---- Selection helpers ----
 
     void clear_selection();
-    void add_node_selection(ui::InternedId node_id);
-    bool is_node_selected(ui::InternedId node_id) const;
+    void add_node_selection(core::InternedId node_id);
+    bool is_node_selected(core::InternedId node_id) const;
 
     /// Select a node by its ID and center the viewport on it.
     /// Returns true if found and selected.
@@ -139,7 +139,7 @@ private:
     editor::presentation::CanvasSceneSnapshot snapshot_;
     Viewport& viewport_;
     EditingHost* host_;
-    ui::StringInterner* interner_;
+    core::StringInterner* interner_;
     bp2::PathArena* arena_;
     const ComponentRegistry* parser_registry_ = nullptr;
     WindowScopeId scope_id_ = WindowScopeId::root();
@@ -153,9 +153,9 @@ private:
     InputState state_ = InputState::Idle;
 
     // Selection — stored as InternedId handles, resolved via scene.find() when needed.
-    std::vector<ui::InternedId> selected_node_ids_;
-    ui::InternedId selected_wire_id_;
-    ui::InternedId hovered_wire_id_;
+    std::vector<core::InternedId> selected_node_ids_;
+    core::InternedId selected_wire_id_;
+    core::InternedId hovered_wire_id_;
 
     // Hover — routing point identified by wire id + child index (semantic, no raw pointer).
     visual::HoveredRoutingPointId hovered_rp_id_;
@@ -165,8 +165,8 @@ private:
     std::vector<Pt> drag_offsets_;
 
     struct WireStartEndpoint {
-        ui::InternedId node_id;
-        ui::InternedId port_id;
+        core::InternedId node_id;
+        core::InternedId port_id;
         bp2::Direction direction = bp2::Direction::Input;
         PortType type = PortType::Any;
     };
@@ -183,13 +183,13 @@ private:
     PortType reconnect_fixed_type_ = PortType::Any;
 
     // Routing-point drag — semantic wire/id state only.
-    ui::InternedId rp_wire_id_;
+    core::InternedId rp_wire_id_;
     size_t rp_index_ = 0;
     Pt rp_drag_pos_{};
     std::vector<Pt> rp_initial_points_;  // snapshot of routing_points at drag start
 
     // Resize drag — stored as InternedId
-    ui::InternedId resize_widget_id_;
+    core::InternedId resize_widget_id_;
     ResizeCorner resize_corner_ = ResizeCorner::BottomRight;
     Pt resize_original_pos_;
     Pt resize_original_size_;
@@ -199,7 +199,7 @@ private:
     editor::presentation::SemanticCanvasController semantic_canvas_controller_;
     
     struct SemanticSessionSeed {
-        ui::InternedId node_id;
+        core::InternedId node_id;
         Pt node_world_pos{};
         Bounds content_bounds{};
         editor::presentation::SemanticSceneSnapshot content_snapshot;
@@ -216,17 +216,17 @@ private:
     // ---- Internal helpers ----
 
     /// Resolve a wire InternedId to a visual::Wire* (nullptr if not found).
-    visual::Wire* resolve_wire(ui::InternedId id) const;
+    visual::Wire* resolve_wire(core::InternedId id) const;
 
      /// Resolve a node InternedId to a visual::Widget* (nullptr if not found).
-    visual::Widget* resolve_node(ui::InternedId id) const;
+    visual::Widget* resolve_node(core::InternedId id) const;
 
      // ---- Internal transition helpers ----
      void enter_panning();
-    void enter_drag_node(ui::InternedId node_id, Pt world_pos, bool ctrl);
-    void enter_drag_routing_point(ui::InternedId wire_id, size_t rp_idx, Pt rp_world_pos);
-    void enter_resize_node(ui::InternedId node_id, Pt world_pos, Pt size, ResizeCorner corner);
-    void enter_create_wire(ui::InternedId node_id, ui::InternedId port_id,
+    void enter_drag_node(core::InternedId node_id, Pt world_pos, bool ctrl);
+    void enter_drag_routing_point(core::InternedId wire_id, size_t rp_idx, Pt rp_world_pos);
+    void enter_resize_node(core::InternedId node_id, Pt world_pos, Pt size, ResizeCorner corner);
+    void enter_create_wire(core::InternedId node_id, core::InternedId port_id,
                            bp2::Direction direction, PortType type, Pt port_pos);
     void enter_reconnect_wire(size_t wire_idx, bool detach_start,
                               Pt anchor_pos, bp2::Direction fixed_direction, PortType fixed_type);
@@ -284,7 +284,7 @@ private:
 
     void clear_selection_and_enter_panning();
     void advance_world_cursor(Pt world_delta);
-    void snapshot_wire_routing_points(ui::InternedId wire_id,
+    void snapshot_wire_routing_points(core::InternedId wire_id,
                                       std::vector<std::pair<float, float>> new_points);
 
     // ---- Drag sub-handlers (extracted from on_mouse_drag) ----
@@ -293,10 +293,10 @@ private:
     void handle_drag_node(Pt world_delta);
 
     /// Re-orient a ref/value single-port node toward its connected neighbor.
-    void orient_ref_node_port_by_wire_scan(ui::InternedId ref_node_id);
+    void orient_ref_node_port_by_wire_scan(core::InternedId ref_node_id);
 
     /// Orient a ref node toward a specific connected node (pre-built map lookup).
-    bool orient_ref_node_port_impl(ui::InternedId ref_id, ui::InternedId connected_id);
+    bool orient_ref_node_port_impl(core::InternedId ref_id, core::InternedId connected_id);
 
     /// Handle ResizingNode state: corner-aware resize with min-size enforcement.
     void handle_resize_node(Pt world_delta);
@@ -321,10 +321,10 @@ private:
     const ComponentRegistry& registry() const;
 
     /// Find the data-layer index of a wire by its InternedId.
-    size_t find_wire_index(ui::InternedId wire_id) const;
+    size_t find_wire_index(core::InternedId wire_id) const;
 
     /// Find the data-layer index of a node by its InternedId.
-    size_t find_node_index(ui::InternedId node_id) const;
+    size_t find_node_index(core::InternedId node_id) const;
 
     /// Look up the data-layer wire index for a port (for reconnection).
     struct WirePortMatch {
@@ -334,8 +334,8 @@ private:
         bp2::Direction fixed_direction;
         PortType fixed_type;
     };
-    std::optional<WirePortMatch> find_wire_on_port(ui::InternedId port_node_id,
-                                                   ui::InternedId port_name_id) const;
+    std::optional<WirePortMatch> find_wire_on_port(core::InternedId port_node_id,
+                                                   core::InternedId port_name_id) const;
 
     /// Build a WirePortMatch for a given wire index and detach direction.
     WirePortMatch build_wire_port_match(size_t wire_index, bool detach_start,

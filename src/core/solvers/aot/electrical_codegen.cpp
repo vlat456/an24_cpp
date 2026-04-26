@@ -509,6 +509,12 @@ ElectricalPlanCodegen extract_electrical_plan(
         }
 
         if (dev.solver_role.has_value()) {
+            const auto& role = *dev.solver_role;
+            // Skip solver_roles for non-electrical domains (e.g., Hydraulic).
+            // These are handled by their respective domain extractors.
+            if (role.domain != Domain::Electrical) {
+                continue;
+            }
             auto elems = extract_solver_role_element(dev, port_to_signal, options, element_idx);
             for (auto& elem : elems) {
                 raw_elements.push_back(std::move(elem));

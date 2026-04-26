@@ -27,9 +27,9 @@ std::string encode_port_type(PortType type) {
 bool create_bridge_nodes_for_side(
     bp2::Blueprint& out,
     const BridgeSideBuildParams& p,
-    ui::StringInterner& interner,
-    std::unordered_set<ui::InternedId>& used_node_ids,
-    std::unordered_map<std::string, ui::InternedId>& out_bridge_ids,
+    core::StringInterner& interner,
+    std::unordered_set<core::InternedId>& used_node_ids,
+    std::unordered_map<std::string, core::InternedId>& out_bridge_ids,
     std::string* error_out) {
     (void)error_out;
     for (size_t i = 0; i < p.conns.size(); ++i) {
@@ -71,10 +71,10 @@ void append_bridge_to_internal_wires(
     bp2::Blueprint& out,
     const std::vector<ExternalConnection>& conns,
     bool is_input_side,
-    const std::unordered_map<std::string, ui::InternedId>& bridge_ids,
+    const std::unordered_map<std::string, core::InternedId>& bridge_ids,
     const char* wire_prefix,
-    ui::StringInterner& interner,
-    std::unordered_set<ui::InternedId>& used_wire_ids) {
+    core::StringInterner& interner,
+    std::unordered_set<core::InternedId>& used_wire_ids) {
     for (const auto& ec : conns) {
         auto it = bridge_ids.find(ec.iface_name);
         if (it == bridge_ids.end()) {
@@ -103,18 +103,18 @@ void append_bridge_to_internal_wires(
 
 std::optional<SynthesizedBoundary> synthesize_extracted_boundary(
     const ExtractionPlan& plan,
-    ui::InternedId nested_instance_id,
+    core::InternedId nested_instance_id,
     const std::vector<bp2::Blueprint::Node>& translated_nodes,
-    ui::StringInterner& interner,
+    core::StringInterner& interner,
     std::string* error_out) {
     SynthesizedBoundary boundary;
     boundary.child_interface = bp2::Interface(build_iface_ports(plan.inputs, plan.outputs, interner));
 
     bp2::Blueprint bridge_host;
-    std::unordered_set<ui::InternedId> used_node_ids;
-    std::unordered_set<ui::InternedId> used_wire_ids;
-    std::unordered_map<std::string, ui::InternedId> input_bridge_ids;
-    std::unordered_map<std::string, ui::InternedId> output_bridge_ids;
+    std::unordered_set<core::InternedId> used_node_ids;
+    std::unordered_set<core::InternedId> used_wire_ids;
+    std::unordered_map<std::string, core::InternedId> input_bridge_ids;
+    std::unordered_map<std::string, core::InternedId> output_bridge_ids;
 
     const auto node_center_y = build_node_center_y_map(translated_nodes);
     float max_internal_right = 0.0f;

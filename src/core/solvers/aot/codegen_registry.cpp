@@ -273,7 +273,7 @@ static void emit_build_RefNode(std::ostringstream& oss, const ComponentPorts& co
     emit_scheduler_add(oss, comp);
     oss << "    {\n";
     oss << "        const std::string key = dev.name + \".v\";\n";
-    oss << "        const ui::InternedId iid = result.signal_key_interner.lookup(key);\n";
+    oss << "        const core::InternedId iid = result.signal_key_interner.lookup(key);\n";
     oss << "        auto it_sig = result.port_to_signal.find(iid);\n";
     oss << "        if (it_sig != result.port_to_signal.end()) {\n";
     oss << "            result.fixed_signals.push_back(it_sig->second);\n";
@@ -409,69 +409,76 @@ void emit_port_metadata_prelude(std::ostringstream& oss, const std::vector<Compo
     oss << "#include <cstddef>\n";
     oss << "#include <cstdint>\n\n";
     oss << "#include \"core/solvers/common/port_names.h\"\n";
-    oss << "#include \"blueprint_v2/interface/direction.h\"\n\n";
+    oss << "#include \"blueprint_v2/interface/direction.h\"\n";
+    oss << "#include \"core/model/component_kind.h\"\n\n";
 
-    for (const auto& comp : all_components) {
-        oss << "constexpr size_t " << comp.classname << "_PORT_COUNT = " << comp.ports.size() << ";\n";
-    }
-    oss << "\n";
+    oss << "/// True for valid ComponentKind values (not Unknown, not _COUNT).\n";
+    oss << "inline constexpr bool has_component_metadata(ComponentKind kind) {\n";
+    oss << "    return kind != ComponentKind::Unknown && static_cast<size_t>(kind) < static_cast<size_t>(ComponentKind::_COUNT);\n";
+    oss << "}\n\n";
+
+    // Struct definitions — the new ABI replacing 355+ global arrays.
+    oss << "/// Per-port metadata — name, direction, domain mask, source_writer flag.\n";
+    oss << "struct PortMeta {\n";
+    oss << "    const char* name;\n";
+    oss << "    bp2::Direction direction;\n";
+    oss << "    uint8_t domain;\n";
+    oss << "    bool source_writer;\n";
+    oss << "};\n\n";
+
+    oss << "/// Per-component port info — indexed by ComponentKind.\n";
+    oss << "/// Provides port range (offset + count) into PORT_META[] and component-level traits.\n";
+    oss << "struct ComponentPortInfo {\n";
+    oss << "    size_t port_offset;\n";
+    oss << "    size_t port_count;\n";
+    oss << "    bool scheduler_source;\n";
+    oss << "    bool solver_owned_electrical;\n";
+    oss << "    bool requires_solver_role;\n";
+    oss << "};\n\n";
 }
 
 void emit_port_metadata_arrays(std::ostringstream& oss, const std::vector<ComponentPorts>& all_components) {
+    // Flat array — all ports from all components concatenated, grouped by ComponentKind.
+    oss << "constexpr PortMeta PORT_META[] = {\n";
     for (const auto& comp : all_components) {
-        oss << "constexpr const char* " << comp.classname << "_PORTS[] = {\n";
-        for (size_t i = 0; i < comp.ports.size(); ++i) {
-            oss << "    \"" << comp.ports[i].name << "\"";
-            if (i < comp.ports.size() - 1) {
-                oss << ",\n";
-            } else {
-                oss << "\n";
-            }
-        }
-        oss << "};\n";
-    }
-    oss << "\n";
-
-    for (const auto& comp : all_components) {
-        oss << "constexpr bp2::Direction " << comp.classname << "_PORT_DIRECTIONS[] = {\n";
-        for (size_t i = 0; i < comp.ports.size(); ++i) {
+        oss << "    // " << comp.classname << "\n";
+        for (const auto& port : comp.ports) {
             const char* dir_name = "Output";
-            if (comp.ports[i].direction == bp2::Direction::Input) {
-                dir_name = "Input";
-            } else if (comp.ports[i].direction == bp2::Direction::InOut) {
-                dir_name = "InOut";
-            }
-            oss << "    bp2::Direction::" << dir_name;
-            if (i < comp.ports.size() - 1) {
-                oss << ",\n";
-            } else {
-                oss << "\n";
-            }
+            if (port.direction == bp2::Direction::Input) dir_name = "Input";
+            else if (port.direction == bp2::Direction::InOut) dir_name = "InOut";
+            oss << "    {\"" << port.name << "\", bp2::Direction::" << dir_name
+                << ", " << static_cast<int>(static_cast<uint8_t>(port.domain))
+                << ", " << (port.source_writer ? "true" : "false") << "},\n";
         }
-        oss << "};\n";
-
-        oss << "constexpr uint8_t " << comp.classname << "_PORT_DOMAINS[] = {\n";
-        for (size_t i = 0; i < comp.ports.size(); ++i) {
-            oss << "    " << static_cast<int>(static_cast<uint8_t>(comp.ports[i].domain));
-            if (i < comp.ports.size() - 1) {
-                oss << ",\n";
-            } else {
-                oss << "\n";
-            }
-        }
-        oss << "};\n";
-
-        oss << "constexpr bool " << comp.classname << "_PORT_SOURCE_WRITER[] = {\n";
-        for (size_t i = 0; i < comp.ports.size(); ++i) {
-            oss << "    " << (comp.ports[i].source_writer ? "true" : "false");
-            if (i < comp.ports.size() - 1) {
-                oss << ",\n";
-            } else {
-                oss << "\n";
-            }
-        }
-        oss << "};\n";
     }
+    oss << "};\n\n";
+
+    // Per-component metadata, indexed by ComponentKind enum value.
+    oss << "constexpr ComponentPortInfo COMPONENT_PORT_INFO[] = {\n";
+    size_t offset = 0;
+    for (const auto& comp : all_components) {
+        oss << "    {" << offset << ", " << comp.ports.size()
+            << ", " << (comp.scheduler_source ? "true" : "false")
+            << ", " << (comp.solver_owned_electrical ? "true" : "false")
+            << ", " << (!comp.solver_role_kind.empty() ? "true" : "false")
+            << "},  // " << comp.classname << "\n";
+        offset += comp.ports.size();
+    }
+    oss << "    {0, 0, false, false, false},  // Unknown (sentinel)\n";
+    oss << "};\n\n";
+
+    // Size validation
+    oss << "static_assert(sizeof(COMPONENT_PORT_INFO) / sizeof(COMPONENT_PORT_INFO[0]) == static_cast<size_t>(ComponentKind::_COUNT),\n";
+    oss << "    \"COMPONENT_PORT_INFO size must match ComponentKind count\");\n";
+    oss << "static_assert(" << offset << " == sizeof(PORT_META) / sizeof(PORT_META[0]),\n";
+    oss << "    \"PORT_META total entries must match sum of all component port counts\");\n\n";
+
+    // Convenience accessor for port count (replaces per-component *_PORT_COUNT constants).
+    oss << "/// Number of ports for a given ComponentKind. Returns 0 for Unknown.\n";
+    oss << "inline constexpr size_t port_count(ComponentKind kind) {\n";
+    oss << "    if (!has_component_metadata(kind)) return 0;\n";
+    oss << "    return COMPONENT_PORT_INFO[static_cast<size_t>(kind)].port_count;\n";
+    oss << "}\n\n";
 }
 
 // ==============================================================================
@@ -511,94 +518,55 @@ void emit_port_traits_lookups(
     oss << "    return std::nullopt;\n";
     oss << "}\n\n";
 
-    // ComponentKind → port list (switch dispatch, no hash map)
+    // get_component_ports: data-driven loop over PORT_META + COMPONENT_PORT_INFO
     oss << "inline std::vector<std::string> get_component_ports(ComponentKind kind) {\n";
-    oss << "    switch (kind) {\n";
-    for (const auto& comp : all_components) {
-        oss << "        case ComponentKind::" << comp.classname << ": return {";
-        for (size_t i = 0; i < comp.ports.size(); ++i) {
-            oss << "\"" << comp.ports[i].name << "\"";
-            if (i < comp.ports.size() - 1) {
-                oss << ", ";
-            }
-        }
-        oss << "};\n";
-    }
-    oss << "        default: return {};\n";
-    oss << "    }\n";
+    oss << "    if (!has_component_metadata(kind)) return {};\n";
+    oss << "    const auto& meta = COMPONENT_PORT_INFO[static_cast<size_t>(kind)];\n";
+    oss << "    std::vector<std::string> result;\n";
+    oss << "    result.reserve(meta.port_count);\n";
+    oss << "    for (size_t i = meta.port_offset; i < meta.port_offset + meta.port_count; ++i)\n";
+    oss << "        result.push_back(PORT_META[i].name);\n";
+    oss << "    return result;\n";
     oss << "}\n\n";
 
-    // has_component_metadata: Unknown and _COUNT are not valid components
-    oss << "inline bool has_component_metadata(ComponentKind kind) {\n";
-    oss << "    return kind != ComponentKind::Unknown && static_cast<size_t>(kind) < static_cast<size_t>(ComponentKind::_COUNT);\n";
-    oss << "}\n\n";
-
-    // get_output_ports: switch on ComponentKind (O(1) jump table)
+    // get_output_ports: data-driven loop filtering by direction
     oss << "inline std::vector<std::string> get_output_ports(ComponentKind kind) {\n";
+    oss << "    if (!has_component_metadata(kind)) return {};\n";
+    oss << "    const auto& meta = COMPONENT_PORT_INFO[static_cast<size_t>(kind)];\n";
     oss << "    std::vector<std::string> result;\n";
-    oss << "    switch (kind) {\n";
-    for (const auto& comp : all_components) {
-        oss << "        case ComponentKind::" << comp.classname << ":\n";
-        oss << "            for (size_t i = 0; i < " << comp.classname << "_PORT_COUNT; ++i) {\n";
-        oss << "                if (" << comp.classname << "_PORT_DIRECTIONS[i] == bp2::Direction::Output || "
-            << comp.classname << "_PORT_DIRECTIONS[i] == bp2::Direction::InOut)\n";
-        oss << "                    result.push_back(" << comp.classname << "_PORTS[i]);\n";
-        oss << "            }\n";
-        oss << "            return result;\n";
-    }
-    oss << "        default: return result;\n";
+    oss << "    for (size_t i = meta.port_offset; i < meta.port_offset + meta.port_count; ++i) {\n";
+    oss << "        if (PORT_META[i].direction == bp2::Direction::Output ||\n";
+    oss << "            PORT_META[i].direction == bp2::Direction::InOut)\n";
+    oss << "            result.push_back(PORT_META[i].name);\n";
     oss << "    }\n";
+    oss << "    return result;\n";
     oss << "}\n\n";
 
-    // get_source_writer_ports: switch on ComponentKind (O(1) jump table)
+    // get_source_writer_ports: data-driven loop filtering by source_writer + domain mask
     oss << "inline std::vector<std::string> get_source_writer_ports(ComponentKind kind, uint8_t domain_mask) {\n";
+    oss << "    if (!has_component_metadata(kind)) return {};\n";
+    oss << "    const auto& meta = COMPONENT_PORT_INFO[static_cast<size_t>(kind)];\n";
     oss << "    std::vector<std::string> result;\n";
-    oss << "    switch (kind) {\n";
-    for (const auto& comp : all_components) {
-        oss << "        case ComponentKind::" << comp.classname << ":\n";
-        oss << "            for (size_t i = 0; i < " << comp.classname << "_PORT_COUNT; ++i) {\n";
-        oss << "                if (" << comp.classname << "_PORT_SOURCE_WRITER[i] && ((" << comp.classname << "_PORT_DOMAINS[i] & domain_mask) != 0))\n";
-        oss << "                    result.push_back(" << comp.classname << "_PORTS[i]);\n";
-        oss << "            }\n";
-        oss << "            return result;\n";
-    }
-    oss << "        default: return result;\n";
+    oss << "    for (size_t i = meta.port_offset; i < meta.port_offset + meta.port_count; ++i) {\n";
+    oss << "        if (PORT_META[i].source_writer && (PORT_META[i].domain & domain_mask) != 0)\n";
+    oss << "            result.push_back(PORT_META[i].name);\n";
     oss << "    }\n";
+    oss << "    return result;\n";
     oss << "}\n\n";
 }
 
-void emit_port_traits_arrays(std::ostringstream& oss, const std::vector<ComponentPorts>& all_components) {
-    oss << "constexpr bool COMPONENT_SCHEDULER_SOURCE[] = {\n";
-    for (size_t i = 0; i < all_components.size(); ++i) {
-        oss << "    " << (all_components[i].scheduler_source ? "true" : "false") << ",\n";
-    }
-    oss << "    false // Unknown\n";
-    oss << "};\n\n";
-
-    oss << "constexpr bool COMPONENT_SOLVER_OWNED_ELECTRICAL[] = {\n";
-    for (size_t i = 0; i < all_components.size(); ++i) {
-        oss << "    " << (all_components[i].solver_owned_electrical ? "true" : "false") << ",\n";
-    }
-    oss << "    false // Unknown\n";
-    oss << "};\n\n";
-
-    oss << "constexpr bool COMPONENT_REQUIRES_SOLVER_ROLE[] = {\n";
-    for (size_t i = 0; i < all_components.size(); ++i) {
-        oss << "    " << (!all_components[i].solver_role_kind.empty() ? "true" : "false") << ",\n";
-    }
-    oss << "    false // Unknown\n";
-    oss << "};\n\n";
-
+void emit_port_traits_arrays(std::ostringstream& oss, const std::vector<ComponentPorts>& /*all_components*/) {
+    // Component-level traits are now in COMPONENT_PORT_INFO — just provide predicate helpers.
     oss << "inline bool is_scheduler_source_component(ComponentKind kind) {\n";
-    oss << "    return has_component_metadata(kind) && COMPONENT_SCHEDULER_SOURCE[static_cast<size_t>(kind)];\n";
+    oss << "    return has_component_metadata(kind) && COMPONENT_PORT_INFO[static_cast<size_t>(kind)].scheduler_source;\n";
     oss << "}\n\n";
 
     oss << "inline bool is_solver_owned_electrical_component(ComponentKind kind) {\n";
-    oss << "    return has_component_metadata(kind) && COMPONENT_SOLVER_OWNED_ELECTRICAL[static_cast<size_t>(kind)];\n";
+    oss << "    return has_component_metadata(kind) && COMPONENT_PORT_INFO[static_cast<size_t>(kind)].solver_owned_electrical;\n";
     oss << "}\n\n";
 
     oss << "inline bool requires_solver_role_component(ComponentKind kind) {\n";
-    oss << "    return has_component_metadata(kind) && COMPONENT_REQUIRES_SOLVER_ROLE[static_cast<size_t>(kind)];\n";
+    oss << "    return has_component_metadata(kind) && COMPONENT_PORT_INFO[static_cast<size_t>(kind)].requires_solver_role;\n";
     oss << "}\n\n";
 }
 

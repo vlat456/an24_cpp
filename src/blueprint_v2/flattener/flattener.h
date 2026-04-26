@@ -70,7 +70,7 @@ private:
     /// to an interface port name. Authoritative match on exposed_port only.
     Blueprint::Node const* find_bridge_for_port(
         Blueprint const& inner_bp,
-        ui::InternedId port_name) const;
+        core::InternedId port_name) const;
 
     /// Allocate a new provisional signal index, or return existing one.
     SignalIndex get_or_create_signal(

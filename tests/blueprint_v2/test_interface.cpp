@@ -2,7 +2,7 @@
 #include "blueprint_v2/interface/port_descriptor.h"
 #include "blueprint_v2/interface/interface.h"
 #include "blueprint_v2/interface/type_definition_interface.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 
 TEST(Direction, HasThreeValues) {
     EXPECT_NE(bp2::Direction::Input, bp2::Direction::Output);
@@ -11,7 +11,7 @@ TEST(Direction, HasThreeValues) {
 }
 
 TEST(PortDescriptor, ConstructAndAccess) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     auto name = interner.intern("v_out");
     bp2::PortDescriptor pd{name, Domain::Electrical, bp2::Direction::Output};
     EXPECT_EQ(pd.name, name);
@@ -20,7 +20,7 @@ TEST(PortDescriptor, ConstructAndAccess) {
 }
 
 TEST(PortDescriptor, EqualityByName) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     auto n1 = interner.intern("v_out");
     auto n2 = interner.intern("v_out");
     bp2::PortDescriptor a{n1, Domain::Electrical, bp2::Direction::Output};
@@ -29,7 +29,7 @@ TEST(PortDescriptor, EqualityByName) {
 }
 
 TEST(PortDescriptor, InequalityByDomain) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     auto n = interner.intern("x");
     bp2::PortDescriptor a{n, Domain::Electrical, bp2::Direction::Output};
     bp2::PortDescriptor b{n, Domain::Logical, bp2::Direction::Output};
@@ -43,7 +43,7 @@ TEST(Interface, EmptyByDefault) {
 }
 
 TEST(Interface, ConstructFromVector) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     std::vector<bp2::PortDescriptor> ports = {
         {interner.intern("a"), Domain::Electrical, bp2::Direction::Input},
         {interner.intern("b"), Domain::Electrical, bp2::Direction::Output},
@@ -53,7 +53,7 @@ TEST(Interface, ConstructFromVector) {
 }
 
 TEST(Interface, IterationOrder) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     auto a = interner.intern("a");
     auto b = interner.intern("b");
     std::vector<bp2::PortDescriptor> ports = {
@@ -68,7 +68,7 @@ TEST(Interface, IterationOrder) {
 }
 
 TEST(Interface, FindByName) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     auto a = interner.intern("a");
     auto b = interner.intern("b");
     auto c = interner.intern("c");
@@ -86,7 +86,7 @@ TEST(Interface, FindByName) {
 }
 
 TEST(Interface, HasByName) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     auto a = interner.intern("a");
     auto z = interner.intern("z");
     bp2::Interface iface({{a, Domain::Electrical, bp2::Direction::Input}});
@@ -95,14 +95,14 @@ TEST(Interface, HasByName) {
 }
 
 TEST(Interface, AtByName) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     auto a = interner.intern("a");
     bp2::Interface iface({{a, Domain::Electrical, bp2::Direction::Input}});
     EXPECT_EQ(iface.at(a).direction, bp2::Direction::Input);
 }
 
 TEST(Interface, EqualInterfaces) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     auto a = interner.intern("a");
     std::vector<bp2::PortDescriptor> ports = {
         {a, Domain::Electrical, bp2::Direction::Input},
@@ -113,7 +113,7 @@ TEST(Interface, EqualInterfaces) {
 }
 
 TEST(Interface, UnequalInterfaces) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     auto a = interner.intern("a");
     auto b = interner.intern("b");
     bp2::Interface i1({{a, Domain::Electrical, bp2::Direction::Input}});
@@ -122,7 +122,7 @@ TEST(Interface, UnequalInterfaces) {
 }
 
 TEST(TypeDefinitionInterface, InterfaceFromTypeDefinitionCoversAllPortTypes) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
 
     PrimitiveSpec def;
     def.classname = "AllPortTypes";

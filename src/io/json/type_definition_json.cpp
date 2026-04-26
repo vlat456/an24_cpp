@@ -239,6 +239,9 @@ std::pair<ComponentSpec, TypePresentation> parse_type_definition(const json& j) 
             SolverRole role;
             const auto& sr = j["solver_role"];
             role.kind = sr.value("kind", "");
+            if (sr.contains("domain") && sr["domain"].is_string()) {
+                role.domain = json_io_internal::parse_domain_string(sr["domain"].get<std::string>());
+            }
             if (sr.contains("port_map") && sr["port_map"].is_object()) {
                 for (auto& [key, value] : sr["port_map"].items()) {
                     role.port_map[key] = value.get<std::string>();
@@ -269,12 +272,16 @@ std::pair<ComponentSpec, TypePresentation> parse_type_definition(const json& j) 
         }
         if (j.contains("connections") && j["connections"].is_array()) {
             for (const auto& conn_j : j["connections"]) {
-                comp.connections.push_back(json_io_detail::parse_connection(conn_j));
+                RoutedConnection rc;
+                static_cast<Connection&>(rc) = json_io_detail::parse_connection(conn_j);
+                comp.connections.push_back(std::move(rc));
             }
         }
         if (comp.connections.empty() && j.contains("wires") && j["wires"].is_array()) {
             for (const auto& wire_j : j["wires"]) {
-                Connection conn = json_io_detail::parse_connection(wire_j);
+                RoutedConnection conn;
+                Connection base = json_io_detail::parse_connection(wire_j);
+                static_cast<Connection&>(conn) = std::move(base);
                 if (wire_j.contains("routing_points") && wire_j["routing_points"].is_array()) {
                     for (const auto& rp : wire_j["routing_points"]) {
                         if (rp.contains("x") && rp.contains("y")) {

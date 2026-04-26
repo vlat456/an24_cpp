@@ -15,7 +15,7 @@ void CanvasInput::handle_drag_node(Pt world_delta) {
     drag_anchor_ = drag_anchor_ + world_delta;
 
     bool all_ref_nodes = true;
-    ui::InternedId value_type = interner_->intern("Value");
+    core::InternedId value_type = interner_->intern("Value");
     for (const auto& nid : selected_node_ids()) {
         if (nid.empty()) continue;
         const bp2::Blueprint::Node* n = host_->find_node(nid);
@@ -28,7 +28,7 @@ void CanvasInput::handle_drag_node(Pt world_delta) {
         ? editor_math::snap_to_half_grid(drag_anchor_, viewport_.grid_step)
         : editor_math::snap_to_grid(drag_anchor_, viewport_.grid_step);
 
-    std::unordered_set<ui::InternedId> connected_wire_ids;
+    std::unordered_set<core::InternedId> connected_wire_ids;
 
     drag_current_positions_.clear();
     size_t drag_idx = 0;

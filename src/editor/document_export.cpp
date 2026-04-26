@@ -20,7 +20,7 @@ namespace {
 bp2::BlueprintLibrary build_library(
     const bp2::LibraryIndex* library_index,
     const ComponentRegistry* type_registry,
-    ui::StringInterner& interner) {
+    core::StringInterner& interner) {
 
     bp2::BlueprintLibrary library;
     if (library_index && type_registry) {
@@ -52,17 +52,17 @@ JitBuildInput Document::build_jit_input() {
     return bp2::elaboration::elaborate_for_jit(netlist, arena_, interner_, *type_registry_);
 }
 
-std::pair<ui::InternedId, ui::InternedId>
+std::pair<core::InternedId, core::InternedId>
 Document::bp2_path_to_node_port(const bp2::Path& path) const {
     if (path.kind() != bp2::PathKind::Port) return {};
-    ui::InternedId port_name = path.segment();
+    core::InternedId port_name = path.segment();
     bp2::Path parent = arena_.parent(path);
     if (parent.kind() != bp2::PathKind::Node) return {};
-    ui::InternedId node_id = parent.segment();
+    core::InternedId node_id = parent.segment();
     return {node_id, port_name};
 }
 
-std::pair<ui::InternedId, ui::InternedId>
+std::pair<core::InternedId, core::InternedId>
 Document::bp2_path_to_node_port(const bp2::WireEndpoint& ep) const {
     return {ep.node, ep.port};
 }

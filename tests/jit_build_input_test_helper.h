@@ -329,7 +329,7 @@ inline JitBuildInput make_jit_input_from_composite(
 /// Run the full JIT path: registry → BlueprintLibrary → Flattener → elaborate_for_jit → build_systems_dev.
 /// Used to compare JIT results against AOT codegen output.
 inline BuildResult run_jit_flattener_path(const CompositeSpec& composite, const ComponentRegistry& registry) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::BlueprintLibrary library;
     for (const auto& [name, spec] : registry.all_types()) {
         if (is_composite(spec)) {

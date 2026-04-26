@@ -4,7 +4,7 @@
 /// Pure data operations on bp2::Blueprint — no editor or StringInterner dependency.
 
 #include "blueprint_v2/blueprint/blueprint.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 
 #include <functional>
 #include <optional>
@@ -44,19 +44,19 @@ struct ResolvedEmbeddedNode {
 /// embedded blueprint-instance node.
 const Blueprint* resolve_embedded_blueprint(
     const Blueprint& root_bp,
-    std::span<const ui::InternedId> path);
+    std::span<const core::InternedId> path);
 
 /// Resolve the host node at the end of an InternedId path.
 /// Returns {parent_blueprint, target_node}. parent_blueprint is the blueprint
 /// containing the target node (or nullptr if resolution fails).
 ResolvedEmbeddedNode resolve_embedded_node(
     const Blueprint& root_bp,
-    std::span<const ui::InternedId> path);
+    std::span<const core::InternedId> path);
 
 /// Check whether a full InternedId path still exists in the root blueprint.
 bool embedded_path_exists(
     const Blueprint& root_bp,
-    std::span<const ui::InternedId> path);
+    std::span<const core::InternedId> path);
 
 // ============================================================================
 // Mutation (produces new root Blueprint)
@@ -69,7 +69,7 @@ bool embedded_path_exists(
 /// new root otherwise.
 EmbeddedMutationResult mutate_embedded_blueprint(
     Blueprint root_bp,
-    std::span<const ui::InternedId> path,
+    std::span<const core::InternedId> path,
     const std::function<Blueprint(const Blueprint&)>& mutation);
 
 } // namespace bp2

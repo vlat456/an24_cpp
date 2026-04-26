@@ -7,7 +7,7 @@
 #include "core/solvers/jit/jit_solver.h"
 #include "core/solvers/jit/simulator.h"
 #include "io/json/component_registry_json_loader.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include <iostream>
 #include <fstream>
 #include <chrono>
@@ -17,7 +17,7 @@
 
 namespace {
 
-bp2::BlueprintLibrary build_library(const ComponentRegistry& registry, ui::StringInterner& interner) {
+bp2::BlueprintLibrary build_library(const ComponentRegistry& registry, core::StringInterner& interner) {
     bp2::BlueprintLibrary library;
     for (const auto& [classname, spec] : registry.all_types()) {
         try {
@@ -37,7 +37,7 @@ JitBuildInput build_input_from_blueprint_file(const std::string& blueprint_file)
 
     std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry registry = load_component_registry("library/");
     bp2::DecodeError err;

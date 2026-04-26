@@ -14,11 +14,11 @@
 #include "blueprint_v2/path/path.h"
 #include "blueprint_v2/validation/invariant_checker.h"
 #include "blueprint_v2/diagnostics/repair.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 
 #include "bp2_test_helpers.h"
 
-static bp2::Blueprint::Node make_node(ui::StringInterner& I,
+static bp2::Blueprint::Node make_node(core::StringInterner& I,
                                       const char* id,
                                       float x = 0.0f,
                                       float y = 0.0f) {
@@ -73,7 +73,7 @@ static ComponentRegistry make_command_test_registry() {
     return reg;
 }
 
-static bp2::Blueprint::Wire make_wire(ui::StringInterner& I,
+static bp2::Blueprint::Wire make_wire(core::StringInterner& I,
                                       bp2::PathArena& arena,
                                       const char* wire_id,
                                       const char* src_node,
@@ -88,7 +88,7 @@ static bp2::Blueprint::Wire make_wire(ui::StringInterner& I,
     return w;
 }
 
-static bp2::Blueprint make_extract_fixture_node_owned(ui::StringInterner& I, bp2::PathArena& arena) {
+static bp2::Blueprint make_extract_fixture_node_owned(core::StringInterner& I, bp2::PathArena& arena) {
     bp2::Blueprint bp;
     bp = bp.with_id(I.intern("bp_extract"));
     bp = bp.with_name("ExtractFixture");
@@ -132,7 +132,7 @@ static bp2::Blueprint make_extract_fixture_node_owned(ui::StringInterner& I, bp2
     return bp;
 }
 
-static bp2::Blueprint make_extract_with_bridge_node_fixture_node_owned(ui::StringInterner& I, bp2::PathArena& arena) {
+static bp2::Blueprint make_extract_with_bridge_node_fixture_node_owned(core::StringInterner& I, bp2::PathArena& arena) {
     bp2::Blueprint bp;
     bp = bp.with_id(I.intern("bp_extract_bridge_node"));
     bp = bp.with_name("ExtractBridgeNode");
@@ -169,7 +169,7 @@ static bp2::Blueprint make_extract_with_bridge_node_fixture_node_owned(ui::Strin
     return bp;
 }
 
-static bp2::Blueprint make_extract_typed_boundary_fixture_node_owned(ui::StringInterner& I, bp2::PathArena& arena) {
+static bp2::Blueprint make_extract_typed_boundary_fixture_node_owned(core::StringInterner& I, bp2::PathArena& arena) {
     bp2::Blueprint bp;
     bp = bp.with_id(I.intern("bp_extract_typed_boundary"));
     bp = bp.with_name("ExtractTypedBoundary");
@@ -213,7 +213,7 @@ static bp2::Blueprint make_extract_typed_boundary_fixture_node_owned(ui::StringI
     return bp;
 }
 
-static bp2::Blueprint make_extract_iface_collision_fixture_node_owned(ui::StringInterner& I, bp2::PathArena& arena) {
+static bp2::Blueprint make_extract_iface_collision_fixture_node_owned(core::StringInterner& I, bp2::PathArena& arena) {
     bp2::Blueprint bp;
     bp = bp.with_id(I.intern("bp_extract_collision"));
     bp = bp.with_name("ExtractIfaceCollision");
@@ -257,7 +257,7 @@ static bp2::Blueprint make_extract_iface_collision_fixture_node_owned(ui::String
     return bp;
 }
 
-static bp2::Blueprint make_extract_fixture_with_existing_blueprint_name_node_owned(ui::StringInterner& I,
+static bp2::Blueprint make_extract_fixture_with_existing_blueprint_name_node_owned(core::StringInterner& I,
                                                                                    bp2::PathArena& arena) {
     bp2::Blueprint bp = make_extract_fixture_node_owned(I, arena);
 
@@ -278,7 +278,7 @@ static bp2::Blueprint make_extract_fixture_with_existing_blueprint_name_node_own
 
 class ExtractToBlueprintNodeOwnedTest : public ::testing::Test {
 protected:
-    ui::StringInterner interner;
+    core::StringInterner interner;
     ComponentRegistry parser_registry = make_command_test_registry();
 };
 
@@ -519,7 +519,7 @@ TEST_F(ExtractToBlueprintNodeOwnedTest, AtomicRejectsIfaceCollision) {
 
 TEST_F(ExtractToBlueprintNodeOwnedTest, AtomicEncodingIsDeterministic) {
     auto run_once = [this]() {
-        ui::StringInterner local_interner;
+        core::StringInterner local_interner;
         bp2::PathArena local_arena(local_interner);
         bp2::Blueprint source = make_extract_fixture_node_owned(local_interner, local_arena);
 

@@ -8,7 +8,7 @@
 #include "blueprint_v2/interface/port_descriptor.h"
 #include "blueprint_v2/path/path.h"
 #include "core/solvers/common/signal_key.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include "io/json/component_registry_json_loader.h"
 #include "elaboration_parity_fixtures.h"
 
@@ -22,8 +22,8 @@ namespace {
 bool connected_on_same_signal(const JitBuildInput& jit_input,
                               const std::string& a,
                               const std::string& b) {
-    const ui::InternedId key_a = jit_input.signal_key_interner.lookup(a);
-    const ui::InternedId key_b = jit_input.signal_key_interner.lookup(b);
+    const core::InternedId key_a = jit_input.signal_key_interner.lookup(a);
+    const core::InternedId key_b = jit_input.signal_key_interner.lookup(b);
     if (key_a.empty() || key_b.empty()) return false;
     auto it_a = jit_input.port_to_signal.find(key_a);
     auto it_b = jit_input.port_to_signal.find(key_b);
@@ -49,7 +49,7 @@ bool connected_on_same_signal(const JitBuildInput& jit_input,
 // ==============================================================================
 
 TEST(ExportFlattenerParity, SingleLevelEmbeddedBridgeRewrite) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
     bp2::BlueprintLibrary library;
 
@@ -139,7 +139,7 @@ TEST(ExportFlattenerParity, SingleLevelEmbeddedBridgeRewrite) {
 // ==============================================================================
 
 TEST(ExportFlattenerParity, ThreeLevelNestedBridgeRewrite) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
     bp2::BlueprintLibrary library;
 
@@ -248,7 +248,7 @@ TEST(ExportFlattenerParity, ThreeLevelNestedBridgeRewrite) {
 // ==============================================================================
 
 TEST(ExportFlattenerParity, OutputBridgeRewrite) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
     bp2::BlueprintLibrary library;
 
@@ -307,7 +307,7 @@ TEST(ExportFlattenerParity, OutputBridgeRewrite) {
 }
 
 TEST(ExportFlattenerParity, StructuralOutputBridgeExposesCanonicalInterfacePortKey) {
-    ui::StringInterner I;
+    core::StringInterner I;
     bp2::PathArena arena(I);
     bp2::BlueprintLibrary library;
 
@@ -341,8 +341,8 @@ inst.content = bp2::Blueprint::Node::BlueprintInstanceData{
     bp2::FlatNetlist netlist = flattener.flatten(root, arena);
     auto jit_input = bp2::elaboration::elaborate_for_jit(netlist, arena, I, parity_registry());
 
-    const ui::InternedId key_out = jit_input.signal_key_interner.lookup("extract_inst_4.out");
-    const ui::InternedId key_ext = jit_input.signal_key_interner.lookup("extract_inst_4:bp_out_1.ext");
+    const core::InternedId key_out = jit_input.signal_key_interner.lookup("extract_inst_4.out");
+    const core::InternedId key_ext = jit_input.signal_key_interner.lookup("extract_inst_4:bp_out_1.ext");
     ASSERT_FALSE(key_out.empty());
     ASSERT_FALSE(key_ext.empty());
     ASSERT_EQ(jit_input.port_to_signal.count(key_out), 1u);

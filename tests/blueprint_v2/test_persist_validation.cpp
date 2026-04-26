@@ -12,7 +12,7 @@
 TEST(PersistValidation, RejectsInvalidWireEndpointOnLoad) {
     namespace fs = std::filesystem;
 
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry parser_registry = load_component_registry("library/");
 
@@ -51,7 +51,7 @@ TEST(PersistValidation, RejectsInvalidWireEndpointOnLoad) {
 }
 
 TEST(PersistValidation, ValidateBlueprintForPersistRejectsUnknownType) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry parser_registry = load_component_registry("library/");
 
@@ -70,7 +70,7 @@ TEST(PersistValidation, ValidateBlueprintForPersistRejectsUnknownType) {
 TEST(PersistValidation, SaveUsesTypedParamNormalizationWhenRegistryAvailable) {
     namespace fs = std::filesystem;
 
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry parser_registry = load_component_registry("library/");
 
@@ -108,7 +108,7 @@ TEST(PersistValidation, SaveUsesTypedParamNormalizationWhenRegistryAvailable) {
 }
 
 TEST(PersistValidation, ValidateBlueprintIntegrityPassesForValidBlueprint) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry parser_registry = load_component_registry("library/");
 
@@ -136,7 +136,7 @@ TEST(PersistValidation, ValidateBlueprintIntegrityPassesForValidBlueprint) {
 }
 
 TEST(PersistValidation, WireDomainMismatchFailsValidation) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry parser_registry = load_component_registry("library/");
 

@@ -6,7 +6,7 @@
 #include "blueprint_v2/interface/interface.h"
 #include "blueprint_v2/interface/port_descriptor.h"
 #include "io/json/component_registry_json_loader.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include <cassert>
 #include <initializer_list>
 #include <string>
@@ -18,7 +18,7 @@
 
 /// Create a PortDescriptor with explicit domain.
 inline bp2::PortDescriptor make_port(
-    ui::StringInterner& interner,
+    core::StringInterner& interner,
     const std::string& name,
     Domain domain,
     bp2::Direction direction,
@@ -33,7 +33,7 @@ inline bp2::PortDescriptor make_port(
 
 /// Create a PortDescriptor; domain is derived from port_type.
 inline bp2::PortDescriptor make_port(
-    ui::InternedId name,
+    core::InternedId name,
     bp2::Direction direction,
     PortType type) {
     return bp2::PortDescriptor{
@@ -46,7 +46,7 @@ inline bp2::PortDescriptor make_port(
 
 /// Convenience overload that interns the name and derives domain.
 inline bp2::PortDescriptor make_port(
-    ui::StringInterner& interner,
+    core::StringInterner& interner,
     const char* name,
     bp2::Direction direction,
     PortType type) {

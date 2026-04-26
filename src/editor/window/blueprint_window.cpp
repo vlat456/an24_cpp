@@ -27,16 +27,16 @@ const EditingHost& require_host(const std::unique_ptr<EditingHost>& host) {
 
 // No conversion needed - scope_id.path() already returns InternedId
 std::unique_ptr<EditingHost> make_embedded_host(bp2::EditorModel& root_model,
-                                                ui::StringInterner& /*interner*/,
-                                                std::span<const ui::InternedId> scope_path) {
-    return create_pathful_embedded_host(root_model, std::vector<ui::InternedId>(scope_path.begin(), scope_path.end()));
+                                                core::StringInterner& /*interner*/,
+                                                std::span<const core::InternedId> scope_path) {
+    return create_pathful_embedded_host(root_model, std::vector<core::InternedId>(scope_path.begin(), scope_path.end()));
 }
 
 void rebuild_root_scene(BlueprintWindow& window, const ComponentRegistry* parser_registry) {
     ComponentRegistry empty_reg;
     const ComponentRegistry& reg = parser_registry ? *parser_registry : empty_reg;
     visual::mutations::rebuild(window.scene, window.root_model.current(), window.interner,
-        window.arena, std::span<const ui::InternedId>{}, reg, nullptr);
+        window.arena, std::span<const core::InternedId>{}, reg, nullptr);
     window.input.rebuild_snapshot();
 }
 
@@ -53,7 +53,7 @@ void rebuild_embedded_scene(BlueprintWindow& window, const ComponentRegistry* pa
     }
 
     // window.scope.path() already returns InternedId vector - use directly
-    std::vector<ui::InternedId> instance_path(window.scope.path().begin(), window.scope.path().end());
+    std::vector<core::InternedId> instance_path(window.scope.path().begin(), window.scope.path().end());
     visual::mutations::rebuild(window.scene, *embedded_bp, window.interner,
         window.arena, instance_path, reg, nullptr);
     window.input.rebuild_snapshot();
@@ -64,7 +64,7 @@ void rebuild_external_scene(BlueprintWindow& window, const ComponentRegistry* pa
     const ComponentRegistry& reg = parser_registry ? *parser_registry : empty_reg;
 
     // window.scope.path() already returns InternedId vector - use directly
-    std::vector<ui::InternedId> instance_path(window.scope.path().begin(), window.scope.path().end());
+    std::vector<core::InternedId> instance_path(window.scope.path().begin(), window.scope.path().end());
 
     visual::mutations::rebuild(window.scene, require_external_blueprint(window.external_blueprint),
         window.rendered_interner(), window.rendered_arena(), instance_path, reg, nullptr);
@@ -74,7 +74,7 @@ void rebuild_external_scene(BlueprintWindow& window, const ComponentRegistry* pa
 } // namespace
 
 BlueprintWindow::BlueprintWindow(bp2::EditorModel& model,
-                                  ui::StringInterner& interner,
+                                  core::StringInterner& interner,
                                   bp2::PathArena& arena,
                                   WindowScopeId scope,
                                   std::string title,
@@ -171,14 +171,14 @@ const bp2::Blueprint& BlueprintWindow::rendered_blueprint() const {
     return require_host(host).current_blueprint();
 }
 
-ui::StringInterner& BlueprintWindow::rendered_interner() {
+core::StringInterner& BlueprintWindow::rendered_interner() {
     if (scope.is_external() && external_interner) {
         return *external_interner;
     }
     return interner;
 }
 
-const ui::StringInterner& BlueprintWindow::rendered_interner() const {
+const core::StringInterner& BlueprintWindow::rendered_interner() const {
     if (scope.is_external() && external_interner) {
         return *external_interner;
     }

@@ -22,7 +22,7 @@
 static bool maybe_log_hover_signal_resolution(
     const std::string& visual_node,
     const std::string& visual_port,
-    ui::InternedId resolved_key,
+    core::InternedId resolved_key,
     float value) {
     static bool initialized = false;
     static bool enabled = false;
@@ -56,7 +56,7 @@ static void render_probe_markers(BlueprintWindow& win, Document& doc, WindowSyst
 
 static void render_hover_scope_tooltip(Document& doc,
                                        WindowSystem& ws,
-                                       ui::InternedId signal_iid,
+                                       core::InternedId signal_iid,
                                        const Pt& anchor_screen) {
     const std::deque<float>& samples = ws.oscilloscope.hover_samples(doc.id());
     if (samples.empty()) return;
@@ -70,7 +70,7 @@ static void render_hover_scope_tooltip(Document& doc,
 
     OscilloscopeProbe pseudo;
     pseudo.label = label;
-    pseudo.wire_iid = ui::InternedId{0};  // synthetic — no real wire
+    pseudo.wire_iid = core::InternedId{0};  // synthetic — no real wire
     pseudo.color = IM_COL32(80, 200, 255, 255);
     pseudo.samples = samples;  // Copy hover samples into pseudo for rendering.
 
@@ -175,7 +175,7 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
     Pt mouse_screen(mp.x, mp.y);
     Pt mouse_world = win.viewport.screen_to_world(mouse_screen, cmin);
 
-    ui::StringInterner& rendered_interner = win.rendered_interner();
+    core::StringInterner& rendered_interner = win.rendered_interner();
     const auto snapshot = editor::presentation::build_canvas_scene_snapshot(win.scene, rendered_interner);
     auto hit = editor::presentation::hit_test_canvas_scene(snapshot, mouse_world);
     ws.oscilloscope.clear_hover_signal(doc.id());
@@ -186,7 +186,7 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
 
         std::string_view port_name = rendered_interner.resolve(hp->port_name);
         Pt port_screen = win.viewport.world_to_screen(hp->center - Pt(visual::PortConstants::RADIUS, visual::PortConstants::RADIUS), cmin);
-        ui::InternedId signal_iid = doc.resolve_endpoint_signal_key(
+        core::InternedId signal_iid = doc.resolve_endpoint_signal_key(
             win.resolved_scope_id(), node_id, port_name);
         if (signal_iid.empty()) return;
 
@@ -200,7 +200,7 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
 
     } else if (auto* hw = std::get_if<visual::HitWire>(&hit)) {
         std::string_view wire_id = rendered_interner.resolve(hw->wire_id);
-        ui::InternedId signal_iid = doc.resolve_wire_signal_key(
+        core::InternedId signal_iid = doc.resolve_wire_signal_key(
             win.resolved_scope_id(), wire_id);
         if (signal_iid.empty()) return;
 

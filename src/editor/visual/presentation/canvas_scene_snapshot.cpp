@@ -12,7 +12,7 @@
 #include "visual/wire/wire.h"
 #include "visual/wire/routing_point.h"
 #include "editor/layout_constants.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include <optional>
 #include <algorithm>
 #include <cmath>
@@ -42,7 +42,7 @@ ui::Rect offset_rect(const ui::Rect& r, ui::Pt offset) {
 
 /// Helper: extract node ID from any node-like widget.
 /// Returns the node_iid by interning the widget's id() (which equals nodeId() for all node widgets).
-ui::InternedId node_widget_iid(const visual::Widget& widget, ui::StringInterner& interner) {
+core::InternedId node_widget_iid(const visual::Widget& widget, core::StringInterner& interner) {
     return interner.intern(widget.id());
 }
 
@@ -58,13 +58,13 @@ bool is_node_like(const visual::Widget& widget) {
 
 void project_widget_recursive(const visual::Widget& widget,
                              CanvasSceneSnapshot& snapshot,
-                             ui::StringInterner& interner,
+                             core::StringInterner& interner,
                              uint32_t& next_id) {
     // ---- Ports ----
     if (auto* port = dynamic_cast<const visual::Port*>(&widget)) {
         const ui::Pt center = port->worldPos() + ui::Pt(visual::PortConstants::RADIUS, visual::PortConstants::RADIUS);
-        const ui::InternedId port_node_iid = interner.intern(port->rootAncestorId());
-        const ui::InternedId port_name_iid = interner.intern(port->name());
+        const core::InternedId port_node_iid = interner.intern(port->rootAncestorId());
+        const core::InternedId port_name_iid = interner.intern(port->name());
 
         snapshot.render_objects.push_back(CanvasRenderObject{
             .id = SceneObjectId(next_id++),
@@ -99,7 +99,7 @@ void project_widget_recursive(const visual::Widget& widget,
                 max_y = std::max(max_y, pt.y);
             }
             constexpr float BBOX_PADDING = 4.0f;
-            const ui::InternedId wire_iid = wire->iid();
+            const core::InternedId wire_iid = wire->iid();
 
             snapshot.render_objects.push_back(CanvasRenderObject{
                 .id = SceneObjectId(next_id++),
@@ -139,7 +139,7 @@ void project_widget_recursive(const visual::Widget& widget,
         const ui::Rect rp_hit_bounds = hit_geometry::centered_square(rp_pos, hit_geometry::routing_point_hit_radius());
 
         // Find the owning Wire and compute routing-point index
-        ui::InternedId wire_iid;
+        core::InternedId wire_iid;
         size_t rp_idx = 0;
         if (auto* parent_widget = rp->parent()) {
             if (auto* wire = dynamic_cast<const visual::Wire*>(parent_widget)) {
@@ -149,7 +149,7 @@ void project_widget_recursive(const visual::Widget& widget,
                 }
             }
         }
-        const ui::InternedId rp_node_iid = interner.intern(rp->rootAncestorId());
+        const core::InternedId rp_node_iid = interner.intern(rp->rootAncestorId());
 
         snapshot.render_objects.push_back(CanvasRenderObject{
             .id = SceneObjectId(next_id++),
@@ -172,7 +172,7 @@ void project_widget_recursive(const visual::Widget& widget,
     }
     // ---- Node-like widgets (NodeWidget, RefNodeWidget, BusNodeWidget, TextNodeWidget, GroupNodeWidget) ----
     else if (is_node_like(widget)) {
-        ui::InternedId node_iid = node_widget_iid(widget, interner);
+        core::InternedId node_iid = node_widget_iid(widget, interner);
         const ui::Rect node_bounds = widget_bounds(widget);
 
         // Only NodeWidget has semantic content rendering
@@ -311,7 +311,7 @@ void project_widget_recursive(const visual::Widget& widget,
 // Build snapshot
 // ============================================================
 
-CanvasSceneSnapshot build_canvas_scene_snapshot(const visual::Scene& scene, ui::StringInterner& interner) {
+CanvasSceneSnapshot build_canvas_scene_snapshot(const visual::Scene& scene, core::StringInterner& interner) {
     CanvasSceneSnapshot snapshot;
     uint32_t next_id = 1;
 

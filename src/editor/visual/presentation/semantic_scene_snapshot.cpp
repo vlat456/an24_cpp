@@ -16,7 +16,7 @@ const ui::Rect* find_slot_bounds(const NodeSlotLayout& layout, NodeSlot slot) {
     return nullptr;
 }
 
-const ui::Rect* find_element_bounds(const NodeSlotLayout& layout, ui::InternedId element_id) {
+const ui::Rect* find_element_bounds(const NodeSlotLayout& layout, core::InternedId element_id) {
     for (const FragmentPlacement& placement : layout.placements) {
         if (placement.element_id == element_id) {
             return &placement.bounds;
@@ -195,7 +195,7 @@ const SceneHitObject* find_hit_object_by_id(const SemanticSceneSnapshot& snapsho
     return nullptr;
 }
 
-const SceneNodeIndexEntry* find_scene_node_index(const SemanticSceneSnapshot& snapshot, ui::InternedId node_id) {
+const SceneNodeIndexEntry* find_scene_node_index(const SemanticSceneSnapshot& snapshot, core::InternedId node_id) {
     for (const SceneNodeIndexEntry& entry : snapshot.node_index) {
         if (entry.node_id == node_id) {
             return &entry;
@@ -204,7 +204,7 @@ const SceneNodeIndexEntry* find_scene_node_index(const SemanticSceneSnapshot& sn
     return nullptr;
 }
 
-const SceneHitObject* find_hit_object_by_region_id(const SemanticSceneSnapshot& snapshot, ui::InternedId region_id) {
+const SceneHitObject* find_hit_object_by_region_id(const SemanticSceneSnapshot& snapshot, core::InternedId region_id) {
     for (const SceneHitObject& object : snapshot.hit_objects) {
         if (object.region_id == region_id) {
             return &object;
@@ -245,7 +245,7 @@ std::vector<const SceneHitObject*> ordered_hit_objects(const SemanticSceneSnapsh
     return ordered;
 }
 
-std::vector<const SceneHitObject*> hit_objects_for_node(const SemanticSceneSnapshot& snapshot, ui::InternedId node_id) {
+std::vector<const SceneHitObject*> hit_objects_for_node(const SemanticSceneSnapshot& snapshot, core::InternedId node_id) {
     std::vector<const SceneHitObject*> hits;
     const SceneNodeIndexEntry* entry = find_scene_node_index(snapshot, node_id);
     if (entry == nullptr) {
@@ -259,7 +259,7 @@ std::vector<const SceneHitObject*> hit_objects_for_node(const SemanticSceneSnaps
     return hits;
 }
 
-std::vector<const SceneHitObject*> hit_objects_for_region(const SemanticSceneSnapshot& snapshot, ui::InternedId region_id) {
+std::vector<const SceneHitObject*> hit_objects_for_region(const SemanticSceneSnapshot& snapshot, core::InternedId region_id) {
     std::vector<const SceneHitObject*> hits;
     for (const SceneHitObject& object : snapshot.hit_objects) {
         if (object.region_id == region_id) {

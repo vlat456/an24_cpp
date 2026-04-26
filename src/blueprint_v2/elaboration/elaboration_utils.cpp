@@ -4,7 +4,7 @@
 
 namespace bp2::elaboration {
 
-std::string node_id_from_path(Path node_path, PathArena& arena, const ui::StringInterner& interner) {
+std::string node_id_from_path(Path node_path, PathArena& arena, const core::StringInterner& interner) {
     std::vector<std::string> segments;
     Path cur = node_path;
     while (cur.kind() != PathKind::Root) {
@@ -24,8 +24,8 @@ std::string node_id_from_path(Path node_path, PathArena& arena, const ui::String
 
 std::string exposed_key_for_bridge(
     std::string_view bridge_dev_id,
-    const ui::InternedId& exposed_port_name,
-    const ui::StringInterner& interner)
+    const core::InternedId& exposed_port_name,
+    const core::StringInterner& interner)
 {
     const size_t sep = bridge_dev_id.rfind(':');
     if (sep == std::string_view::npos || sep == 0 || (sep + 1) >= bridge_dev_id.size()) {

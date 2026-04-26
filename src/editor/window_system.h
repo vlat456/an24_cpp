@@ -72,14 +72,14 @@ public:
 
     struct NodeContextMenuState {
         bool show = false;
-        ui::InternedId node_id;
+        core::InternedId node_id;
         WindowScopeId scope_id = WindowScopeId::root();
         std::optional<editor::DocumentId> source_document_id;
     } nodeContextMenu;
 
     struct ColorPickerState {
         bool show = false;
-        ui::InternedId node_id;
+        core::InternedId node_id;
         WindowScopeId scope_id = WindowScopeId::root();
         std::optional<editor::DocumentId> source_document_id;
         float rgba[4] = {0.5f, 0.5f, 0.5f, 1.0f};
@@ -89,7 +89,7 @@ public:
         bool show_confirmation = false;
         std::optional<editor::DocumentId> document_id;
         WindowScopeId scope_id = WindowScopeId::root();
-        ui::InternedId node_id;
+        core::InternedId node_id;
 
         void reset() {
             show_confirmation = false;
@@ -110,7 +110,7 @@ public:
         bool show_dialog = false;
         std::optional<editor::DocumentId> document_id;
         WindowScopeId scope_id = WindowScopeId::root();
-        std::vector<ui::InternedId> selected_node_ids;
+        std::vector<core::InternedId> selected_node_ids;
         char name_buf[128] = {};
         bool has_preview = false;
         editor::commands::ExtractToBlueprintPreview preview;
@@ -166,7 +166,7 @@ public:
     struct InlineValueEditorState {
         bool open = false;
         std::optional<editor::DocumentId> document_id;
-        ui::InternedId node_id;
+        core::InternedId node_id;
         WindowScopeId scope_id = WindowScopeId::root();
         std::string buffer;
         std::string error;
@@ -191,13 +191,13 @@ public:
     void removeClosedDocuments();
 
     /// Open properties for a node in the active document
-    void openPropertiesForNode(ui::InternedId node_id, const WindowScopeId& scope_id, Document& doc);
+    void openPropertiesForNode(core::InternedId node_id, const WindowScopeId& scope_id, Document& doc);
 
     /// Open color picker for a node
-    void openColorPickerForNode(ui::InternedId node_id, const WindowScopeId& scope_id, Document& doc);
+    void openColorPickerForNode(core::InternedId node_id, const WindowScopeId& scope_id, Document& doc);
 
     /// Open inline value editor for a Value node
-    void openInlineValueEditorForNode(ui::InternedId node_id, const WindowScopeId& scope_id, Document& doc,
+    void openInlineValueEditorForNode(core::InternedId node_id, const WindowScopeId& scope_id, Document& doc,
                                       const ui::Pt* anchor_screen = nullptr);
 
     /// Dispatch InputResultAction from a document to the window system

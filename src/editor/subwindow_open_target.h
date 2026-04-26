@@ -1,7 +1,7 @@
 #pragma once
 
 #include "blueprint_v2/blueprint/blueprint.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include <string>
 
 namespace bp2 {
@@ -48,7 +48,7 @@ struct SubWindowOpenTargetResult {
 };
 
 SubWindowOpenTargetResult resolve_subwindow_open_target(const bp2::Blueprint& bp,
-                                                        const ui::StringInterner& interner,
+                                                        const core::StringInterner& interner,
                                                         const bp2::LibraryIndex& library_index,
                                                         const std::string& sub_blueprint_id);
 

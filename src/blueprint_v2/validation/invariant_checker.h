@@ -16,7 +16,7 @@ public:
     static Result validate(Blueprint const& bp,
                            PathArena const& arena,
                            const ::ComponentRegistry& parser_registry,
-                           ui::StringInterner& interner);
+                           core::StringInterner& interner);
 };
 
 } // namespace bp2

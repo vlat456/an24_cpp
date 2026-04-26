@@ -12,7 +12,7 @@
 #include "core/solvers/common/port_registry.h"
 #include "core/solvers/jit/state.h"
 #include "jit_build_input_test_helper.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 
 #include <cmath>
 #include <stdexcept>
@@ -42,7 +42,7 @@ static std::string scalar_json_to_param_string(const json& value) {
     return value.dump();
 }
 
-static bp2::BlueprintLibrary build_library(const ComponentRegistry& registry, ui::StringInterner& interner) {
+static bp2::BlueprintLibrary build_library(const ComponentRegistry& registry, core::StringInterner& interner) {
     bp2::BlueprintLibrary library;
     for (const auto& [classname, def] : registry.all_types()) {
         if (!is_composite(def)) continue;
@@ -57,7 +57,7 @@ static bp2::BlueprintLibrary build_library(const ComponentRegistry& registry, ui
 
 static JitBuildInput build_input_from_blueprint_file(const std::string& blueprint_path,
                                                      const ComponentRegistry& registry) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::BlueprintLibrary library = build_library(registry, interner);
 
@@ -75,7 +75,7 @@ static JitBuildInput build_input_from_blueprint_file(const std::string& blueprin
 
 static JitBuildInput build_input_from_blueprint_json(const std::string& raw,
                                                      const ComponentRegistry& registry) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::BlueprintLibrary library = build_library(registry, interner);
 

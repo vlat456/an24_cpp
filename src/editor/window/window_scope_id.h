@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 
 #include <vector>
 
@@ -22,16 +22,16 @@ public:
         return WindowScopeId(BlueprintWindowMode::RootDocument, {});
     }
 
-    static WindowScopeId embedded(std::vector<ui::InternedId> scope_path) {
+    static WindowScopeId embedded(std::vector<core::InternedId> scope_path) {
         return WindowScopeId(BlueprintWindowMode::EmbeddedScope, std::move(scope_path));
     }
 
-    static WindowScopeId external(std::vector<ui::InternedId> scope_path) {
+    static WindowScopeId external(std::vector<core::InternedId> scope_path) {
         return WindowScopeId(BlueprintWindowMode::ExternalReference, std::move(scope_path));
     }
 
     BlueprintWindowMode mode() const { return mode_; }
-    const std::vector<ui::InternedId>& path() const { return path_segments_; }
+    const std::vector<core::InternedId>& path() const { return path_segments_; }
 
     bool operator==(const WindowScopeId& other) const {
         return mode_ == other.mode_ && path_segments_ == other.path_segments_;
@@ -45,8 +45,8 @@ public:
     bool is_embedded() const { return mode_ == BlueprintWindowMode::EmbeddedScope; }
     bool is_external() const { return mode_ == BlueprintWindowMode::ExternalReference; }
 
-    WindowScopeId append(ui::InternedId child_segment) const {
-        std::vector<ui::InternedId> next = path_segments_;
+    WindowScopeId append(core::InternedId child_segment) const {
+        std::vector<core::InternedId> next = path_segments_;
         next.push_back(child_segment);
         if (is_external()) {
             return external(std::move(next));
@@ -56,8 +56,8 @@ public:
 
 private:
     BlueprintWindowMode mode_;
-    std::vector<ui::InternedId> path_segments_;
+    std::vector<core::InternedId> path_segments_;
 
-    explicit WindowScopeId(BlueprintWindowMode mode, std::vector<ui::InternedId> path_segments)
+    explicit WindowScopeId(BlueprintWindowMode mode, std::vector<core::InternedId> path_segments)
         : mode_(mode), path_segments_(std::move(path_segments)) {}
 };

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include "ui/math/pt.h"
 
 /// Mouse buttons
@@ -64,18 +64,18 @@ struct InputResult {
     bool show_context_menu = false;
     ui::Pt context_menu_pos;
     bool show_node_context_menu = false;    ///< Right-click on node
-    ui::InternedId context_menu_node_id;    ///< ID of the right-clicked node
-    ui::InternedId open_sub_window;         ///< non-empty = open this collapsed group
-    ui::InternedId toggle_switch_node_id;   ///< non-empty = toggle this Switch node
-    ui::InternedId toggle_probe_wire_id;    ///< non-empty = toggle oscilloscope probe on wire
+    core::InternedId context_menu_node_id;    ///< ID of the right-clicked node
+    core::InternedId open_sub_window;         ///< non-empty = open this collapsed group
+    core::InternedId toggle_switch_node_id;   ///< non-empty = toggle this Switch node
+    core::InternedId toggle_probe_wire_id;    ///< non-empty = toggle oscilloscope probe on wire
     bool has_toggle_probe_world_pos = false;
     ui::Pt toggle_probe_world_pos;
-    ui::InternedId slider_node_id;          ///< non-empty = set this Slider node's value
+    core::InternedId slider_node_id;          ///< non-empty = set this Slider node's value
     float slider_value = 0.0f;              ///< raw value (already mapped from min..max)
-    ui::InternedId knob_node_id;            ///< non-empty = set this Knob node's position
+    core::InternedId knob_node_id;            ///< non-empty = set this Knob node's position
     int knob_position = 0;                  ///< 0-based position index
     bool open_inline_value_editor = false;  ///< true if inline value editor should open
-    ui::InternedId inline_value_editor_node_id;  ///< non-empty = open inline value editor for a node
+    core::InternedId inline_value_editor_node_id;  ///< non-empty = open inline value editor for a node
     bool has_inline_value_editor_screen_pos = false;
     ui::Pt inline_value_editor_screen_pos;
 

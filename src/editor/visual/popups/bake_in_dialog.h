@@ -21,7 +21,7 @@ inline std::unique_ptr<EditingHost> create_bake_host_for_scope(Document& doc,
     }
 
     // scope_id.path() already returns InternedId vector - use directly
-    return create_pathful_embedded_host(doc.model(), std::vector<ui::InternedId>(scope_id.path().begin(), scope_id.path().end()));
+    return create_pathful_embedded_host(doc.model(), std::vector<core::InternedId>(scope_id.path().begin(), scope_id.path().end()));
 }
 
 inline bp2::BlueprintLibrary build_bake_library(Document& doc) {
@@ -85,7 +85,7 @@ public:
                     return;
                 }
 
-                const ui::InternedId node_iid = ws.pendingBakeIn.node_id;
+                const core::InternedId node_iid = ws.pendingBakeIn.node_id;
                 bool ok = false;
                 if (!node_iid.empty()) {
                     bp2::BlueprintLibrary library = build_bake_library(*bake_doc);

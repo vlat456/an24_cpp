@@ -15,7 +15,7 @@ inline void setup_component_ports(
     for (const auto& [port_name, port] : dev.ports) {
         (void)port;
         const std::string full_port = signal_key::make_node_port_key(dev.name, port_name);
-        const ui::InternedId key = result.signal_key_interner.lookup(full_port);
+        const core::InternedId key = result.signal_key_interner.lookup(full_port);
         if (key.empty()) continue;
         auto it = result.port_to_signal.find(key);
         if (it != result.port_to_signal.end()) {

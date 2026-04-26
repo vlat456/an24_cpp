@@ -5,7 +5,7 @@
 #include "blueprint_v2/path/path.h"
 #include "document_simulation_internal.h"
 #include "embedded_path_utils.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -19,7 +19,7 @@ struct ComponentRegistry;
 
 class WindowManager {
 public:
-    explicit WindowManager(bp2::EditorModel& model, ui::StringInterner& interner,
+    explicit WindowManager(bp2::EditorModel& model, core::StringInterner& interner,
                            bp2::PathArena& arena,
                            const ComponentRegistry* parser_registry = nullptr)
         : model_(model), interner_(interner), arena_(arena), parser_registry_(parser_registry)
@@ -169,7 +169,7 @@ private:
         }
 
         // scope_id.path().back() now returns InternedId - use directly to find node
-        const ui::InternedId local_node_id = scope_id.path().back();
+        const core::InternedId local_node_id = scope_id.path().back();
         const bp2::Blueprint::Node* node = local_node_id.empty() ? nullptr : bp->find_node(local_node_id);
         if (!node || !node->is_blueprint_instance() || !node->has_referenced_blueprint()) {
             return false;
@@ -186,8 +186,8 @@ private:
         return expected_blueprint_id == actual_blueprint_id;
     }
 
-    std::pair<const bp2::Blueprint*, const ui::StringInterner*> resolve_parent_blueprint_for_child_scope(
-        std::span<const ui::InternedId> child_scope_path) const {
+    std::pair<const bp2::Blueprint*, const core::StringInterner*> resolve_parent_blueprint_for_child_scope(
+        std::span<const core::InternedId> child_scope_path) const {
         if (child_scope_path.empty()) {
             return {nullptr, nullptr};
         }
@@ -196,7 +196,7 @@ private:
             return {&model_.current(), &interner_};
         }
 
-        const std::vector<ui::InternedId> parent_path(child_scope_path.begin(), child_scope_path.end() - 1);
+        const std::vector<core::InternedId> parent_path(child_scope_path.begin(), child_scope_path.end() - 1);
 
         if (const BlueprintWindow* external_parent = find(WindowScopeId::external(parent_path))) {
             return {&external_parent->rendered_blueprint(), &external_parent->rendered_interner()};
@@ -215,7 +215,7 @@ private:
     }
 
     bp2::EditorModel& model_;
-    ui::StringInterner& interner_;
+    core::StringInterner& interner_;
     bp2::PathArena& arena_;
     const ComponentRegistry* parser_registry_ = nullptr;
     std::vector<std::unique_ptr<BlueprintWindow>> windows_;

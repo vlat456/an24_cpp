@@ -1,42 +1,16 @@
 #include "simulator.h"
+#include "build_common.h"
 #include "core/solvers/common/signal_key.h"
+#include "subsolvers/hydraulic_subsolver.h"
 #include "../../../parse_number.h"
 #include <algorithm>
 #include <cmath>
 
 namespace {
 
-void ensure_runtime_element_values(const ElectricalBuildPlan& plan, ElectricalRuntimeState& rt) {
-    uint32_t max_element_id = 0;
-    bool has_elements = false;
-    for (const auto& island : plan.islands) {
-        for (const auto& elem : island.elements) {
-            has_elements = true;
-            max_element_id = std::max(max_element_id, elem.element_id);
-        }
-    }
-
-    if (!has_elements) {
-        rt.element_value_a.clear();
-        return;
-    }
-
-    const size_t needed = static_cast<size_t>(max_element_id) + 1;
-    if (rt.element_value_a.size() < needed) {
-        rt.element_value_a.resize(needed, 0.0f);
-        for (const auto& island : plan.islands) {
-            for (const auto& elem : island.elements) {
-                if (elem.element_id < rt.element_value_a.size()) {
-                    rt.element_value_a[elem.element_id] = elem.value_a;
-                }
-            }
-        }
-    }
-}
-
 /// Pre-solve pass: apply compiled electrical patch operations.
 void update_dynamic_sources(BuildResult& br, SimulationState& st, ElectricalRuntimeState& rt) {
-    for (const auto& op : br.electrical_patch_ops) {
+    for (const auto& op : br.electrical.patch_ops) {
         if (op.element_id >= rt.element_value_a.size()) {
             continue;
         }
@@ -87,11 +61,37 @@ void run_solver_owned_ops(const std::vector<SolverStepOp>& ops, SimulationState&
 
 } // anonymous namespace
 
+// Hydraulic runtime helpers — same pattern as electrical.
+namespace {
+
+void update_hydraulic_dynamic_sources(BuildResult& br, SimulationState& st, HydraulicRuntimeState& rt) {
+    for (const auto& op : br.hydraulic.patch_ops) {
+        if (op.element_id >= rt.element_value_a.size()) {
+            continue;
+        }
+
+        float out = rt.element_value_a[op.element_id];
+        switch (op.kind) {
+            case HydraulicPatchKind::BoolSwitch: {
+                const bool state = st.values[op.s0] > 0.5f;
+                out = state ? op.closed_value : op.open_value;
+                break;
+            }
+            case HydraulicPatchKind::CopySignal: {
+                out = st.values[op.s0];
+                break;
+            }
+        }
+        rt.element_value_a[op.element_id] = out;
+    }
+}
+
+} // anonymous namespace
+
 template <typename SolverTag>
 Simulator<SolverTag>::Simulator(Simulator&& other) noexcept
     : build_result_(std::move(other.build_result_))
     , state_(std::move(other.state_))
-    , electrical_rt_(std::move(other.electrical_rt_))
     , running_(other.running_)
     , time_(other.time_)
     , step_count_(other.step_count_) {
@@ -106,7 +106,6 @@ Simulator<SolverTag>& Simulator<SolverTag>::operator=(Simulator&& other) noexcep
         stop();
         build_result_ = std::move(other.build_result_);
         state_ = std::move(other.state_);
-        electrical_rt_ = std::move(other.electrical_rt_);
         running_ = other.running_;
         time_ = other.time_;
         step_count_ = other.step_count_;
@@ -132,7 +131,16 @@ void Simulator<SolverTag>::start(const JitBuildInput& input) {
     // internal state (closed=true) to signal ports. Running BEFORE Value init
     // means control signals are still 0.0, so no premature state transitions
     // occur — components simply write their constructor-initialized state.
-    run_solver_owned_ops(build_result_->solver_commit_ops, state_, 0.0);
+    run_solver_owned_ops(build_result_->electrical.commit_ops, state_, 0.0);
+
+    // Bootstrap hydraulic commit ops (same pattern as electrical).
+    run_solver_owned_ops(build_result_->hydraulic.commit_ops, state_, 0.0);
+
+    // Bootstrap hydraulic execute ops so CopySignal patch ops have valid
+    // p_source values on the first frame (e.g., FuelTank gravity pressure).
+    // Without this, element_value_a would use plan-default pressure (0.0)
+    // instead of the computed gravity head for a full tank.
+    run_solver_owned_ops(build_result_->hydraulic.execute_ops, state_, 0.0);
 
     // Initialize RefNode and Value devices from their params.
     for (const auto& dev : input.devices) {
@@ -142,7 +150,7 @@ void Simulator<SolverTag>::start(const JitBuildInput& input) {
             if (it_val != dev.params.end()) {
                 value = locale_safe::parse_float_or(it_val->second, 0.0f);
             }
-            const ui::InternedId key = build_result_->signal_key_interner.lookup(
+            const core::InternedId key = build_result_->signal_key_interner.lookup(
                 signal_key::make_node_port_key(dev.name, "v"));
             auto it_sig = build_result_->port_to_signal.find(key);
             if (it_sig != build_result_->port_to_signal.end() && it_sig->second < state_.values.size()) {
@@ -155,7 +163,7 @@ void Simulator<SolverTag>::start(const JitBuildInput& input) {
             if (it_val != dev.params.end()) {
                 value = locale_safe::parse_float_or(it_val->second, 0.0f);
             }
-            const ui::InternedId key = build_result_->signal_key_interner.lookup(
+            const core::InternedId key = build_result_->signal_key_interner.lookup(
                 signal_key::make_node_port_key(dev.name, "o"));
             auto it_sig = build_result_->port_to_signal.find(key);
             if (it_sig != build_result_->port_to_signal.end() && it_sig->second < state_.values.size()) {
@@ -167,7 +175,7 @@ void Simulator<SolverTag>::start(const JitBuildInput& input) {
     // Apply explicit initial values from JitBuildInput (if any).
     // Keys are port references like "device.port" — interned for typed lookup.
     for (const auto& [port_ref, value] : input.initial_values) {
-        const ui::InternedId key = build_result_->signal_key_interner.lookup(port_ref);
+        const core::InternedId key = build_result_->signal_key_interner.lookup(port_ref);
         auto it_sig = build_result_->port_to_signal.find(key);
         if (it_sig != build_result_->port_to_signal.end() && it_sig->second < state_.values.size()) {
             state_.values[it_sig->second] = value;
@@ -178,7 +186,7 @@ void Simulator<SolverTag>::start(const JitBuildInput& input) {
     state_.lut_values = std::move(build_result_->lut_values);
 
     state_.electrical_rt = nullptr;
-    electrical_rt_ = ElectricalRuntimeState{};
+    state_.hydraulic_rt = nullptr;
 
     time_ = 0.0;
     step_count_ = 0;
@@ -189,12 +197,12 @@ template <typename SolverTag>
 void Simulator<SolverTag>::stop() {
     build_result_.reset();
     state_ = SimulationState();
-    electrical_rt_ = ElectricalRuntimeState{};
     time_ = 0.0;
     step_count_ = 0;
     running_ = false;
-    // Clear pointer on stop: electrical_rt is owned by this class and must not
-    // be accessed after stop. State was reset above which also zeroes the pointer.
+    // Note: electrical_rt pointer in state_ is already cleared by SimulationState()
+    // reset above. build_result_.reset() destroys the ElectricalArtifacts which
+    // owns the ElectricalRuntimeState. No dangling pointer possible.
 }
 
 template <typename SolverTag>
@@ -244,32 +252,46 @@ void Simulator<SolverTag>::step(double dt) {
 
     // Set pointer before solver runs so components can access electrical_rt.
     // RAII guard ensures cleanup on ALL exit paths (including exceptions).
-    state_.electrical_rt = &electrical_rt_;
+    state_.electrical_rt = &build_result_->electrical.runtime;
     struct RtGuard {
         SimulationState& st;
-        ~RtGuard() { st.electrical_rt = nullptr; }
+        ~RtGuard() { st.electrical_rt = nullptr; st.hydraulic_rt = nullptr; }
     } guard{state_};
 
     // Ensure runtime mutable element values are initialized from build-plan defaults.
-    ensure_runtime_element_values(build_result_->electrical_plan, electrical_rt_);
+    jit_solver_impl::build_common::init_element_values_from_plan(build_result_->electrical.plan, build_result_->electrical.runtime);
 
     // Pre-solve: update dynamic Thevenin source voltages (ControlledVoltageSource).
     // Reads cmd from previous frame's signal array (one-frame-delay semantic).
-    update_dynamic_sources(*build_result_, state_, electrical_rt_);
+    update_dynamic_sources(*build_result_, state_, build_result_->electrical.runtime);
 
     // Run electrical subsolver to compute node voltages and branch currents
-    solve_electrical(build_result_->electrical_plan, electrical_rt_.element_value_a, state_, electrical_rt_, dt);
+    solve_electrical(build_result_->electrical.plan, build_result_->electrical.runtime.element_value_a, state_, build_result_->electrical.runtime, dt);
 
     // Execute pass for solver-owned components that need post-solve computation
     // (e.g., AZS thermal model reads branch currents from solved electrical state).
-    run_solver_owned_ops(build_result_->solver_execute_ops, state_, dt);
+    run_solver_owned_ops(build_result_->electrical.execute_ops, state_, dt);
+
+    // == Hydraulic domain solve ==
+    if (!build_result_->hydraulic.plan.islands.empty()) {
+        state_.hydraulic_rt = &build_result_->hydraulic.runtime;
+        jit_solver_impl::build_common::init_element_values_from_plan(build_result_->hydraulic.plan, build_result_->hydraulic.runtime);
+        update_hydraulic_dynamic_sources(*build_result_, state_, build_result_->hydraulic.runtime);
+        solve_hydraulic(build_result_->hydraulic.plan, build_result_->hydraulic.runtime.element_value_a, state_, build_result_->hydraulic.runtime, dt);
+        run_solver_owned_ops(build_result_->hydraulic.execute_ops, state_, dt);
+    }
 
     build_result_->scheduler.step(state_, dt);
 
     // Explicit commit pass for solver-owned components (Battery discharge, etc).
     // These are NOT in the scheduler's source/consumer lists but need per-frame
     // commit to update internal state (e.g., Battery.charge).
-    run_solver_owned_ops(build_result_->solver_commit_ops, state_, dt);
+    run_solver_owned_ops(build_result_->electrical.commit_ops, state_, dt);
+
+    // Hydraulic commit pass
+    if (!build_result_->hydraulic.plan.islands.empty()) {
+        run_solver_owned_ops(build_result_->hydraulic.commit_ops, state_, dt);
+    }
 
     // Guard destructor clears state_.electrical_rt = nullptr here.
 
@@ -278,7 +300,7 @@ void Simulator<SolverTag>::step(double dt) {
 }
 
 template <typename SolverTag>
-float Simulator<SolverTag>::get_signal_value(ui::InternedId key) const {
+float Simulator<SolverTag>::get_signal_value(core::InternedId key) const {
     if (!build_result_.has_value() || key.empty()) {
         return 0.0f;
     }
@@ -291,7 +313,7 @@ float Simulator<SolverTag>::get_signal_value(ui::InternedId key) const {
 
 template <typename SolverTag>
 void Simulator<SolverTag>::apply_typed_overrides(
-    const std::vector<std::pair<ui::InternedId, float>>& overrides) {
+    const std::vector<std::pair<core::InternedId, float>>& overrides) {
     if (!build_result_.has_value()) {
         return;
     }
@@ -305,16 +327,16 @@ void Simulator<SolverTag>::apply_typed_overrides(
 }
 
 template <typename SolverTag>
-const ui::StringInterner& Simulator<SolverTag>::signal_key_interner() const {
+const core::StringInterner& Simulator<SolverTag>::signal_key_interner() const {
     if (build_result_.has_value()) {
         return build_result_->signal_key_interner;
     }
-    static const ui::StringInterner empty;
+    static const core::StringInterner empty;
     return empty;
 }
 
 template <typename SolverTag>
-ui::InternedId Simulator<SolverTag>::resolve_signal_key(
+core::InternedId Simulator<SolverTag>::resolve_signal_key(
     std::string_view node_id, std::string_view port_name) const {
     if (!build_result_.has_value()) return {};
     const std::string key = signal_key::make_node_port_key(node_id, port_name);

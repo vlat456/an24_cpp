@@ -17,7 +17,7 @@ namespace visual {
 // ============================================================================
 
 TextNodeWidget::TextNodeWidget(const bp2::Blueprint::Node& data,
-                               const ui::StringInterner& interner,
+                               const core::StringInterner& interner,
                                std::optional<editor::NodeColor> color)
     : node_iid_(data.semantic.id)
     , interner_(&interner)

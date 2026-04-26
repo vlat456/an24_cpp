@@ -163,7 +163,7 @@ bool Document::load(const std::string& path) {
 
     // Single authoritative scene rebuild for the root window.  Sub-windows
     // were closed above, so only the root needs rebuilding here.
-    visual::mutations::rebuild(scene(), model_.current(), interner_, arena_, std::span<const ui::InternedId>{}, reg,
+    visual::mutations::rebuild(scene(), model_.current(), interner_, arena_, std::span<const core::InternedId>{}, reg,
                                &runtime_node_states_);
     root().input.rebuild_snapshot();
 

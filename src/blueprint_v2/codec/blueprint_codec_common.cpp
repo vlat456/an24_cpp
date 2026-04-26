@@ -116,7 +116,7 @@ bool is_known_port_type_value(int v) {
 // ============================================================
 
 void assign_param_by_descriptor(Blueprint::Node& node,
-                                ui::StringInterner& interner,
+                                core::StringInterner& interner,
                                 std::string const& key,
                                 nlohmann::json const& val,
                                 ParamSpec const& schema,

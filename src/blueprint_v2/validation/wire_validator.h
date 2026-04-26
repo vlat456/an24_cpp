@@ -17,7 +17,7 @@ public:
     static Result validate(Blueprint::Wire const& wire,
                            Blueprint const& bp,
                            const ::ComponentRegistry& parser_registry,
-                           ui::StringInterner& interner);
+                           core::StringInterner& interner);
 };
 
 } // namespace bp2

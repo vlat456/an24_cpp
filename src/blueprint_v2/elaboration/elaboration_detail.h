@@ -11,7 +11,7 @@
 #include "core/model/component_kind.h"
 #include "core/model/resolved_device.h"
 #include "core/solvers/common/signal_key.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 
 #include <set>
 #include <string>
@@ -41,7 +41,7 @@ inline std::optional<ResolvedDevice> build_resolved_device(
     const std::string& dev_id,
     const std::string& classname,
     const ComponentSpec& type_def,
-    const ui::StringInterner& interner,
+    const core::StringInterner& interner,
     const ComponentRegistry& registry,
     bool fill_defaults)
 {
@@ -152,7 +152,7 @@ struct CollectedDevices {
 inline CollectedDevices collect_devices(
     const FlatNetlist& netlist,
     PathArena& arena,
-    const ui::StringInterner& interner,
+    const core::StringInterner& interner,
     const ComponentRegistry& type_registry,
     bool fill_defaults)
 {
@@ -201,7 +201,7 @@ template <typename Fn>
 inline SignalMapResult collect_port_signals(
     const FlatNetlist& netlist,
     PathArena& arena,
-    const ui::StringInterner& interner,
+    const core::StringInterner& interner,
     Fn&& on_key_sig)
 {
     SignalMapResult result;

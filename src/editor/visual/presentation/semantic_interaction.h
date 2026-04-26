@@ -12,10 +12,10 @@ enum class PointerPhase {
 };
 
 struct SemanticInteractionRequest {
-    ui::InternedId node_id;
-    ui::InternedId element_id;
-    ui::InternedId region_id;
-    ui::InternedId action_id;
+    core::InternedId node_id;
+    core::InternedId element_id;
+    core::InternedId region_id;
+    core::InternedId action_id;
     InteractionKind kind = InteractionKind::Click;
     float min_value = 0.0f;
     float max_value = 0.0f;

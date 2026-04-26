@@ -6,8 +6,8 @@ using namespace editor::presentation;
 
 namespace {
 
-SemanticInteractionRequest make_request(ui::InternedId node_id, ui::InternedId element_id,
-                                        ui::InternedId region_id, ui::InternedId action_id,
+SemanticInteractionRequest make_request(core::InternedId node_id, core::InternedId element_id,
+                                        core::InternedId region_id, core::InternedId action_id,
                                         InteractionKind kind) {
     SemanticInteractionRequest request;
     request.node_id = node_id;
@@ -18,8 +18,8 @@ SemanticInteractionRequest make_request(ui::InternedId node_id, ui::InternedId e
     return request;
 }
 
-SceneHitObject make_content_region(ui::InternedId node_id, ui::InternedId element_id,
-                                   ui::InternedId region_id) {
+SceneHitObject make_content_region(core::InternedId node_id, core::InternedId element_id,
+                                   core::InternedId region_id) {
     SceneHitObject object;
     object.node_id = node_id;
     object.element_id = element_id;
@@ -28,7 +28,7 @@ SceneHitObject make_content_region(ui::InternedId node_id, ui::InternedId elemen
     return object;
 }
 
-SceneHitObject make_node_body(ui::InternedId node_id) {
+SceneHitObject make_node_body(core::InternedId node_id) {
     SceneHitObject object;
     object.node_id = node_id;
     object.kind = SceneHitObjectKind::NodeBody;
@@ -39,16 +39,16 @@ SceneHitObject make_node_body(ui::InternedId node_id) {
 
 TEST(SemanticInteractionSessionTest, BeginCreatesActiveSessionAndCopiesIdentifiers) {
     SemanticInteractionRequest request =
-        make_request(ui::InternedId(10), ui::InternedId(20), ui::InternedId(30), ui::InternedId(100),
+        make_request(core::InternedId(10), core::InternedId(20), core::InternedId(30), core::InternedId(100),
                      InteractionKind::Click);
 
     SemanticInteractionSession session = begin_semantic_interaction_session(request);
 
     EXPECT_TRUE(session.active);
-    EXPECT_EQ(session.node_id, ui::InternedId(10));
-    EXPECT_EQ(session.element_id, ui::InternedId(20));
-    EXPECT_EQ(session.region_id, ui::InternedId(30));
-    EXPECT_EQ(session.action_id, ui::InternedId(100));
+    EXPECT_EQ(session.node_id, core::InternedId(10));
+    EXPECT_EQ(session.element_id, core::InternedId(20));
+    EXPECT_EQ(session.region_id, core::InternedId(30));
+    EXPECT_EQ(session.action_id, core::InternedId(100));
     EXPECT_EQ(session.kind, InteractionKind::Click);
 }
 
@@ -56,10 +56,10 @@ TEST(SemanticInteractionSessionTest, EndReturnsInactiveEmptySession) {
     SemanticInteractionSession session = end_semantic_interaction_session();
 
     EXPECT_FALSE(session.active);
-    EXPECT_EQ(session.node_id, ui::InternedId(0));
-    EXPECT_EQ(session.element_id, ui::InternedId(0));
-    EXPECT_EQ(session.region_id, ui::InternedId(0));
-    EXPECT_EQ(session.action_id, ui::InternedId(0));
+    EXPECT_EQ(session.node_id, core::InternedId(0));
+    EXPECT_EQ(session.element_id, core::InternedId(0));
+    EXPECT_EQ(session.region_id, core::InternedId(0));
+    EXPECT_EQ(session.action_id, core::InternedId(0));
     EXPECT_EQ(session.kind, InteractionKind::Click);
     EXPECT_FLOAT_EQ(session.min_value, 0.0f);
     EXPECT_FLOAT_EQ(session.max_value, 0.0f);
@@ -70,50 +70,50 @@ TEST(SemanticInteractionSessionTest, InactiveSessionNeverMatchesHit) {
     SemanticInteractionSession session;
     session.active = false;
 
-    SceneHitObject object = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                ui::InternedId(30));
+    SceneHitObject object = make_content_region(core::InternedId(10), core::InternedId(20),
+                                                core::InternedId(30));
 
     EXPECT_FALSE(session_matches_hit(session, SemanticHitContentRegion{&object}));
 }
 
 TEST(SemanticInteractionSessionTest, ActiveSessionMatchesContentHitWithSameNodeElementRegion) {
     SemanticInteractionRequest request =
-        make_request(ui::InternedId(10), ui::InternedId(20), ui::InternedId(30), ui::InternedId(100),
+        make_request(core::InternedId(10), core::InternedId(20), core::InternedId(30), core::InternedId(100),
                      InteractionKind::Click);
     SemanticInteractionSession session = begin_semantic_interaction_session(request);
 
-    SceneHitObject object = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                ui::InternedId(30));
+    SceneHitObject object = make_content_region(core::InternedId(10), core::InternedId(20),
+                                                core::InternedId(30));
 
     EXPECT_TRUE(session_matches_hit(session, SemanticHitContentRegion{&object}));
 }
 
 TEST(SemanticInteractionSessionTest, ActiveSessionDoesNotMatchNodeBodyHit) {
     SemanticInteractionRequest request =
-        make_request(ui::InternedId(10), ui::InternedId(20), ui::InternedId(30), ui::InternedId(100),
+        make_request(core::InternedId(10), core::InternedId(20), core::InternedId(30), core::InternedId(100),
                      InteractionKind::Click);
     SemanticInteractionSession session = begin_semantic_interaction_session(request);
 
-    SceneHitObject object = make_node_body(ui::InternedId(10));
+    SceneHitObject object = make_node_body(core::InternedId(10));
 
     EXPECT_FALSE(session_matches_hit(session, SemanticHitNodeBody{&object}));
 }
 
 TEST(SemanticInteractionSessionTest, ActiveSessionDoesNotMatchDifferentRegion) {
     SemanticInteractionRequest request =
-        make_request(ui::InternedId(10), ui::InternedId(20), ui::InternedId(30), ui::InternedId(100),
+        make_request(core::InternedId(10), core::InternedId(20), core::InternedId(30), core::InternedId(100),
                      InteractionKind::Click);
     SemanticInteractionSession session = begin_semantic_interaction_session(request);
 
-    SceneHitObject object = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                ui::InternedId(99));
+    SceneHitObject object = make_content_region(core::InternedId(10), core::InternedId(20),
+                                                core::InternedId(99));
 
     EXPECT_FALSE(session_matches_hit(session, SemanticHitContentRegion{&object}));
 }
 
 TEST(SemanticInteractionSessionTest, DragScalarSessionContinuesOnDragAndPreservesIdsKindAction) {
-    SemanticInteractionRequest request = make_request(ui::InternedId(10), ui::InternedId(20),
-                                                      ui::InternedId(30), ui::InternedId(100),
+    SemanticInteractionRequest request = make_request(core::InternedId(10), core::InternedId(20),
+                                                      core::InternedId(30), core::InternedId(100),
                                                       InteractionKind::DragScalar);
     SemanticInteractionSession session = begin_semantic_interaction_session(request);
 
@@ -121,16 +121,16 @@ TEST(SemanticInteractionSessionTest, DragScalarSessionContinuesOnDragAndPreserve
         continue_semantic_interaction_session(session, PointerPhase::Drag);
 
     ASSERT_TRUE(continuation.has_value());
-    EXPECT_EQ(continuation->node_id, ui::InternedId(10));
-    EXPECT_EQ(continuation->element_id, ui::InternedId(20));
-    EXPECT_EQ(continuation->region_id, ui::InternedId(30));
-    EXPECT_EQ(continuation->action_id, ui::InternedId(100));
+    EXPECT_EQ(continuation->node_id, core::InternedId(10));
+    EXPECT_EQ(continuation->element_id, core::InternedId(20));
+    EXPECT_EQ(continuation->region_id, core::InternedId(30));
+    EXPECT_EQ(continuation->action_id, core::InternedId(100));
     EXPECT_EQ(continuation->kind, InteractionKind::DragScalar);
 }
 
 TEST(SemanticInteractionSessionTest, DragDiscreteSessionContinuesOnDrag) {
-    SemanticInteractionRequest request = make_request(ui::InternedId(10), ui::InternedId(20),
-                                                      ui::InternedId(30), ui::InternedId(101),
+    SemanticInteractionRequest request = make_request(core::InternedId(10), core::InternedId(20),
+                                                      core::InternedId(30), core::InternedId(101),
                                                       InteractionKind::DragDiscrete);
     SemanticInteractionSession session = begin_semantic_interaction_session(request);
 
@@ -142,8 +142,8 @@ TEST(SemanticInteractionSessionTest, DragDiscreteSessionContinuesOnDrag) {
 }
 
 TEST(SemanticInteractionSessionTest, DragSessionDoesNotContinueOnPressOrRelease) {
-    SemanticInteractionRequest request = make_request(ui::InternedId(10), ui::InternedId(20),
-                                                      ui::InternedId(30), ui::InternedId(100),
+    SemanticInteractionRequest request = make_request(core::InternedId(10), core::InternedId(20),
+                                                      core::InternedId(30), core::InternedId(100),
                                                       InteractionKind::DragScalar);
     SemanticInteractionSession session = begin_semantic_interaction_session(request);
 
@@ -158,7 +158,7 @@ TEST(SemanticInteractionSessionTest, DragSessionDoesNotContinueOnPressOrRelease)
 
 TEST(SemanticInteractionSessionTest, PressSessionContinuesOnlyOnReleaseAndConvertsKind) {
     SemanticInteractionRequest request =
-        make_request(ui::InternedId(10), ui::InternedId(20), ui::InternedId(30), ui::InternedId(100),
+        make_request(core::InternedId(10), core::InternedId(20), core::InternedId(30), core::InternedId(100),
                      InteractionKind::Press);
     SemanticInteractionSession session = begin_semantic_interaction_session(request);
 
@@ -167,12 +167,12 @@ TEST(SemanticInteractionSessionTest, PressSessionContinuesOnlyOnReleaseAndConver
 
     ASSERT_TRUE(release_continuation.has_value());
     EXPECT_EQ(release_continuation->kind, InteractionKind::Release);
-    EXPECT_EQ(release_continuation->action_id, ui::InternedId(100));
+    EXPECT_EQ(release_continuation->action_id, core::InternedId(100));
 }
 
 TEST(SemanticInteractionSessionTest, PressSessionDoesNotContinueOnPressOrDrag) {
     SemanticInteractionRequest request =
-        make_request(ui::InternedId(10), ui::InternedId(20), ui::InternedId(30), ui::InternedId(100),
+        make_request(core::InternedId(10), core::InternedId(20), core::InternedId(30), core::InternedId(100),
                      InteractionKind::Press);
     SemanticInteractionSession session = begin_semantic_interaction_session(request);
 
@@ -187,7 +187,7 @@ TEST(SemanticInteractionSessionTest, PressSessionDoesNotContinueOnPressOrDrag) {
 
 TEST(SemanticInteractionSessionTest, ClickSessionDoesNotContinue) {
     SemanticInteractionRequest request =
-        make_request(ui::InternedId(10), ui::InternedId(20), ui::InternedId(30), ui::InternedId(100),
+        make_request(core::InternedId(10), core::InternedId(20), core::InternedId(30), core::InternedId(100),
                      InteractionKind::Click);
     SemanticInteractionSession session = begin_semantic_interaction_session(request);
 
@@ -215,7 +215,7 @@ TEST(SemanticInteractionSessionTest, InactiveSessionDoesNotContinue) {
 
 TEST(SemanticInteractionSessionTest, ReleaseSessionDoesNotContinue) {
     SemanticInteractionRequest request =
-        make_request(ui::InternedId(10), ui::InternedId(20), ui::InternedId(30), ui::InternedId(100),
+        make_request(core::InternedId(10), core::InternedId(20), core::InternedId(30), core::InternedId(100),
                      InteractionKind::Release);
     SemanticInteractionSession session = begin_semantic_interaction_session(request);
 
@@ -234,10 +234,10 @@ TEST(SemanticInteractionSessionTest, ReleaseSessionDoesNotContinue) {
 // Regression: drag continuation must preserve min_value/max_value/step from original request
 TEST(SemanticInteractionSessionTest, DragContinuationPreservesRangeAndStep) {
     SemanticInteractionRequest request;
-    request.node_id = ui::InternedId(10);
-    request.element_id = ui::InternedId(20);
-    request.region_id = ui::InternedId(30);
-    request.action_id = ui::InternedId(100);
+    request.node_id = core::InternedId(10);
+    request.element_id = core::InternedId(20);
+    request.region_id = core::InternedId(30);
+    request.action_id = core::InternedId(100);
     request.kind = InteractionKind::DragScalar;
     request.min_value = -5.0f;
     request.max_value = 15.0f;
@@ -257,10 +257,10 @@ TEST(SemanticInteractionSessionTest, DragContinuationPreservesRangeAndStep) {
 // Regression: begin_semantic_interaction_session must copy range fields
 TEST(SemanticInteractionSessionTest, BeginSessionCopiesRangeAndStep) {
     SemanticInteractionRequest request;
-    request.node_id = ui::InternedId(10);
-    request.element_id = ui::InternedId(20);
-    request.region_id = ui::InternedId(30);
-    request.action_id = ui::InternedId(100);
+    request.node_id = core::InternedId(10);
+    request.element_id = core::InternedId(20);
+    request.region_id = core::InternedId(30);
+    request.action_id = core::InternedId(100);
     request.kind = InteractionKind::DragDiscrete;
     request.min_value = 0.0f;
     request.max_value = 3.0f;

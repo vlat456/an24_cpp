@@ -19,7 +19,7 @@
 #include "editor/oscilloscope.h"
 #include "editor/identity.h"
 #include "editor/window/window_scope_id.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 
 using editor::DocumentId;
 
@@ -32,9 +32,9 @@ protected:
     /// Insert a probe directly into the model's internal partition.
     void emplace_probe(const DocumentId& doc_id,
                        const WindowScopeId& scope_id,
-                       ui::InternedId wire_iid,
+                       core::InternedId wire_iid,
                        const std::string& label = "",
-                       ui::InternedId signal_iid = {}) {
+                       core::InternedId signal_iid = {}) {
         auto& partition = model_.docs_[doc_id];
         ProbeKey key{scope_id, wire_iid};
         OscilloscopeProbe p;
@@ -48,7 +48,7 @@ protected:
     /// Direct sample injection into a probe's deque (for testing accumulation).
     void push_sample(const DocumentId& doc_id,
                      const WindowScopeId& scope_id,
-                     ui::InternedId wire_iid,
+                     core::InternedId wire_iid,
                      float value) {
         auto* partition = model_.find_doc(doc_id);
         ASSERT_NE(partition, nullptr);
@@ -72,7 +72,7 @@ protected:
     auto& docs() { return model_.docs_; }
 
     OscilloscopeModel model_;
-    ui::StringInterner interner_;
+    core::StringInterner interner_;
 };
 
 // =============================================================================

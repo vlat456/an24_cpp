@@ -2,7 +2,7 @@
 #include "blueprint_v2/codec/blueprint_codec.h"
 #include "blueprint_v2/validation/invariant_checker.h"
 #include "core/model/component_registry.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include <fstream>
 #include <sstream>
 #include <cerrno>
@@ -12,20 +12,20 @@
 
 bool validate_blueprint_for_persist(
     const bp2::Blueprint& bp,
-    ui::StringInterner& interner,
+    core::StringInterner& interner,
     const bp2::PathArena& arena,
     const ComponentRegistry& parser_registry,
     std::string* error_out);
 
 bool validate_blueprint_integrity(
         const bp2::Blueprint& bp,
-        ui::StringInterner& interner,
+        core::StringInterner& interner,
         const bp2::PathArena& arena,
         const ComponentRegistry& parser_registry,
         std::string* error_out);
 
 bool save_blueprint_to_file(const bp2::Blueprint& bp,
-                            ui::StringInterner& interner,
+                            core::StringInterner& interner,
                             bp2::PathArena const& arena,
                             const ComponentRegistry& parser_registry,
                             const char* path) {
@@ -38,7 +38,7 @@ bool save_blueprint_to_file(const bp2::Blueprint& bp,
 
 std::optional<bp2::Blueprint> load_blueprint_from_file(
         const char* path,
-        ui::StringInterner& interner,
+        core::StringInterner& interner,
         bp2::PathArena& arena,
         const ComponentRegistry& parser_registry) {
     std::ifstream file(path);
@@ -56,7 +56,7 @@ std::optional<bp2::Blueprint> load_blueprint_from_file(
 
 std::optional<bp2::Blueprint> load_blueprint_from_file_validated(
         const char* path,
-        ui::StringInterner& interner,
+        core::StringInterner& interner,
         bp2::PathArena& arena,
         const ComponentRegistry& parser_registry) {
     auto bp = load_blueprint_from_file(path, interner, arena, parser_registry);
@@ -75,7 +75,7 @@ std::optional<bp2::Blueprint> load_blueprint_from_file_validated(
 
 bool validate_blueprint_for_persist(
         const bp2::Blueprint& bp,
-        ui::StringInterner& interner,
+        core::StringInterner& interner,
         const bp2::PathArena& arena,
         const ComponentRegistry& parser_registry,
         std::string* error_out) {
@@ -104,7 +104,7 @@ bool validate_blueprint_for_persist(
 
 bool validate_blueprint_integrity(
         const bp2::Blueprint& bp,
-        ui::StringInterner& interner,
+        core::StringInterner& interner,
         const bp2::PathArena& arena,
         const ComponentRegistry& parser_registry,
         std::string* error_out) {

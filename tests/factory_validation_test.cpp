@@ -173,26 +173,26 @@ TEST(FactoryValidationTest, Factory_CreatesAllKnownComponents) {
 // Test that port registry constants match get_component_ports() size
 // ---------------------------------------------------------------------------
 TEST(FactoryValidationTest, PortRegistryConstants_AreCorrect) {
-    EXPECT_EQ(Switch_PORT_COUNT, get_component_ports(ComponentKind::Switch).size());
-    EXPECT_EQ(Relay_PORT_COUNT, get_component_ports(ComponentKind::Relay).size());
-    EXPECT_EQ(RefNode_PORT_COUNT, get_component_ports(ComponentKind::RefNode).size());
-    EXPECT_EQ(Bus_PORT_COUNT, get_component_ports(ComponentKind::Bus).size());
-    EXPECT_EQ(Gyroscope_PORT_COUNT, get_component_ports(ComponentKind::Gyroscope).size());
-    EXPECT_EQ(Transformer_PORT_COUNT, get_component_ports(ComponentKind::Transformer).size());
-    EXPECT_EQ(Inverter_PORT_COUNT, get_component_ports(ComponentKind::Inverter).size());
-    EXPECT_EQ(LerpNode_PORT_COUNT, get_component_ports(ComponentKind::LerpNode).size());
-    EXPECT_EQ(IndicatorLight_PORT_COUNT, get_component_ports(ComponentKind::IndicatorLight).size());
-    EXPECT_EQ(ElectricPump_PORT_COUNT, get_component_ports(ComponentKind::ElectricPump).size());
-    EXPECT_EQ(SolenoidValve_PORT_COUNT, get_component_ports(ComponentKind::SolenoidValve).size());
-    EXPECT_EQ(InertiaNode_PORT_COUNT, get_component_ports(ComponentKind::InertiaNode).size());
-    EXPECT_EQ(TempSensor_PORT_COUNT, get_component_ports(ComponentKind::TempSensor).size());
-    EXPECT_EQ(ElectricHeater_PORT_COUNT, get_component_ports(ComponentKind::ElectricHeater).size());
-    EXPECT_EQ(Radiator_PORT_COUNT, get_component_ports(ComponentKind::Radiator).size());
-    EXPECT_EQ(Comparator_PORT_COUNT, get_component_ports(ComponentKind::Comparator).size());
-    EXPECT_EQ(AZS_PORT_COUNT, get_component_ports(ComponentKind::AZS).size());
-    EXPECT_EQ(AND_PORT_COUNT, get_component_ports(ComponentKind::AND).size());
-    EXPECT_EQ(OR_PORT_COUNT, get_component_ports(ComponentKind::OR).size());
-    EXPECT_EQ(NOT_PORT_COUNT, get_component_ports(ComponentKind::NOT).size());
+    EXPECT_EQ(port_count(ComponentKind::Switch), get_component_ports(ComponentKind::Switch).size());
+    EXPECT_EQ(port_count(ComponentKind::Relay), get_component_ports(ComponentKind::Relay).size());
+    EXPECT_EQ(port_count(ComponentKind::RefNode), get_component_ports(ComponentKind::RefNode).size());
+    EXPECT_EQ(port_count(ComponentKind::Bus), get_component_ports(ComponentKind::Bus).size());
+    EXPECT_EQ(port_count(ComponentKind::Gyroscope), get_component_ports(ComponentKind::Gyroscope).size());
+    EXPECT_EQ(port_count(ComponentKind::Transformer), get_component_ports(ComponentKind::Transformer).size());
+    EXPECT_EQ(port_count(ComponentKind::Inverter), get_component_ports(ComponentKind::Inverter).size());
+    EXPECT_EQ(port_count(ComponentKind::LerpNode), get_component_ports(ComponentKind::LerpNode).size());
+    EXPECT_EQ(port_count(ComponentKind::IndicatorLight), get_component_ports(ComponentKind::IndicatorLight).size());
+    EXPECT_EQ(port_count(ComponentKind::ElectricPump), get_component_ports(ComponentKind::ElectricPump).size());
+    EXPECT_EQ(port_count(ComponentKind::SolenoidValve), get_component_ports(ComponentKind::SolenoidValve).size());
+    EXPECT_EQ(port_count(ComponentKind::InertiaNode), get_component_ports(ComponentKind::InertiaNode).size());
+    EXPECT_EQ(port_count(ComponentKind::TempSensor), get_component_ports(ComponentKind::TempSensor).size());
+    EXPECT_EQ(port_count(ComponentKind::ElectricHeater), get_component_ports(ComponentKind::ElectricHeater).size());
+    EXPECT_EQ(port_count(ComponentKind::Radiator), get_component_ports(ComponentKind::Radiator).size());
+    EXPECT_EQ(port_count(ComponentKind::Comparator), get_component_ports(ComponentKind::Comparator).size());
+    EXPECT_EQ(port_count(ComponentKind::AZS), get_component_ports(ComponentKind::AZS).size());
+    EXPECT_EQ(port_count(ComponentKind::AND), get_component_ports(ComponentKind::AND).size());
+    EXPECT_EQ(port_count(ComponentKind::OR), get_component_ports(ComponentKind::OR).size());
+    EXPECT_EQ(port_count(ComponentKind::NOT), get_component_ports(ComponentKind::NOT).size());
 }
 
 // ---------------------------------------------------------------------------

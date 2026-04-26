@@ -42,8 +42,8 @@ constexpr int render_layer_order(SceneRenderObjectKind kind) {
 
 struct SceneRenderObject {
     SceneObjectId id;
-    ui::InternedId node_id;
-    ui::InternedId element_id;
+    core::InternedId node_id;
+    core::InternedId element_id;
     SceneRenderObjectKind kind = SceneRenderObjectKind::ContentPaint;
     NodeFrameKind frame_kind = NodeFrameKind::Standard;
     PaintPrimitiveKind primitive = PaintPrimitiveKind::Text;
@@ -71,9 +71,9 @@ constexpr int hit_layer_order(SceneHitObjectKind kind) {
 
 struct SceneHitObject {
     SceneObjectId id;
-    ui::InternedId node_id;
-    ui::InternedId element_id;
-    ui::InternedId region_id;
+    core::InternedId node_id;
+    core::InternedId element_id;
+    core::InternedId region_id;
     SceneHitObjectKind kind = SceneHitObjectKind::ContentRegion;
     HitShapeKind shape = HitShapeKind::Rectangle;
     ui::Rect bounds;
@@ -86,7 +86,7 @@ struct SceneObjectRange {
 };
 
 struct SceneNodeIndexEntry {
-    ui::InternedId node_id;
+    core::InternedId node_id;
     SceneObjectRange render_range;
     SceneObjectRange hit_range;
 };
@@ -115,11 +115,11 @@ SemanticSceneSnapshot build_content_semantic_scene_snapshot(
 
 const SceneRenderObject* find_render_object_by_id(const SemanticSceneSnapshot& snapshot, SceneObjectId id);
 const SceneHitObject* find_hit_object_by_id(const SemanticSceneSnapshot& snapshot, SceneObjectId id);
-const SceneNodeIndexEntry* find_scene_node_index(const SemanticSceneSnapshot& snapshot, ui::InternedId node_id);
-const SceneHitObject* find_hit_object_by_region_id(const SemanticSceneSnapshot& snapshot, ui::InternedId region_id);
+const SceneNodeIndexEntry* find_scene_node_index(const SemanticSceneSnapshot& snapshot, core::InternedId node_id);
+const SceneHitObject* find_hit_object_by_region_id(const SemanticSceneSnapshot& snapshot, core::InternedId region_id);
 std::vector<const SceneRenderObject*> ordered_render_objects(const SemanticSceneSnapshot& snapshot);
 std::vector<const SceneHitObject*> ordered_hit_objects(const SemanticSceneSnapshot& snapshot);
-std::vector<const SceneHitObject*> hit_objects_for_node(const SemanticSceneSnapshot& snapshot, ui::InternedId node_id);
-std::vector<const SceneHitObject*> hit_objects_for_region(const SemanticSceneSnapshot& snapshot, ui::InternedId region_id);
+std::vector<const SceneHitObject*> hit_objects_for_node(const SemanticSceneSnapshot& snapshot, core::InternedId node_id);
+std::vector<const SceneHitObject*> hit_objects_for_region(const SemanticSceneSnapshot& snapshot, core::InternedId region_id);
 
 } // namespace editor::presentation

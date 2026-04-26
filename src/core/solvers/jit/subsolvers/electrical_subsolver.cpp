@@ -1,106 +1,10 @@
 #include "electrical_subsolver.h"
+#include "nodal_core.h"
+
 #include <algorithm>
 #include <cassert>
 #include <cmath>
-#include <cstdio>
 #include <cstring>
-
-namespace {
-
-// Gaussian elimination with partial pivoting for small dense matrices.
-// Solves A*x = b in-place. Returns false on singular/near-singular matrix.
-[[nodiscard]] bool solve_dense_gaussian(float* A, float* b, int N) noexcept {
-    if (N == 0) return true;
-
-    for (int col = 0; col < N; ++col) {
-        // Find pivot row
-        int pivot_row = col;
-        float max_abs = std::fabs(A[col * N + col]);
-        for (int row = col + 1; row < N; ++row) {
-            float abs_val = std::fabs(A[row * N + col]);
-            if (abs_val > max_abs) {
-                max_abs = abs_val;
-                pivot_row = row;
-            }
-        }
-
-        // Check singularity
-        if (max_abs < 1e-12f) {
-            return false;
-        }
-
-        // Swap rows if needed
-        if (pivot_row != col) {
-            for (int j = 0; j < N; ++j) {
-                std::swap(A[col * N + j], A[pivot_row * N + j]);
-            }
-            std::swap(b[col], b[pivot_row]);
-        }
-
-        // Normalize pivot row
-        float pivot = A[col * N + col];
-        for (int j = 0; j < N; ++j) {
-            A[col * N + j] /= pivot;
-        }
-        b[col] /= pivot;
-
-        // Eliminate column in other rows
-        for (int row = 0; row < N; ++row) {
-            if (row == col) continue;
-            float factor = A[row * N + col];
-            if (std::fabs(factor) < 1e-15f) continue;
-            for (int j = 0; j < N; ++j) {
-                A[row * N + j] -= factor * A[col * N + j];
-            }
-            b[row] -= factor * b[col];
-        }
-    }
-    return true;
-}
-
-/// Look up dense index for a signal node within a sorted island_nodes array.
-/// Returns -1 if node is not found (should never happen for well-formed islands).
-int find_node_index(const std::vector<uint32_t>& island_nodes, uint32_t node) {
-    auto it = std::lower_bound(island_nodes.begin(), island_nodes.end(), node);
-    if (it != island_nodes.end() && *it == node) {
-        return static_cast<int>(it - island_nodes.begin());
-    }
-    return -1;
-}
-
-/// Stamp conductance g between two nodes into the matrix system.
-/// Handles all combinations of fixed/unknown nodes.
-void stamp_conductance(
-    float* A, float* b, int N,
-    float g,
-    int node_a_idx, int node_b_idx,
-    const std::vector<int>& node_to_unknown,
-    const std::vector<uint8_t>& is_fixed,
-    const std::vector<float>& fixed_voltages
-) {
-    bool a_fixed = is_fixed[node_a_idx];
-    bool b_fixed = is_fixed[node_b_idx];
-
-    if (!a_fixed && !b_fixed) {
-        int ia = node_to_unknown[node_a_idx];
-        int ib = node_to_unknown[node_b_idx];
-        A[ia * N + ia] += g;
-        A[ib * N + ib] += g;
-        A[ia * N + ib] -= g;
-        A[ib * N + ia] -= g;
-    } else if (!a_fixed && b_fixed) {
-        int ia = node_to_unknown[node_a_idx];
-        A[ia * N + ia] += g;
-        b[ia] += g * fixed_voltages[node_b_idx];
-    } else if (a_fixed && !b_fixed) {
-        int ib = node_to_unknown[node_b_idx];
-        A[ib * N + ib] += g;
-        b[ib] += g * fixed_voltages[node_a_idx];
-    }
-    // Both fixed: no matrix stamp needed.
-}
-
-} // anonymous namespace
 
 void solve_electrical(
     const ElectricalBuildPlan& plan,
@@ -180,7 +84,7 @@ void solve_electrical(
         std::fill(rt.is_fixed.begin(), rt.is_fixed.end(), false);
 
         for (const auto& fn : rt.fixed_nodes) {
-            int idx = find_node_index(rt.island_nodes, fn.first);
+            int idx = nodal::find_node_index(rt.island_nodes, fn.first);
             if (idx >= 0) {
                 rt.fixed_voltages[idx] = fn.second;
                 rt.is_fixed[idx] = true;
@@ -209,10 +113,10 @@ void solve_electrical(
 
         // Stamp all elements into conductance matrix
         for (const auto& elem : island.elements) {
-            int node_a_idx = find_node_index(rt.island_nodes, elem.node_a);
+            int node_a_idx = nodal::find_node_index(rt.island_nodes, elem.node_a);
             // node_b may be UINT32_MAX for FixedVoltageNode (unused)
             int node_b_idx = (elem.node_b != UINT32_MAX)
-                ? find_node_index(rt.island_nodes, elem.node_b) : -1;
+                ? nodal::find_node_index(rt.island_nodes, elem.node_b) : -1;
 
             if (node_a_idx == -1 || (elem.node_b != UINT32_MAX && node_b_idx == -1)) {
                 assert(false && "Element references node not in island");
@@ -225,7 +129,7 @@ void solve_electrical(
                     assert(false && "Negative conductance");
                     g = 0.0f;  // Release: clamp to zero (open circuit)
                 }
-                stamp_conductance(A, b, N, g, node_a_idx, node_b_idx,
+                nodal::stamp_conductance(A, b, N, g, node_a_idx, node_b_idx,
                                   rt.node_to_unknown, rt.is_fixed, rt.fixed_voltages);
             }
             else if (elem.kind == ElectricalElementKind::TheveninSource) {
@@ -236,17 +140,12 @@ void solve_electrical(
                 float g = 1.0f / safe_r;
                 float In = Vth * g;
 
-                stamp_conductance(A, b, N, g, node_a_idx, node_b_idx,
+                nodal::stamp_conductance(A, b, N, g, node_a_idx, node_b_idx,
                                   rt.node_to_unknown, rt.is_fixed, rt.fixed_voltages);
 
-                // Stamp Norton current source: In flows from node_b to node_a.
-                // Positive current injected into a node adds to RHS.
-                if (!rt.is_fixed[node_a_idx]) {
-                    b[rt.node_to_unknown[node_a_idx]] += In;
-                }
-                if (!rt.is_fixed[node_b_idx]) {
-                    b[rt.node_to_unknown[node_b_idx]] -= In;
-                }
+                // Stamp Norton current source via shared utility.
+                nodal::stamp_norton_source(b, In, node_a_idx, node_b_idx,
+                                           rt.node_to_unknown, rt.is_fixed);
             }
             // FixedVoltageNode: no matrix stamping (handled via fixed map)
         }
@@ -254,43 +153,12 @@ void solve_electrical(
         // Solve linear system if there are unknowns.
         // In editor/runtime we must never hard-crash on singular islands;
         // malformed or underconstrained user graphs are expected during editing.
-        bool solve_ok = true;
-        if (N > 0) {
-            // Phase 5 specialization scaffold: 1x1 dense solve kernel.
-            // This is a common island family (single unknown node) and avoids
-            // invoking full Gaussian elimination for N==1.
-            if (N == 1) {
-                rt.counters.solves_n1++;
-                float a00 = A[0];
-                if (std::fabs(a00) < 1e-12f) {
-                    solve_ok = false;
-                } else {
-                    b[0] /= a00;
-                }
-            } else if (N == 2) {
-                rt.counters.solves_n2++;
-                // Phase 5 specialization scaffold: 2x2 dense solve kernel.
-                // Solve:
-                //   [a00 a01] [x0] = [b0]
-                //   [a10 a11] [x1]   [b1]
-                // via closed-form inverse with singular guard.
-                float a00 = A[0], a01 = A[1];
-                float a10 = A[2], a11 = A[3];
-                float b0 = b[0], b1 = b[1];
-                float det = a00 * a11 - a01 * a10;
-                if (std::fabs(det) < 1e-12f) {
-                    solve_ok = false;
-                } else {
-                    b[0] = (b0 * a11 - b1 * a01) / det;
-                    b[1] = (a00 * b1 - a10 * b0) / det;
-                }
-            } else {
-                rt.counters.solves_dense++;
-                solve_ok = solve_dense_gaussian(A, b, N);
-                // After in-place solve, b[] contains the solution vector.
-            }
-        } else {
-            rt.counters.solves_n0++;
+        auto [solve_ok, category] = nodal::solve_linear_system(A, b, N);
+        switch (category) {
+            case nodal::SolveCategory::N0: rt.counters.solves_n0++; break;
+            case nodal::SolveCategory::N1: rt.counters.solves_n1++; break;
+            case nodal::SolveCategory::N2: rt.counters.solves_n2++; break;
+            case nodal::SolveCategory::Dense: rt.counters.solves_dense++; break;
         }
 
         if (!solve_ok) {
@@ -335,8 +203,8 @@ void solve_electrical(
                 continue;
             }
 
-            int node_a_idx = find_node_index(rt.island_nodes, elem.node_a);
-            int node_b_idx = find_node_index(rt.island_nodes, elem.node_b);
+            int node_a_idx = nodal::find_node_index(rt.island_nodes, elem.node_a);
+            int node_b_idx = nodal::find_node_index(rt.island_nodes, elem.node_b);
             if (node_a_idx == -1 || node_b_idx == -1) {
                 assert(false && "Element references node not in island during current computation");
                 continue;  // Release: skip malformed element
@@ -378,8 +246,8 @@ void solve_electrical(
                     continue;
                 }
 
-                int node_a_idx = find_node_index(rt.island_nodes, elem.node_a);
-                int node_b_idx = find_node_index(rt.island_nodes, elem.node_b);
+                int node_a_idx = nodal::find_node_index(rt.island_nodes, elem.node_a);
+                int node_b_idx = nodal::find_node_index(rt.island_nodes, elem.node_b);
                 if (node_a_idx == -1 || node_b_idx == -1) {
                     continue;
                 }

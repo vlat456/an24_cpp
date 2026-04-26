@@ -11,7 +11,7 @@
 #include "blueprint_v2/library/type_def_to_blueprint.h"
 #include "blueprint_v2/elaboration/sim_export.h"
 #include "jit_build_input_test_helper.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 
 #include <nlohmann/json.hpp>
 #include <cmath>
@@ -743,7 +743,7 @@ TEST(PushBuildValidation, ExpandSubBlueprintReferences_CleansLoadingStackAfterFa
     clean_registry.register_type("LeafComposite", leaf_composite);
     clean_registry.register_type("Wrapper", wrapper);
 
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::BlueprintLibrary library;
     for (const auto& [name, spec] : clean_registry.all_types()) {
         if (is_composite(spec)) {

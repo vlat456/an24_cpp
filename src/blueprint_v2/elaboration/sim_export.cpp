@@ -13,7 +13,7 @@ namespace bp2::elaboration {
 std::vector<BridgePortDefinition> extract_bridge_definitions(
     const FlatNetlist& netlist,
     PathArena& arena,
-    const ui::StringInterner& interner)
+    const core::StringInterner& interner)
 {
     std::vector<BridgePortDefinition> bridges;
     for (const auto& comp : netlist.components) {
@@ -52,7 +52,7 @@ std::vector<BridgePortDefinition> extract_bridge_definitions(
 JitBuildInput elaborate_for_jit(
     const FlatNetlist& netlist,
     PathArena& arena,
-    const ui::StringInterner& interner,
+    const core::StringInterner& interner,
     const ComponentRegistry& type_registry) {
 
     JitBuildInput result;

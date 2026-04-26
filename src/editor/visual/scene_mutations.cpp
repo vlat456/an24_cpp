@@ -17,7 +17,7 @@
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/path/path.h"
 #include "core/model/component_registry.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include "visual/snap.h"
 #include <algorithm>
 #include <cassert>
@@ -46,10 +46,10 @@ static std::optional<BusWireRef> to_bus_wire_ref(const bp2::Blueprint::Wire& w,
 
 /// Resolve a node/port endpoint to a visual::Port* in the scene.
 static Port* resolve_port(Scene& scene,
-                          ui::InternedId node_id,
-                          ui::InternedId port_name,
-                          ui::InternedId wire_id,
-                          const ui::StringInterner& interner) {
+                          core::InternedId node_id,
+                          core::InternedId port_name,
+                          core::InternedId wire_id,
+                          const core::StringInterner& interner) {
     std::string_view node_sv = interner.resolve(node_id);
     Widget* widget = scene.find(node_sv);
     if (!widget) return nullptr;
@@ -62,7 +62,7 @@ static Port* resolve_port(Scene& scene,
 static visual::Wire* create_wire_widget(Scene& scene,
                                         const bp2::Blueprint::Wire& w,
                                         const bp2::PathArena& arena,
-                                        const ui::StringInterner& interner) {
+                                        const core::StringInterner& interner) {
     auto [src_node_id, src_port] = editor_math::path_to_node_port(w.source, arena);
     auto [tgt_node_id, tgt_port] = editor_math::path_to_node_port(w.target, arena);
     if (src_node_id.empty() || src_port.empty() || tgt_node_id.empty() || tgt_port.empty()) {
@@ -101,11 +101,11 @@ static visual::Wire* create_wire_widget(Scene& scene,
 static void orient_ref_node_ports(Scene& scene,
                                   const bp2::Blueprint& bp,
                                   const bp2::PathArena& arena,
-                                  const ui::StringInterner& interner,
-                                  std::span<const ui::InternedId> /*instance_path*/,
+                                  const core::StringInterner& interner,
+                                  std::span<const core::InternedId> /*instance_path*/,
                                   const ComponentRegistry& registry) {
     using editor::presentation::NodeFrameKind;
-    std::unordered_map<ui::InternedId, ui::InternedId> ref_to_connected;
+    std::unordered_map<core::InternedId, core::InternedId> ref_to_connected;
 
     for (const bp2::Blueprint::Wire& w : bp.wires()) {
         auto [src_node_id, _src_port] = editor_math::path_to_node_port(w.source, arena);
@@ -165,9 +165,9 @@ static void orient_ref_node_ports(Scene& scene,
 /// derive color via `NodeColor::to_uint32()` and must stay in sync.
 void rebuild(Scene& scene,
              const bp2::Blueprint& bp,
-             ui::StringInterner& interner,
+             core::StringInterner& interner,
              bp2::PathArena& arena,
-             std::span<const ui::InternedId> instance_path,
+             std::span<const core::InternedId> instance_path,
              const ComponentRegistry& registry,
              const editor::RuntimeNodeStateStore* runtime_state_store) {
     auto guard = scene.flushGuard();

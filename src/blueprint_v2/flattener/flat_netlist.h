@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include "blueprint_v2/path/path.h"
 #include "blueprint_v2/interface/port_descriptor.h"
 #include "core/domain_types.h"
@@ -15,12 +15,12 @@ using SignalIndex = uint32_t;
 struct FlatNetlist {
     struct Component {
         Path path;
-        ui::InternedId type;
-        ui::InternedId exposed_port_name;
-        std::unordered_map<ui::InternedId, float> params;
+        core::InternedId type;
+        core::InternedId exposed_port_name;
+        std::unordered_map<core::InternedId, float> params;
         std::unordered_map<std::string, std::string> string_params;
         std::vector<PortDescriptor> ports;
-        std::vector<std::pair<ui::InternedId, SignalIndex>> port_signals;
+        std::vector<std::pair<core::InternedId, SignalIndex>> port_signals;
     };
 
     struct Signal {

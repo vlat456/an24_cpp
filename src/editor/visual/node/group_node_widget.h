@@ -2,7 +2,7 @@
 #include "visual/widget.h"
 #include "visual/render_context.h"
 #include "editor/data/node_state.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include "data/node_content.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include <string>
@@ -19,7 +19,7 @@ namespace visual {
 class GroupNodeWidget : public Widget {
 public:
     explicit GroupNodeWidget(const bp2::Blueprint::Node& data,
-                             const ui::StringInterner& interner,
+                             const core::StringInterner& interner,
                              std::optional<editor::NodeColor> color = std::nullopt);
 
     std::string_view id() const override { return interner_->resolve(node_iid_); }
@@ -44,8 +44,8 @@ public:
     void renderPost(IDrawList* dl, const RenderContext& ctx) const override;
 
 private:
-    ui::InternedId node_iid_;
-    const ui::StringInterner* interner_;
+    core::InternedId node_iid_;
+    const core::StringInterner* interner_;
     std::string name_;
     std::optional<uint32_t> custom_fill_;
 };

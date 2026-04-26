@@ -31,7 +31,7 @@ std::string find_closed_circuit_blueprint() {
 TEST(StrictBlueprintPersistence, ClosedCircuitDocumentLoadsThroughStrictCanonicalPath) {
     const std::string path = find_closed_circuit_blueprint();
 
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry registry = load_component_registry("library/");
 

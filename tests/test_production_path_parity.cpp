@@ -91,7 +91,7 @@ TEST(ProductionPathParity, MultiIslandDebugAndPlanParity) {
 
     BuildResult jit_result = run_jit_flattener_path(circuit, registry);
 
-    EXPECT_EQ(jit_result.electrical_plan.islands.size(), 2u)
+    EXPECT_EQ(jit_result.electrical.plan.islands.size(), 2u)
         << "JIT must detect two electrical islands";
 
     EXPECT_NE(aot_result.header.find("ELECTRICAL_ISLAND_COUNT = 2"), std::string::npos)

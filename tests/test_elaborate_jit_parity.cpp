@@ -13,7 +13,7 @@
 #include "blueprint_v2/path/path.h"
 #include "core/solvers/jit/simulator.h"
 #include "io/json/component_registry_json_loader.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 
 #include <nlohmann/json.hpp>
 
@@ -71,7 +71,7 @@ static std::string find_library_dir() {
     return {};
 }
 
-bp2::BlueprintLibrary build_library(const ComponentRegistry& registry, ui::StringInterner& interner) {
+bp2::BlueprintLibrary build_library(const ComponentRegistry& registry, core::StringInterner& interner) {
     bp2::BlueprintLibrary library;
     for (const auto& [classname, spec] : registry.all_types()) {
         if (is_primitive(spec)) continue;
@@ -85,7 +85,7 @@ bp2::BlueprintLibrary build_library(const ComponentRegistry& registry, ui::Strin
 }
 
 std::set<std::set<std::string>> extract_topology(const PortToSignal& p2s,
-                                                const ui::StringInterner& interner) {
+                                                const core::StringInterner& interner) {
     std::map<uint32_t, std::set<std::string>> groups;
     for (const auto& [port_id, sig] : p2s) {
         groups[sig].insert(std::string(interner.resolve(port_id)));
@@ -112,7 +112,7 @@ std::set<std::set<std::string>> parse_topology(const json& topology_json) {
     return topo;
 }
 
-json make_topology_json(const PortToSignal& p2s, const ui::StringInterner& interner) {
+json make_topology_json(const PortToSignal& p2s, const core::StringInterner& interner) {
     std::map<uint32_t, std::vector<std::string>> groups;
     for (const auto& [port_id, sig] : p2s) {
         groups[sig].push_back(std::string(interner.resolve(port_id)));
@@ -199,7 +199,7 @@ protected:
     }
 
     JitBuildInput build_input() const {
-        ui::StringInterner interner;
+        core::StringInterner interner;
         bp2::PathArena arena(interner);
         bp2::BlueprintLibrary library = build_library(registry_, interner);
 

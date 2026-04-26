@@ -23,7 +23,7 @@ namespace {
 /// corresponding PortDescriptor in the blueprint's Interface so the parent's
 /// view of the embedded instance's ports stays consistent.
 void sync_iface_port_type(bp2::Blueprint& bp,
-                          ui::InternedId exposed_port_name,
+                          core::InternedId exposed_port_name,
                           PortType new_type) {
     const Domain new_domain = editor::common::domain_for_port_type(new_type);
     std::vector<bp2::PortDescriptor> ports = bp.iface().ports();
@@ -129,9 +129,9 @@ static std::string serialize_table_entries(const std::vector<float>& keys,
 }
 
 void PropertiesWindow::open(const bp2::Blueprint::Node& node,
-                              ui::InternedId node_id,
+                              core::InternedId node_id,
                               std::unique_ptr<EditingHost> owned_host,
-                              ui::StringInterner& interner,
+                              core::StringInterner& interner,
                               const ComponentRegistry* type_registry,
                               PropertyCallback on_apply) {
     if (!owned_host) {
@@ -145,8 +145,8 @@ void PropertiesWindow::open(const bp2::Blueprint::Node& node,
 }
 
 void PropertiesWindow::initialize_from_node(const bp2::Blueprint::Node& node,
-                                             ui::InternedId node_id,
-                                             ui::StringInterner& interner,
+                                             core::InternedId node_id,
+                                             core::StringInterner& interner,
                                              const ComponentRegistry* type_registry,
                                              PropertyCallback on_apply) {
     target_node_id_ = node_id;
@@ -575,7 +575,7 @@ void PropertiesWindow::apply() {
         return;
     }
 
-    ui::InternedId node_iid = target_node_id_;
+    core::InternedId node_iid = target_node_id_;
 
     bool has_changes = false;
 
@@ -659,7 +659,7 @@ void PropertiesWindow::apply() {
                 }
             }
             if (!handled_as_bool) {
-                ui::InternedId key_iid = interner_->intern(key);
+                core::InternedId key_iid = interner_->intern(key);
                 updated.semantic.params[key_iid] = new_value;
             }
         }

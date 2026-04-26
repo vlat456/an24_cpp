@@ -9,9 +9,9 @@ using semantic_test::make_binding;
 
 TEST(SemanticCanvasControllerTest, PointerPressProcessesThroughController) {
     SemanticSceneSnapshot snapshot;
-    SceneHitObject region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
-    region.interactions.push_back(make_binding(ui::InternedId(30), InteractionKind::Press, ui::InternedId(100)));
+    SceneHitObject region = make_content_region(core::InternedId(10), core::InternedId(20),
+                                                core::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
+    region.interactions.push_back(make_binding(core::InternedId(30), InteractionKind::Press, core::InternedId(100)));
     snapshot.hit_objects.push_back(region);
 
     SemanticCanvasController controller;
@@ -26,9 +26,9 @@ TEST(SemanticCanvasControllerTest, PointerPressProcessesThroughController) {
 
 TEST(SemanticCanvasControllerTest, DragOffHitContinuesDrag) {
     SemanticSceneSnapshot snapshot;
-    SceneHitObject region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
-    region.interactions.push_back(make_binding(ui::InternedId(30), InteractionKind::DragScalar, ui::InternedId(101)));
+    SceneHitObject region = make_content_region(core::InternedId(10), core::InternedId(20),
+                                                core::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
+    region.interactions.push_back(make_binding(core::InternedId(30), InteractionKind::DragScalar, core::InternedId(101)));
     snapshot.hit_objects.push_back(region);
 
     SemanticCanvasController controller;
@@ -46,9 +46,9 @@ TEST(SemanticCanvasControllerTest, DragOffHitContinuesDrag) {
 
 TEST(SemanticCanvasControllerTest, ReleaseEndsStateEvenOffHit) {
     SemanticSceneSnapshot snapshot;
-    SceneHitObject region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
-    region.interactions.push_back(make_binding(ui::InternedId(30), InteractionKind::DragScalar, ui::InternedId(101)));
+    SceneHitObject region = make_content_region(core::InternedId(10), core::InternedId(20),
+                                                core::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
+    region.interactions.push_back(make_binding(core::InternedId(30), InteractionKind::DragScalar, core::InternedId(101)));
     snapshot.hit_objects.push_back(region);
 
     SemanticCanvasController controller;
@@ -66,9 +66,9 @@ TEST(SemanticCanvasControllerTest, ReleaseEndsStateEvenOffHit) {
 
 TEST(SemanticCanvasControllerTest, CancelDelegatesToSemanticHost) {
     SemanticSceneSnapshot snapshot;
-    SceneHitObject region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
-    region.interactions.push_back(make_binding(ui::InternedId(30), InteractionKind::Press, ui::InternedId(100)));
+    SceneHitObject region = make_content_region(core::InternedId(10), core::InternedId(20),
+                                                core::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
+    region.interactions.push_back(make_binding(core::InternedId(30), InteractionKind::Press, core::InternedId(100)));
     snapshot.hit_objects.push_back(region);
 
     SemanticCanvasController controller;
@@ -85,9 +85,9 @@ TEST(SemanticCanvasControllerTest, CancelDelegatesToSemanticHost) {
 
 TEST(SemanticCanvasControllerTest, ClickProducesToggleControlEvent) {
     SemanticSceneSnapshot snapshot;
-    SceneHitObject region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
-    region.interactions.push_back(make_binding(ui::InternedId(30), InteractionKind::Click, ui::InternedId(200)));
+    SceneHitObject region = make_content_region(core::InternedId(10), core::InternedId(20),
+                                                core::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
+    region.interactions.push_back(make_binding(core::InternedId(30), InteractionKind::Click, core::InternedId(200)));
     snapshot.hit_objects.push_back(region);
 
     SemanticCanvasController controller;
@@ -96,16 +96,16 @@ TEST(SemanticCanvasControllerTest, ClickProducesToggleControlEvent) {
     SemanticCanvasControllerResult result = controller.on_pointer_press(ui::Pt{50.0f, 50.0f});
 
     EXPECT_EQ(result.control_event.kind, SemanticControlEventKind::Toggle);
-    EXPECT_EQ(result.control_event.node_id, ui::InternedId(10));
+    EXPECT_EQ(result.control_event.node_id, core::InternedId(10));
 }
 
 // == Regression: build_result must NOT populate scalar/discrete values from binding range ==
 
 TEST(SemanticCanvasControllerTest, DragScalarEventDoesNotLeakMinValueIntoScalarValue) {
     SemanticSceneSnapshot snapshot;
-    SceneHitObject region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
-    InteractionBinding binding = make_binding(ui::InternedId(30), InteractionKind::DragScalar, ui::InternedId(101));
+    SceneHitObject region = make_content_region(core::InternedId(10), core::InternedId(20),
+                                                core::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
+    InteractionBinding binding = make_binding(core::InternedId(30), InteractionKind::DragScalar, core::InternedId(101));
     binding.min_value = 42.0f;
     binding.max_value = 100.0f;
     region.interactions.push_back(binding);
@@ -117,16 +117,16 @@ TEST(SemanticCanvasControllerTest, DragScalarEventDoesNotLeakMinValueIntoScalarV
     SemanticCanvasControllerResult result = controller.on_pointer_drag(ui::Pt{50.0f, 50.0f});
 
     EXPECT_EQ(result.control_event.kind, SemanticControlEventKind::SetScalar);
-    EXPECT_EQ(result.control_event.node_id, ui::InternedId(10));
+    EXPECT_EQ(result.control_event.node_id, core::InternedId(10));
     // scalar_value must be 0.0 (default) — NOT 42.0 (the binding's min_value)
     EXPECT_FLOAT_EQ(result.control_event.scalar_value, 0.0f);
 }
 
 TEST(SemanticCanvasControllerTest, DragDiscreteEventDoesNotLeakMinValueIntoDiscreteValue) {
     SemanticSceneSnapshot snapshot;
-    SceneHitObject region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
-    InteractionBinding binding = make_binding(ui::InternedId(30), InteractionKind::DragDiscrete, ui::InternedId(102));
+    SceneHitObject region = make_content_region(core::InternedId(10), core::InternedId(20),
+                                                core::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
+    InteractionBinding binding = make_binding(core::InternedId(30), InteractionKind::DragDiscrete, core::InternedId(102));
     binding.min_value = 5.0f;
     binding.max_value = 10.0f;
     binding.step = 1.0f;
@@ -139,7 +139,7 @@ TEST(SemanticCanvasControllerTest, DragDiscreteEventDoesNotLeakMinValueIntoDiscr
     SemanticCanvasControllerResult result = controller.on_pointer_drag(ui::Pt{50.0f, 50.0f});
 
     EXPECT_EQ(result.control_event.kind, SemanticControlEventKind::SetDiscrete);
-    EXPECT_EQ(result.control_event.node_id, ui::InternedId(10));
+    EXPECT_EQ(result.control_event.node_id, core::InternedId(10));
     // discrete_value must be 0 (default) — NOT 5 (the binding's min_value)
     EXPECT_EQ(result.control_event.discrete_value, 0);
 }

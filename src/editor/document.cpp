@@ -35,7 +35,7 @@ std::string Document::title() const {
 
 // addComponent/addBlueprint moved to document_components.cpp
 
-bool Document::extractToBlueprint(const std::vector<ui::InternedId>& selected_node_ids,
+bool Document::extractToBlueprint(const std::vector<core::InternedId>& selected_node_ids,
                                   const std::string& blueprint_name,
                                   const WindowScopeId& scope_id,
                                   std::string* error_out,

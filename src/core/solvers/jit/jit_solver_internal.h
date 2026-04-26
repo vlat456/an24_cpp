@@ -63,4 +63,24 @@ void build_electrical_patch_ops(BuildResult& result);
 
 void build_solver_step_ops(BuildResult& result);
 
+/// Hydraulic building functions
+void build_hydraulic_islands(
+    BuildResult& result,
+    const std::vector<ResolvedDevice>& devices);
+
+void build_hydraulic_patch_ops(BuildResult& result);
+
+void build_hydraulic_step_ops(BuildResult& result);
+
+/// Type-erased component adapters — shared by electrical and hydraulic build.
+template <typename Comp>
+void execute_component_adapter(void* instance, SimulationState& st, double dt) {
+    static_cast<Comp*>(instance)->execute(st, dt);
+}
+
+template <typename Comp>
+void commit_component_adapter(void* instance, SimulationState& st, double dt) {
+    static_cast<Comp*>(instance)->commit(st, dt);
+}
+
 }  // namespace jit_solver_impl

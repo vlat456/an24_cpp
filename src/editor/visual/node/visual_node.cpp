@@ -270,7 +270,7 @@ editor::presentation::RailEntryMetrics measure_rail_label(std::string_view text,
 
 NodeWidget::NodeWidget(const bp2::Blueprint::Node& data,
                        const bp2::Interface& render_iface,
-                       const ui::StringInterner& interner,
+                       const core::StringInterner& interner,
                        const NodeContent& content,
                        std::optional<editor::NodeColor> color)
     : node_iid_(data.semantic.id)
@@ -314,7 +314,7 @@ NodeWidget::NodeWidget(const bp2::Blueprint::Node& data,
 
 void NodeWidget::build(const bp2::Blueprint::Node& data,
                        const bp2::Interface& render_iface,
-                       const ui::StringInterner& interner,
+                       const core::StringInterner& interner,
                        const NodeContent& content) {
     // Header
     header_ = emplaceChild<HeaderStrip>(name_);

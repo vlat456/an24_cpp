@@ -3,7 +3,7 @@
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/blueprint/canonicalize.h"
 #include "blueprint_v2/path/path.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include <vector>
 #include <memory>
 #include <functional>
@@ -36,12 +36,12 @@ public:
 
     // === Commands (return true if changed) ===
     bool add_node(Blueprint::Node node);
-    bool remove_node(ui::InternedId id);
+    bool remove_node(core::InternedId id);
     bool add_wire(Blueprint::Wire wire);
-    bool remove_wire(ui::InternedId id);
-    bool update_node(ui::InternedId id, std::function<void(Blueprint::Node&)> fn);
-    bool update_wire(ui::InternedId id, std::function<void(Blueprint::Wire&)> fn);
-    bool update_node_position(ui::InternedId id, float x, float y);
+    bool remove_wire(core::InternedId id);
+    bool update_node(core::InternedId id, std::function<void(Blueprint::Node&)> fn);
+    bool update_wire(core::InternedId id, std::function<void(Blueprint::Wire&)> fn);
+    bool update_node_position(core::InternedId id, float x, float y);
 
     // === Embedded-scope commands (handle checkpoint + propagation) ===
 
@@ -50,14 +50,14 @@ public:
     /// Returns NotFound if the path cannot be resolved, NoChange if the
     /// mutation produced no changes, Changed if the root was updated.
     MutationResult mutate_embedded(
-        std::span<const ui::InternedId> path,
+        std::span<const core::InternedId> path,
         const std::function<Blueprint(const Blueprint&)>& mutation);
 
     /// Update a single node inside an embedded blueprint identified by path.
     /// Convenience wrapper over mutate_embedded(). Returns true if changed.
     bool update_embedded_node(
-        std::span<const ui::InternedId> path,
-        ui::InternedId node_id,
+        std::span<const core::InternedId> path,
+        core::InternedId node_id,
         const std::function<void(Blueprint::Node&)>& fn);
 
     // === History ===
@@ -90,7 +90,7 @@ public:
 
     /// Generate a unique node ID from a base name: "battery" -> "battery_1", etc.
     std::string generate_unique_node_id(std::string const& base,
-                                       ui::StringInterner const& interner) const;
+                                       core::StringInterner const& interner) const;
 
     // === Direct blueprint replacement ===
     void replace_current(Blueprint bp) {
@@ -100,7 +100,7 @@ public:
     }
 
     // === Derived queries ===
-    std::vector<ui::InternedId> nodes_in_rect(Rect const& r) const;
+    std::vector<core::InternedId> nodes_in_rect(Rect const& r) const;
     bool wire_exists(WireEndpoint const& source, WireEndpoint const& target) const;
 
 private:
@@ -113,7 +113,7 @@ private:
     };
 
     struct Indices {
-        std::unordered_map<ui::InternedId, std::pair<float, float>> node_pos;
+        std::unordered_map<core::InternedId, std::pair<float, float>> node_pos;
         std::unordered_set<std::pair<WireEndpoint, WireEndpoint>, EndpointPairHash> wire_set;
         bool valid = false;
     };

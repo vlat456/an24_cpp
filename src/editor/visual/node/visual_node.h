@@ -7,7 +7,7 @@
 #include "editor/visual/presentation/semantic_scene_snapshot.h"
 #include "editor/visual/presentation/node_slot_layout.h"
 #include "editor/data/node_state.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include "visual/node/port_layout_resolver.h"
 #include "data/node_content.h"
 #include "blueprint_v2/blueprint/blueprint.h"
@@ -42,7 +42,7 @@ class NodeWidget : public Widget {
 public:
     NodeWidget(const bp2::Blueprint::Node& data,
                const bp2::Interface& render_iface,
-               const ui::StringInterner& interner,
+               const core::StringInterner& interner,
                const NodeContent& content,
                std::optional<editor::NodeColor> color = std::nullopt);
 
@@ -104,8 +104,8 @@ public:
     }
 
 private:
-    ui::InternedId node_iid_;
-    const ui::StringInterner* interner_;
+    core::InternedId node_iid_;
+    const core::StringInterner* interner_;
     std::string name_;
     std::string type_name_;
 
@@ -151,7 +151,7 @@ private:
 
     void build(const bp2::Blueprint::Node& data,
                const bp2::Interface& render_iface,
-               const ui::StringInterner& interner,
+               const core::StringInterner& interner,
                const NodeContent& content);
     void configure_content_geometry(bp2::NodeContentType content_type);
     void refresh_content_semantic_snapshot();

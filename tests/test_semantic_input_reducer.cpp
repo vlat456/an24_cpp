@@ -6,8 +6,8 @@ using namespace editor::presentation;
 
 namespace {
 
-SemanticInteractionRequest make_request(ui::InternedId node_id, ui::InternedId element_id,
-                                        ui::InternedId region_id, ui::InternedId action_id,
+SemanticInteractionRequest make_request(core::InternedId node_id, core::InternedId element_id,
+                                        core::InternedId region_id, core::InternedId action_id,
                                         InteractionKind kind) {
     SemanticInteractionRequest request;
     request.node_id = node_id;
@@ -18,8 +18,8 @@ SemanticInteractionRequest make_request(ui::InternedId node_id, ui::InternedId e
     return request;
 }
 
-SceneHitObject make_content_region(ui::InternedId node_id, ui::InternedId element_id,
-                                   ui::InternedId region_id) {
+SceneHitObject make_content_region(core::InternedId node_id, core::InternedId element_id,
+                                   core::InternedId region_id) {
     SceneHitObject object;
     object.node_id = node_id;
     object.element_id = element_id;
@@ -28,7 +28,7 @@ SceneHitObject make_content_region(ui::InternedId node_id, ui::InternedId elemen
     return object;
 }
 
-SceneHitObject make_node_body(ui::InternedId node_id) {
+SceneHitObject make_node_body(core::InternedId node_id) {
     SceneHitObject object;
     object.node_id = node_id;
     object.kind = SceneHitObjectKind::NodeBody;
@@ -43,14 +43,14 @@ TEST(SemanticInputReducerTest, ResolvedClickEmitsRequestAndClearsSession) {
     current_session.active = false;
 
     SemanticInteractionRequest resolved_req =
-        make_request(ui::InternedId(10), ui::InternedId(20), ui::InternedId(30), ui::InternedId(100),
+        make_request(core::InternedId(10), core::InternedId(20), core::InternedId(30), core::InternedId(100),
                      InteractionKind::Click);
 
     SemanticInputStepResult result = reduce_semantic_input(
         current_session, PointerPhase::Press, SemanticHitEmpty{}, resolved_req);
 
     ASSERT_EQ(result.emitted_requests.size(), 1);
-    EXPECT_EQ(result.emitted_requests[0].action_id, ui::InternedId(100));
+    EXPECT_EQ(result.emitted_requests[0].action_id, core::InternedId(100));
     EXPECT_EQ(result.emitted_requests[0].kind, InteractionKind::Click);
     EXPECT_FALSE(result.next_session.active);
 }
@@ -61,17 +61,17 @@ TEST(SemanticInputReducerTest, ResolvedPressEmitsRequestAndBeginsSession) {
     current_session.active = false;
 
     SemanticInteractionRequest resolved_req =
-        make_request(ui::InternedId(10), ui::InternedId(20), ui::InternedId(30), ui::InternedId(101),
+        make_request(core::InternedId(10), core::InternedId(20), core::InternedId(30), core::InternedId(101),
                      InteractionKind::Press);
 
     SemanticInputStepResult result = reduce_semantic_input(
         current_session, PointerPhase::Press, SemanticHitEmpty{}, resolved_req);
 
     ASSERT_EQ(result.emitted_requests.size(), 1);
-    EXPECT_EQ(result.emitted_requests[0].action_id, ui::InternedId(101));
+    EXPECT_EQ(result.emitted_requests[0].action_id, core::InternedId(101));
     EXPECT_EQ(result.emitted_requests[0].kind, InteractionKind::Press);
     EXPECT_TRUE(result.next_session.active);
-    EXPECT_EQ(result.next_session.action_id, ui::InternedId(101));
+    EXPECT_EQ(result.next_session.action_id, core::InternedId(101));
     EXPECT_EQ(result.next_session.kind, InteractionKind::Press);
 }
 
@@ -81,7 +81,7 @@ TEST(SemanticInputReducerTest, ResolvedDragScalarEmitsRequestAndBeginsSession) {
     current_session.active = false;
 
     SemanticInteractionRequest resolved_req =
-        make_request(ui::InternedId(10), ui::InternedId(20), ui::InternedId(30), ui::InternedId(102),
+        make_request(core::InternedId(10), core::InternedId(20), core::InternedId(30), core::InternedId(102),
                      InteractionKind::DragScalar);
 
     SemanticInputStepResult result = reduce_semantic_input(
@@ -99,7 +99,7 @@ TEST(SemanticInputReducerTest, ResolvedDragDiscreteEmitsRequestAndBeginsSession)
     current_session.active = false;
 
     SemanticInteractionRequest resolved_req =
-        make_request(ui::InternedId(10), ui::InternedId(20), ui::InternedId(30), ui::InternedId(103),
+        make_request(core::InternedId(10), core::InternedId(20), core::InternedId(30), core::InternedId(103),
                      InteractionKind::DragDiscrete);
 
     SemanticInputStepResult result = reduce_semantic_input(
@@ -114,11 +114,11 @@ TEST(SemanticInputReducerTest, ResolvedDragDiscreteEmitsRequestAndBeginsSession)
 // Test 5: session continuation on drag emits request and keeps session active
 TEST(SemanticInputReducerTest, SessionContinuationOnDragEmitsRequestAndKeepsActive) {
     SemanticInteractionRequest initial_req = make_request(
-        ui::InternedId(10), ui::InternedId(20), ui::InternedId(30), ui::InternedId(100),
+        core::InternedId(10), core::InternedId(20), core::InternedId(30), core::InternedId(100),
         InteractionKind::DragScalar);
     SemanticInteractionSession current_session = begin_semantic_interaction_session(initial_req);
 
-    SceneHitObject object = make_content_region(ui::InternedId(10), ui::InternedId(20), ui::InternedId(30));
+    SceneHitObject object = make_content_region(core::InternedId(10), core::InternedId(20), core::InternedId(30));
     SemanticHitContentRegion hit{&object};
 
     SemanticInputStepResult result =
@@ -133,11 +133,11 @@ TEST(SemanticInputReducerTest, SessionContinuationOnDragEmitsRequestAndKeepsActi
 // Test 6: press session continuation on release emits release request and clears session
 TEST(SemanticInputReducerTest, PressContinuationOnReleaseEmitsAndClears) {
     SemanticInteractionRequest initial_req = make_request(
-        ui::InternedId(10), ui::InternedId(20), ui::InternedId(30), ui::InternedId(100),
+        core::InternedId(10), core::InternedId(20), core::InternedId(30), core::InternedId(100),
         InteractionKind::Press);
     SemanticInteractionSession current_session = begin_semantic_interaction_session(initial_req);
 
-    SceneHitObject object = make_content_region(ui::InternedId(10), ui::InternedId(20), ui::InternedId(30));
+    SceneHitObject object = make_content_region(core::InternedId(10), core::InternedId(20), core::InternedId(30));
     SemanticHitContentRegion hit{&object};
 
     SemanticInputStepResult result =
@@ -175,12 +175,12 @@ TEST(SemanticInputReducerTest, InactiveSessionWithNoRequestStaysInactive) {
 // Test 9: active session with non-matching hit and no continuation stays unchanged
 TEST(SemanticInputReducerTest, ActiveSessionWithNonMatchingHitStaysUnchanged) {
     SemanticInteractionRequest initial_req = make_request(
-        ui::InternedId(10), ui::InternedId(20), ui::InternedId(30), ui::InternedId(100),
+        core::InternedId(10), core::InternedId(20), core::InternedId(30), core::InternedId(100),
         InteractionKind::Click);
     SemanticInteractionSession current_session = begin_semantic_interaction_session(initial_req);
 
     // Different region in hit
-    SceneHitObject object = make_content_region(ui::InternedId(10), ui::InternedId(20), ui::InternedId(99));
+    SceneHitObject object = make_content_region(core::InternedId(10), core::InternedId(20), core::InternedId(99));
     SemanticHitContentRegion hit{&object};
 
     SemanticInputStepResult result =
@@ -188,22 +188,22 @@ TEST(SemanticInputReducerTest, ActiveSessionWithNonMatchingHitStaysUnchanged) {
 
     EXPECT_EQ(result.emitted_requests.size(), 0);
     EXPECT_TRUE(result.next_session.active);
-    EXPECT_EQ(result.next_session.action_id, ui::InternedId(100));
+    EXPECT_EQ(result.next_session.action_id, core::InternedId(100));
 }
 
 // Test 10: resolved request takes priority over continuation when both are possible
 TEST(SemanticInputReducerTest, ResolvedRequestTakesPriorityOverContinuation) {
     SemanticInteractionRequest initial_req = make_request(
-        ui::InternedId(10), ui::InternedId(20), ui::InternedId(30), ui::InternedId(100),
+        core::InternedId(10), core::InternedId(20), core::InternedId(30), core::InternedId(100),
         InteractionKind::Press);
     SemanticInteractionSession current_session = begin_semantic_interaction_session(initial_req);
 
     // Resolved request is different from potential continuation
     SemanticInteractionRequest resolved_req = make_request(
-        ui::InternedId(40), ui::InternedId(50), ui::InternedId(60), ui::InternedId(200),
+        core::InternedId(40), core::InternedId(50), core::InternedId(60), core::InternedId(200),
         InteractionKind::Click);
 
-    SceneHitObject object = make_content_region(ui::InternedId(10), ui::InternedId(20), ui::InternedId(30));
+    SceneHitObject object = make_content_region(core::InternedId(10), core::InternedId(20), core::InternedId(30));
     SemanticHitContentRegion hit{&object};
 
     SemanticInputStepResult result =
@@ -211,7 +211,7 @@ TEST(SemanticInputReducerTest, ResolvedRequestTakesPriorityOverContinuation) {
 
     // Should emit the resolved request, not the continuation
     ASSERT_EQ(result.emitted_requests.size(), 1);
-    EXPECT_EQ(result.emitted_requests[0].action_id, ui::InternedId(200));
+    EXPECT_EQ(result.emitted_requests[0].action_id, core::InternedId(200));
     EXPECT_EQ(result.emitted_requests[0].kind, InteractionKind::Click);
     EXPECT_FALSE(result.next_session.active);
 }

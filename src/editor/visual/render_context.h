@@ -1,5 +1,5 @@
 #pragma once
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include "ui/renderer/render_context.h"
 #include <vector>
 #include <unordered_set>
@@ -25,7 +25,7 @@ struct StringViewHash {
 /// Decouples the render context from widget pointers — the renderer
 /// compares wire InternedId + child index instead of RoutingPoint*.
 struct HoveredRoutingPointId {
-    ui::InternedId wire_iid;     ///< Interned wire identity (empty = none).
+    core::InternedId wire_iid;     ///< Interned wire identity (empty = none).
     size_t index = 0;            ///< Child index within the wire's children().
     bool empty() const { return wire_iid.empty(); }
 };

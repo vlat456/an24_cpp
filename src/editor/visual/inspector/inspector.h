@@ -4,7 +4,7 @@
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/interface/port_descriptor.h"
 #include "blueprint_v2/path/path.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include "window/window_scope_id.h"
 
 struct ComponentRegistry;
@@ -29,12 +29,12 @@ public:
 
     /// Constructor with blueprint pointer and group filter
     Inspector(const bp2::Blueprint* bp, const bp2::PathArena* arena,
-              ui::StringInterner* interner, const WindowScopeId& scope_id = WindowScopeId::root(),
+              core::StringInterner* interner, const WindowScopeId& scope_id = WindowScopeId::root(),
               const ComponentRegistry* registry = nullptr);
 
     /// Set the blueprint to inspect (for switching between documents)
     void setBlueprint(const bp2::Blueprint& bp, const bp2::PathArena& arena,
-                      ui::StringInterner& interner,
+                      core::StringInterner& interner,
                       const WindowScopeId& scope_id = WindowScopeId::root(),
                       const ComponentRegistry* registry = nullptr) {
         bp_ = &bp;
@@ -70,7 +70,7 @@ public:
 private:
     const bp2::Blueprint*    bp_       = nullptr;
     const bp2::PathArena*    arena_    = nullptr;
-    ui::StringInterner* interner_ = nullptr;
+    core::StringInterner* interner_ = nullptr;
     const ComponentRegistry* registry_ = nullptr;
     WindowScopeId scope_id_            = WindowScopeId::root();
     std::vector<DisplayNode> display_tree_;
@@ -87,8 +87,8 @@ private:
 
     /// Decode a Port path: extract node_id and port_name.
     /// Returns {node_id, port_name} or empty InternedIds on failure.
-    std::pair<ui::InternedId, ui::InternedId> decode_port_path(bp2::Path p) const;
-    std::pair<ui::InternedId, ui::InternedId> decode_port_path(bp2::WireEndpoint const& ep) const;
+    std::pair<core::InternedId, core::InternedId> decode_port_path(bp2::Path p) const;
+    std::pair<core::InternedId, core::InternedId> decode_port_path(bp2::WireEndpoint const& ep) const;
 
     /// Check scene topology and mark dirty if changed. Returns true if rebuild needed.
     bool detectSceneChange();
@@ -100,7 +100,7 @@ private:
 
     /// Pre-decoded wire endpoints (built once per display tree rebuild).
     struct DecodedWire {
-        ui::InternedId src_node, src_port, tgt_node, tgt_port;
+        core::InternedId src_node, src_port, tgt_node, tgt_port;
     };
 
     // Data model helpers (inspector_core.cpp)

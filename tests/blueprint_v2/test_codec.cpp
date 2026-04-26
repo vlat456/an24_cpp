@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include "blueprint_v2/codec/blueprint_codec.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/blueprint/canonicalize.h"
@@ -37,7 +37,7 @@ struct second_arg<R (*)(A0, A1, A2, A3)> {
 
 void register_type(
     ComponentRegistry& reg,
-    ui::StringInterner& interner,
+    core::StringInterner& interner,
     const std::string& classname,
     const bp2::Interface& iface = bp2::Interface(),
     std::unordered_map<std::string, ParamSpec> params = {})
@@ -82,7 +82,7 @@ TEST(BlueprintCodec, EncodeSignatureUsesConstInterner) {
 }
 
 TEST(BlueprintCodec, EncodeDoesNotMutateInterner) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     bp2::Blueprint bp;
@@ -105,7 +105,7 @@ TEST(BlueprintCodec, EncodeDoesNotMutateInterner) {
 }
 
 TEST(BlueprintCodec, EncodeEmptyBlueprint) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("test_bp"));
@@ -121,7 +121,7 @@ TEST(BlueprintCodec, EncodeEmptyBlueprint) {
 }
 
 TEST(BlueprintCodec, EncodeNodesWithParams) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("test"));
@@ -147,7 +147,7 @@ TEST(BlueprintCodec, EncodeNodesWithParams) {
 }
 
 TEST(BlueprintCodec, EncodeWires) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("test"));
@@ -176,7 +176,7 @@ TEST(BlueprintCodec, EncodeWires) {
 // =============================================================================
 
 TEST(BlueprintCodec, WireEqualityIncludesRoutingPoints) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
 
     bp2::Blueprint::Wire a;
     a.id = interner.intern("w1");
@@ -203,7 +203,7 @@ TEST(BlueprintCodec, WireEqualityIncludesRoutingPoints) {
 }
 
 TEST(BlueprintCodec, RoutingPointsRoundTrip) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg;
 
@@ -257,7 +257,7 @@ TEST(BlueprintCodec, RoutingPointsRoundTrip) {
 }
 
 TEST(BlueprintCodec, DecodeEmptyBlueprint) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg;
     register_type(reg, interner, "Subtract");
@@ -290,7 +290,7 @@ TEST(BlueprintCodec, DecodeEmptyBlueprint) {
 }
 
 TEST(BlueprintCodec, DecodeNodeWithPosition_ParsesNormally) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg;
     register_type(reg, interner, "Subtract");
@@ -333,7 +333,7 @@ TEST(BlueprintCodec, DecodeNodeWithPosition_ParsesNormally) {
 TEST(BlueprintCodec, DecodePopulatesNodeIfaceFromPorts) {
     // After decoding a component node, component().iface must be populated
     // from the type registry's PrimitiveSpec ports (not from inline node ports).
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg;
     
@@ -395,7 +395,7 @@ TEST(BlueprintCodec, DecodePopulatesNodeIfaceFromPorts) {
 TEST(BlueprintCodec, DecodeNodeIfaceEmptyWhenNoPorts) {
     // When a node type is registered without ports, iface should be empty
     // (the registry may provide it separately via node_interface())
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg;
     register_type(reg, interner, "SomeType");
@@ -424,7 +424,7 @@ TEST(BlueprintCodec, DecodeNodeIfaceEmptyWhenNoPorts) {
 }
 
 TEST(BlueprintCodec, DecodeLibraryBlueprintFormat_FullExample) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg;
 
@@ -482,7 +482,7 @@ TEST(BlueprintCodec, DecodeLibraryBlueprintFormat_FullExample) {
 
 
 TEST(BlueprintCodec, EncodeOmitsNodeContentButPersistsCanonicalNodeColor) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     bp2::Blueprint bp;
@@ -507,7 +507,7 @@ TEST(BlueprintCodec, EncodeOmitsNodeContentButPersistsCanonicalNodeColor) {
 }
 
 TEST(BlueprintCodec, DecodeRejectsForbiddenContentField) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg = make_test_registry();
     register_type(reg, interner, "Battery");
@@ -537,7 +537,7 @@ TEST(BlueprintCodec, DecodeRejectsForbiddenContentField) {
 }
 
 TEST(BlueprintCodec, DecodeAcceptsCanonicalColorField) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg = make_test_registry();
     register_type(reg, interner, "Battery");
@@ -572,7 +572,7 @@ TEST(BlueprintCodec, DecodeAcceptsCanonicalColorField) {
 }
 
 TEST(BlueprintCodec, DecodeRejectsOutOfRangeCanonicalColorField) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg = make_test_registry();
     register_type(reg, interner, "Battery");
@@ -604,7 +604,7 @@ TEST(BlueprintCodec, DecodeRejectsOutOfRangeCanonicalColorField) {
 
 
 TEST(BlueprintCodec, EncodeWithParserRegistryOverload) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry parser_registry = load_component_registry("library/");
 
@@ -620,7 +620,7 @@ TEST(BlueprintCodec, EncodeWithParserRegistryOverload) {
 }
 
 TEST(BlueprintCodec, DecodeWithParserRegistryOverload) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry parser_registry = load_component_registry("library/");
 
@@ -641,7 +641,7 @@ TEST(BlueprintCodec, DecodeWithParserRegistryOverload) {
 }
 
 TEST(BlueprintCodec, DecodePseudoComponentBridgeEncodingRejectsBlueprint) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg = make_test_registry();
 
@@ -688,7 +688,7 @@ TEST(BlueprintCodec, DecodePseudoComponentBridgeEncodingRejectsBlueprint) {
 }
 
 TEST(BlueprintCodec, BridgePortRoundTripPreservesStructuralFields) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg = make_test_registry();
 
@@ -741,7 +741,7 @@ TEST(BlueprintCodec, BridgePortRoundTripPreservesStructuralFields) {
 
 // Strict negative coverage: canonical bridge_port rejects stale "side" field
 TEST(BlueprintCodec, DecodeRejectsStaleSideFieldOnBridgePort) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg = make_test_registry();
     bp2::DecodeError err;
@@ -774,7 +774,7 @@ TEST(BlueprintCodec, DecodeRejectsStaleSideFieldOnBridgePort) {
 
 // Strict negative coverage: canonical bridge_port rejects invalid direction token
 TEST(BlueprintCodec, DecodeRejectsInvalidBridgeDirectionToken) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg = make_test_registry();
     bp2::DecodeError err;
@@ -806,7 +806,7 @@ TEST(BlueprintCodec, DecodeRejectsInvalidBridgeDirectionToken) {
 }
 
 TEST(BlueprintCodec, DecodeRejectsComponentFieldOnBridgePort) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg = make_test_registry();
     bp2::DecodeError err;
@@ -837,7 +837,7 @@ TEST(BlueprintCodec, DecodeRejectsComponentFieldOnBridgePort) {
 }
 
 TEST(BlueprintCodec, DecodeRejectsMissingBridgePortFields) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg = make_test_registry();
     bp2::DecodeError err;
@@ -865,7 +865,7 @@ TEST(BlueprintCodec, DecodeRejectsMissingBridgePortFields) {
 }
 
 TEST(BlueprintCodec, DecodeClosedCircuitBlueprint) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg = load_component_registry("library/");
 
@@ -880,7 +880,7 @@ TEST(BlueprintCodec, DecodeClosedCircuitBlueprint) {
 }
 
 TEST(BlueprintCodec, DecodeDoesNotHydrateRuntimeViewFields) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg = make_test_registry();
     register_type(reg, interner, "Slider");
@@ -924,7 +924,7 @@ TEST(BlueprintCodec, DecodeDoesNotHydrateRuntimeViewFields) {
 }
 
 TEST(BlueprintCodec, StaticContentSemanticsResolveRecursivelyWithoutHydration) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     ComponentRegistry reg = make_test_registry();
     register_type(reg, interner, "Slider");
     reg.presentation_mut("Slider").content_type = bp2::NodeContentType::Slider;
@@ -976,7 +976,7 @@ TEST(BlueprintCodec, StaticContentSemanticsResolveRecursivelyWithoutHydration) {
 // must reflect the change WITHOUT any explicit view.inputs/outputs mutation (because
 // those fields no longer exist).
 TEST(Issue31_SingleSource, MutationSinglePath_DeriveReflectsSemanticIface) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
 
     // Build a node with component iface ports only
     bp2::Blueprint::Node collapsed;
@@ -1026,7 +1026,7 @@ TEST(Issue31_SingleSource, MutationSinglePath_DeriveReflectsSemanticIface) {
 // not stored per-node in JSON. The test verifies component().iface is correctly populated.
 // Note: Domains are derived from PortType, not preserved separately in the type registry.
 TEST(Issue31_SingleSource, ExportReadsSemanticIface_CodecRoundTrip) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg;
     
@@ -1109,7 +1109,7 @@ TEST(Issue31_SingleSource, NoDriftInvariant_ViewDataHasNoPortLists) {
 
     // Verify the round-trip produces identical node without any view port lists.
     // This is the runtime companion to the compile-time check above.
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg;
     
@@ -1165,7 +1165,7 @@ TEST(Issue31_SingleSource, NoDriftInvariant_ViewDataHasNoPortLists) {
 // =============================================================================
 
 TEST(BlueprintCodec, DecodeRejectsCollapsedOnComponentNode) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg;
     register_type(reg, interner, "Battery");
@@ -1195,7 +1195,7 @@ TEST(BlueprintCodec, DecodeRejectsCollapsedOnComponentNode) {
 }
 
 TEST(BlueprintCodec, DecodeRejectsSourceOnComponentNode) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg;
     register_type(reg, interner, "Battery");
@@ -1225,7 +1225,7 @@ TEST(BlueprintCodec, DecodeRejectsSourceOnComponentNode) {
 }
 
 TEST(BlueprintCodec, DecodeRejectsComponentOnBlueprintInstance) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg;
     register_type(reg, interner, "Battery");
@@ -1266,7 +1266,7 @@ TEST(BlueprintCodec, DecodeRejectsComponentOnBlueprintInstance) {
 }
 
 TEST(BlueprintCodec, DecodeRejectsParamsOnBlueprintInstance) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg;
     register_type(reg, interner, "Battery");
@@ -1311,7 +1311,7 @@ TEST(BlueprintCodec, DecodeRejectsParamsOnBlueprintInstance) {
 // =============================================================================
 
 TEST(BlueprintCodec, DecodeRejectsDuplicateInterfacePortIds) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg;
     bp2::DecodeError err;
@@ -1339,7 +1339,7 @@ TEST(BlueprintCodec, DecodeRejectsDuplicateInterfacePortIds) {
 // =============================================================================
 
 TEST(BlueprintCodec, DecodeRejectsEmptyBlueprintId) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg;
     bp2::DecodeError err;
@@ -1360,7 +1360,7 @@ TEST(BlueprintCodec, DecodeRejectsEmptyBlueprintId) {
 }
 
 TEST(BlueprintCodec, DecodeRejectsBlueprintIdWithWhitespace) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg;
     bp2::DecodeError err;
@@ -1381,7 +1381,7 @@ TEST(BlueprintCodec, DecodeRejectsBlueprintIdWithWhitespace) {
 }
 
 TEST(BlueprintCodec, DecodeRejectsBlueprintIdWithTab) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg;
     bp2::DecodeError err;
@@ -1407,7 +1407,7 @@ TEST(BlueprintCodec, DecodeRejectsBlueprintIdWithTab) {
 // =============================================================================
 
 TEST(BlueprintCodec, DecodeRejectsEmptyName) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg;
     bp2::DecodeError err;
@@ -1435,7 +1435,7 @@ TEST(BlueprintCodec, RoundTripPreservesNameEquality) {
     // The old display_name/name duality meant encode→decode could break equality
     // because display_name_ was not persisted but was compared in operator==.
     // With the unified name model, round-trip must preserve equality.
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg;
 
@@ -1457,7 +1457,7 @@ TEST(BlueprintCodec, RoundTripPreservesNameEquality) {
 
 // Regression 1: Knob with instance positions != type definition
 TEST(Issue132_HydrationFromInstanceParams, KnobPositionsFromInstance) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg;
 
@@ -1484,7 +1484,7 @@ TEST(Issue132_HydrationFromInstanceParams, KnobPositionsFromInstance) {
 
 // Regression 2: Slider with instance min/max != type definition
 TEST(Issue132_HydrationFromInstanceParams, SliderMinMaxFromInstance) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg;
 
@@ -1511,7 +1511,7 @@ TEST(Issue132_HydrationFromInstanceParams, SliderMinMaxFromInstance) {
 
 // Regression 3: Gauge with instance min/max != type definition
 TEST(Issue132_HydrationFromInstanceParams, GaugeMinMaxFromInstance) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg;
 
@@ -1538,7 +1538,7 @@ TEST(Issue132_HydrationFromInstanceParams, GaugeMinMaxFromInstance) {
 
 // Regression 4: Switch with instance closed state != type definition
 TEST(Issue132_HydrationFromInstanceParams, SwitchClosedStateFromInstance) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg;
 
@@ -1562,7 +1562,7 @@ TEST(Issue132_HydrationFromInstanceParams, SwitchClosedStateFromInstance) {
 
 // Regression 5: Fallback to type definition when instance params absent
 TEST(Issue132_HydrationFromInstanceParams, FallbackToTypeDefinitionWhenNoInstanceParam) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry reg;
 
@@ -1590,7 +1590,7 @@ TEST(Issue132_HydrationFromInstanceParams, FallbackToTypeDefinitionWhenNoInstanc
 // ============================================================================
 
 TEST(Issue133_RuntimeState, RuntimeOverlayPreservesSliderValueAcrossStaticChanges) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     ComponentRegistry reg;
 
     PrimitiveSpec slider_def;
@@ -1615,7 +1615,7 @@ TEST(Issue133_RuntimeState, RuntimeOverlayPreservesSliderValueAcrossStaticChange
 }
 
 TEST(Issue133_RuntimeState, RuntimeOverlayPreservesSwitchStateAcrossStaticResolution) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     ComponentRegistry reg;
 
     PrimitiveSpec switch_def;
@@ -1637,7 +1637,7 @@ TEST(Issue133_RuntimeState, RuntimeOverlayPreservesSwitchStateAcrossStaticResolu
 }
 
 TEST(Issue133_RuntimeState, RuntimeOverlayPreservesKnobPosition) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     ComponentRegistry reg;
 
     PrimitiveSpec knob_def;
@@ -1662,7 +1662,7 @@ TEST(Issue133_RuntimeState, RuntimeOverlayPreservesKnobPosition) {
 }
 
 TEST(Issue133_RuntimeState, CanonicalBlueprintStaysUnhydrated) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     ComponentRegistry reg;
 
     PrimitiveSpec knob_def;

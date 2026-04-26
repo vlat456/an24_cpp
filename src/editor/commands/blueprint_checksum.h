@@ -11,7 +11,7 @@ struct Hasher {
     size_t h = 0;
     void combine(size_t v)   { h ^= v + 0x9e3779b9 + (h << 6) + (h >> 2); }
     void hash_float(float f) { uint32_t b; std::memcpy(&b, &f, 4); combine(std::hash<uint32_t>{}(b)); }
-    void hash_id(ui::InternedId id) { combine(std::hash<uint32_t>{}(id.raw())); }
+    void hash_id(core::InternedId id) { combine(std::hash<uint32_t>{}(id.raw())); }
     size_t finish() const { return h; }
 };
 } // namespace detail

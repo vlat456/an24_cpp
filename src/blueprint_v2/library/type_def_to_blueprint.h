@@ -4,7 +4,7 @@
 #include "blueprint_v2/interface/type_definition_interface.h"
 #include "core/model/component_registry.h"
 #include "core/model/component_spec.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 
 #include <stdexcept>
 #include <string>
@@ -28,7 +28,7 @@ namespace bp2 {
 ///   - spec is not a CompositeSpec (primitive)
 ///   - a connection string cannot be parsed as "node.port"
 Blueprint blueprint_from_type_definition(const ComponentSpec& spec,
-                                         ui::StringInterner& interner,
+                                         core::StringInterner& interner,
                                          const ComponentRegistry& registry);
 
 } // namespace bp2

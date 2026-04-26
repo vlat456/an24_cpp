@@ -4,7 +4,7 @@
 #include "editor/visual/persist.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/codec/blueprint_codec.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include "io/json/component_registry_json_loader.h"
 #include <filesystem>
 #include <fstream>
@@ -16,7 +16,7 @@ TEST(WorkspaceSessionSeparation, BlueprintAndWorkspaceAreSeparate) {
     // This test proves that blueprint documents are completely separate from
     // workspace/session files and have no overlapping fields.
 
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry parser_registry = load_component_registry("library/");
 
@@ -99,7 +99,7 @@ TEST(WorkspaceSessionSeparation, BlueprintAndWorkspaceAreSeparate) {
 TEST(BlueprintPersistenceSpec, NoForbiddenFieldsInSavedBlueprint) {
     // Verify spec compliance: saved blueprints must not have workspace fields
     
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry parser_registry = load_component_registry("library/");
 

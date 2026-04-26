@@ -3,10 +3,10 @@
 #include "editor/visual/node/port_layout_resolver.h"
 #include "blueprint_v2/interface/port_descriptor.h"
 #include "core/domain_types.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 
 TEST(PortLayoutResolver, DefaultLayout_NoOverrides) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     std::vector<bp2::PortDescriptor> inputs;
     inputs.push_back({interner.intern("v_in"), Domain::Electrical, bp2::Direction::Input, PortType::V});
     inputs.push_back({interner.intern("gnd"), Domain::Electrical, bp2::Direction::Input, PortType::V});
@@ -25,7 +25,7 @@ TEST(PortLayoutResolver, DefaultLayout_NoOverrides) {
 }
 
 TEST(PortLayoutResolver, OverrideSide_MoveInputToRight) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     std::vector<bp2::PortDescriptor> inputs;
     inputs.push_back({interner.intern("v_in"), Domain::Electrical, bp2::Direction::Input, PortType::V});
     
@@ -42,7 +42,7 @@ TEST(PortLayoutResolver, OverrideSide_MoveInputToRight) {
 }
 
 TEST(PortLayoutResolver, OverrideSide_MoveOutputToTop) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     std::vector<bp2::PortDescriptor> outputs;
     outputs.push_back({interner.intern("rpm_out"), Domain::Mechanical, bp2::Direction::Output, PortType::RPM});
     
@@ -56,7 +56,7 @@ TEST(PortLayoutResolver, OverrideSide_MoveOutputToTop) {
 }
 
 TEST(PortLayoutResolver, OverridePosition_Ordering) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     std::vector<bp2::PortDescriptor> outputs;
     outputs.push_back({interner.intern("a"), Domain::Electrical, bp2::Direction::Output, PortType::V});
     outputs.push_back({interner.intern("b"), Domain::Electrical, bp2::Direction::Output, PortType::V});
@@ -73,7 +73,7 @@ TEST(PortLayoutResolver, OverridePosition_Ordering) {
 }
 
 TEST(PortLayoutResolver, MixedOverrideAndAuto) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     std::vector<bp2::PortDescriptor> inputs;
     inputs.push_back({interner.intern("a"), Domain::Electrical, bp2::Direction::Input, PortType::V});
     inputs.push_back({interner.intern("b"), Domain::Electrical, bp2::Direction::Input, PortType::V});
@@ -89,7 +89,7 @@ TEST(PortLayoutResolver, MixedOverrideAndAuto) {
 }
 
 TEST(PortLayoutResolver, OrphanedOverride_Ignored) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     std::vector<bp2::PortDescriptor> inputs;
     inputs.push_back({interner.intern("v_in"), Domain::Electrical, bp2::Direction::Input, PortType::V});
     
@@ -103,7 +103,7 @@ TEST(PortLayoutResolver, OrphanedOverride_Ignored) {
 }
 
 TEST(PortLayoutResolver, PositionCollision_StableSortOrder) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     std::vector<bp2::PortDescriptor> outputs;
     outputs.push_back({interner.intern("first"), Domain::Electrical, bp2::Direction::Output, PortType::V});
     outputs.push_back({interner.intern("second"), Domain::Electrical, bp2::Direction::Output, PortType::V});
@@ -120,7 +120,7 @@ TEST(PortLayoutResolver, PositionCollision_StableSortOrder) {
 }
 
 TEST(PortLayoutResolver, PartialOverride_SideOnly) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     std::vector<bp2::PortDescriptor> outputs;
     outputs.push_back({interner.intern("v_out"), Domain::Electrical, bp2::Direction::Output, PortType::V});
     
@@ -134,7 +134,7 @@ TEST(PortLayoutResolver, PartialOverride_SideOnly) {
 }
 
 TEST(PortLayoutResolver, AllPortsMovedToOneSide) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     std::vector<bp2::PortDescriptor> inputs;
     inputs.push_back({interner.intern("a"), Domain::Electrical, bp2::Direction::Input, PortType::V});
     inputs.push_back({interner.intern("b"), Domain::Electrical, bp2::Direction::Input, PortType::V});
@@ -158,7 +158,7 @@ TEST(PortLayoutResolver, AllPortsMovedToOneSide) {
 }
 
 TEST(PortLayoutResolver, EmptyOverrides_EqualsDefault) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     std::vector<bp2::PortDescriptor> inputs;
     inputs.push_back({interner.intern("v_in"), Domain::Electrical, bp2::Direction::Input, PortType::V});
     
@@ -172,7 +172,7 @@ TEST(PortLayoutResolver, EmptyOverrides_EqualsDefault) {
 }
 
 TEST(PortLayoutResolver, InOutPort_NoDuplicates) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     auto bus_port = interner.intern("v");
     
     std::vector<bp2::PortDescriptor> inputs;
@@ -192,7 +192,7 @@ TEST(PortLayoutResolver, InOutPort_NoDuplicates) {
 }
 
 TEST(PortLayoutResolver, InOutPort_OverrideMovesToSide) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     auto bus_port = interner.intern("v");
     
     std::vector<bp2::PortDescriptor> inputs;
@@ -213,7 +213,7 @@ TEST(PortLayoutResolver, InOutPort_OverrideMovesToSide) {
 }
 
 TEST(PortLayoutResolver, InOutPort_MixedWithRegularPorts) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     auto in_port = interner.intern("ctrl");
     auto inout_port = interner.intern("v");
     auto out_port = interner.intern("status");
@@ -234,7 +234,7 @@ TEST(PortLayoutResolver, InOutPort_MixedWithRegularPorts) {
 }
 
 TEST(PortLayoutResolver, LogicalDirection_PreservedFromPortDefinition) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     std::vector<bp2::PortDescriptor> inputs;
     inputs.push_back({interner.intern("a"), Domain::Electrical, bp2::Direction::Input, PortType::V});
 
@@ -250,7 +250,7 @@ TEST(PortLayoutResolver, LogicalDirection_PreservedFromPortDefinition) {
 }
 
 TEST(PortLayoutResolver, REGRESSION_StablePartitionPreservesAutoPortOrder) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     std::vector<bp2::PortDescriptor> inputs;
     inputs.push_back({interner.intern("alpha"), Domain::Electrical, bp2::Direction::Input, PortType::V});
     inputs.push_back({interner.intern("beta"), Domain::Electrical, bp2::Direction::Input, PortType::V});
@@ -269,7 +269,7 @@ TEST(PortLayoutResolver, REGRESSION_StablePartitionPreservesAutoPortOrder) {
 }
 
 TEST(PortLayoutResolver, REGRESSION_StablePartitionMixedHintedAndAuto) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     std::vector<bp2::PortDescriptor> inputs;
     inputs.push_back({interner.intern("a1"), Domain::Electrical, bp2::Direction::Input, PortType::V});
     inputs.push_back({interner.intern("a2"), Domain::Electrical, bp2::Direction::Input, PortType::V});

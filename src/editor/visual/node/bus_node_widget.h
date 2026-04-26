@@ -3,7 +3,7 @@
 #include "visual/render_context.h"
 #include "visual/port/visual_port.h"
 #include "editor/data/node_state.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include "data/node_content.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include <string>
@@ -15,9 +15,9 @@
 namespace visual {
 
 struct BusWireRef {
-    ui::InternedId id;
-    ui::InternedId start_node_id;
-    ui::InternedId end_node_id;
+    core::InternedId id;
+    core::InternedId start_node_id;
+    core::InternedId end_node_id;
 };
 
 /// Port strip edge placement for bus nodes.
@@ -34,7 +34,7 @@ enum class PortEdge {
 class BusNodeWidget : public Widget {
 public:
     BusNodeWidget(const bp2::Blueprint::Node& data,
-                  const ui::StringInterner& interner,
+                  const core::StringInterner& interner,
                   PortEdge port_edge = PortEdge::Bottom,
                   const std::vector<BusWireRef>& wires = {},
                   std::optional<editor::NodeColor> color = std::nullopt);
@@ -63,8 +63,8 @@ public:
     void disconnectWire(const BusWireRef& wire);
 
     /// Swap two alias port positions (by wire_id)
-    bool swapAliasPorts(ui::InternedId wire_id_a,
-                        ui::InternedId wire_id_b);
+    bool swapAliasPorts(core::InternedId wire_id_a,
+                        core::InternedId wire_id_b);
 
     void setCustomColor(std::optional<uint32_t> c) override { custom_fill_ = c; }
     std::optional<uint32_t> customColor() const override { return custom_fill_; }
@@ -75,8 +75,8 @@ public:
     void renderPost(IDrawList* dl, const RenderContext& ctx) const override;
 
 private:
-    ui::InternedId node_iid_;           ///< Cached InternedId for efficient comparison
-    const ui::StringInterner* interner_; ///< For resolving InternedId → string
+    core::InternedId node_iid_;           ///< Cached InternedId for efficient comparison
+    const core::StringInterner* interner_; ///< For resolving InternedId → string
     std::string name_;
     std::string type_name_;
 

@@ -18,14 +18,14 @@ struct ComponentRegistry;
 struct BlueprintWindow {
     struct Context {
         bp2::EditorModel& model;
-        ui::StringInterner& interner;
+        core::StringInterner& interner;
         bp2::PathArena& arena;
         const ComponentRegistry* type_registry = nullptr;
     };
 
     struct ExternalDocument {
         bp2::Blueprint blueprint;
-        std::unique_ptr<ui::StringInterner> interner;
+        std::unique_ptr<core::StringInterner> interner;
         std::unique_ptr<bp2::PathArena> arena;
     };
 
@@ -53,8 +53,8 @@ struct BlueprintWindow {
     const WindowScopeId& resolved_scope_id() const { return scope; }
 
     const bp2::Blueprint& rendered_blueprint() const;
-    ui::StringInterner& rendered_interner();
-    const ui::StringInterner& rendered_interner() const;
+    core::StringInterner& rendered_interner();
+    const core::StringInterner& rendered_interner() const;
     bp2::PathArena& rendered_arena();
     const bp2::PathArena& rendered_arena() const;
 
@@ -63,7 +63,7 @@ struct BlueprintWindow {
     bool open = true;
 
     bp2::EditorModel& root_model;
-    ui::StringInterner& interner;
+    core::StringInterner& interner;
     bp2::PathArena& arena;
     visual::Scene scene;
     Viewport viewport;
@@ -77,13 +77,13 @@ struct BlueprintWindow {
     bool pending_auto_fit = false;
 
     std::optional<bp2::Blueprint> external_blueprint;
-    std::unique_ptr<ui::StringInterner> external_interner;
+    std::unique_ptr<core::StringInterner> external_interner;
     std::unique_ptr<bp2::PathArena> external_arena;
     const ComponentRegistry* type_registry = nullptr;
 
 private:
     BlueprintWindow(bp2::EditorModel& model,
-                    ui::StringInterner& interner,
+                    core::StringInterner& interner,
                     bp2::PathArena& arena,
                     WindowScopeId scope,
                     std::string title,

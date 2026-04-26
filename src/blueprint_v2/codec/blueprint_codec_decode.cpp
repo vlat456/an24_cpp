@@ -107,7 +107,7 @@ bp2::BridgeDirection decode_bridge_direction(std::string const& direction) {
 }
 
 Blueprint::Node::BlueprintSource decode_node_source(nlohmann::json const& source,
-                                                    ui::StringInterner& interner,
+                                                    core::StringInterner& interner,
                                                     ::ComponentRegistry const& parser_registry,
                                                     PathArena& arena) {
     static constexpr auto ctx = "invalid node entry: source";
@@ -144,7 +144,7 @@ Blueprint::Node::BlueprintSource decode_node_source(nlohmann::json const& source
 }
 
 WireEndpoint decode_endpoint(nlohmann::json const& endpoint,
-                     ui::StringInterner& interner) {
+                     core::StringInterner& interner) {
     if (!endpoint.is_object()) {
         throw std::runtime_error("invalid wire entry: endpoint must be object");
     }
@@ -161,7 +161,7 @@ WireEndpoint decode_endpoint(nlohmann::json const& endpoint,
 } // namespace
 
 Interface decode_interface(nlohmann::json const& arr,
-                           ui::StringInterner& interner) {
+                           core::StringInterner& interner) {
     std::vector<PortDescriptor> ports;
     std::unordered_set<std::string> seen_ids;
     for (auto const& p : arr) {
@@ -194,7 +194,7 @@ Interface decode_interface(nlohmann::json const& arr,
 
 Blueprint decode_nodes(Blueprint bp,
                        nlohmann::json const& arr,
-                       ui::StringInterner& interner,
+                       core::StringInterner& interner,
                        ::ComponentRegistry const& parser_registry) {
     static constexpr auto ctx = "invalid node entry";
 
@@ -326,7 +326,7 @@ Blueprint decode_nodes(Blueprint bp,
                         param_found = true;
                     } else {
                         // Check if it was already assigned
-                        ui::InternedId key_iid = interner.intern(param_key);
+                        core::InternedId key_iid = interner.intern(param_key);
                         if (node.semantic.params.count(key_iid) > 0 ||
                             node.semantic.string_params.count(param_key) > 0) {
                             param_found = true;
@@ -383,7 +383,7 @@ Blueprint decode_nodes(Blueprint bp,
 
 Blueprint decode_wires(Blueprint bp,
                        nlohmann::json const& arr,
-                       ui::StringInterner& interner) {
+                       core::StringInterner& interner) {
     for (auto const& w : arr) {
         if (!w.is_object()) {
             throw std::runtime_error("invalid wire entry: expected object");
@@ -419,7 +419,7 @@ Blueprint decode_wires(Blueprint bp,
 
 Blueprint resolve_wire_domains(Blueprint bp,
                                ::ComponentRegistry const& parser_registry,
-                               ui::StringInterner& interner) {
+                               core::StringInterner& interner) {
     PathResolver resolver;
     Blueprint result = bp;
 

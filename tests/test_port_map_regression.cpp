@@ -8,7 +8,7 @@
 #include "core/solvers/jit/jit_solver.h"
 #include "core/solvers/jit/components/all.h"
 #include "core/solvers/common/port_registry.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 
 // =============================================================================
 // Regression: string_to_port_name covers every port in every component

@@ -37,7 +37,7 @@ constexpr float DISCRETE_DRAG_PIXELS_PER_STEP = 30.0f;
 // ============================================================================
 
 CanvasInput::CanvasInput(visual::Scene& scene, Viewport& viewport,
-                         EditingHost* host, ui::StringInterner& interner,
+                         EditingHost* host, core::StringInterner& interner,
                          bp2::PathArena& arena, const WindowScopeId& scope_id,
                          const ComponentRegistry* parser_registry)
     : scene_(scene), viewport_(viewport), host_(host),
@@ -70,12 +70,12 @@ void CanvasInput::snapshot_and_execute(Command cmd) {
 // ID → pointer resolution helpers
 // ============================================================================
 
-visual::Wire* CanvasInput::resolve_wire(ui::InternedId id) const {
+visual::Wire* CanvasInput::resolve_wire(core::InternedId id) const {
     if (id.empty()) return nullptr;
     return dynamic_cast<visual::Wire*>(scene_.find(interner_->resolve(id)));
 }
 
-visual::Widget* CanvasInput::resolve_node(ui::InternedId id) const {
+visual::Widget* CanvasInput::resolve_node(core::InternedId id) const {
     if (id.empty()) return nullptr;
     return scene_.find(interner_->resolve(id));
 }
@@ -89,14 +89,14 @@ void CanvasInput::clear_selection() {
     selected_wire_id_ = {};
 }
 
-void CanvasInput::add_node_selection(ui::InternedId node_id) {
+void CanvasInput::add_node_selection(core::InternedId node_id) {
     if (node_id.empty()) return;
     if (std::find(selected_node_ids_.begin(), selected_node_ids_.end(), node_id) == selected_node_ids_.end()) {
         selected_node_ids_.push_back(node_id);
     }
 }
 
-bool CanvasInput::is_node_selected(ui::InternedId node_id) const {
+bool CanvasInput::is_node_selected(core::InternedId node_id) const {
     if (node_id.empty()) return false;
     return std::find(selected_node_ids_.begin(), selected_node_ids_.end(), node_id) != selected_node_ids_.end();
 }
@@ -119,7 +119,7 @@ std::string_view CanvasInput::hovered_wire_id() const {
 }
 
 bool CanvasInput::select_node_by_id(std::string_view node_id) {
-    ui::InternedId iid = interner_->intern(node_id);
+    core::InternedId iid = interner_->intern(node_id);
     const bp2::Blueprint::Node* node = host_->find_node(iid);
     if (!node) return false;
 
@@ -191,7 +191,7 @@ void CanvasInput::enter_panning() {
     state_ = InputState::Panning;
 }
 
-void CanvasInput::enter_drag_node(ui::InternedId node_id, Pt world_pos, bool ctrl) {
+void CanvasInput::enter_drag_node(core::InternedId node_id, Pt world_pos, bool ctrl) {
     if (!ctrl && !is_node_selected(node_id)) clear_selection();
     add_node_selection(node_id);
 
@@ -209,7 +209,7 @@ void CanvasInput::enter_drag_node(ui::InternedId node_id, Pt world_pos, bool ctr
     }
 }
 
-void CanvasInput::enter_drag_routing_point(ui::InternedId wire_id, size_t rp_idx, Pt rp_world_pos) {
+void CanvasInput::enter_drag_routing_point(core::InternedId wire_id, size_t rp_idx, Pt rp_world_pos) {
     state_ = InputState::DraggingRoutingPoint;
     selected_wire_id_ = wire_id;
     rp_wire_id_ = wire_id;
@@ -228,7 +228,7 @@ void CanvasInput::enter_drag_routing_point(ui::InternedId wire_id, size_t rp_idx
     }
 }
 
-void CanvasInput::enter_resize_node(ui::InternedId node_id, Pt world_pos, Pt size, ResizeCorner corner) {
+void CanvasInput::enter_resize_node(core::InternedId node_id, Pt world_pos, Pt size, ResizeCorner corner) {
     state_ = InputState::ResizingNode;
     clear_selection();
     add_node_selection(node_id);
@@ -241,7 +241,7 @@ void CanvasInput::enter_resize_node(ui::InternedId node_id, Pt world_pos, Pt siz
     drag_anchor_ = Pt(0, 0);
 }
 
-void CanvasInput::enter_create_wire(ui::InternedId node_id, ui::InternedId port_id,
+void CanvasInput::enter_create_wire(core::InternedId node_id, core::InternedId port_id,
                                     bp2::Direction direction, PortType type, Pt port_pos) {
     state_ = InputState::CreatingWire;
     wire_start_endpoint_ = WireStartEndpoint{node_id, port_id, direction, type};
@@ -267,7 +267,7 @@ void CanvasInput::enter_marquee(Pt world_pos) {
 void CanvasInput::setup_semantic_interaction_state(const visual::HitNode& node_hit,
                                                    const CanvasInput::SemanticContentTarget& target,
                                                    Pt world_pos) {
-    ui::InternedId node_id = node_hit.node_id;
+    core::InternedId node_id = node_hit.node_id;
     const bp2::Blueprint::Node* node = host_->find_node(node_id);
     if (!node) return;
 
@@ -391,7 +391,7 @@ bool CanvasInput::state_uses_semantic_control_session() const {
 bool CanvasInput::handle_resolved_interaction(const visual::HitNode& node_hit,
                                               const CanvasInput::SemanticContentTarget& target,
                                               Pt world, InputResult& result) {
-    ui::InternedId node_id = node_hit.node_id;
+    core::InternedId node_id = node_hit.node_id;
     if (node_id.empty()) {
         return false;
     }
@@ -415,7 +415,7 @@ void CanvasInput::advance_world_cursor(Pt world_delta) {
     last_world_pos_ = last_world_pos_ + world_delta;
 }
 
-void CanvasInput::snapshot_wire_routing_points(ui::InternedId wire_id,
+void CanvasInput::snapshot_wire_routing_points(core::InternedId wire_id,
                                                std::vector<std::pair<float, float>> new_points) {
     if (wire_id.empty()) {
         return;
@@ -429,7 +429,7 @@ void CanvasInput::snapshot_wire_routing_points(ui::InternedId wire_id,
 
 void CanvasInput::rebuild_scene() {
     // scope_id_.path() already returns InternedId vector - use directly
-    std::vector<ui::InternedId> instance_path(scope_id_.path().begin(), scope_id_.path().end());
+    std::vector<core::InternedId> instance_path(scope_id_.path().begin(), scope_id_.path().end());
     visual::mutations::rebuild(scene_, host_->current_blueprint(), *interner_, *arena_, instance_path, registry());
     rebuild_snapshot();
 }
@@ -463,7 +463,7 @@ InputResult CanvasInput::on_scroll(float delta, Pt screen_pos, Pt canvas_min) {
 // Utility helpers
 // ============================================================================
 
-size_t CanvasInput::find_wire_index(ui::InternedId wire_id) const {
+size_t CanvasInput::find_wire_index(core::InternedId wire_id) const {
     if (wire_id.empty()) return SIZE_MAX;
     const auto& wires = host_->wires();
     for (size_t i = 0; i < wires.size(); ++i) {
@@ -472,7 +472,7 @@ size_t CanvasInput::find_wire_index(ui::InternedId wire_id) const {
     return SIZE_MAX;
 }
 
-size_t CanvasInput::find_node_index(ui::InternedId node_id) const {
+size_t CanvasInput::find_node_index(core::InternedId node_id) const {
     if (node_id.empty()) return SIZE_MAX;
     const auto& nodes = host_->nodes();
     for (size_t i = 0; i < nodes.size(); ++i) {

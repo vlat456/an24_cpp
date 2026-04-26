@@ -17,11 +17,11 @@ public:
         return model_.current();
     }
 
-    const bp2::Blueprint::Node* find_node(ui::InternedId id) const override {
+    const bp2::Blueprint::Node* find_node(core::InternedId id) const override {
         return model_.current().find_node(id);
     }
 
-    const bp2::Blueprint::Wire* find_wire(ui::InternedId id) const override {
+    const bp2::Blueprint::Wire* find_wire(core::InternedId id) const override {
         return model_.current().find_wire(id);
     }
 
@@ -49,28 +49,28 @@ public:
         return model_.add_wire(std::move(wire));
     }
 
-    bool remove_wire(ui::InternedId id) override {
+    bool remove_wire(core::InternedId id) override {
         return model_.remove_wire(id);
     }
 
-    bool update_wire(ui::InternedId id,
+    bool update_wire(core::InternedId id,
                      std::function<void(bp2::Blueprint::Wire&)> fn) override {
         return model_.update_wire(id, std::move(fn));
     }
 
-    bool update_node_position(ui::InternedId id, float x, float y) override {
+    bool update_node_position(core::InternedId id, float x, float y) override {
         return model_.update_node_position(id, x, y);
     }
 
-    bool update_node(ui::InternedId id,
+    bool update_node(core::InternedId id,
                      std::function<void(bp2::Blueprint::Node&)> fn) override {
         return model_.update_node(id, std::move(fn));
     }
 
-    bool remove_node(ui::InternedId id,
-                     std::vector<ui::InternedId> connected_wire_ids) override {
+    bool remove_node(core::InternedId id,
+                     std::vector<core::InternedId> connected_wire_ids) override {
         return model_.mutate_atomically([&] {
-            for (ui::InternedId wid : connected_wire_ids) {
+            for (core::InternedId wid : connected_wire_ids) {
                 model_.remove_wire(wid);
             }
             if (!model_.remove_node(id)) {
@@ -79,7 +79,7 @@ public:
         });
     }
 
-    bool bake_blueprint_instance(ui::InternedId id,
+    bool bake_blueprint_instance(core::InternedId id,
                                  const bp2::BlueprintLibrary& library) override {
         if (!model_.current().find_blueprint_instance(id)) {
             return false;
@@ -106,7 +106,7 @@ public:
     /// Construct from a full instance path (may be multi-segment for deeply
     /// nested embedded scopes). The path must be non-empty.
     EmbeddedInlineHost(bp2::EditorModel& root_model,
-                       std::vector<ui::InternedId> instance_path)
+                       std::vector<core::InternedId> instance_path)
         : root_model_(root_model), path_(std::move(instance_path))
     {
         if (path_.empty()) {
@@ -118,11 +118,11 @@ public:
         return require_inline_blueprint(walk_to_host_node());
     }
 
-    const bp2::Blueprint::Node* find_node(ui::InternedId id) const override {
+    const bp2::Blueprint::Node* find_node(core::InternedId id) const override {
         return current_blueprint().find_node(id);
     }
 
-    const bp2::Blueprint::Wire* find_wire(ui::InternedId id) const override {
+    const bp2::Blueprint::Wire* find_wire(core::InternedId id) const override {
         return current_blueprint().find_wire(id);
     }
 
@@ -155,7 +155,7 @@ public:
         });
     }
 
-    bool remove_wire(ui::InternedId id) override {
+    bool remove_wire(core::InternedId id) override {
         if (!current_blueprint().find_wire(id)) {
             return false;
         }
@@ -165,7 +165,7 @@ public:
         });
     }
 
-    bool update_wire(ui::InternedId id,
+    bool update_wire(core::InternedId id,
                      std::function<void(bp2::Blueprint::Wire&)> fn) override {
         const auto* existing = current_blueprint().find_wire(id);
         if (!existing) {
@@ -179,14 +179,14 @@ public:
         });
     }
 
-    bool update_node_position(ui::InternedId id, float x, float y) override {
+    bool update_node_position(core::InternedId id, float x, float y) override {
         return update_node(id, [x, y](bp2::Blueprint::Node& n) {
             n.layout.x = x;
             n.layout.y = y;
         });
     }
 
-    bool update_node(ui::InternedId id,
+    bool update_node(core::InternedId id,
                      std::function<void(bp2::Blueprint::Node&)> fn) override {
         const auto* existing = current_blueprint().find_node(id);
         if (!existing) {
@@ -200,14 +200,14 @@ public:
         });
     }
 
-    bool remove_node(ui::InternedId id,
-                     std::vector<ui::InternedId> connected_wire_ids) override {
+    bool remove_node(core::InternedId id,
+                     std::vector<core::InternedId> connected_wire_ids) override {
         if (!current_blueprint().find_node(id)) {
             return false;
         }
         return root_model_.mutate_atomically([&] {
             bp2::Blueprint next = current_blueprint();
-            for (ui::InternedId wid : connected_wire_ids) {
+            for (core::InternedId wid : connected_wire_ids) {
                 next = next.without_wire(wid);
             }
             next = next.without_node(id);
@@ -215,7 +215,7 @@ public:
         });
     }
 
-    bool bake_blueprint_instance(ui::InternedId id,
+    bool bake_blueprint_instance(core::InternedId id,
                                  const bp2::BlueprintLibrary& library) override {
         if (!current_blueprint().find_blueprint_instance(id)) {
             return false;
@@ -231,7 +231,7 @@ public:
 
 private:
     bp2::EditorModel& root_model_;
-    std::vector<ui::InternedId> path_;
+    std::vector<core::InternedId> path_;
 
     static const bp2::Blueprint& require_inline_blueprint(const bp2::Blueprint::Node& node) {
         if (!node.has_embedded_blueprint()) {
@@ -282,8 +282,8 @@ public:
     explicit ReadOnlyHost(const bp2::Blueprint& bp) : bp_(bp) {}
 
     const bp2::Blueprint& current_blueprint() const override { return bp_; }
-    const bp2::Blueprint::Node* find_node(ui::InternedId id) const override { return bp_.find_node(id); }
-    const bp2::Blueprint::Wire* find_wire(ui::InternedId id) const override { return bp_.find_wire(id); }
+    const bp2::Blueprint::Node* find_node(core::InternedId id) const override { return bp_.find_node(id); }
+    const bp2::Blueprint::Wire* find_wire(core::InternedId id) const override { return bp_.find_wire(id); }
     const std::vector<bp2::Blueprint::Wire>& wires() const override { return bp_.wires(); }
     const std::vector<bp2::Blueprint::Node>& nodes() const override { return bp_.nodes(); }
 
@@ -291,12 +291,12 @@ public:
     bool mutate_atomically(const std::function<void()>&) override { return false; }
     void replace_current(bp2::Blueprint) override {}
     bool add_wire(bp2::Blueprint::Wire) override { return false; }
-    bool remove_wire(ui::InternedId) override { return false; }
-    bool update_wire(ui::InternedId, std::function<void(bp2::Blueprint::Wire&)>) override { return false; }
-    bool update_node_position(ui::InternedId, float, float) override { return false; }
-    bool update_node(ui::InternedId, std::function<void(bp2::Blueprint::Node&)>) override { return false; }
-    bool remove_node(ui::InternedId, std::vector<ui::InternedId>) override { return false; }
-    bool bake_blueprint_instance(ui::InternedId, const bp2::BlueprintLibrary&) override { return false; }
+    bool remove_wire(core::InternedId) override { return false; }
+    bool update_wire(core::InternedId, std::function<void(bp2::Blueprint::Wire&)>) override { return false; }
+    bool update_node_position(core::InternedId, float, float) override { return false; }
+    bool update_node(core::InternedId, std::function<void(bp2::Blueprint::Node&)>) override { return false; }
+    bool remove_node(core::InternedId, std::vector<core::InternedId>) override { return false; }
+    bool bake_blueprint_instance(core::InternedId, const bp2::BlueprintLibrary&) override { return false; }
     std::string allocate_wire_id() override { return {}; }
 
 private:
@@ -309,7 +309,7 @@ std::unique_ptr<EditingHost> create_editor_model_host(bp2::EditorModel& model) {
 
 std::unique_ptr<EditingHost> create_pathful_embedded_host(
     bp2::EditorModel& root_model,
-    std::vector<ui::InternedId> instance_path) {
+    std::vector<core::InternedId> instance_path) {
     return std::make_unique<EmbeddedInlineHost>(root_model, std::move(instance_path));
 }
 

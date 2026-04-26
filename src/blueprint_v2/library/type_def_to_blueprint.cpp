@@ -25,7 +25,7 @@ std::pair<std::string, std::string> parse_endpoint(const std::string& ep,
 
 Domain resolve_wire_domain(const Blueprint& bp,
                            const ComponentRegistry& registry,
-                           ui::StringInterner& interner,
+                           core::StringInterner& interner,
                            const std::string& src_node,
                            const std::string& src_port,
                            const std::string& tgt_node,
@@ -67,7 +67,7 @@ Domain resolve_wire_domain(const Blueprint& bp,
 }
 
 Blueprint::Node make_bridge_node(const BridgePortDefinition& bridge,
-                                 ui::StringInterner& interner) {
+                                 core::StringInterner& interner) {
     Blueprint::Node node;
     node.semantic.id = interner.intern(bridge.id);
     node.semantic.type = interner.intern("BridgePort");
@@ -95,7 +95,7 @@ Blueprint::Node make_bridge_node(const BridgePortDefinition& bridge,
 } // namespace
 
 Blueprint blueprint_from_type_definition(const ComponentSpec& spec,
-                                         ui::StringInterner& interner,
+                                         core::StringInterner& interner,
                                          const ComponentRegistry& registry) {
     const auto* comp = as_composite(spec);
     if (!comp) {

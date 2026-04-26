@@ -104,7 +104,7 @@ static const ComponentRegistry& fixture_registry() {
     return registry;
 }
 
-static bp2::BlueprintLibrary build_library(const ComponentRegistry& registry, ui::StringInterner& interner) {
+static bp2::BlueprintLibrary build_library(const ComponentRegistry& registry, core::StringInterner& interner) {
     bp2::BlueprintLibrary library;
     for (const auto& [classname, spec] : registry.all_types()) {
         if (::is_primitive(spec)) continue;
@@ -118,7 +118,7 @@ static bp2::BlueprintLibrary build_library(const ComponentRegistry& registry, ui
 }
 
 static JitBuildInput build_input_from_blueprint_file(const std::string& blueprint_path) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     const ComponentRegistry& registry = fixture_registry();
     bp2::BlueprintLibrary library = build_library(registry, interner);

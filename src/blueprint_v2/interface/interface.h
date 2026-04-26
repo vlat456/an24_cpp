@@ -20,16 +20,16 @@ public:
 
     std::vector<PortDescriptor> const& ports() const { return ports_; }
 
-    std::optional<PortDescriptor> find(ui::InternedId name) const;
-    bool has(ui::InternedId name) const;
-    PortDescriptor const& at(ui::InternedId name) const;
+    std::optional<PortDescriptor> find(core::InternedId name) const;
+    bool has(core::InternedId name) const;
+    PortDescriptor const& at(core::InternedId name) const;
 
     bool operator==(Interface const& o) const { return ports_ == o.ports_; }
     bool operator!=(Interface const& o) const { return !(*this == o); }
 
 private:
     std::vector<PortDescriptor> ports_;
-    std::unordered_map<ui::InternedId, size_t> name_to_idx_;
+    std::unordered_map<core::InternedId, size_t> name_to_idx_;
 };
 
 } // namespace bp2

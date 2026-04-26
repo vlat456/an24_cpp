@@ -19,7 +19,7 @@ void Document::openExternalRefWindow(const WindowScopeId& instance_scope,
         return;
     }
 
-    auto ext_interner = std::make_unique<ui::StringInterner>();
+    auto ext_interner = std::make_unique<core::StringInterner>();
     auto ext_arena = std::make_unique<bp2::PathArena>(*ext_interner);
     if (!type_registry_) {
         spdlog::error("[editor] Cannot open external ref window: ComponentRegistry is not configured");
@@ -67,7 +67,7 @@ void Document::openExternalRefWindow(const WindowScopeId& instance_scope,
                  editor::instance_path_to_scope_string(interner_, instance_scope.path()), blueprint_file_path);
 }
 
-void Document::openSubWindow(const WindowScopeId& parent_scope, ui::InternedId local_node_id) {
+void Document::openSubWindow(const WindowScopeId& parent_scope, core::InternedId local_node_id) {
     openSubWindow(parent_scope.is_root()
         ? WindowScopeId::embedded({local_node_id})
         : parent_scope.append(local_node_id));
@@ -75,7 +75,7 @@ void Document::openSubWindow(const WindowScopeId& parent_scope, ui::InternedId l
 
 void Document::openSubWindow(const WindowScopeId& target_scope) {
     const bp2::Blueprint* bp = nullptr;
-    const ui::StringInterner* bp_interner = nullptr;
+    const core::StringInterner* bp_interner = nullptr;
 
     if (target_scope.is_root()) {
         return;
@@ -85,7 +85,7 @@ void Document::openSubWindow(const WindowScopeId& target_scope) {
         bp = &model_.current();
         bp_interner = &interner_;
     } else {
-        const std::vector<ui::InternedId> parent_path(
+        const std::vector<core::InternedId> parent_path(
             target_scope.path().begin(), target_scope.path().end() - 1);
         // Parent resolution depends on what actually exists now:
         // - embedded ancestry always resolves through the root document model
@@ -112,7 +112,7 @@ void Document::openSubWindow(const WindowScopeId& target_scope) {
     }
 
     // Handle embedded blueprints directly — no LibraryIndex needed.
-    const ui::InternedId local_node_id = target_scope.path().back();
+    const core::InternedId local_node_id = target_scope.path().back();
     const bp2::Blueprint::Node* node = local_node_id.empty() ? nullptr : bp->find_node(local_node_id);
 
     if (node && node->is_blueprint_instance() && node->has_embedded_blueprint()) {

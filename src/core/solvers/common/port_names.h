@@ -53,6 +53,7 @@ enum class PortNames : uint32_t {
     output_min,
     p_in,
     p_out,
+    p_source,
     pos_a,
     pos_b,
     position,

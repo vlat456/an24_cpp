@@ -21,7 +21,7 @@ void ColorPickerDialog::render(WindowSystem& ws) {
             return;
         }
 
-        ui::InternedId node_iid = ws.colorPicker.node_id;
+        core::InternedId node_iid = ws.colorPicker.node_id;
         const bp2::Blueprint::Node* node_ptr = (doc && !node_iid.empty())
             ? doc->find_node_in_scope(ws.colorPicker.scope_id, ws.colorPicker.node_id)
             : nullptr;

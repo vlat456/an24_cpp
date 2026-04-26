@@ -7,7 +7,7 @@
 #include "editor/visual/presentation/node_presentation.h"
 #include "core/model/presentation_spec.h"
 #include "core/model/component_spec.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include "ui/math/pt.h"
 
 #include "visual/persist.h"
@@ -22,8 +22,8 @@ namespace canvas_input_impl {
 // Blueprint helpers
 // ============================================================================
 
-inline bool is_bus_node(const bp2::Blueprint& bp, ui::InternedId node_id,
-                        const ComponentRegistry& registry, const ui::StringInterner& interner) {
+inline bool is_bus_node(const bp2::Blueprint& bp, core::InternedId node_id,
+                        const ComponentRegistry& registry, const core::StringInterner& interner) {
     const bp2::Blueprint::Node* node = bp.find_node(node_id);
     if (!node) return false;
     const std::string type_name(interner.resolve(node->semantic.type));
@@ -34,7 +34,7 @@ inline bool is_bus_node(const bp2::Blueprint& bp, ui::InternedId node_id,
 }
 
 inline bool is_ref_node(const bp2::Blueprint::Node& node,
-                        const ComponentRegistry& registry, const ui::StringInterner& interner) {
+                        const ComponentRegistry& registry, const core::StringInterner& interner) {
     const std::string type_name(interner.resolve(node.semantic.type));
     const ComponentSpec* def = registry.get(type_name);
     const TypePresentation* pres = registry.get_presentation(type_name);
@@ -47,10 +47,10 @@ inline bool is_wire_alias_port_name(std::string_view port_name) {
 }
 
 inline PortType resolve_port_type_from_model(const bp2::Blueprint& bp,
-                                             ui::InternedId node_id,
-                                             ui::InternedId port_name,
+                                             core::InternedId node_id,
+                                             core::InternedId port_name,
                                              const ComponentRegistry& registry,
-                                             ui::StringInterner& interner) {
+                                             core::StringInterner& interner) {
     const bp2::Blueprint::Node* node = bp.find_node(node_id);
     if (!node) return PortType::Any;
     for (const auto& p : bp.resolve_node_iface(*node, bp2::Blueprint::NodeIfaceAuthority{interner, &registry}).ports()) {
@@ -60,7 +60,7 @@ inline PortType resolve_port_type_from_model(const bp2::Blueprint& bp,
 }
 
 inline void debug_validate_command_boundary(const bp2::Blueprint& bp,
-                                            ui::StringInterner& interner,
+                                            core::StringInterner& interner,
                                             bp2::PathArena const& arena,
                                             const ComponentRegistry* parser_registry = nullptr) {
 #ifndef NDEBUG

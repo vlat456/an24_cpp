@@ -4,7 +4,7 @@
 #include "blueprint_v2/blueprint/embedded_mutation.h"
 
 TEST(EmbeddedEditingUndo, EmbeddedBlueprintUndoRedoRoundTrip) {
-     ui::StringInterner interner;
+     core::StringInterner interner;
 
      bp2::Blueprint root;
 
@@ -85,7 +85,7 @@ auto updated_inline = std::make_unique<bp2::Blueprint>(
 // from within an outer mutate_atomically() block.
 TEST(EmbeddedEditingUndo, NestedMutateAtomicallyProducesSingleUndoEntry) {
     bp2::EditorModel model;
-    ui::StringInterner interner;
+    core::StringInterner interner;
 
     // Seed with two nodes so we can move them both in one outer transaction
     bp2::Blueprint::Node n1;
@@ -134,7 +134,7 @@ TEST(EmbeddedEditingUndo, NestedMutateAtomicallyProducesSingleUndoEntry) {
 // report the outer change correctly (no false negative).
 TEST(EmbeddedEditingUndo, NestedMutateAtomicallyNoOpInnerStillReportsOuterChange) {
     bp2::EditorModel model;
-    ui::StringInterner interner;
+    core::StringInterner interner;
 
     bp2::Blueprint::Node n;
     n.semantic.id = interner.intern("x");
@@ -161,7 +161,7 @@ TEST(EmbeddedEditingUndo, NestedMutateAtomicallyNoOpInnerStillReportsOuterChange
 // not leave a stale checkpoint on the undo stack.
 TEST(EmbeddedEditingUndo, NestedMutateAtomicallyFullNoOpReturnsFalse) {
     bp2::EditorModel model;
-    ui::StringInterner interner;
+    core::StringInterner interner;
 
     bp2::Blueprint::Node n;
     n.semantic.id = interner.intern("x");
@@ -187,7 +187,7 @@ TEST(EmbeddedEditingUndo, NestedMutateAtomicallyFullNoOpReturnsFalse) {
 // used push_checkpoint() instead of push_checkpoint_if_enabled(), causing
 // double-checkpoint when called from within an atomic block (e.g. addBlueprint).
 TEST(EmbeddedEditingUndo, MutateEmbeddedInsideAtomicBlockProducesSingleUndoEntry) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
 
     // Build a root with an embedded blueprint instance containing one inner node.
     bp2::Blueprint inner;
@@ -214,7 +214,7 @@ TEST(EmbeddedEditingUndo, MutateEmbeddedInsideAtomicBlockProducesSingleUndoEntry
     ASSERT_EQ(model.undo_depth(), 0u);
 
     // Simulate addBlueprint pattern: mutate_embedded inside mutate_atomically.
-    const auto path = std::vector<ui::InternedId>{interner.intern("group_1")};
+    const auto path = std::vector<core::InternedId>{interner.intern("group_1")};
 
     model.mutate_atomically([&] {
         // Also do a root-level change alongside the embedded change.
@@ -261,7 +261,7 @@ TEST(EmbeddedEditingUndo, MutateEmbeddedInsideAtomicBlockProducesSingleUndoEntry
 
 // Standalone mutate_embedded (not inside atomic block) must produce one checkpoint.
 TEST(EmbeddedEditingUndo, StandaloneMutateEmbeddedProducesOneCheckpoint) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
 
     bp2::Blueprint inner;
     inner = inner.with_id(interner.intern("inner_bp"));
@@ -285,7 +285,7 @@ TEST(EmbeddedEditingUndo, StandaloneMutateEmbeddedProducesOneCheckpoint) {
     model.clear_history();
     ASSERT_EQ(model.undo_depth(), 0u);
 
-    const auto path = std::vector<ui::InternedId>{interner.intern("group_1")};
+    const auto path = std::vector<core::InternedId>{interner.intern("group_1")};
     const bp2::MutationResult mr = model.mutate_embedded(path,
         [&](const bp2::Blueprint& embedded) -> bp2::Blueprint {
             bp2::Blueprint::Node extra;

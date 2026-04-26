@@ -50,7 +50,7 @@ int main() {
     }
 
     JitBuildInput input;
-    auto intern = [&input](const std::string& s) -> ui::InternedId {
+    auto intern = [&input](const std::string& s) -> core::InternedId {
         return input.signal_key_interner.intern(s);
     };
 
@@ -97,7 +97,7 @@ int main() {
     const double us_per_step = (total_ms * 1000.0) / static_cast<double>(measured_steps);
 
     const std::string last = "add" + std::to_string(chain_len - 1) + ".o";
-    const ui::InternedId last_key = result.signal_key_interner.lookup(last);
+    const core::InternedId last_key = result.signal_key_interner.lookup(last);
     const float last_value = st.values[result.port_to_signal.at(last_key)];
 
     std::cout << "push_benchmark"

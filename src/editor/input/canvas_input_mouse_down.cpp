@@ -73,8 +73,8 @@ InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas
 
         auto port_hit = editor::presentation::hit_test_canvas_scene_ports(snapshot_, world);
         if (auto* ph = std::get_if<visual::HitPort>(&port_hit)) {
-            ui::InternedId port_node_iid = ph->node_id;
-            ui::InternedId port_name_iid = ph->port_name;
+            core::InternedId port_node_iid = ph->node_id;
+            core::InternedId port_name_iid = ph->port_name;
             auto wire_match = find_wire_on_port(port_node_iid, port_name_iid);
             if (wire_match) {
                 enter_reconnect_wire(wire_match->wire_index, wire_match->detach_start,
@@ -96,14 +96,14 @@ InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas
         if (mods.alt) {
             enter_marquee(world);
         } else if (auto* hrh = std::get_if<visual::HitResizeHandle>(&hit)) {
-            ui::InternedId handle_node_id = hrh->node_id;
+            core::InternedId handle_node_id = hrh->node_id;
             if (is_node_selected(handle_node_id)) {
                 enter_resize_node(handle_node_id, hrh->world_pos, hrh->size, hrh->corner);
             } else {
                 enter_drag_node(handle_node_id, hrh->world_pos, mods.ctrl);
             }
         } else if (auto* hn = std::get_if<visual::HitNode>(&hit)) {
-            ui::InternedId node_id = hn->node_id;
+            core::InternedId node_id = hn->node_id;
             if (hn->content_interaction.has_value()) {
                 SemanticContentTarget target;
                 switch (hn->content_interaction->kind) {

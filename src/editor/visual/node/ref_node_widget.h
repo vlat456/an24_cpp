@@ -3,7 +3,7 @@
 #include "visual/render_context.h"
 #include "visual/port/visual_port.h"
 #include "editor/data/node_state.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include "data/node_content.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include <string>
@@ -19,7 +19,7 @@ class RefNodeWidget : public Widget {
 public:
     RefNodeWidget(const bp2::Blueprint::Node& data,
                   const bp2::Interface& render_iface,
-                  const ui::StringInterner& interner,
+                  const core::StringInterner& interner,
                   std::optional<editor::NodeColor> color = std::nullopt);
 
     std::string_view id() const override { return interner_->resolve(node_iid_); }
@@ -45,17 +45,17 @@ public:
     void renderPost(IDrawList* dl, const RenderContext& ctx) const override;
 
 private:
-    ui::InternedId node_iid_;
-    const ui::StringInterner* interner_;
+    core::InternedId node_iid_;
+    const core::StringInterner* interner_;
     std::string name_;
-    ui::InternedId type_iid_;
+    core::InternedId type_iid_;
 
     Port* port_ = nullptr;
     std::optional<uint32_t> custom_fill_;
 
     void buildLayout(const bp2::Blueprint::Node& data,
                      const bp2::Interface& render_iface,
-                     const ui::StringInterner& interner);
+                     const core::StringInterner& interner);
     void positionPort();
 
     bp2::PortLayoutSide port_layout_side_ = bp2::PortLayoutSide::Top;

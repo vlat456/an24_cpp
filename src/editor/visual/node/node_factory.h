@@ -6,7 +6,7 @@
 #include "visual/node/bus_node_widget.h"
 #include "editor/visual/presentation/node_presentation.h"
 #include "blueprint_v2/blueprint/blueprint.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include <memory>
 #include <vector>
 
@@ -25,7 +25,7 @@ struct NodeFactory {
     static std::unique_ptr<Widget> create(const bp2::Blueprint::Node& node,
                                           editor::presentation::NodeFrameKind frame_kind,
                                           const bp2::Interface& render_iface,
-                                          const ui::StringInterner& interner,
+                                          const core::StringInterner& interner,
                                           const NodeContent& content,
                                           std::optional<editor::NodeColor> color = std::nullopt,
                                           const std::vector<BusWireRef>& wires = {}) {

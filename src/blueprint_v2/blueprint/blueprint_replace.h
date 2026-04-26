@@ -4,7 +4,7 @@
 /// Pure data operations on Blueprint — no EditorModel dependency.
 
 #include "blueprint_v2/blueprint/blueprint.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include <functional>
 
 namespace bp2 {
@@ -28,14 +28,14 @@ Blueprint replace_wire_preserve_order(const Blueprint& bp, Blueprint::Wire updat
 /// Returns NotFound if node doesn't exist, NoChange if mutation was a no-op,
 /// Changed if the blueprint was modified (bp is updated in-place).
 MutationResult try_update_node(Blueprint& bp,
-                               ui::InternedId id,
+                               core::InternedId id,
                                const std::function<void(Blueprint::Node&)>& fn);
 
 /// Find a wire by id, apply mutation function, replace in blueprint.
 /// Returns NotFound if wire doesn't exist, NoChange if mutation was a no-op,
 /// Changed if the blueprint was modified (bp is updated in-place).
 MutationResult try_update_wire(Blueprint& bp,
-                               ui::InternedId id,
+                               core::InternedId id,
                                const std::function<void(Blueprint::Wire&)>& fn);
 
 } // namespace bp2

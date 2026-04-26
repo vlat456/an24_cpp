@@ -50,7 +50,7 @@ Blueprint replace_wire_preserve_order(const Blueprint& bp, Blueprint::Wire updat
 }
 
 MutationResult try_update_node(Blueprint& bp,
-                               ui::InternedId id,
+                               core::InternedId id,
                                const std::function<void(Blueprint::Node&)>& fn) {
     const auto* existing = bp.find_node(id);
     if (!existing) {
@@ -68,7 +68,7 @@ MutationResult try_update_node(Blueprint& bp,
 }
 
 MutationResult try_update_wire(Blueprint& bp,
-                               ui::InternedId id,
+                               core::InternedId id,
                                const std::function<void(Blueprint::Wire&)>& fn) {
     const auto* existing = bp.find_wire(id);
     if (!existing) {

@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include "blueprint_v2/editor_model/editor_model.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/library/blueprint_library.h"
@@ -16,7 +16,7 @@ TEST(EditorModel, EmptyByDefault) {
  }
 
 TEST(EditorModel, ConstructWithBlueprint) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("test"));
     bp2::EditorModel model(bp);
@@ -24,7 +24,7 @@ TEST(EditorModel, ConstructWithBlueprint) {
 }
 
 TEST(EditorModel, AddNode) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::EditorModel model;
 
     bp2::Blueprint::Node node;
@@ -36,7 +36,7 @@ TEST(EditorModel, AddNode) {
 }
 
 TEST(EditorModel, DuplicateNodeRejected) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::EditorModel model;
 
     bp2::Blueprint::Node n1, n2;
@@ -52,7 +52,7 @@ TEST(EditorModel, DuplicateNodeRejected) {
 }
 
 TEST(EditorModel, RemoveNode) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::EditorModel model;
 
     bp2::Blueprint::Node node;
@@ -65,13 +65,13 @@ TEST(EditorModel, RemoveNode) {
 }
 
 TEST(EditorModel, RemoveNonexistentNode) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::EditorModel model;
     EXPECT_FALSE(model.remove_node(interner.intern("nope")));
 }
 
 TEST(EditorModel, RemoveHostNodeAlsoRemovesEmbeddedBlueprint) {
-     ui::StringInterner interner;
+     core::StringInterner interner;
 
      bp2::Blueprint inner;
      inner = inner.with_id(interner.intern("CompositeType"));
@@ -93,7 +93,7 @@ TEST(EditorModel, RemoveHostNodeAlsoRemovesEmbeddedBlueprint) {
  }
 
 TEST(EditorModel, AddWire) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::EditorModel model;
 
@@ -115,7 +115,7 @@ TEST(EditorModel, AddWire) {
 }
 
 TEST(EditorModel, RejectsSelfLoopWire) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::EditorModel model;
 
@@ -135,7 +135,7 @@ TEST(EditorModel, RejectsSelfLoopWire) {
 
 
 TEST(EditorModel, UndoRestoresPreviousState) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::EditorModel model;
 
     bp2::Blueprint::Node node;
@@ -150,7 +150,7 @@ TEST(EditorModel, UndoRestoresPreviousState) {
 }
 
 TEST(EditorModel, RedoAfterUndo) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::EditorModel model;
 
     bp2::Blueprint::Node node;
@@ -167,7 +167,7 @@ TEST(EditorModel, RedoAfterUndo) {
 }
 
 TEST(EditorModel, NewActionClearsRedoStack) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::EditorModel model;
 
     bp2::Blueprint::Node n1, n2;
@@ -184,7 +184,7 @@ TEST(EditorModel, NewActionClearsRedoStack) {
 }
 
 TEST(EditorModel, UpdateNodePosition) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::EditorModel model;
 
     bp2::Blueprint::Node node;
@@ -203,7 +203,7 @@ TEST(EditorModel, UpdateNodePosition) {
 }
 
 TEST(EditorModel, UpdateNodePositionCreatesCheckpoint) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::EditorModel model;
 
     bp2::Blueprint::Node node;
@@ -222,7 +222,7 @@ TEST(EditorModel, UpdateNodePositionCreatesCheckpoint) {
 }
 
 TEST(EditorModel, UpdateNodeNoOpDoesNotCreateCheckpointOrDirtyState) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::EditorModel model;
 
     bp2::Blueprint::Node node;
@@ -239,7 +239,7 @@ TEST(EditorModel, UpdateNodeNoOpDoesNotCreateCheckpointOrDirtyState) {
 }
 
 TEST(EditorModel, UpdateWireNoOpDoesNotCreateCheckpointOrDirtyState) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::EditorModel model;
 
     bp2::Blueprint::Node n1, n2;
@@ -265,7 +265,7 @@ TEST(EditorModel, UpdateWireNoOpDoesNotCreateCheckpointOrDirtyState) {
 
 
 TEST(EditorModel, UpdateNodeCannotOverrideEmbeddedCompositeIfaceAuthority) {
-     ui::StringInterner interner;
+     core::StringInterner interner;
 
      bp2::Blueprint inner;
      inner = inner.with_interface(bp2::Interface({
@@ -295,7 +295,7 @@ bp2::Blueprint::Node collapsed;
 
 // Regression: constructor must canonicalize embedded blueprint interface.
 TEST(EditorModel, ConstructorCanonicalizesEmbeddedCompositeHostIface) {
-     ui::StringInterner interner;
+     core::StringInterner interner;
 
      bp2::Blueprint inner;
      inner = inner.with_interface(bp2::Interface({
@@ -326,7 +326,7 @@ collapsed.semantic.id = interner.intern("sub1");
   }
 
 TEST(EditorModel, ReplaceCurrentCanonicalizesEmbeddedCompositeIfaceAuthority) {
-     ui::StringInterner interner;
+     core::StringInterner interner;
 
      bp2::Blueprint inner;
      inner = inner.with_interface(bp2::Interface({
@@ -379,7 +379,7 @@ TEST(EditorModel, RedoDoesNothingWhenEmpty) {
 }
 
 TEST(EditorModel, NodesInRectReturnsOnlyContainedNodes) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::EditorModel model;
 
     bp2::Blueprint::Node n1;
@@ -409,7 +409,7 @@ TEST(EditorModel, NodesInRectReturnsOnlyContainedNodes) {
 }
 
 TEST(EditorModel, NodesInRectReflectsNodeMovement) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::EditorModel model;
 
     bp2::Blueprint::Node n1;
@@ -434,7 +434,7 @@ TEST(EditorModel, NodesInRectReflectsNodeMovement) {
 }
 
 TEST(EditorModel, WireExistsTracksAddAndRemove) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::EditorModel model;
 
@@ -466,7 +466,7 @@ TEST(EditorModel, WireExistsTracksAddAndRemove) {
 }
 
 TEST(EditorModel, IsDirtyAfterUndoStackTruncation) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::EditorModel model;
 
     // Fill undo stack to exactly max_history_ (100)
@@ -495,7 +495,7 @@ TEST(EditorModel, IsDirtyAfterUndoStackTruncation) {
 }
 
 TEST(EditorModel, RandomizedEditsMaintainInvariants) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry registry = load_component_registry("library/");
     PrimitiveSpec battery;
@@ -562,7 +562,7 @@ TEST(EditorModel, RandomizedEditsMaintainInvariants) {
             if (!nodes.empty()) {
                 const auto node_id = nodes[choose_index(nodes.size())].semantic.id;
 
-                std::vector<ui::InternedId> incident;
+                std::vector<core::InternedId> incident;
                 for (const auto& w : model.current().wires()) {
                     if (w.source.node == node_id) {
                         incident.push_back(w.id);
@@ -603,7 +603,7 @@ TEST(EditorModel, RandomizedEditsMaintainInvariants) {
 // =============================================================================
 
 TEST(ReplacePreserveOrder, NodeReplacementKeepsInsertionOrder) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::Blueprint bp;
 
     bp2::Blueprint::Node n1;
@@ -635,7 +635,7 @@ TEST(ReplacePreserveOrder, NodeReplacementKeepsInsertionOrder) {
 }
 
 TEST(ReplacePreserveOrder, NodeAppendsIfNotFound) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::Blueprint bp;
 
     bp2::Blueprint::Node n1;
@@ -655,7 +655,7 @@ TEST(ReplacePreserveOrder, NodeAppendsIfNotFound) {
 }
 
 TEST(ReplacePreserveOrder, WireReplacementKeepsInsertionOrder) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::Blueprint bp;
 
@@ -683,7 +683,7 @@ TEST(ReplacePreserveOrder, WireReplacementKeepsInsertionOrder) {
 
 
 TEST(ReplacePreserveOrder, ReplacementPreservesMetadata) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::Blueprint bp;
     bp = bp.with_id(interner.intern("test_bp"));
     bp = bp.with_name("Test Blueprint");
@@ -705,7 +705,7 @@ TEST(ReplacePreserveOrder, ReplacementPreservesMetadata) {
 }
 
 TEST(ReplacePreserveOrder, WireReplacementPreservesMetadata) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     bp2::Blueprint bp;

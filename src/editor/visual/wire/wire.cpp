@@ -17,7 +17,7 @@
 
 namespace visual {
 
-Wire::Wire(ui::InternedId iid,
+Wire::Wire(core::InternedId iid,
            std::string_view id,
            std::string_view start_node, std::string_view start_port,
            std::string_view end_node, std::string_view end_port)

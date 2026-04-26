@@ -24,7 +24,7 @@ using bp2::PathKind;
 using bp2::PortDescriptor;
 using bp2::WireValidator;
 
-static bp2::Blueprint::Node make_node(ui::StringInterner& I,
+static bp2::Blueprint::Node make_node(core::StringInterner& I,
                                       const char* id,
                                       const char* type) {
     bp2::Blueprint::Node n;
@@ -36,7 +36,7 @@ static bp2::Blueprint::Node make_node(ui::StringInterner& I,
 }
 
 /// Create a node with interface populated from registry
-static bp2::Blueprint::Node make_node_with_interface(ui::StringInterner& I,
+static bp2::Blueprint::Node make_node_with_interface(core::StringInterner& I,
                                                      const char* id,
                                                      const char* type,
                                                      const ComponentRegistry& reg) {
@@ -51,7 +51,7 @@ static bp2::Blueprint::Node make_node_with_interface(ui::StringInterner& I,
     return n;
 }
 
-static bp2::Blueprint::Node make_bridge_node(ui::StringInterner& I,
+static bp2::Blueprint::Node make_bridge_node(core::StringInterner& I,
                                              const char* exposed_port,
                                              bp2::BridgeDirection direction,
                                              PortType port_type) {
@@ -92,7 +92,7 @@ static ComponentRegistry make_validation_registry() {
 }
 
 TEST(PathResolver, ResolveNodePortOnRoot) {
-    ui::StringInterner I;
+    core::StringInterner I;
     ComponentRegistry reg = make_validation_registry();
     PathArena arena(I);
 
@@ -111,7 +111,7 @@ TEST(PathResolver, ResolveNodePortOnRoot) {
 }
 
 TEST(PathResolver, ResolveRootInterfacePort) {
-    ui::StringInterner I;
+    core::StringInterner I;
     ComponentRegistry reg = make_validation_registry();
     PathArena arena(I);
 
@@ -132,7 +132,7 @@ TEST(PathResolver, ResolveRootInterfacePort) {
 
 
 TEST(PathResolver, CanConnectAcceptsSameScopeWithCompatibleDirections) {
-    ui::StringInterner I;
+    core::StringInterner I;
     ComponentRegistry reg = make_validation_registry();
     PathArena arena(I);
 
@@ -150,7 +150,7 @@ TEST(PathResolver, CanConnectAcceptsSameScopeWithCompatibleDirections) {
 }
 
 TEST(PathResolver, ResolveReferencedPrimitiveBlueprintInstanceThrows) {
-    ui::StringInterner I;
+    core::StringInterner I;
     ComponentRegistry reg = make_validation_registry();
     PathArena arena(I);
 
@@ -172,7 +172,7 @@ TEST(PathResolver, ResolveReferencedPrimitiveBlueprintInstanceThrows) {
 }
 
 TEST(WireValidator, ValidWirePasses) {
-    ui::StringInterner I;
+    core::StringInterner I;
     ComponentRegistry reg = make_validation_registry();
     PathArena arena(I);
 
@@ -191,7 +191,7 @@ TEST(WireValidator, ValidWirePasses) {
 }
 
 TEST(PortCompatibility, LegacyDomainResolutionCases) {
-    ui::StringInterner I;
+    core::StringInterner I;
     const PortDescriptor electrical_out{I.intern("out"), Domain::Electrical, Direction::Output, PortType::V};
     const PortDescriptor electrical_any{I.intern("any_e"), Domain::Electrical, Direction::Input, PortType::Any};
     const PortDescriptor logical_any{I.intern("any_l"), Domain::Logical, Direction::Input, PortType::Any};
@@ -224,7 +224,7 @@ TEST(PortCompatibility, LegacyDomainResolutionCases) {
 }
 
 TEST(WireValidator, AnyToAnyUsesSharedLegacyResolutionRule) {
-    ui::StringInterner I;
+    core::StringInterner I;
     ComponentRegistry reg = make_validation_registry();
 
     PrimitiveSpec src;
@@ -253,7 +253,7 @@ TEST(WireValidator, AnyToAnyUsesSharedLegacyResolutionRule) {
 }
 
 TEST(WireValidator, ContextualBindsToConcreteAnchor) {
-    ui::StringInterner I;
+    core::StringInterner I;
     ComponentRegistry reg = make_validation_registry();
 
     PrimitiveSpec value;
@@ -282,7 +282,7 @@ TEST(WireValidator, ContextualBindsToConcreteAnchor) {
 }
 
 TEST(WireValidator, ContextualOnlySignalFailsExplicitly) {
-    ui::StringInterner I;
+    core::StringInterner I;
     ComponentRegistry reg = make_validation_registry();
 
     PrimitiveSpec lhs;
@@ -311,7 +311,7 @@ TEST(WireValidator, ContextualOnlySignalFailsExplicitly) {
 }
 
 TEST(WireValidator, ContextualBridgeBindsToExposedRootPort) {
-    ui::StringInterner I;
+    core::StringInterner I;
     ComponentRegistry reg = make_validation_registry();
 
     PrimitiveSpec sink;
@@ -339,7 +339,7 @@ TEST(WireValidator, ContextualBridgeBindsToExposedRootPort) {
 }
 
 TEST(WireValidator, ContextualAliasGroupBindsTransitivelyToConcreteAnchor) {
-    ui::StringInterner I;
+    core::StringInterner I;
     ComponentRegistry reg = make_validation_registry();
 
     PrimitiveSpec splitter;
@@ -383,7 +383,7 @@ TEST(WireValidator, ContextualAliasGroupBindsTransitivelyToConcreteAnchor) {
 }
 
 TEST(WireValidator, ContextualAndAnyWithoutConcreteAnchorFailsExplicitly) {
-    ui::StringInterner I;
+    core::StringInterner I;
     ComponentRegistry reg = make_validation_registry();
 
     PrimitiveSpec src;
@@ -412,7 +412,7 @@ TEST(WireValidator, ContextualAndAnyWithoutConcreteAnchorFailsExplicitly) {
 }
 
 TEST(WireValidator, SignalValueBindsToSignalMathPort) {
-    ui::StringInterner I;
+    core::StringInterner I;
     ComponentRegistry reg = make_validation_registry();
 
     PrimitiveSpec src;
@@ -443,7 +443,7 @@ TEST(WireValidator, SignalValueBindsToSignalMathPort) {
 }
 
 TEST(WireValidator, BridgeWithoutMatchingExposedRootPortFailsExplicitly) {
-    ui::StringInterner I;
+    core::StringInterner I;
     ComponentRegistry reg = make_validation_registry();
 
     PrimitiveSpec sink;
@@ -471,7 +471,7 @@ TEST(WireValidator, BridgeWithoutMatchingExposedRootPortFailsExplicitly) {
 }
 
 TEST(WireValidator, NestedEmbeddedContextualBridgeChainBindsToRootConcreteAnchor) {
-    ui::StringInterner I;
+    core::StringInterner I;
     ComponentRegistry reg = make_validation_registry();
 
     PrimitiveSpec sink;
@@ -543,7 +543,7 @@ TEST(WireValidator, NestedEmbeddedContextualBridgeChainBindsToRootConcreteAnchor
 }
 
 TEST(WireValidator, InvalidPathFails) {
-    ui::StringInterner I;
+    core::StringInterner I;
     ComponentRegistry reg = make_validation_registry();
     PathArena arena(I);
 
@@ -561,7 +561,7 @@ TEST(WireValidator, InvalidPathFails) {
 }
 
 TEST(WireValidator, DomainMismatchFails) {
-    ui::StringInterner I;
+    core::StringInterner I;
     ComponentRegistry reg = make_validation_registry();
     PrimitiveSpec src;
     src.classname = "Src";
@@ -589,7 +589,7 @@ TEST(WireValidator, DomainMismatchFails) {
 }
 
 TEST(WireValidator, DirectionMismatchFails) {
-    ui::StringInterner I;
+    core::StringInterner I;
     ComponentRegistry reg = make_validation_registry();
     PathArena arena(I);
 
@@ -608,7 +608,7 @@ TEST(WireValidator, DirectionMismatchFails) {
 }
 
 TEST(WireValidator, SelfLoopFails) {
-    ui::StringInterner I;
+    core::StringInterner I;
     ComponentRegistry reg = make_validation_registry();
     PathArena arena(I);
 
@@ -628,7 +628,7 @@ TEST(WireValidator, SelfLoopFails) {
 }
 
 TEST(BlueprintValidate, DuplicateNodeIdsFail) {
-    ui::StringInterner I;
+    core::StringInterner I;
     ComponentRegistry reg = make_validation_registry();
     PathArena arena(I);
 
@@ -643,7 +643,7 @@ TEST(BlueprintValidate, DuplicateNodeIdsFail) {
 }
 
 TEST(BlueprintValidate, DuplicateWireIdsFail) {
-    ui::StringInterner I;
+    core::StringInterner I;
     ComponentRegistry reg = make_validation_registry();
     PathArena arena(I);
 
@@ -675,7 +675,7 @@ TEST(BlueprintValidate, DuplicateWireIdsFail) {
 
 
 TEST(BlueprintValidate, UnknownNodeTypeFails) {
-    ui::StringInterner I;
+    core::StringInterner I;
     ComponentRegistry reg = make_validation_registry();
 
     bp2::Blueprint bp;
@@ -695,7 +695,7 @@ TEST(BlueprintValidate, UnknownNodeTypeFails) {
 
 
 TEST(InvariantChecker, RootComponentNodePasses) {
-    ui::StringInterner I;
+    core::StringInterner I;
     PathArena arena(I);
     ComponentRegistry reg = make_validation_registry();
 
@@ -709,7 +709,7 @@ TEST(InvariantChecker, RootComponentNodePasses) {
 
 
 TEST(BlueprintValidate, WirePathUnresolvedFails) {
-    ui::StringInterner I;
+    core::StringInterner I;
     ComponentRegistry reg = make_validation_registry();
     PathArena arena(I);
 
@@ -730,7 +730,7 @@ TEST(BlueprintValidate, WirePathUnresolvedFails) {
 }
 
 TEST(BlueprintValidate, ValidBlueprintPasses) {
-    ui::StringInterner I;
+    core::StringInterner I;
     ComponentRegistry reg = make_validation_registry();
     PathArena arena(I);
 
@@ -751,7 +751,7 @@ TEST(BlueprintValidate, ValidBlueprintPasses) {
 }
 
 TEST(BlueprintRepair, DiagnoseAndRepairRemovesInvalidWireEndpoints) {
-    ui::StringInterner I;
+    core::StringInterner I;
     ComponentRegistry reg = load_component_registry("library/");
     PathArena arena(I);
 
@@ -781,7 +781,7 @@ TEST(BlueprintRepair, DiagnoseAndRepairRemovesInvalidWireEndpoints) {
 }
 
 TEST(BlueprintRepair, DiagnoseReportsUnknownNodeType) {
-    ui::StringInterner I;
+    core::StringInterner I;
     ComponentRegistry reg = load_component_registry("library/");
     PathArena arena(I);
 
@@ -815,7 +815,7 @@ TEST(BlueprintRepair, DiagnoseReportsUnknownNodeType) {
 
 
 TEST(BlueprintValidate, ParserRegistryOverloadAcceptsKnownType) {
-    ui::StringInterner I;
+    core::StringInterner I;
     PathArena arena(I);
     ComponentRegistry parser_registry = load_component_registry("library/");
     ASSERT_FALSE(parser_registry.all_types().empty());
@@ -830,7 +830,7 @@ TEST(BlueprintValidate, ParserRegistryOverloadAcceptsKnownType) {
 
 
 TEST(PathResolver, ParserRegistryOverloadResolveUsesCanonicalRegistryInput) {
-    ui::StringInterner I;
+    core::StringInterner I;
     PathArena arena(I);
     ComponentRegistry parser_registry = load_component_registry("library/");
 
@@ -853,7 +853,7 @@ TEST(PathResolver, ParserRegistryOverloadResolveUsesCanonicalRegistryInput) {
 }
 
 TEST(WireValidator, ParserRegistryOverloadValidateWire) {
-    ui::StringInterner I;
+    core::StringInterner I;
     PathArena arena(I);
     ComponentRegistry parser_registry = load_component_registry("library/");
     ASSERT_FALSE(parser_registry.all_types().empty());
@@ -887,7 +887,7 @@ TEST(WireValidator, ParserRegistryOverloadValidateWire) {
 }
 
 TEST(InvariantChecker, ParserRegistryOverloadValidateBlueprint) {
-    ui::StringInterner I;
+    core::StringInterner I;
      PathArena arena(I);
      ComponentRegistry parser_registry = load_component_registry("library/");
      ASSERT_FALSE(parser_registry.all_types().empty());
@@ -901,7 +901,7 @@ TEST(InvariantChecker, ParserRegistryOverloadValidateBlueprint) {
 }
 
 TEST(InvariantChecker, BridgeExposedPortMustBelongToBlueprintInterface) {
-    ui::StringInterner I;
+    core::StringInterner I;
     PathArena arena(I);
     ComponentRegistry parser_registry = make_validation_registry();
 
@@ -918,7 +918,7 @@ TEST(InvariantChecker, BridgeExposedPortMustBelongToBlueprintInterface) {
 }
 
 TEST(InvariantChecker, DuplicateBridgeExposedPortFails) {
-    ui::StringInterner I;
+    core::StringInterner I;
     PathArena arena(I);
     ComponentRegistry parser_registry = make_validation_registry();
 
@@ -939,7 +939,7 @@ TEST(InvariantChecker, DuplicateBridgeExposedPortFails) {
 }
 
 TEST(InvariantChecker, BridgeExposedPortMustMatchInterfaceAuthority) {
-    ui::StringInterner I;
+    core::StringInterner I;
     PathArena arena(I);
     ComponentRegistry parser_registry = make_validation_registry();
 
@@ -958,7 +958,7 @@ TEST(InvariantChecker, BridgeExposedPortMustMatchInterfaceAuthority) {
 /// wire should still fail strict validation because declared domain !=
 /// resolved domain (Gap #3: Wire Domain Consistency)
 TEST(WireValidator, WireDomainDeclaredMismatchesPorts) {
-    ui::StringInterner I;
+    core::StringInterner I;
     ComponentRegistry reg = make_validation_registry();
 
     bp2::Blueprint bp;
@@ -978,7 +978,7 @@ TEST(WireValidator, WireDomainDeclaredMismatchesPorts) {
 
 /// Issue #88 Gap #2: Required parameters must be present in decoded blueprints
 TEST(BlueprintDecode, RequiredParamValidation_MissingRequiredParamFails) {
-    ui::StringInterner I;
+    core::StringInterner I;
     ComponentRegistry reg = make_validation_registry();
 
     // Add a component with a required param
@@ -1022,7 +1022,7 @@ TEST(BlueprintDecode, RequiredParamValidation_MissingRequiredParamFails) {
 
 /// Issue #88 Gap #2: Required parameters are accepted when present
 TEST(BlueprintDecode, RequiredParamValidation_PresentRequiredParamPasses) {
-    ui::StringInterner I;
+    core::StringInterner I;
     ComponentRegistry reg = make_validation_registry();
     
     // Add a component with a required param
@@ -1065,7 +1065,7 @@ TEST(BlueprintDecode, RequiredParamValidation_PresentRequiredParamPasses) {
 
 /// Issue #88 Gap #2: Optional params are not required
 TEST(BlueprintDecode, RequiredParamValidation_OptionalParamCanBeMissing) {
-    ui::StringInterner I;
+    core::StringInterner I;
     ComponentRegistry reg = make_validation_registry();
     
     // Add a component with an optional param (required=false)
@@ -1107,7 +1107,7 @@ TEST(BlueprintDecode, RequiredParamValidation_OptionalParamCanBeMissing) {
 
 /// Issue #88 Gap #4: Embedded blueprints with invalid internal wires should fail validation
 TEST(InvariantChecker, RecursiveValidation_EmbeddedWithSelfLoopFails) {
-    ui::StringInterner I;
+    core::StringInterner I;
     ComponentRegistry reg = make_validation_registry();
     PathArena arena(I);
     
@@ -1142,7 +1142,7 @@ TEST(InvariantChecker, RecursiveValidation_EmbeddedWithSelfLoopFails) {
 
 /// Issue #88 Gap #4: Embedded blueprints with duplicate node IDs should fail validation
 TEST(InvariantChecker, RecursiveValidation_EmbeddedWithDuplicateNodesFails) {
-    ui::StringInterner I;
+    core::StringInterner I;
     ComponentRegistry reg = make_validation_registry();
     PathArena arena(I);
     
@@ -1171,7 +1171,7 @@ TEST(InvariantChecker, RecursiveValidation_EmbeddedWithDuplicateNodesFails) {
 
 /// Issue #88 Gap #4: Valid embedded blueprints pass recursive validation
 TEST(InvariantChecker, RecursiveValidation_ValidEmbeddedPasses) {
-    ui::StringInterner I;
+    core::StringInterner I;
     ComponentRegistry reg = make_validation_registry();
     PathArena arena(I);
     
@@ -1206,7 +1206,7 @@ TEST(InvariantChecker, RecursiveValidation_ValidEmbeddedPasses) {
 
 /// Issue #88 Gap #5: Component nodes must have interface consistency with registry
 TEST(InvariantChecker, ComponentNodeInterfaceConsistency_ValidComponentPasses) {
-     ui::StringInterner I;
+     core::StringInterner I;
      ComponentRegistry reg = make_validation_registry();
      PathArena arena(I);
      
@@ -1230,7 +1230,7 @@ TEST(InvariantChecker, ComponentNodeInterfaceConsistency_ValidComponentPasses) {
 
 /// Issue #88 Gap #5: Component node with mismatched interface should fail
 TEST(InvariantChecker, ComponentNodeInterfaceConsistency_InterfaceMismatchFails) {
-     ui::StringInterner I;
+     core::StringInterner I;
      ComponentRegistry reg = make_validation_registry();
      PathArena arena(I);
      
@@ -1254,7 +1254,7 @@ TEST(InvariantChecker, ComponentNodeInterfaceConsistency_InterfaceMismatchFails)
 
 /// Issue #88 Gap #5: Component node with empty interface when ports exist should fail
 TEST(InvariantChecker, ComponentNodeInterfaceConsistency_EmptyInterfaceOnValidComponentFails) {
-     ui::StringInterner I;
+     core::StringInterner I;
      ComponentRegistry reg = make_validation_registry();
      PathArena arena(I);
      

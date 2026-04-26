@@ -63,10 +63,10 @@ void SubWindowRenderer::renderToolbar(Document& doc, BlueprintWindow& win, ::Win
         // For now, just cancel any in-flight gesture and rebuild.
         win.input.cancel_gesture();
         const bp2::Blueprint& rebuild_bp = win.rendered_blueprint();
-        ui::StringInterner& rebuild_interner = win.rendered_interner();
+        core::StringInterner& rebuild_interner = win.rendered_interner();
         bp2::PathArena& rebuild_arena = win.rendered_arena();
         // scope_id.path() already returns InternedId vector - use directly
-        std::vector<ui::InternedId> instance_path(win.resolved_scope_id().path().begin(), win.resolved_scope_id().path().end());
+        std::vector<core::InternedId> instance_path(win.resolved_scope_id().path().begin(), win.resolved_scope_id().path().end());
         ComponentRegistry empty_reg;
         const ComponentRegistry& reg = doc.type_registry() ? *doc.type_registry() : empty_reg;
         visual::mutations::rebuild(win.scene, rebuild_bp,

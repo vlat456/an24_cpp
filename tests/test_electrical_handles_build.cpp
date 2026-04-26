@@ -25,12 +25,12 @@ TEST(ElectricalHandleBuild, ElectricalSourceCreatesTheveninElement) {
 
     auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
-    ASSERT_FALSE(result.electrical_plan.islands.empty());
+    ASSERT_FALSE(result.electrical.plan.islands.empty());
 
     // Verify electrical plan contains a TheveninSource element
-    ASSERT_EQ(result.electrical_plan.islands.size(), 1u);
+    ASSERT_EQ(result.electrical.plan.islands.size(), 1u);
     bool found_thevenin = false;
-    for (const auto& elem : result.electrical_plan.islands[0].elements) {
+    for (const auto& elem : result.electrical.plan.islands[0].elements) {
         if (elem.kind == ElectricalElementKind::TheveninSource) {
             found_thevenin = true;
             break;
@@ -53,7 +53,7 @@ TEST(ElectricalHandleBuild, GeneratorGetsValidHandle) {
 
     auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
-    ASSERT_FALSE(result.electrical_plan.islands.empty());
+    ASSERT_FALSE(result.electrical.plan.islands.empty());
 
     auto it = result.devices.find("gen");
     ASSERT_NE(it, result.devices.end());
@@ -79,7 +79,7 @@ TEST(ElectricalHandleBuild, IndicatorLightGetsValidHandle) {
 
     auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
-    ASSERT_FALSE(result.electrical_plan.islands.empty());
+    ASSERT_FALSE(result.electrical.plan.islands.empty());
 
     auto it = result.devices.find("light");
     ASSERT_NE(it, result.devices.end());
@@ -102,13 +102,13 @@ TEST(ElectricalHandleBuild, HandlePointsToCorrectElementKind) {
 
     auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
-    const auto& island = result.electrical_plan.islands[0];
+    const auto& island = result.electrical.plan.islands[0];
     auto it = result.devices.find("gen");
     const Generator<JitProvider>* gen = std::get_if<Generator<JitProvider>>(&it->second);
-    ASSERT_LT(gen->electrical_handle.island_index, result.electrical_plan.islands.size());
+    ASSERT_LT(gen->electrical_handle.island_index, result.electrical.plan.islands.size());
     ASSERT_LT(gen->electrical_handle.element_index, island.elements.size());
 
-    const auto& elem = result.electrical_plan.islands[gen->electrical_handle.island_index]
+    const auto& elem = result.electrical.plan.islands[gen->electrical_handle.island_index]
                               .elements[gen->electrical_handle.element_index];
     EXPECT_EQ(elem.kind, ElectricalElementKind::TheveninSource);
 }
@@ -128,15 +128,15 @@ TEST(ElectricalHandleBuild, IndicatorHandlePointsToConductanceBranch) {
 
     auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
-    const auto& island = result.electrical_plan.islands[0];
+    const auto& island = result.electrical.plan.islands[0];
     auto it = result.devices.find("light");
     const IndicatorLight<JitProvider>* light = std::get_if<IndicatorLight<JitProvider>>(&it->second);
 
     ASSERT_TRUE(is_valid(light->electrical_handle));
-    ASSERT_LT(light->electrical_handle.island_index, result.electrical_plan.islands.size());
+    ASSERT_LT(light->electrical_handle.island_index, result.electrical.plan.islands.size());
     ASSERT_LT(light->electrical_handle.element_index, island.elements.size());
 
-    const auto& elem = result.electrical_plan.islands[light->electrical_handle.island_index]
+    const auto& elem = result.electrical.plan.islands[light->electrical_handle.island_index]
                               .elements[light->electrical_handle.element_index];
     EXPECT_EQ(elem.kind, ElectricalElementKind::ConductanceBranch);
 }
@@ -212,15 +212,15 @@ TEST(ElectricalHandleBuild, CurrentSenseHandlePointsToConductanceBranch) {
 
     auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
-    const auto& island = result.electrical_plan.islands[0];
+    const auto& island = result.electrical.plan.islands[0];
     auto it = result.devices.find("cs");
     const CurrentSense<JitProvider>* cs = std::get_if<CurrentSense<JitProvider>>(&it->second);
 
     ASSERT_TRUE(is_valid(cs->electrical_handle));
-    ASSERT_LT(cs->electrical_handle.island_index, result.electrical_plan.islands.size());
+    ASSERT_LT(cs->electrical_handle.island_index, result.electrical.plan.islands.size());
     ASSERT_LT(cs->electrical_handle.element_index, island.elements.size());
 
-    const auto& elem = result.electrical_plan.islands[cs->electrical_handle.island_index]
+    const auto& elem = result.electrical.plan.islands[cs->electrical_handle.island_index]
                               .elements[cs->electrical_handle.element_index];
     EXPECT_EQ(elem.kind, ElectricalElementKind::ConductanceBranch);
     EXPECT_EQ(cs->electrical_handle.element_id, elem.element_id);
@@ -242,7 +242,7 @@ TEST(ElectricalHandleBuild, MultipleIslandsIndependentHandles) {
 
     auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
-    ASSERT_EQ(result.electrical_plan.islands.size(), 2u);
+    ASSERT_EQ(result.electrical.plan.islands.size(), 2u);
 
     const Generator<JitProvider>* gen1 = std::get_if<Generator<JitProvider>>(&result.devices.at("gen1"));
     const Generator<JitProvider>* gen2 = std::get_if<Generator<JitProvider>>(&result.devices.at("gen2"));
@@ -270,15 +270,15 @@ TEST(ElectricalHandleBuild, GeneratorHandlePointsToTheveninSource) {
 
     auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
-    const auto& island = result.electrical_plan.islands[0];
+    const auto& island = result.electrical.plan.islands[0];
     auto it = result.devices.find("gen");
     const Generator<JitProvider>* gen = std::get_if<Generator<JitProvider>>(&it->second);
 
     ASSERT_TRUE(is_valid(gen->electrical_handle));
-    ASSERT_LT(gen->electrical_handle.island_index, result.electrical_plan.islands.size());
+    ASSERT_LT(gen->electrical_handle.island_index, result.electrical.plan.islands.size());
     ASSERT_LT(gen->electrical_handle.element_index, island.elements.size());
 
-    const auto& elem = result.electrical_plan.islands[gen->electrical_handle.island_index]
+    const auto& elem = result.electrical.plan.islands[gen->electrical_handle.island_index]
                               .elements[gen->electrical_handle.element_index];
     EXPECT_EQ(elem.kind, ElectricalElementKind::TheveninSource);
 }
@@ -344,8 +344,8 @@ TEST(ElectricalHandleBuild, KnobSwitchMetadataGetsHandles) {
     // Each handle should point to a ConductanceBranch element
     for (int i = 0; i < ks->num_handles; ++i) {
         const auto& h = ks->electrical_handles[i];
-        ASSERT_LT(h.island_index, result.electrical_plan.islands.size());
-        const auto& island = result.electrical_plan.islands[h.island_index];
+        ASSERT_LT(h.island_index, result.electrical.plan.islands.size());
+        const auto& island = result.electrical.plan.islands[h.island_index];
         ASSERT_LT(h.element_index, island.elements.size());
         EXPECT_EQ(island.elements[h.element_index].kind, ElectricalElementKind::ConductanceBranch)
             << "Handle " << i << " should point to ConductanceBranch";

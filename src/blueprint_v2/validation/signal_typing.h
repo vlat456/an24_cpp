@@ -31,7 +31,7 @@ struct SignalTypingResult {
 
 SignalTypingResult resolve_signal_typing(const Blueprint& bp,
                                          const ComponentRegistry* parser_registry,
-                                         ui::StringInterner& interner,
+                                         core::StringInterner& interner,
                                          WireEndpoint endpoint_a,
                                          WireEndpoint endpoint_b = WireEndpoint{});
 

@@ -2,7 +2,7 @@
 
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/path/path.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include "editor/window/window_scope_id.h"
 #include <optional>
 #include <string>
@@ -26,10 +26,10 @@ struct ExtractToBlueprintPreview {
 
 std::optional<ExtractToBlueprintPreview> build_extract_to_blueprint_preview(
     const bp2::Blueprint& source,
-    const std::vector<ui::InternedId>& selected_node_ids,
+    const std::vector<core::InternedId>& selected_node_ids,
     const std::string& blueprint_name,
     const WindowScopeId& scope_id,
-    ui::StringInterner& interner,
+    core::StringInterner& interner,
     bp2::PathArena& arena,
     const ComponentRegistry& parser_registry,
     std::string* error_out = nullptr,
@@ -37,10 +37,10 @@ std::optional<ExtractToBlueprintPreview> build_extract_to_blueprint_preview(
 
 std::optional<bp2::Blueprint> build_extracted_blueprint_atomic(
     const bp2::Blueprint& source,
-    const std::vector<ui::InternedId>& selected_node_ids,
+    const std::vector<core::InternedId>& selected_node_ids,
     const std::string& blueprint_name,
     const WindowScopeId& scope_id,
-    ui::StringInterner& interner,
+    core::StringInterner& interner,
     bp2::PathArena& arena,
     const ComponentRegistry& parser_registry,
     std::string* error_out = nullptr,

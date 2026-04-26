@@ -2,7 +2,7 @@
 
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/path/path.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include <optional>
 #include <string>
 
@@ -11,7 +11,7 @@ struct ComponentRegistry;
 
 /// Save blueprint to file using bp2 codec.
 [[nodiscard]] bool save_blueprint_to_file(const bp2::Blueprint& bp,
-                                           ui::StringInterner& interner,
+                                           core::StringInterner& interner,
                                            bp2::PathArena const& arena,
                                            const ComponentRegistry& parser_registry,
                                            const char* path);
@@ -19,21 +19,21 @@ struct ComponentRegistry;
 /// Load blueprint from file using bp2 codec.
 [[nodiscard]] std::optional<bp2::Blueprint> load_blueprint_from_file(
     const char* path,
-    ui::StringInterner& interner,
+    core::StringInterner& interner,
     bp2::PathArena& arena,
     const ComponentRegistry& parser_registry);
 
 /// Strict load variant: additionally validates loaded blueprint invariants.
 [[nodiscard]] std::optional<bp2::Blueprint> load_blueprint_from_file_validated(
     const char* path,
-    ui::StringInterner& interner,
+    core::StringInterner& interner,
     bp2::PathArena& arena,
     const ComponentRegistry& parser_registry);
 
 /// Shared integrity validation (bp2 invariants against runtime registry).
 [[nodiscard]] bool validate_blueprint_integrity(
     const bp2::Blueprint& bp,
-    ui::StringInterner& interner,
+    core::StringInterner& interner,
     const bp2::PathArena& arena,
     const ComponentRegistry& parser_registry,
     std::string* error_out = nullptr);
@@ -41,7 +41,7 @@ struct ComponentRegistry;
 /// Validate a blueprint with bp2 invariants and parser type registry checks.
 [[nodiscard]] bool validate_blueprint_for_persist(
     const bp2::Blueprint& bp,
-    ui::StringInterner& interner,
+    core::StringInterner& interner,
     const bp2::PathArena& arena,
     const ComponentRegistry& parser_registry,
     std::string* error_out = nullptr);

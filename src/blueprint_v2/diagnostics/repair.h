@@ -33,6 +33,6 @@ struct RepairReport {
 RepairReport diagnose_and_repair(Blueprint& bp,
                                  PathArena& arena,
                                  const ::ComponentRegistry& parser_registry,
-                                 ui::StringInterner& interner);
+                                 core::StringInterner& interner);
 
 } // namespace bp2::diagnostics

@@ -15,10 +15,10 @@ namespace bp2 {
 
 const Blueprint* resolve_embedded_blueprint(
     const Blueprint& root_bp,
-    std::span<const ui::InternedId> path)
+    std::span<const core::InternedId> path)
 {
     const Blueprint* current = &root_bp;
-    for (ui::InternedId segment : path) {
+    for (core::InternedId segment : path) {
         const Blueprint::Node* node = current->find_node(segment);
         if (!node || !node->has_embedded_blueprint() || !node->blueprint_instance().source.inline_def()) {
             return nullptr;
@@ -30,7 +30,7 @@ const Blueprint* resolve_embedded_blueprint(
 
 ResolvedEmbeddedNode resolve_embedded_node(
     const Blueprint& root_bp,
-    std::span<const ui::InternedId> path)
+    std::span<const core::InternedId> path)
 {
     if (path.empty()) {
         return {nullptr, nullptr};
@@ -54,7 +54,7 @@ ResolvedEmbeddedNode resolve_embedded_node(
 
 bool embedded_path_exists(
     const Blueprint& root_bp,
-    std::span<const ui::InternedId> path)
+    std::span<const core::InternedId> path)
 {
     return resolve_embedded_blueprint(root_bp, path) != nullptr;
 }
@@ -65,7 +65,7 @@ bool embedded_path_exists(
 
 EmbeddedMutationResult mutate_embedded_blueprint(
     Blueprint root_bp,
-    std::span<const ui::InternedId> path,
+    std::span<const core::InternedId> path,
     const std::function<Blueprint(const Blueprint&)>& mutation)
 {
     if (path.empty()) return {EmbeddedMutationResultKind::PathNotFound, std::nullopt};

@@ -11,7 +11,7 @@
 #include "blueprint_v2/path/path.h"
 #include "core/solvers/common/signal_key.h"
 #include "io/json/component_registry_json_loader.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 
 #include <set>
 #include <string>
@@ -68,7 +68,7 @@ inline const ComponentRegistry& parity_registry() {
 }
 
 /// Create a component Blueprint node with the given id, type, and ports.
-inline bp2::Blueprint::Node make_node(ui::StringInterner& I,
+inline bp2::Blueprint::Node make_node(core::StringInterner& I,
                                 const char* id,
                                 const char* type,
                                 std::initializer_list<bp2::PortDescriptor> ports) {
@@ -80,17 +80,17 @@ inline bp2::Blueprint::Node make_node(ui::StringInterner& I,
 }
 
 /// Create an input PortDescriptor.
-inline bp2::PortDescriptor in_port(ui::StringInterner& I, const char* name, PortType t = PortType::V) {
+inline bp2::PortDescriptor in_port(core::StringInterner& I, const char* name, PortType t = PortType::V) {
     return {I.intern(name), ::domain_for_port_type(t), bp2::Direction::Input, t};
 }
 
 /// Create an output PortDescriptor.
-inline bp2::PortDescriptor out_port(ui::StringInterner& I, const char* name, PortType t = PortType::V) {
+inline bp2::PortDescriptor out_port(core::StringInterner& I, const char* name, PortType t = PortType::V) {
     return {I.intern(name), ::domain_for_port_type(t), bp2::Direction::Output, t};
 }
 
 /// Create a bridge port Blueprint node.
-inline bp2::Blueprint::Node make_bridge_node(ui::StringInterner& I,
+inline bp2::Blueprint::Node make_bridge_node(core::StringInterner& I,
                                         const char* id,
                                         const char* exposed_port,
                                         bool input_side,

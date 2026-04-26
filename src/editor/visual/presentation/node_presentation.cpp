@@ -40,7 +40,7 @@ NodeFrameKind resolve_frame_kind(const ComponentSpec* def, const TypePresentatio
 CompiledPresentationSpec make_presentation_spec(const bp2::Blueprint::Node& node,
                                          const ComponentSpec* def,
                                          const TypePresentation* pres,
-                                         ui::StringInterner& interner,
+                                         core::StringInterner& interner,
                                          const editor::RuntimeNodeState* runtime_state) {
     CompiledPresentationSpec spec;
     spec.node_id = node.semantic.id;
@@ -81,12 +81,12 @@ CompiledPresentationSpec make_presentation_spec(const bp2::Blueprint::Node& node
 // Registry
 // ============================================================================
 
-void NodePresenterRegistry::register_presenter(ui::InternedId type_id, NodePresenter presenter) {
+void NodePresenterRegistry::register_presenter(core::InternedId type_id, NodePresenter presenter) {
     assert(presenter.content != nullptr);
     presenters_[type_id] = std::move(presenter);
 }
 
-const NodePresenter* NodePresenterRegistry::find_presenter(ui::InternedId type_id) const {
+const NodePresenter* NodePresenterRegistry::find_presenter(core::InternedId type_id) const {
     const auto it = presenters_.find(type_id);
     return it == presenters_.end() ? nullptr : &it->second;
 }
@@ -144,7 +144,7 @@ constexpr uint32_t COLOR_TEXT_DIM = 0xFF808080;
 /// Monotonic element ID allocator for building presentation trees.
 struct ElementIdAllocator {
     uint32_t next = 1;
-    ui::InternedId alloc() { return ui::InternedId(next++); }
+    core::InternedId alloc() { return core::InternedId(next++); }
 };
 
 PresentationNode make_node(ElementIdAllocator& ids) {
@@ -199,7 +199,7 @@ void append_interaction(PresentationNode& parent,
                         float max_value = 0.0f,
                         float step = 0.0f) {
     PresentationNode child = make_node(ids);
-    ui::InternedId region_id = ids.alloc();
+    core::InternedId region_id = ids.alloc();
     child.hit_regions.push_back(HitRegion{region_id, HitShapeKind::Rectangle});
 
     InteractionBinding binding;

@@ -4,7 +4,7 @@
 #include "blueprint_v2/interface/interface.h"
 #include "blueprint_v2/interface/port_descriptor.h"
 #include "blueprint_v2/validation/invariant_checker.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include <nlohmann/json.hpp>
 #include <unordered_set>
 
@@ -15,7 +15,7 @@ namespace {
 
 class Issue91BlueprintInstanceIfaceAuthorityTest : public ::testing::Test {
 protected:
-    ui::StringInterner interner;
+    core::StringInterner interner;
 };
 
 // Issue #91 Test 1: Embedded blueprint-instance interface derives from inline child blueprint only

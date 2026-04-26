@@ -8,14 +8,14 @@ namespace bp2 {
 
 class BlueprintLibrary {
 public:
-    void add(ui::InternedId id, Blueprint blueprint);
-    const Blueprint* find(ui::InternedId id) const;
+    void add(core::InternedId id, Blueprint blueprint);
+    const Blueprint* find(core::InternedId id) const;
 
     auto begin() const { return entries_.begin(); }
     auto end() const { return entries_.end(); }
 
 private:
-    std::unordered_map<ui::InternedId, Blueprint> entries_;
+    std::unordered_map<core::InternedId, Blueprint> entries_;
 };
 
 } // namespace bp2

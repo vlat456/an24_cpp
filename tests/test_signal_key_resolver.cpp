@@ -5,7 +5,7 @@
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/interface/interface.h"
 #include "blueprint_v2/interface/port_descriptor.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 
 // Helper to make a PortDescriptor for a semantic interface
 // Shared bp2 test helpers (make_port, set_iface)
@@ -78,21 +78,21 @@ TEST(SignalKeyResolver, EmptyComponents) {
 
 // Test 9: Signature of resolve_runtime_signal_key (compile check)
 TEST(SignalKeyResolver, ResolveRuntimeSignatureCheck) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::Blueprint bp;
     
     // Just verify the function can be called with proper types
     // We can't easily test the interner behavior without proper setup
-    auto node_id = ui::InternedId();
-    auto port_id = ui::InternedId();
+    auto node_id = core::InternedId();
+    auto port_id = core::InternedId();
     editor::SignalEndpoint endpoint{nullptr, node_id, port_id};
     editor::SignalKeyContext context{editor::SignalKeyContextMode::Root, {}};
 
     // Need a sim interner for the new API
-    ui::StringInterner sim_interner;
+    core::StringInterner sim_interner;
 
     // This should compile and not crash (even if result is empty)
-    ui::InternedId result = editor::resolve_runtime_signal_key(bp, interner, sim_interner, endpoint, context);
+    core::InternedId result = editor::resolve_runtime_signal_key(bp, interner, sim_interner, endpoint, context);
     // Result will be empty since IDs are empty, but no crash
     EXPECT_TRUE(result.empty());
 }
@@ -103,7 +103,7 @@ TEST(SignalKeyResolver, ContextModes) {
     EXPECT_EQ(root_ctx.mode, editor::SignalKeyContextMode::Root);
 
     // Contexts with InternedId parent_instance_id
-    ui::InternedId parent_id{};
+    core::InternedId parent_id{};
     editor::SignalKeyContext embedded_ctx{editor::SignalKeyContextMode::EmbeddedScope, parent_id};
     EXPECT_EQ(embedded_ctx.mode, editor::SignalKeyContextMode::EmbeddedScope);
 
@@ -112,20 +112,20 @@ TEST(SignalKeyResolver, ContextModes) {
 }
 
 TEST(SignalKeyResolver, EmbeddedScopePrefixesChildEndpoint) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::Blueprint bp;
 
-    const ui::InternedId node_id = interner.intern("accumulator");
-    const ui::InternedId port_id = interner.intern("out");
+    const core::InternedId node_id = interner.intern("accumulator");
+    const core::InternedId port_id = interner.intern("out");
     editor::SignalEndpoint endpoint{nullptr, node_id, port_id};
 
     // Build a parent InternedId for context
-    const ui::InternedId parent_id = interner.intern("lag_1");
+    const core::InternedId parent_id = interner.intern("lag_1");
     const editor::SignalKeyContext context = editor::embedded_signal_context(parent_id);
 
     // Need a sim interner to resolve the result
-    ui::StringInterner sim_interner;
-    const ui::InternedId result = editor::resolve_runtime_signal_key(
+    core::StringInterner sim_interner;
+    const core::InternedId result = editor::resolve_runtime_signal_key(
         bp, interner, sim_interner, endpoint, context);
 
     // Result is InternedId (may be empty if not found in sim_interner)
@@ -134,22 +134,22 @@ TEST(SignalKeyResolver, EmbeddedScopePrefixesChildEndpoint) {
 }
 
 TEST(SignalKeyResolver, ExternalAndEmbeddedChildScopesShareResolutionRule) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::Blueprint bp;
 
-    const ui::InternedId node_id = interner.intern("in");
-    const ui::InternedId port_id = interner.intern("ext");
+    const core::InternedId node_id = interner.intern("in");
+    const core::InternedId port_id = interner.intern("ext");
     editor::SignalEndpoint endpoint{nullptr, node_id, port_id};
 
-    ui::StringInterner sim_interner;
-    const ui::InternedId parent_id = interner.intern("group_7");
+    core::StringInterner sim_interner;
+    const core::InternedId parent_id = interner.intern("group_7");
 
     const editor::SignalKeyContext embedded = editor::embedded_signal_context(parent_id);
     const editor::SignalKeyContext external = editor::external_ref_signal_context(parent_id);
 
-    const ui::InternedId embedded_result = editor::resolve_runtime_signal_key(
+    const core::InternedId embedded_result = editor::resolve_runtime_signal_key(
         bp, interner, sim_interner, endpoint, embedded);
-    const ui::InternedId external_result = editor::resolve_runtime_signal_key(
+    const core::InternedId external_result = editor::resolve_runtime_signal_key(
         bp, interner, sim_interner, endpoint, external);
 
     // Both contexts should yield same result (or both empty)
@@ -163,25 +163,25 @@ TEST(SignalKeyResolver, ExternalAndEmbeddedChildScopesShareResolutionRule) {
 
 // Test 15: Empty endpoint IDs are rejected by resolver (defensive check)
 TEST(SignalKeyResolver, EmptyEndpointIds_ReturnsEmpty) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::Blueprint bp;
-    ui::StringInterner sim_interner;
+    core::StringInterner sim_interner;
     
     bp2::Blueprint::Node node;
     node.semantic.id = interner.intern("battery_1");
     node.semantic.type = interner.intern("Battery");
     
     // Endpoint with empty node IID
-    editor::SignalEndpoint endpoint_empty_node{&node, ui::InternedId(), interner.intern("V")};
+    editor::SignalEndpoint endpoint_empty_node{&node, core::InternedId(), interner.intern("V")};
     editor::SignalKeyContext context = editor::root_signal_context();
     
-    ui::InternedId result_empty_node = editor::resolve_runtime_signal_key(bp, interner, sim_interner, endpoint_empty_node, context);
+    core::InternedId result_empty_node = editor::resolve_runtime_signal_key(bp, interner, sim_interner, endpoint_empty_node, context);
     EXPECT_TRUE(result_empty_node.empty())
         << "Resolver MUST return empty when node_iid is empty";
     
     // Endpoint with empty port IID
-    editor::SignalEndpoint endpoint_empty_port{&node, node.semantic.id, ui::InternedId()};
-    ui::InternedId result_empty_port = editor::resolve_runtime_signal_key(bp, interner, sim_interner, endpoint_empty_port, context);
+    editor::SignalEndpoint endpoint_empty_port{&node, node.semantic.id, core::InternedId()};
+    core::InternedId result_empty_port = editor::resolve_runtime_signal_key(bp, interner, sim_interner, endpoint_empty_port, context);
     EXPECT_TRUE(result_empty_port.empty())
         << "Resolver MUST return empty when port_iid is empty";
 }

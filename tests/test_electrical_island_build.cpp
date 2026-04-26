@@ -62,12 +62,12 @@ TEST(ElectricalIslandBuild, ClosedCircuitOneIsland) {
     auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     // Verify electrical plan was populated
-    ASSERT_FALSE(result.electrical_plan.islands.empty());
+    ASSERT_FALSE(result.electrical.plan.islands.empty());
 
     // We expect 1 island
-    ASSERT_EQ(result.electrical_plan.islands.size(), 1u);
+    ASSERT_EQ(result.electrical.plan.islands.size(), 1u);
 
-    const auto& island = result.electrical_plan.islands[0];
+    const auto& island = result.electrical.plan.islands[0];
 
     // Battery creates TheveninSource, RefNode creates FixedVoltageNode,
     // Resistor and IndicatorLight create ConductanceBranch elements
@@ -116,13 +116,13 @@ TEST(ElectricalIslandBuild, TwoDisconnectedNetsTwoIslands) {
     auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
     // Should have 2 islands
-    ASSERT_EQ(result.electrical_plan.islands.size(), 2u);
+    ASSERT_EQ(result.electrical.plan.islands.size(), 2u);
 
     // Each island should have expected element count
     // Island 1: Battery (TheveninSource) + RefNode (FixedVoltageNode) + Resistor (ConductanceBranch)
     // Island 2: Generator (TheveninSource) + RefNode (FixedVoltageNode) + Resistor (ConductanceBranch)
-    ASSERT_EQ(result.electrical_plan.islands[0].elements.size(), 3u);
-    ASSERT_EQ(result.electrical_plan.islands[1].elements.size(), 3u);
+    ASSERT_EQ(result.electrical.plan.islands[0].elements.size(), 3u);
+    ASSERT_EQ(result.electrical.plan.islands[1].elements.size(), 3u);
 }
 
 TEST(ElectricalIslandBuild, MissingRequiredPortThrows) {
@@ -162,8 +162,8 @@ TEST(ElectricalIslandBuild, RefNodeCreatesFixedVoltageNode) {
 
     auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
-    ASSERT_FALSE(result.electrical_plan.islands.empty());
-    const auto& island = result.electrical_plan.islands[0];
+    ASSERT_FALSE(result.electrical.plan.islands.empty());
+    const auto& island = result.electrical.plan.islands[0];
 
     // Find the FixedVoltageNode element
     const ElectricalElement* fvn = nullptr;
@@ -191,8 +191,8 @@ TEST(ElectricalIslandBuild, BatteryCreatesTheveninSource) {
 
     auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
-    ASSERT_FALSE(result.electrical_plan.islands.empty());
-    const auto& island = result.electrical_plan.islands[0];
+    ASSERT_FALSE(result.electrical.plan.islands.empty());
+    const auto& island = result.electrical.plan.islands[0];
 
     // Find the TheveninSource element (Battery)
     const ElectricalElement* thv = nullptr;
@@ -221,8 +221,8 @@ TEST(ElectricalIslandBuild, GeneratorCreatesTheveninSource) {
 
     auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
-    ASSERT_FALSE(result.electrical_plan.islands.empty());
-    const auto& island = result.electrical_plan.islands[0];
+    ASSERT_FALSE(result.electrical.plan.islands.empty());
+    const auto& island = result.electrical.plan.islands[0];
 
     // Find the TheveninSource element (Generator)
     const ElectricalElement* thv = nullptr;
@@ -253,8 +253,8 @@ TEST(ElectricalIslandBuild, ResistorCreatesConductanceBranch) {
 
     auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
-    ASSERT_FALSE(result.electrical_plan.islands.empty());
-    const auto& island = result.electrical_plan.islands[0];
+    ASSERT_FALSE(result.electrical.plan.islands.empty());
+    const auto& island = result.electrical.plan.islands[0];
 
     // Find the ConductanceBranch element (Resistor)
     const ElectricalElement* cb = nullptr;
@@ -284,8 +284,8 @@ TEST(ElectricalIslandBuild, IndicatorLightCreatesConductanceBranch) {
 
     auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
-    ASSERT_FALSE(result.electrical_plan.islands.empty());
-    const auto& island = result.electrical_plan.islands[0];
+    ASSERT_FALSE(result.electrical.plan.islands.empty());
+    const auto& island = result.electrical.plan.islands[0];
 
     // Find the ConductanceBranch element (IndicatorLight)
     const ElectricalElement* cb = nullptr;
@@ -316,13 +316,13 @@ TEST(ElectricalIslandBuild, IslandsOrderedBySmallestSignalIndex) {
 
     auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
-    ASSERT_EQ(result.electrical_plan.islands.size(), 2u);
+    ASSERT_EQ(result.electrical.plan.islands.size(), 2u);
 
     // Islands should be ordered by smallest signal index
     // The island with gnd1 should come first since it has a smaller node index
     // (connections are processed in order, and gnd2 comes before gnd1 in device list)
-    const auto& island0 = result.electrical_plan.islands[0];
-    const auto& island1 = result.electrical_plan.islands[1];
+    const auto& island0 = result.electrical.plan.islands[0];
+    const auto& island1 = result.electrical.plan.islands[1];
 
     // Both islands should have 2 elements each (ElectricalSource + RefNode)
     ASSERT_EQ(island0.elements.size(), 2u);
@@ -330,11 +330,11 @@ TEST(ElectricalIslandBuild, IslandsOrderedBySmallestSignalIndex) {
 
     // Verify determinism: same build should produce same order
     auto result2 = build_systems_dev(make_jit_input(devices, signal_groups));
-    ASSERT_EQ(result2.electrical_plan.islands.size(), 2u);
+    ASSERT_EQ(result2.electrical.plan.islands.size(), 2u);
 
-    for (size_t i = 0; i < result.electrical_plan.islands.size(); ++i) {
-        ASSERT_EQ(result.electrical_plan.islands[i].signal_indices.size(),
-                  result2.electrical_plan.islands[i].signal_indices.size());
+    for (size_t i = 0; i < result.electrical.plan.islands.size(); ++i) {
+        ASSERT_EQ(result.electrical.plan.islands[i].signal_indices.size(),
+                  result2.electrical.plan.islands[i].signal_indices.size());
     }
 }
 
@@ -354,8 +354,8 @@ TEST(ElectricalIslandBuild, UnsupportedComponentsIgnored) {
 
     auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
-    ASSERT_FALSE(result.electrical_plan.islands.empty());
-    const auto& island = result.electrical_plan.islands[0];
+    ASSERT_FALSE(result.electrical.plan.islands.empty());
+    const auto& island = result.electrical.plan.islands[0];
 
     // Should have ElectricalSource (TheveninSource) and RefNode (FixedVoltageNode)
     // Switch should NOT create an element (unsupported)
@@ -384,8 +384,8 @@ TEST(ElectricalIslandBuild, RelayCreatesDynamicConductanceBranch) {
 
     auto result = build_systems_dev(make_jit_input(devices, signal_groups));
 
-    ASSERT_FALSE(result.electrical_plan.islands.empty());
-    const auto& island = result.electrical_plan.islands[0];
+    ASSERT_FALSE(result.electrical.plan.islands.empty());
+    const auto& island = result.electrical.plan.islands[0];
 
     bool found_relay_branch = false;
     for (const auto& elem : island.elements) {

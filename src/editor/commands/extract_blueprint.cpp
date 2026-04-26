@@ -7,17 +7,17 @@ namespace editor::commands {
 
 std::optional<bp2::Blueprint> build_extracted_blueprint_atomic(
     const bp2::Blueprint& source,
-    const std::vector<ui::InternedId>& selected_node_ids,
+    const std::vector<core::InternedId>& selected_node_ids,
     const std::string& blueprint_name,
     const WindowScopeId& scope_id,
-    ui::StringInterner& interner,
+    core::StringInterner& interner,
     bp2::PathArena& arena,
     const ComponentRegistry& parser_registry,
     std::string* error_out,
     bool allow_nonembedded_descendant_refs) {
     (void)parser_registry;
 
-    ui::InternedId blueprint_iid;
+    core::InternedId blueprint_iid;
     if (!extract_detail::validate_blueprint_name_for_extract(
             source, blueprint_name, interner, &blueprint_iid, error_out)) {
         return std::nullopt;
@@ -55,10 +55,10 @@ std::optional<bp2::Blueprint> build_extracted_blueprint_atomic(
 
 std::optional<ExtractToBlueprintPreview> build_extract_to_blueprint_preview(
     const bp2::Blueprint& source,
-    const std::vector<ui::InternedId>& selected_node_ids,
+    const std::vector<core::InternedId>& selected_node_ids,
     const std::string& blueprint_name,
     const WindowScopeId& scope_id,
-    ui::StringInterner& interner,
+    core::StringInterner& interner,
     bp2::PathArena& arena,
     const ComponentRegistry& parser_registry,
     std::string* error_out,

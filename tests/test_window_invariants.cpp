@@ -9,11 +9,11 @@
 #include "blueprint_v2/interface/port_descriptor.h"
 #include "blueprint_v2/path/path.h"
 #include "io/json/component_registry_json_loader.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 
 namespace {
 
-bp2::Blueprint::Node make_node(ui::StringInterner& interner,
+bp2::Blueprint::Node make_node(core::StringInterner& interner,
                                const char* id,
                                const char* type,
                                float x,
@@ -33,7 +33,7 @@ bp2::Blueprint::Node make_node(ui::StringInterner& interner,
 } // namespace
 
 TEST(WindowInvariants, OpenEmbeddedWindowWithoutInlineDefIsRejected) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     // Create an empty inline blueprint and a blueprint-instance node with embedded source.
@@ -64,7 +64,7 @@ TEST(WindowInvariants, OpenEmbeddedWindowWithoutInlineDefIsRejected) {
 }
 
 TEST(WindowInvariants, EmbeddedWindowUsesAuthoritativeInlineBlueprint) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     bp2::Blueprint inline_bp;
@@ -104,7 +104,7 @@ TEST(WindowInvariants, EmbeddedWindowUsesAuthoritativeInlineBlueprint) {
 /// interner.lookup returned empty InternedId and find_nested was called
 /// on it, then the result was dereferenced without null check).
 TEST(WindowInvariants, OpenWindowWithUnknownScopeIdDoesNotCrash) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     bp2::Blueprint root;
@@ -123,7 +123,7 @@ TEST(WindowInvariants, OpenWindowWithUnknownScopeIdDoesNotCrash) {
 /// Regression test: opening a window with a scope_id that IS interned but
 /// doesn't correspond to any nested group must not crash either.
 TEST(WindowInvariants, OpenWindowWithInternedButOrphanedScopeIdDoesNotCrash) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     // Intern the name but don't create a nested group for it
@@ -139,7 +139,7 @@ TEST(WindowInvariants, OpenWindowWithInternedButOrphanedScopeIdDoesNotCrash) {
 }
 
 TEST(WindowInvariants, EmbeddedWindowCanvasInputUsesEmptyGroupFilter) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     bp2::Blueprint inline_bp;
@@ -168,7 +168,7 @@ TEST(WindowInvariants, EmbeddedWindowCanvasInputUsesEmptyGroupFilter) {
 }
 
 TEST(WindowInvariants, EmbeddedHostEditsRootInlineDefAndUndoRedoNeedsNoSync) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     bp2::Blueprint inline_bp;
@@ -194,7 +194,7 @@ TEST(WindowInvariants, EmbeddedHostEditsRootInlineDefAndUndoRedoNeedsNoSync) {
     ASSERT_NE(win, nullptr);
     ASSERT_TRUE(created);
 
-    const ui::InternedId node_id = interner.lookup("inner_move");
+    const core::InternedId node_id = interner.lookup("inner_move");
     ASSERT_FALSE(node_id.empty());
 
     win->host->push_checkpoint();
@@ -235,7 +235,7 @@ TEST(WindowInvariants, EmbeddedHostEditsRootInlineDefAndUndoRedoNeedsNoSync) {
 }
 
 TEST(WindowInvariants, WindowScopeIdDisambiguatesScopeModesWithSameKey) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     const auto embedded = WindowScopeId::embedded({interner.intern("same_key")});
     const auto external = WindowScopeId::external({interner.intern("same_key")});
     const auto root = WindowScopeId::root();
@@ -246,7 +246,7 @@ TEST(WindowInvariants, WindowScopeIdDisambiguatesScopeModesWithSameKey) {
 }
 
 TEST(WindowInvariants, WindowScopeIdEqualityAndModeQueries) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     // Equality: same mode + same key
     EXPECT_EQ(WindowScopeId::root(), WindowScopeId::root());
     EXPECT_EQ(WindowScopeId::embedded({interner.intern("g1")}), WindowScopeId::embedded({interner.intern("g1")}));
@@ -271,7 +271,7 @@ TEST(WindowInvariants, WindowScopeIdEqualityAndModeQueries) {
 }
 
 TEST(WindowInvariants, WindowScopeIdPath) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     // Root: empty path
     EXPECT_TRUE(WindowScopeId::root().path().empty());
 
@@ -286,7 +286,7 @@ TEST(WindowInvariants, WindowScopeIdPath) {
 /// for root, embedded, and external windows. This catches if the typed scope flow
 /// regresses back to stringly-typed comparison.
 TEST(WindowInvariants, BlueprintWindowResolvedScopeIdMatchesMode) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     // Create a root window via WindowManager and verify its resolved scope
@@ -321,7 +321,7 @@ TEST(WindowInvariants, BlueprintWindowResolvedScopeIdMatchesMode) {
     EXPECT_TRUE(emb_win->resolved_scope_id().is_embedded());
 
     interner.intern("ref_group");
-    auto ext_interner = std::make_unique<ui::StringInterner>();
+    auto ext_interner = std::make_unique<core::StringInterner>();
     auto ext_arena = std::make_unique<bp2::PathArena>(*ext_interner);
     bp2::Blueprint ext_bp;
     ext_bp = ext_bp.with_id(ext_interner->intern("RefType"));
@@ -343,7 +343,7 @@ TEST(WindowInvariants, BlueprintWindowResolvedScopeIdMatchesMode) {
 /// Regression test for #58/#55: rendered_blueprint() must throw std::logic_error
 /// when EmbeddedScope mode has no editing host (invariant violation).
 TEST(WindowInvariants, RenderedBlueprintThrowsOnMissingEmbeddedHost) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     bp2::Blueprint::Node nested_node;
@@ -371,14 +371,14 @@ nested_node.semantic.id = interner.intern("nested_for_throw");
 /// External windows are fully initialized by the factory — invalid half-built
 /// external state is no longer representable through the public API.
 TEST(WindowInvariants, ExternalFactoryProducesRenderableBlueprint) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     interner.intern("ext_1");
 
     bp2::Blueprint root_bp;
     bp2::EditorModel model(root_bp);
 
-    auto external_interner = std::make_unique<ui::StringInterner>();
+    auto external_interner = std::make_unique<core::StringInterner>();
     auto external_arena = std::make_unique<bp2::PathArena>(*external_interner);
     bp2::Blueprint external_bp;
     external_bp = external_bp.with_id(external_interner->intern("ExtType"));
@@ -397,14 +397,14 @@ TEST(WindowInvariants, ExternalFactoryProducesRenderableBlueprint) {
 }
 
 TEST(WindowInvariants, ExternalFactoryBindsInputIdentityToExternalDocument) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     interner.intern("ext_1");
 
     bp2::Blueprint root_bp;
     bp2::EditorModel model(root_bp);
 
-    auto external_interner = std::make_unique<ui::StringInterner>();
+    auto external_interner = std::make_unique<core::StringInterner>();
     auto external_arena = std::make_unique<bp2::PathArena>(*external_interner);
     bp2::Blueprint external_bp;
     bp2::Blueprint::Node node;
@@ -429,9 +429,9 @@ TEST(WindowInvariants, ExternalFactoryBindsInputIdentityToExternalDocument) {
 /// Regression test: WindowScopeId now accepts InternedId paths directly.
 TEST(WindowInvariants, WindowScopeIdEmbeddedWithEmptySegment) {
     // InternedId with value 0 is "empty" but should still be constructable
-    ui::InternedId empty_id;
+    core::InternedId empty_id;
     EXPECT_TRUE(empty_id.empty());
-    EXPECT_EQ(empty_id, ui::InternedId{});
+    EXPECT_EQ(empty_id, core::InternedId{});
     // WindowScopeId can be constructed with empty segment (no throw)
     auto scope = WindowScopeId::embedded({empty_id});
     EXPECT_EQ(scope.path().size(), 1u);
@@ -440,7 +440,7 @@ TEST(WindowInvariants, WindowScopeIdEmbeddedWithEmptySegment) {
 /// Regression test: WindowScopeId now accepts InternedId paths directly.
 TEST(WindowInvariants, WindowScopeIdExternalWithEmptySegment) {
     // InternedId with value 0 is "empty" but should still be constructable
-    ui::InternedId empty_id;
+    core::InternedId empty_id;
     EXPECT_TRUE(empty_id.empty());
     // WindowScopeId can be constructed with empty segment (no throw)
     auto scope = WindowScopeId::external({empty_id});
@@ -451,14 +451,14 @@ TEST(WindowInvariants, WindowScopeIdExternalWithEmptySegment) {
 /// The scope key for an external window must equal the parent_instance_id passed to
 /// set_external_identity, eliminating any dual canonical/derived identity.
 TEST(WindowInvariants, ExternalWindowScopeCarriesParentInstanceId) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     interner.intern("fol_1");
     bp2::Blueprint root_bp;
     bp2::EditorModel model(root_bp);
 
     WindowManager wm(model, interner, arena, nullptr);
-    auto ext_interner = std::make_unique<ui::StringInterner>();
+    auto ext_interner = std::make_unique<core::StringInterner>();
     auto ext_arena = std::make_unique<bp2::PathArena>(*ext_interner);
     bp2::Blueprint ext_bp;
     ext_bp = ext_bp.with_id(ext_interner->intern("ExtType"));
@@ -484,7 +484,7 @@ TEST(WindowInvariants, ExternalWindowScopeCarriesParentInstanceId) {
 /// Regression test for #56: An embedded and external window with the same underlying
 /// key string must never collide — typed WindowScopeId keeps them separate.
 TEST(WindowInvariants, EmbeddedAndExternalWithSameKeyDoNotCollide) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     bp2::Blueprint inline_bp;
@@ -508,7 +508,7 @@ TEST(WindowInvariants, EmbeddedAndExternalWithSameKeyDoNotCollide) {
     ASSERT_TRUE(created);
 
     // Open external window for the same key
-    auto ext_interner = std::make_unique<ui::StringInterner>();
+    auto ext_interner = std::make_unique<core::StringInterner>();
     auto ext_arena = std::make_unique<bp2::PathArena>(*ext_interner);
     bp2::Blueprint ext_bp;
     ext_bp = ext_bp.with_id(ext_interner->intern("ExtType"));
@@ -537,7 +537,7 @@ TEST(WindowInvariants, EmbeddedAndExternalWithSameKeyDoNotCollide) {
 }
 
 TEST(WindowInvariants, ExternalWindowSelfClosesWhenOwnerBecomesEmbedded) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
     ComponentRegistry registry = load_component_registry("library/");
 
@@ -553,7 +553,7 @@ TEST(WindowInvariants, ExternalWindowSelfClosesWhenOwnerBecomesEmbedded) {
     bp2::EditorModel model(root_bp);
     WindowManager wm(model, interner, arena, &registry);
 
-    auto ext_interner = std::make_unique<ui::StringInterner>();
+    auto ext_interner = std::make_unique<core::StringInterner>();
     auto ext_arena = std::make_unique<bp2::PathArena>(*ext_interner);
     bp2::Blueprint ext_bp;
     ext_bp = ext_bp.with_id(ext_interner->intern("12SAM28"));

@@ -26,7 +26,7 @@ struct SlotAssignment {
 };
 
 struct FragmentPlacement {
-    ui::InternedId element_id;
+    core::InternedId element_id;
     ui::Rect bounds;
 };
 

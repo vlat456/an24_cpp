@@ -6,7 +6,7 @@
 #include "editor/input/input_types.h"
 #include "editor/visual/port/visual_port.h"
 #include "blueprint_v2/blueprint/node_port.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include "ui/math/pt.h"
 #include "ui/math/rect.h"
 #include <variant>
@@ -25,7 +25,7 @@ namespace visual {
     };
 
     struct HitNode {
-        ui::InternedId node_id;
+        core::InternedId node_id;
         ui::Pt world_pos{};
         ui::Pt size{};
         Bounds content_bounds{};
@@ -34,23 +34,23 @@ namespace visual {
         std::optional<HitContentInteraction> content_interaction;
     };
     struct HitPort {
-        ui::InternedId node_id;
-        ui::InternedId port_name;
+        core::InternedId node_id;
+        core::InternedId port_name;
         bp2::Direction direction = bp2::Direction::Input;
         PortType type = PortType::Any;
         ui::Pt center{};
     };
     struct HitWire {
-        ui::InternedId wire_id;
+        core::InternedId wire_id;
         size_t segment = 0;
     };
     struct HitRoutingPoint {
-        ui::InternedId wire_id;
+        core::InternedId wire_id;
         size_t index = 0;
         ui::Pt world_pos{};
     };
     struct HitResizeHandle {
-        ui::InternedId node_id;
+        core::InternedId node_id;
         ResizeCorner corner = ResizeCorner::BottomRight;
         ui::Pt world_pos{};
         ui::Pt size{};
@@ -88,8 +88,8 @@ enum class CanvasHitObjectKind {
 
 struct CanvasRenderObject {
     SceneObjectId id;
-    ui::InternedId node_id;
-    ui::InternedId element_id;
+    core::InternedId node_id;
+    core::InternedId element_id;
     CanvasRenderObjectKind kind = CanvasRenderObjectKind::ContentPaint;
     PrimitiveGeometry geometry;
     ui::Rect bounds;
@@ -101,8 +101,8 @@ struct CanvasRenderObject {
 
 struct CanvasHitObject {
     SceneObjectId id;
-    ui::InternedId node_id;
-    ui::InternedId element_id;
+    core::InternedId node_id;
+    core::InternedId element_id;
     CanvasHitObjectKind kind = CanvasHitObjectKind::ContentRegion;
     HitShapeKind shape = HitShapeKind::Rectangle;
     ui::Rect bounds;
@@ -117,7 +117,7 @@ struct CanvasHitObject {
     ui::Pt segment_p1;               ///< End point of this segment
 
     // -- RoutingPoint metadata (kind == RoutingPoint) --
-    ui::InternedId rp_wire_id;       ///< Wire that owns this routing point
+    core::InternedId rp_wire_id;       ///< Wire that owns this routing point
     size_t rp_index = 0;             ///< Index within the wire's routing point list
 
     // -- ResizeHandle metadata (kind == ResizeHandle) --
@@ -140,7 +140,7 @@ struct CanvasSceneSnapshot {
 
 /// Build a snapshot of the canvas scene by traversing the visual scene graph
 /// and projecting widgets into explicit render and hit objects.
-CanvasSceneSnapshot build_canvas_scene_snapshot(const visual::Scene& scene, ui::StringInterner& interner);
+CanvasSceneSnapshot build_canvas_scene_snapshot(const visual::Scene& scene, core::StringInterner& interner);
 
 // ============================================================
 // Snapshot-based hit testing (replaces visual::hit_test / hit_test_ports)

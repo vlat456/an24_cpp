@@ -2,7 +2,7 @@
 
 #include "editor/data/node_content.h"
 #include "blueprint_v2/blueprint/node_port.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 #include <array>
 #include <vector>
 #include <string_view>
@@ -62,7 +62,7 @@ inline ResolvedLayout resolve_port_layout(
     const std::vector<bp2::PortDescriptor>& inputs,
     const std::vector<bp2::PortDescriptor>& outputs,
     const std::vector<PortLayoutOverride>& overrides,
-    const ui::StringInterner& interner)
+    const core::StringInterner& interner)
 {
     // Step 1: Build flat list with default sides.
     // InOut ports appear in both inputs and outputs (see document.cpp);

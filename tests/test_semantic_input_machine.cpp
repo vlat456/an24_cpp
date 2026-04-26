@@ -16,9 +16,9 @@ TEST(SemanticInputMachineTest, StartsWithInactiveSession) {
 
 TEST(SemanticInputMachineTest, PressStepBeginsPersistentSession) {
     SemanticSceneSnapshot snapshot;
-    SceneHitObject region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
-    region.interactions.push_back(make_binding(ui::InternedId(30), InteractionKind::Press, ui::InternedId(100)));
+    SceneHitObject region = make_content_region(core::InternedId(10), core::InternedId(20),
+                                                core::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
+    region.interactions.push_back(make_binding(core::InternedId(30), InteractionKind::Press, core::InternedId(100)));
     snapshot.hit_objects.push_back(region);
 
     SemanticInputMachine machine;
@@ -30,20 +30,20 @@ TEST(SemanticInputMachineTest, PressStepBeginsPersistentSession) {
     ASSERT_EQ(result.scene_result.reduced.emitted_requests.size(), 1u);
     EXPECT_EQ(machine.state(), SemanticInputState::Pressed);
     EXPECT_TRUE(machine.session().active);
-    EXPECT_EQ(machine.session().node_id, ui::InternedId(10));
-    EXPECT_EQ(machine.session().region_id, ui::InternedId(30));
+    EXPECT_EQ(machine.session().node_id, core::InternedId(10));
+    EXPECT_EQ(machine.session().region_id, core::InternedId(30));
 }
 
 TEST(SemanticInputMachineTest, DragStepUsesStoredSessionContinuation) {
     SemanticSceneSnapshot begin_snapshot;
-    SceneHitObject begin_region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                      ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
-    begin_region.interactions.push_back(make_binding(ui::InternedId(30), InteractionKind::DragScalar, ui::InternedId(101)));
+    SceneHitObject begin_region = make_content_region(core::InternedId(10), core::InternedId(20),
+                                                      core::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
+    begin_region.interactions.push_back(make_binding(core::InternedId(30), InteractionKind::DragScalar, core::InternedId(101)));
     begin_snapshot.hit_objects.push_back(begin_region);
 
     SemanticSceneSnapshot continue_snapshot;
-    SceneHitObject continue_region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                         ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
+    SceneHitObject continue_region = make_content_region(core::InternedId(10), core::InternedId(20),
+                                                         core::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
     continue_snapshot.hit_objects.push_back(continue_region);
 
     SemanticInputMachine machine;
@@ -70,9 +70,9 @@ TEST(SemanticInputMachineTest, DragStepUsesStoredSessionContinuation) {
 
 TEST(SemanticInputMachineTest, ReleaseStepClearsPersistentSession) {
     SemanticSceneSnapshot snapshot;
-    SceneHitObject region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
-    region.interactions.push_back(make_binding(ui::InternedId(30), InteractionKind::Press, ui::InternedId(100)));
+    SceneHitObject region = make_content_region(core::InternedId(10), core::InternedId(20),
+                                                core::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
+    region.interactions.push_back(make_binding(core::InternedId(30), InteractionKind::Press, core::InternedId(100)));
     snapshot.hit_objects.push_back(region);
 
     SemanticInputMachine machine;
@@ -92,9 +92,9 @@ TEST(SemanticInputMachineTest, ReleaseStepClearsPersistentSession) {
 
 TEST(SemanticInputMachineTest, ResetClearsSession) {
     SemanticSceneSnapshot snapshot;
-    SceneHitObject region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
-    region.interactions.push_back(make_binding(ui::InternedId(30), InteractionKind::Press, ui::InternedId(100)));
+    SceneHitObject region = make_content_region(core::InternedId(10), core::InternedId(20),
+                                                core::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
+    region.interactions.push_back(make_binding(core::InternedId(30), InteractionKind::Press, core::InternedId(100)));
     snapshot.hit_objects.push_back(region);
 
     SemanticInputMachine machine;
@@ -109,9 +109,9 @@ TEST(SemanticInputMachineTest, ResetClearsSession) {
 
 TEST(SemanticInputMachineTest, CancelClearsSessionAndReportsTransition) {
     SemanticSceneSnapshot snapshot;
-    SceneHitObject region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
-    region.interactions.push_back(make_binding(ui::InternedId(30), InteractionKind::Press, ui::InternedId(100)));
+    SceneHitObject region = make_content_region(core::InternedId(10), core::InternedId(20),
+                                                core::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
+    region.interactions.push_back(make_binding(core::InternedId(30), InteractionKind::Press, core::InternedId(100)));
     snapshot.hit_objects.push_back(region);
 
     SemanticInputMachine machine;
@@ -151,10 +151,10 @@ TEST(SemanticInputMachineTest, PressedToDragTransitionProducesBeganDrag) {
     // Region with both Press and DragScalar bindings.
     // Press → Pressed. Then Drag → should BeganDrag (not Continued).
     SemanticSceneSnapshot snapshot;
-    SceneHitObject region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
-    region.interactions.push_back(make_binding(ui::InternedId(30), InteractionKind::Press, ui::InternedId(100)));
-    region.interactions.push_back(make_binding(ui::InternedId(30), InteractionKind::DragScalar, ui::InternedId(101)));
+    SceneHitObject region = make_content_region(core::InternedId(10), core::InternedId(20),
+                                                core::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
+    region.interactions.push_back(make_binding(core::InternedId(30), InteractionKind::Press, core::InternedId(100)));
+    region.interactions.push_back(make_binding(core::InternedId(30), InteractionKind::DragScalar, core::InternedId(101)));
     snapshot.hit_objects.push_back(region);
 
     SemanticInputMachine machine;
@@ -177,9 +177,9 @@ TEST(SemanticInputMachineTest, PressedToDragTransitionProducesBeganDrag) {
 
 TEST(SemanticInputMachineTest, CancelFromDraggingReturnsCancelled) {
     SemanticSceneSnapshot snapshot;
-    SceneHitObject region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
-    region.interactions.push_back(make_binding(ui::InternedId(30), InteractionKind::DragScalar, ui::InternedId(101)));
+    SceneHitObject region = make_content_region(core::InternedId(10), core::InternedId(20),
+                                                core::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
+    region.interactions.push_back(make_binding(core::InternedId(30), InteractionKind::DragScalar, core::InternedId(101)));
     snapshot.hit_objects.push_back(region);
 
     SemanticInputMachine machine;
@@ -196,9 +196,9 @@ TEST(SemanticInputMachineTest, CancelFromDraggingReturnsCancelled) {
 
 TEST(SemanticInputMachineTest, ReleaseFromDraggingClearsSession) {
     SemanticSceneSnapshot snapshot;
-    SceneHitObject region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
-    region.interactions.push_back(make_binding(ui::InternedId(30), InteractionKind::DragScalar, ui::InternedId(101)));
+    SceneHitObject region = make_content_region(core::InternedId(10), core::InternedId(20),
+                                                core::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
+    region.interactions.push_back(make_binding(core::InternedId(30), InteractionKind::DragScalar, core::InternedId(101)));
     snapshot.hit_objects.push_back(region);
 
     SemanticInputMachine machine;
@@ -215,9 +215,9 @@ TEST(SemanticInputMachineTest, ReleaseFromDraggingClearsSession) {
 
 TEST(SemanticInputMachineTest, ClickProducesNoneTransitionButEmitsRequest) {
     SemanticSceneSnapshot snapshot;
-    SceneHitObject region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
-    region.interactions.push_back(make_binding(ui::InternedId(30), InteractionKind::Click, ui::InternedId(200)));
+    SceneHitObject region = make_content_region(core::InternedId(10), core::InternedId(20),
+                                                core::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
+    region.interactions.push_back(make_binding(core::InternedId(30), InteractionKind::Click, core::InternedId(200)));
     snapshot.hit_objects.push_back(region);
 
     SemanticInputMachine machine;
@@ -226,7 +226,7 @@ TEST(SemanticInputMachineTest, ClickProducesNoneTransitionButEmitsRequest) {
     EXPECT_EQ(result.transition, SemanticInputTransition::None);
     ASSERT_EQ(result.scene_result.reduced.emitted_requests.size(), 1u);
     EXPECT_EQ(result.scene_result.reduced.emitted_requests[0].kind, InteractionKind::Click);
-    EXPECT_EQ(result.scene_result.reduced.emitted_requests[0].action_id, ui::InternedId(200));
+    EXPECT_EQ(result.scene_result.reduced.emitted_requests[0].action_id, core::InternedId(200));
     EXPECT_EQ(machine.state(), SemanticInputState::Idle);
     EXPECT_FALSE(machine.session().active);
 }
@@ -235,9 +235,9 @@ TEST(SemanticInputMachineTest, ClickProducesNoneTransitionButEmitsRequest) {
 
 TEST(SemanticInputMachineTest, DragOnPressOnlyRegionStaysPressedNoEmission) {
     SemanticSceneSnapshot snapshot;
-    SceneHitObject region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
-    region.interactions.push_back(make_binding(ui::InternedId(30), InteractionKind::Press, ui::InternedId(100)));
+    SceneHitObject region = make_content_region(core::InternedId(10), core::InternedId(20),
+                                                core::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
+    region.interactions.push_back(make_binding(core::InternedId(30), InteractionKind::Press, core::InternedId(100)));
     snapshot.hit_objects.push_back(region);
 
     SemanticInputMachine machine;
@@ -254,9 +254,9 @@ TEST(SemanticInputMachineTest, DragOnPressOnlyRegionStaysPressedNoEmission) {
 
 TEST(SemanticInputMachineTest, DragOffHitKeepsDraggingSessionAndContinues) {
     SemanticSceneSnapshot begin_snapshot;
-    SceneHitObject begin_region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                      ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
-    begin_region.interactions.push_back(make_binding(ui::InternedId(30), InteractionKind::DragScalar, ui::InternedId(101)));
+    SceneHitObject begin_region = make_content_region(core::InternedId(10), core::InternedId(20),
+                                                      core::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
+    begin_region.interactions.push_back(make_binding(core::InternedId(30), InteractionKind::DragScalar, core::InternedId(101)));
     begin_snapshot.hit_objects.push_back(begin_region);
 
     SemanticSceneSnapshot empty_snapshot;
@@ -278,9 +278,9 @@ TEST(SemanticInputMachineTest, DragOffHitKeepsDraggingSessionAndContinues) {
 
 TEST(SemanticInputMachineTest, ReleaseOffHitEndsDraggingSession) {
     SemanticSceneSnapshot begin_snapshot;
-    SceneHitObject begin_region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                      ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
-    begin_region.interactions.push_back(make_binding(ui::InternedId(30), InteractionKind::DragScalar, ui::InternedId(101)));
+    SceneHitObject begin_region = make_content_region(core::InternedId(10), core::InternedId(20),
+                                                      core::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
+    begin_region.interactions.push_back(make_binding(core::InternedId(30), InteractionKind::DragScalar, core::InternedId(101)));
     begin_snapshot.hit_objects.push_back(begin_region);
 
     SemanticSceneSnapshot empty_snapshot;
@@ -301,9 +301,9 @@ TEST(SemanticInputMachineTest, ReleaseOffHitEndsDraggingSession) {
 
 TEST(SemanticInputMachineTest, StepAfterResetBehavesAsIdle) {
     SemanticSceneSnapshot snapshot;
-    SceneHitObject region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
-    region.interactions.push_back(make_binding(ui::InternedId(30), InteractionKind::Press, ui::InternedId(100)));
+    SceneHitObject region = make_content_region(core::InternedId(10), core::InternedId(20),
+                                                core::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
+    region.interactions.push_back(make_binding(core::InternedId(30), InteractionKind::Press, core::InternedId(100)));
     snapshot.hit_objects.push_back(region);
 
     SemanticInputMachine machine;
@@ -322,9 +322,9 @@ TEST(SemanticInputMachineTest, StepAfterResetBehavesAsIdle) {
 
 TEST(SemanticInputMachineTest, FullDragLifecycle) {
     SemanticSceneSnapshot snapshot;
-    SceneHitObject region = make_content_region(ui::InternedId(10), ui::InternedId(20),
-                                                ui::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
-    region.interactions.push_back(make_binding(ui::InternedId(30), InteractionKind::DragScalar, ui::InternedId(101)));
+    SceneHitObject region = make_content_region(core::InternedId(10), core::InternedId(20),
+                                                core::InternedId(30), ui::Rect{0.0f, 0.0f, 100.0f, 100.0f});
+    region.interactions.push_back(make_binding(core::InternedId(30), InteractionKind::DragScalar, core::InternedId(101)));
     snapshot.hit_objects.push_back(region);
 
     SemanticInputMachine machine;

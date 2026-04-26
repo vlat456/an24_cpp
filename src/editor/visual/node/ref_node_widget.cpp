@@ -27,7 +27,7 @@ static std::string format_value(float v) {
 
 RefNodeWidget::RefNodeWidget(const bp2::Blueprint::Node& data,
                              const bp2::Interface& render_iface,
-                             const ui::StringInterner& interner,
+                             const core::StringInterner& interner,
                              std::optional<editor::NodeColor> color)
     : node_iid_(data.semantic.id)
     , interner_(&interner)
@@ -38,7 +38,7 @@ RefNodeWidget::RefNodeWidget(const bp2::Blueprint::Node& data,
     // type_iid_ compared against a pre-interned sentinel — zero string in the constructor.
     // The "Value" sentinel must come from a mutable interner, so we look up from the
     // node's own type InternedId. If the blueprint was loaded, "Value" is already interned.
-    const ui::InternedId value_iid = interner.lookup("Value");
+    const core::InternedId value_iid = interner.lookup("Value");
     if (!value_iid.empty() && type_iid_ == value_iid && !data.semantic.params.empty()) {
         name_ = format_value(data.semantic.params.begin()->second);
     }
@@ -64,7 +64,7 @@ RefNodeWidget::RefNodeWidget(const bp2::Blueprint::Node& data,
 
 void RefNodeWidget::buildLayout(const bp2::Blueprint::Node& data,
                                 const bp2::Interface& render_iface,
-                                const ui::StringInterner& interner) {
+                                const core::StringInterner& interner) {
     // Determine the single port from node data.
     // Port stores a string_view, so the name must point to stable storage
     // (the interner) — never to a local std::string.

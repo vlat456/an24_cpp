@@ -12,6 +12,7 @@
 
 struct SolverRole {
     std::string kind;
+    Domain domain = Domain::Electrical;
     std::unordered_map<std::string, std::string> port_map;
     std::unordered_map<std::string, std::string> param_map;
     std::unordered_map<std::string, float> value_map;

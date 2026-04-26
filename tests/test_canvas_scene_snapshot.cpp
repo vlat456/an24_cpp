@@ -45,7 +45,7 @@ static const ComponentRegistry& snapshot_reg() {
     return r;
 }
 
-static bp2::Blueprint::Node make_canvas_snapshot_node(ui::StringInterner& I,
+static bp2::Blueprint::Node make_canvas_snapshot_node(core::StringInterner& I,
                                                       const char* id,
                                                       const char* type = "Battery") {
     bp2::Blueprint::Node n;
@@ -55,7 +55,7 @@ static bp2::Blueprint::Node make_canvas_snapshot_node(ui::StringInterner& I,
     return n;
 }
 
-static bp2::Blueprint::Wire make_canvas_snapshot_wire(ui::StringInterner& I,
+static bp2::Blueprint::Wire make_canvas_snapshot_wire(core::StringInterner& I,
                                                       const char* wire_id,
                                                       const char* src_node,
                                                       const char* src_port,
@@ -69,7 +69,7 @@ static bp2::Blueprint::Wire make_canvas_snapshot_wire(ui::StringInterner& I,
 }
 
 TEST(CanvasSceneSnapshot, RecursivelyProjectsPortsAndRoutingPoints) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     auto n1 = make_canvas_snapshot_node(interner, "bat1", "Battery");
@@ -95,7 +95,7 @@ TEST(CanvasSceneSnapshot, RecursivelyProjectsPortsAndRoutingPoints) {
     bp = bp.with_wire(std::move(w));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, snapshot_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const core::InternedId>{}, snapshot_reg());
 
     const auto snapshot = editor::presentation::build_canvas_scene_snapshot(scene, interner);
 
@@ -120,7 +120,7 @@ TEST(CanvasSceneSnapshot, RecursivelyProjectsPortsAndRoutingPoints) {
 }
 
 TEST(CanvasSceneSnapshot, ContentObjectsAreProjectedToAbsoluteCanvasCoordinates) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     auto knob = make_canvas_snapshot_node(interner, "knob1", "KnobSwitch");
@@ -136,7 +136,7 @@ TEST(CanvasSceneSnapshot, ContentObjectsAreProjectedToAbsoluteCanvasCoordinates)
     bp = bp.with_node(std::move(knob));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, snapshot_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const core::InternedId>{}, snapshot_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("knob1"));
     ASSERT_NE(widget, nullptr);
@@ -171,7 +171,7 @@ TEST(CanvasSceneSnapshot, ContentObjectsAreProjectedToAbsoluteCanvasCoordinates)
 TEST(CanvasSceneSnapshot, GroupNodeBorderOnlyHitSemantics) {
     // A group node should only be hit on its title bar and border margins.
     // Clicking the interior should return HitEmpty (pass-through to nodes behind).
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     bp2::Blueprint::Node group;
@@ -187,7 +187,7 @@ TEST(CanvasSceneSnapshot, GroupNodeBorderOnlyHitSemantics) {
     bp = bp.with_node(std::move(group));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, snapshot_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const core::InternedId>{}, snapshot_reg());
 
     auto* grp_widget = dynamic_cast<visual::GroupNodeWidget*>(scene.find("grp1"));
     ASSERT_NE(grp_widget, nullptr) << "Group widget must exist in scene";
@@ -236,7 +236,7 @@ TEST(CanvasSceneSnapshot, GroupNodeBorderOnlyHitSemantics) {
 TEST(CanvasSceneSnapshot, WireSegmentHitTestUsesDistanceThreshold) {
     // A horizontal wire segment should be hittable within WIRE_TOLERANCE pixels,
     // but not outside that threshold.
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     auto n1 = make_canvas_snapshot_node(interner, "a", "Battery");
@@ -261,7 +261,7 @@ TEST(CanvasSceneSnapshot, WireSegmentHitTestUsesDistanceThreshold) {
     bp = bp.with_wire(std::move(w));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, snapshot_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const core::InternedId>{}, snapshot_reg());
 
     // Find the wire to read its polyline
     auto* wire_widget = dynamic_cast<visual::Wire*>(scene.find(interner.resolve(interner.lookup("w1"))));
@@ -293,7 +293,7 @@ TEST(CanvasSceneSnapshot, WireSegmentHitTestUsesDistanceThreshold) {
 // ============================================================================
 
 TEST(CanvasSceneSnapshot, ResizeHandlesProjectedForResizableGroupNode) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     bp2::Blueprint::Node group;
@@ -309,7 +309,7 @@ TEST(CanvasSceneSnapshot, ResizeHandlesProjectedForResizableGroupNode) {
     bp = bp.with_node(std::move(group));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, snapshot_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const core::InternedId>{}, snapshot_reg());
 
     const auto snapshot = editor::presentation::build_canvas_scene_snapshot(scene, interner);
 
@@ -353,7 +353,7 @@ TEST(CanvasSceneSnapshot, ResizeHandlesProjectedForResizableGroupNode) {
 }
 
 TEST(CanvasSceneSnapshot, RoutingPointHitAreaExtendsBeyondVisibleDot) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     auto n1 = make_canvas_snapshot_node(interner, "bat2", "Battery");
@@ -379,7 +379,7 @@ TEST(CanvasSceneSnapshot, RoutingPointHitAreaExtendsBeyondVisibleDot) {
     bp = bp.with_wire(std::move(w));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, snapshot_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const core::InternedId>{}, snapshot_reg());
 
     const auto snapshot = editor::presentation::build_canvas_scene_snapshot(scene, interner);
 
@@ -396,7 +396,7 @@ TEST(CanvasSceneSnapshot, RoutingPointHitAreaExtendsBeyondVisibleDot) {
 
 TEST(CanvasSceneSnapshot, HitTestPriorityPortOverNode) {
     // When a port overlaps a node body, the port should win.
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     auto n1 = make_canvas_snapshot_node(interner, "bat1", "Battery");
@@ -410,7 +410,7 @@ TEST(CanvasSceneSnapshot, HitTestPriorityPortOverNode) {
     bp = bp.with_node(std::move(n1));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, snapshot_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const core::InternedId>{}, snapshot_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("bat1"));
     ASSERT_NE(widget, nullptr);
@@ -431,7 +431,7 @@ TEST(CanvasSceneSnapshot, HitTestPriorityPortOverNode) {
 }
 
 TEST(CanvasSceneSnapshot, RoutingPointWinsOverWireWithinSharedHitTolerance) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     auto n1 = make_canvas_snapshot_node(interner, "bat3", "Battery");
@@ -457,7 +457,7 @@ TEST(CanvasSceneSnapshot, RoutingPointWinsOverWireWithinSharedHitTolerance) {
     bp = bp.with_wire(std::move(w));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, snapshot_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const core::InternedId>{}, snapshot_reg());
 
     const auto snapshot = editor::presentation::build_canvas_scene_snapshot(scene, interner);
 
@@ -468,7 +468,7 @@ TEST(CanvasSceneSnapshot, RoutingPointWinsOverWireWithinSharedHitTolerance) {
 }
 
 TEST(CanvasSceneSnapshot, WireSegmentUsesSharedHitTolerance) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     auto n1 = make_canvas_snapshot_node(interner, "a2", "Battery");
@@ -493,7 +493,7 @@ TEST(CanvasSceneSnapshot, WireSegmentUsesSharedHitTolerance) {
     bp = bp.with_wire(std::move(w));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, snapshot_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const core::InternedId>{}, snapshot_reg());
 
     auto* wire_widget = dynamic_cast<visual::Wire*>(scene.find(interner.resolve(interner.lookup("w2"))));
     ASSERT_NE(wire_widget, nullptr);
@@ -521,7 +521,7 @@ TEST(CanvasSceneSnapshot, ResizeHandlesProjectedForNodeWithoutExplicitSize) {
     // layout.width / layout.height (std::nullopt). The NodeWidget constructor
     // computes size from preferredSize/minimumNodeSize. Resize handles must
     // still be projected into the snapshot with valid (non-zero) bounds.
-    ui::StringInterner interner;
+    core::StringInterner interner;
     bp2::PathArena arena(interner);
 
     auto n = make_canvas_snapshot_node(interner, "new_node", "Battery");
@@ -537,7 +537,7 @@ TEST(CanvasSceneSnapshot, ResizeHandlesProjectedForNodeWithoutExplicitSize) {
     bp = bp.with_node(std::move(n));
 
     visual::Scene scene;
-    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const ui::InternedId>{}, snapshot_reg());
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const core::InternedId>{}, snapshot_reg());
 
     auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("new_node"));
     ASSERT_NE(widget, nullptr);

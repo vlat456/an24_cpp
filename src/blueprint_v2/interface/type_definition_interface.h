@@ -4,13 +4,13 @@
 #include "blueprint_v2/interface/port_descriptor.h"
 #include "core/model/component_spec.h"
 #include "core/model/port.h"
-#include "ui/core/interned_id.h"
+#include "core/strings/interned_id.h"
 
 #include <vector>
 
 namespace bp2 {
 
-inline PortDescriptor port_descriptor_from_type_port(ui::InternedId name, const Port& port) {
+inline PortDescriptor port_descriptor_from_type_port(core::InternedId name, const Port& port) {
     PortDescriptor pd;
     pd.name = name;
     pd.domain = port.domain;
@@ -21,7 +21,7 @@ inline PortDescriptor port_descriptor_from_type_port(ui::InternedId name, const 
 }
 
 inline Interface interface_from_type_definition(const ComponentSpec& spec,
-                                                ui::StringInterner& interner) {
+                                                core::StringInterner& interner) {
     const auto& ports = spec_ports(spec);
     std::vector<PortDescriptor> iface_ports;
     iface_ports.reserve(ports.size());

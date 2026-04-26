@@ -34,7 +34,7 @@ out.direction = bp2::Direction::Output;
     def.devices.push_back(src);
     def.devices.push_back(dst);
 
-    Connection conn;
+    RoutedConnection conn;
     conn.from = "src.out";
     conn.to = "dst.in";
     conn.routing_points.push_back({1.0f, 2.0f});
@@ -71,7 +71,7 @@ ComponentRegistry make_registry() {
 } // namespace
 
 TEST(TypeDefToBlueprint, PreservesLayoutAndRoutingAndDomain) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     CompositeSpec def = make_composite_def();
     ComponentRegistry registry = make_registry();
 
@@ -99,7 +99,7 @@ TEST(TypeDefToBlueprint, PreservesLayoutAndRoutingAndDomain) {
 }
 
 TEST(TypeDefToBlueprint, WireDomainMatchesResolvedEndpointInterface) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     CompositeSpec def = make_composite_def();
     ComponentRegistry registry = make_registry();
     auto* src_def = as_primitive_mut(*registry.get_mut("SourceNode"));
@@ -118,7 +118,7 @@ TEST(TypeDefToBlueprint, WireDomainMatchesResolvedEndpointInterface) {
 }
 
 TEST(TypeDefToBlueprint, MalformedBridgeMetadataFailsImport) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     ComponentRegistry registry = make_registry();
 
     PrimitiveSpec sink;
@@ -151,7 +151,7 @@ TEST(TypeDefToBlueprint, MalformedBridgeMetadataFailsImport) {
     sink_dev.classname = "BoolSink";
     def.devices.push_back(sink_dev);
 
-    Connection conn;
+    RoutedConnection conn;
     conn.from = "flag.port";
     conn.to = "sink.in";
     def.connections.push_back(conn);
@@ -162,7 +162,7 @@ TEST(TypeDefToBlueprint, MalformedBridgeMetadataFailsImport) {
 // Regression: as_composite_mut was used on PrimitiveSpec entries, silently
 // skipping port mutations and producing wrong wire domain.
 TEST(TypeDefToBlueprint, Regression_PrimitivePortMutationUsesCorrectAccessor) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     CompositeSpec def = make_composite_def();
     ComponentRegistry registry = make_registry();
 
@@ -189,7 +189,7 @@ TEST(TypeDefToBlueprint, Regression_PrimitivePortMutationUsesCorrectAccessor) {
 }
 
 TEST(TypeDefToBlueprint, RejectsUnknownDeviceClassInsteadOfSynthesizingIface) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     ComponentRegistry registry = make_registry();
 
     CompositeSpec def;
@@ -258,7 +258,7 @@ ComponentRegistry make_registry_with_inner_composite() {
     inner_dst.classname = "SinkNode";
     inner.devices.push_back(inner_dst);
 
-    Connection inner_conn;
+    RoutedConnection inner_conn;
     inner_conn.from = "s.out";
     inner_conn.to = "d.in";
     inner.connections.push_back(inner_conn);
@@ -271,7 +271,7 @@ ComponentRegistry make_registry_with_inner_composite() {
 } // namespace
 
 TEST(TypeDefToBlueprint, SubBlueprintRefUnknownTypeThrows) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     ComponentRegistry registry = make_registry_with_inner_composite();
 
     CompositeSpec outer;
@@ -288,7 +288,7 @@ TEST(TypeDefToBlueprint, SubBlueprintRefUnknownTypeThrows) {
 }
 
 TEST(TypeDefToBlueprint, SubBlueprintRefPrimitiveTypeThrows) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     ComponentRegistry registry = make_registry_with_inner_composite();
 
     CompositeSpec outer;
@@ -305,7 +305,7 @@ TEST(TypeDefToBlueprint, SubBlueprintRefPrimitiveTypeThrows) {
 }
 
 TEST(TypeDefToBlueprint, SubBlueprintRefValidCompositeCreatesNode) {
-    ui::StringInterner interner;
+    core::StringInterner interner;
     ComponentRegistry registry = make_registry_with_inner_composite();
 
     CompositeSpec outer;

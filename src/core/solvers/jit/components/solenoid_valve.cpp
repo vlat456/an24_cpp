@@ -1,29 +1,28 @@
 #include "solenoid_valve.h"
 #include "core/solvers/common/port_names.h"
-#include "../state.h"
 #include <cmath>
 
 template <typename Provider>
 void SolenoidValve<Provider>::execute(SimulationState& st, double /*dt*/) {
-    // Push model: valve passes through when open, blocks when closed
-    float ctrl = st.values[provider.get(PortNames::ctrl)];
-    float ctrl_above = (ctrl > 12.0f) ? 1.0f : 0.0f;
-    float no_mask = normally_closed ? 0.0f : 1.0f;
-    open_mask = std::abs(ctrl_above - no_mask);
-    
-    if (open_mask > 0.5f) {
-        // Valve is open - pass through flow
-        float flow_in = st.values[provider.get(PortNames::flow_in)];
-        st.values[provider.get(PortNames::flow_out)] = flow_in;
+    // Read branch flow from hydraulic solver for diagnostics.
+    if (st.hydraulic_rt != nullptr && is_valid(hydraulic_handle)) {
+        flow = get_branch_flow(*st.hydraulic_rt, hydraulic_handle);
     } else {
-        // Valve is closed - no flow
-        st.values[provider.get(PortNames::flow_out)] = 0.0f;
+        flow = 0.0f;
     }
 }
 
 template <typename Provider>
 void SolenoidValve<Provider>::commit(SimulationState& st, double /*dt*/) {
-    (void)st;
+    // Control logic: valve opens when ctrl voltage exceeds 12V.
+    float ctrl = st.values[provider.get(PortNames::ctrl)];
+    bool ctrl_active = ctrl > 12.0f;
+
+    // Apply normally_closed logic: NC valve opens when ctrl is active.
+    open = normally_closed ? ctrl_active : !ctrl_active;
+
+    // Write state signal for BoolSwitch patch op (read next frame).
+    st.values[provider.get(PortNames::state)] = open ? 1.0f : 0.0f;
 }
 
 template class SolenoidValve<JitProvider>;
