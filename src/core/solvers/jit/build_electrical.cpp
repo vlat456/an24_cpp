@@ -536,7 +536,7 @@ template<typename T>
 constexpr bool is_solver_owned_v = requires(T t) {
     { t.electrical_handle } -> std::same_as<ElectricalPrimitiveHandle&>;
 } || requires(T t) {
-    { t.electrical_handles } -> std::same_as<ElectricalPrimitiveHandle*&>;
+    { t.electrical_handles } -> std::convertible_to<ElectricalPrimitiveHandle*>;
 };
 
 void build_solver_step_ops(BuildResult& result)

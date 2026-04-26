@@ -191,6 +191,46 @@ TEST(E002_SolverStepOps, EmptyCircuitHasNoOps) {
      EXPECT_TRUE(br.solver_commit_ops.empty());
 }
 
+TEST(E002_SolverStepOps, KnobSwitchGetsStepOps) {
+     // Regression: KnobSwitch has electrical_handles[] (array), not electrical_handle.
+     // The is_solver_owned_v trait must match array members too. Previously,
+     // std::same_as<T*> failed to match T(&)[N] from member array access,
+     // silently dropping KnobSwitch commit (which updates position output).
+     std::vector<DeviceInstance> devices = {
+          make_device("ref_gnd", "RefNode", {{"value", "0"}}),
+          make_device("bat1", "ElectricalSource", {{"voltage", "28"}, {"resistance", "0.01"}}),
+          make_device("knob1", "KnobSwitch", {{"positions", "2"}, {"initial_position", "0"}}),
+     };
+     std::vector<std::vector<std::string>> signal_groups = {
+          {"bat1.v_out", "knob1.wiper"},
+          {"knob1.throw1", "ref_gnd.v", "bat1.v_in"},
+          {"knob1.throw2"},
+     };
+
+     auto br = build_systems_dev(make_jit_input(devices, signal_groups));
+
+     // KnobSwitch must get step ops — its commit() reads control and writes position
+     EXPECT_GE(br.solver_execute_ops.size(), 1u)
+          << "KnobSwitch must get solver step ops";
+     EXPECT_GE(br.solver_commit_ops.size(), 1u)
+          << "KnobSwitch must get solver commit ops";
+
+     // Verify position output updates on simulation step
+     JIT_Simulator sim;
+     sim.start(make_jit_input(devices, signal_groups));
+     ASSERT_TRUE(sim.is_running());
+
+     const double dt = 1.0 / 60.0;
+
+     // Bootstrap: initial position should be 0
+     sim.step(dt);
+     float pos = sim.get_signal_value(sim.resolve_signal_key("knob1", "position"));
+     EXPECT_NEAR(pos, 0.0f, 0.5f)
+          << "KnobSwitch initial position should be 0 after bootstrap";
+
+     sim.stop();
+}
+
 // =============================================================================
 // E-003 Regression: JitProvider flat array correctness
 // =============================================================================
