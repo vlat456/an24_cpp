@@ -218,18 +218,24 @@ std::pair<ComponentSpec, TypePresentation> parse_type_definition(const json& j) 
             if (sr.contains("domain") && sr["domain"].is_string()) {
                 role.domain = json_io_internal::parse_domain_string(sr["domain"].get<std::string>());
             }
-            if (sr.contains("port_map") && sr["port_map"].is_object()) {
-                for (auto& [key, value] : sr["port_map"].items()) {
+            // Parse port/param/value maps.
+            // Accepts both canonical keys ("ports", "params", "values") matching
+            // blueprint JSON, and legacy keys ("port_map", "param_map", "value_map").
+            const auto& ports_key = sr.contains("ports") ? "ports" : "port_map";
+            if (sr.contains(ports_key) && sr[ports_key].is_object()) {
+                for (auto& [key, value] : sr[ports_key].items()) {
                     role.port_map[key] = value.get<std::string>();
                 }
             }
-            if (sr.contains("param_map") && sr["param_map"].is_object()) {
-                for (auto& [key, value] : sr["param_map"].items()) {
+            const auto& params_key = sr.contains("params") ? "params" : "param_map";
+            if (sr.contains(params_key) && sr[params_key].is_object()) {
+                for (auto& [key, value] : sr[params_key].items()) {
                     role.param_map[key] = value.get<std::string>();
                 }
             }
-            if (sr.contains("value_map") && sr["value_map"].is_object()) {
-                for (auto& [key, value] : sr["value_map"].items()) {
+            const auto& values_key = sr.contains("values") ? "values" : "value_map";
+            if (sr.contains(values_key) && sr[values_key].is_object()) {
+                for (auto& [key, value] : sr[values_key].items()) {
                     role.value_map[key] = value.get<float>();
                 }
             }
