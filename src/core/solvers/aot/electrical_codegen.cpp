@@ -366,7 +366,7 @@ void build_device_bindings(
     static const std::set<std::string> wrapper_classnames{
         "Generator", "IndicatorLight", "CurrentSense",
         "ControlledVoltageSource", "VariableConductance",
-        "AZS", "HoldButton"
+        "AZS", "HoldButton", "Relay"
     };
 
     // Group raw elements by sanitized device name for KnobSwitch multi-handle support
@@ -479,6 +479,123 @@ void build_component_debug(
     debug = std::move(tmp_debug);
 }
 
+// ===== Section 8: Patch Op Generation =====
+// Build NodalPatchOp arrays from device data for AOT codegen.
+// Mirrors the JIT build_electrical_patch_ops() logic but uses ResolvedDevice
+// data instead of live component variants.
+
+/// Look up a signal index by device name and port name. Returns UINT32_MAX if not found.
+static uint32_t lookup_signal(
+    const std::string& device_name,
+    const std::string& port_name,
+    const std::unordered_map<std::string, uint32_t>& port_to_signal)
+{
+    std::string key = signal_key::make_node_port_key(device_name, port_name);
+    auto it = port_to_signal.find(key);
+    return (it != port_to_signal.end()) ? it->second : UINT32_MAX;
+}
+
+/// Look up a float parameter from a ResolvedDevice. Returns default_val if not found.
+static float lookup_param(
+    const ResolvedDevice& dev,
+    const std::string& param_name,
+    float default_val)
+{
+    auto it = dev.params.find(param_name);
+    if (it == dev.params.end()) return default_val;
+    return locale_safe::parse_float_or(it->second, default_val);
+}
+
+/// Look up element_id for a device from the DeviceBinding list. Returns UINT32_MAX if not found.
+static uint32_t lookup_element_id(
+    const std::string& device_name,
+    const std::vector<ElectricalPlanCodegen::DeviceBinding>& bindings)
+{
+    for (const auto& b : bindings) {
+        if (b.device_field_name == device_name) {
+            return b.element_id;
+        }
+    }
+    return UINT32_MAX;
+}
+
+void build_patch_ops(
+    const std::vector<ResolvedDevice>& devices,
+    const std::unordered_map<std::string, uint32_t>& port_to_signal,
+    const std::vector<ElectricalPlanCodegen::DeviceBinding>& bindings,
+    std::vector<PatchOpCodegen>& patch_ops)
+{
+    patch_ops.clear();
+
+    for (const auto& dev : devices) {
+        const std::string field = codegen_detail::sanitize_name(dev.name);
+
+        if (dev.kind == ComponentKind::ControlledVoltageSource) {
+            uint32_t eid = lookup_element_id(field, bindings);
+            if (eid == UINT32_MAX) continue;
+            PatchOpCodegen op;
+            op.kind = PatchKindCodegen::AffineClamp;
+            op.element_id = eid;
+            op.s0 = lookup_signal(dev.name, "cmd", port_to_signal);
+            op.s1 = lookup_signal(dev.name, "gain", port_to_signal);
+            op.s2 = lookup_signal(dev.name, "offset", port_to_signal);
+            op.s3 = lookup_signal(dev.name, "min_v", port_to_signal);
+            op.s4 = lookup_signal(dev.name, "max_v", port_to_signal);
+            if (op.s0 == UINT32_MAX) continue;
+            patch_ops.push_back(op);
+        }
+        else if (dev.kind == ComponentKind::VariableConductance) {
+            uint32_t eid = lookup_element_id(field, bindings);
+            if (eid == UINT32_MAX) continue;
+            PatchOpCodegen op;
+            op.kind = PatchKindCodegen::LerpClamped01;
+            op.element_id = eid;
+            op.s0 = lookup_signal(dev.name, "cmd", port_to_signal);
+            op.s1 = lookup_signal(dev.name, "g_min", port_to_signal);
+            op.s2 = lookup_signal(dev.name, "g_max", port_to_signal);
+            if (op.s0 == UINT32_MAX) continue;
+            patch_ops.push_back(op);
+        }
+        else if (dev.kind == ComponentKind::AZS ||
+                 dev.kind == ComponentKind::HoldButton ||
+                 dev.kind == ComponentKind::Relay) {
+            uint32_t eid = lookup_element_id(field, bindings);
+            if (eid == UINT32_MAX) continue;
+            PatchOpCodegen op;
+            op.kind = PatchKindCodegen::BoolSwitch;
+            op.element_id = eid;
+            op.s0 = lookup_signal(dev.name, "state", port_to_signal);
+            op.state_true_value = lookup_param(dev, "g_closed", 1000.0f);
+            op.state_false_value = lookup_param(dev, "g_open", 1e-6f);
+            if (op.s0 == UINT32_MAX) continue;
+            patch_ops.push_back(op);
+        }
+        else if (is_knob_switch_kind(dev.kind)) {
+            // IndexSwitch: one patch op per handle (throw position).
+            // KnobSwitch generates multiple ConductanceBranch elements, each with
+            // its own binding named "device_0", "device_1", etc.
+            int num_positions = static_cast<int>(lookup_param(dev, "positions", 2.0f));
+            float g_closed = lookup_param(dev, "g_closed", 1000.0f);
+            float g_open = lookup_param(dev, "g_open", 1e-6f);
+
+            for (int i = 0; i < num_positions; ++i) {
+                std::string indexed_name = field + "_" + std::to_string(i);
+                uint32_t eid = lookup_element_id(indexed_name, bindings);
+                if (eid == UINT32_MAX) continue;
+                PatchOpCodegen op;
+                op.kind = PatchKindCodegen::IndexSwitch;
+                op.element_id = eid;
+                op.s0 = lookup_signal(dev.name, "position", port_to_signal);
+                op.index_value = i;
+                op.state_true_value = g_closed;
+                op.state_false_value = g_open;
+                if (op.s0 == UINT32_MAX) continue;
+                patch_ops.push_back(op);
+            }
+        }
+    }
+}
+
 // ===== Main Entry Point: extract_electrical_plan() =====
 // Orchestrate extraction of electrical elements, island building, and binding generation.
 // LOC: ~80 (clean delegation to helpers, low complexity)
@@ -539,6 +656,9 @@ ElectricalPlanCodegen extract_electrical_plan(
     // Build device bindings and debug metadata (phase 3: bindings & debug)
     build_device_bindings(raw_elements, plan, plan.device_bindings);
     build_component_debug(raw_elements, plan, plan.component_debug);
+
+    // Build patch ops for dynamic source patching (phase 4: patch ops)
+    build_patch_ops(devices, port_to_signal, plan.device_bindings, plan.patch_ops);
 
     return plan;
 }

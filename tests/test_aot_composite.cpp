@@ -6,6 +6,26 @@
 #include <regex>
 #include <set>
 
+// Compile-time validation: PatchKindCodegen values must stay in sync with
+// NodalPatchKind. If either enum changes, these static_asserts will break.
+static_assert(static_cast<uint8_t>(PatchKindCodegen::AffineClamp)   == static_cast<uint8_t>(NodalPatchKind::AffineClamp));
+static_assert(static_cast<uint8_t>(PatchKindCodegen::LerpClamped01) == static_cast<uint8_t>(NodalPatchKind::LerpClamped01));
+static_assert(static_cast<uint8_t>(PatchKindCodegen::BoolSwitch)    == static_cast<uint8_t>(NodalPatchKind::BoolSwitch));
+static_assert(static_cast<uint8_t>(PatchKindCodegen::IndexSwitch)   == static_cast<uint8_t>(NodalPatchKind::IndexSwitch));
+static_assert(static_cast<uint8_t>(PatchKindCodegen::CopySignal)    == static_cast<uint8_t>(NodalPatchKind::CopySignal));
+// PatchOpCodegen field layout must match NodalPatchOp for correct emission.
+static_assert(sizeof(PatchOpCodegen) == sizeof(NodalPatchOp));
+static_assert(offsetof(PatchOpCodegen, kind)             == offsetof(NodalPatchOp, kind));
+static_assert(offsetof(PatchOpCodegen, element_id)       == offsetof(NodalPatchOp, element_id));
+static_assert(offsetof(PatchOpCodegen, s0)               == offsetof(NodalPatchOp, s0));
+static_assert(offsetof(PatchOpCodegen, s1)               == offsetof(NodalPatchOp, s1));
+static_assert(offsetof(PatchOpCodegen, s2)               == offsetof(NodalPatchOp, s2));
+static_assert(offsetof(PatchOpCodegen, s3)               == offsetof(NodalPatchOp, s3));
+static_assert(offsetof(PatchOpCodegen, s4)               == offsetof(NodalPatchOp, s4));
+static_assert(offsetof(PatchOpCodegen, index_value)      == offsetof(NodalPatchOp, index_value));
+static_assert(offsetof(PatchOpCodegen, state_true_value) == offsetof(NodalPatchOp, state_true_value));
+static_assert(offsetof(PatchOpCodegen, state_false_value)== offsetof(NodalPatchOp, state_false_value));
+
 // ============================================================
 // Composite Systems generation
 // ============================================================
@@ -1066,16 +1086,78 @@ TEST(AotComposite, DynamicSourcePatchingGeneratedForElectricalWrappers) {
 
     auto result = CodeGen::generate_composite_systems(circuit, registry);
 
-    EXPECT_NE(result.source.find("electrical_rt_.element_value_a"), std::string::npos)
-        << "AOT source should patch dynamic electrical element values before solve";
-    EXPECT_NE(result.source.find("src.electrical_handle.element_id"), std::string::npos)
-        << "CVS element_id patching should be generated";
-    EXPECT_NE(result.source.find("load.electrical_handle.element_id"), std::string::npos)
-        << "VariableConductance element_id patching should be generated";
-    EXPECT_NE(result.source.find("std::clamp(cmd * gain + offset, min_v, max_v)"), std::string::npos)
-        << "CVS affine clamp patch expression should be generated";
-    EXPECT_NE(result.source.find("g_min + (g_max - g_min) * t"), std::string::npos)
-        << "VariableConductance lerp patch expression should be generated";
+    // The generated source must call update_nodal_dynamic_sources (shared function)
+    EXPECT_NE(result.source.find("update_nodal_dynamic_sources"), std::string::npos)
+        << "AOT source must call shared update_nodal_dynamic_sources function";
+
+    // The generated header must contain NodalPatchOp arrays for dynamic patching
+    EXPECT_NE(result.header.find("electrical_patch_ops"), std::string::npos)
+        << "Header must contain electrical_patch_ops array";
+    EXPECT_NE(result.header.find("NodalPatchKind::AffineClamp"), std::string::npos)
+        << "Header must contain AffineClamp patch op for ControlledVoltageSource";
+    EXPECT_NE(result.header.find("NodalPatchKind::LerpClamped01"), std::string::npos)
+        << "Header must contain LerpClamped01 patch op for VariableConductance";
+}
+
+// Regression: BoolSwitch patch ops for AZS/HoldButton/Relay must use the
+// component-default g_closed=1000.0, not a wrong fallback. If a device is
+// created without explicit g_closed param, the patch op must still reflect
+// the component's constructor default (1000.0f), not an arbitrary 1.0f.
+TEST(AotComposite, BoolSwitchPatchOp_DefaultGClosedMatchesComponentDefault) {
+    ComponentRegistry registry;
+    register_from_library(registry, {"Generator", "Relay", "RefNode"});
+
+    CompositeSpec circuit;
+    circuit.classname = "relay_default_g_test";
+
+    DeviceInstance d_bat;
+    d_bat.name = "bat";
+    d_bat.classname = "Generator";
+    d_bat.params["v_nominal"] = "28.0";
+    d_bat.params["internal_r"] = "0.01";
+
+    DeviceInstance d_relay;
+    d_relay.name = "sw";
+    d_relay.classname = "Relay";
+    // Intentionally NOT setting g_closed / g_open — testing default fallback
+
+    DeviceInstance d_gnd;
+    d_gnd.name = "gnd";
+    d_gnd.classname = "RefNode";
+    d_gnd.params["value"] = "0.0";
+
+    circuit.devices.push_back(d_bat);
+    circuit.devices.push_back(d_relay);
+    circuit.devices.push_back(d_gnd);
+    circuit.connections = {
+        {"bat.v_out", "sw.v_in", {}},
+        {"sw.v_out", "gnd.v", {}},
+        {"bat.v_in", "gnd.v", {}}
+    };
+    registry.register_type("relay_default_g_test", circuit);
+
+    auto result = CodeGen::generate_composite_systems(circuit, registry);
+
+    ASSERT_FALSE(result.header.empty());
+
+    // Must contain BoolSwitch patch op for Relay
+    EXPECT_NE(result.header.find("NodalPatchKind::BoolSwitch"), std::string::npos)
+        << "Header must contain BoolSwitch patch op for Relay";
+
+    // The state_true_value must be 1000.0f (component default), NOT 1.0f
+    // (wrong fallback that was previously used).
+    // Generated code looks like: { NodalPatchKind::BoolSwitch, ..., 1000.0f, 1e-06f }
+    std::regex bool_switch_re(R"(NodalPatchKind::BoolSwitch[^}]+)");
+    std::smatch match;
+    ASSERT_TRUE(std::regex_search(result.header, match, bool_switch_re))
+        << "Should find BoolSwitch entry in patch ops";
+
+    std::string op_str = match.str();
+    // The g_closed default is 1000.0f — must appear in the emitted constant
+    EXPECT_NE(op_str.find("1000.0f"), std::string::npos)
+        << "BoolSwitch state_true_value must be 1000.0f (component default), got: " << op_str;
+    EXPECT_NE(op_str.find("1e-06f"), std::string::npos)
+        << "BoolSwitch state_false_value must be 1e-06f (component default), got: " << op_str;
 }
 
 // =============================================================================
@@ -1148,11 +1230,13 @@ TEST(AotComposite, KnobSwitch_ProducesIndexedBindingsAndHandleInit) {
     EXPECT_NE(result.source.find("knob.num_handles = 3"), std::string::npos)
         << "Constructor must set knob.num_handles = 3";
 
-    // Source must contain dynamic patching loop for knob
-    EXPECT_NE(result.source.find("knob.num_handles"), std::string::npos)
-        << "Source must reference knob.num_handles in dynamic patch loop";
-    EXPECT_NE(result.source.find("knob.electrical_handles[i].element_id"), std::string::npos)
-        << "Source must iterate knob.electrical_handles in dynamic patch loop";
+    // Header must contain IndexSwitch patch ops for knob positions
+    EXPECT_NE(result.header.find("NodalPatchKind::IndexSwitch"), std::string::npos)
+        << "Header must contain IndexSwitch patch op for KnobSwitch";
+
+    // Source must call update_nodal_dynamic_sources (shared function)
+    EXPECT_NE(result.source.find("update_nodal_dynamic_sources"), std::string::npos)
+        << "Source must call shared update_nodal_dynamic_sources function";
 }
 
 // Regression: Device names ending in _N must not be misidentified as KnobSwitch bindings.

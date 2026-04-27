@@ -65,6 +65,7 @@ void emit_source_prelude(
     oss << "#include \"" << header_name << "\"\n";
     oss << "#include \"core/solvers/jit/components/all.cpp\"\n";
     oss << "#include \"core/solvers/jit/subsolvers/nodal_subsolver.h\"\n";
+    oss << "#include \"core/solvers/common/nodal_patch_ops.h\"\n";
     oss << "#include <spdlog/spdlog.h>\n";
     oss << "#include <algorithm>\n";
     oss << "#include <cstring>\n\n";
@@ -328,93 +329,6 @@ void emit_step_electrical_diagnostics(std::ostringstream& oss) {
     oss << "    }\n";
 }
 
-void emit_dynamic_source_patching(
-    std::ostringstream& oss,
-    const std::vector<ResolvedDevice>& devices
-) {
-    oss << "    if (electrical_rt_.element_value_a.empty()) {\n";
-    oss << "        uint32_t max_element_id = 0;\n";
-    oss << "        bool has_elements = false;\n";
-    oss << "        for (const auto& island : electrical_plan_.islands) {\n";
-    oss << "            for (const auto& elem : island.elements) {\n";
-    oss << "                has_elements = true;\n";
-    oss << "                max_element_id = std::max(max_element_id, elem.element_id);\n";
-    oss << "            }\n";
-    oss << "        }\n";
-    oss << "        if (has_elements) {\n";
-    oss << "            electrical_rt_.element_value_a.resize(static_cast<size_t>(max_element_id) + 1, 0.0f);\n";
-    oss << "            for (const auto& island : electrical_plan_.islands) {\n";
-    oss << "                for (const auto& elem : island.elements) {\n";
-    oss << "                    if (elem.element_id < electrical_rt_.element_value_a.size()) {\n";
-    oss << "                        electrical_rt_.element_value_a[elem.element_id] = elem.value_a;\n";
-    oss << "                    }\n";
-    oss << "                }\n";
-    oss << "            }\n";
-    oss << "        }\n";
-    oss << "    }\n";
-
-    for (const auto& dev : devices) {
-        const std::string field = codegen_detail::sanitize_name(dev.name);
-
-        if (dev.kind == ComponentKind::ControlledVoltageSource) {
-            oss << "    if (" << field << ".electrical_handle.element_id < electrical_rt_.element_value_a.size()) {\n";
-            oss << "        float cmd = st->values[" << field << "_cmd_idx];\n";
-            oss << "        float gain = st->values[" << field << "_gain_idx];\n";
-            oss << "        float offset = st->values[" << field << "_offset_idx];\n";
-            oss << "        float min_v = st->values[" << field << "_min_v_idx];\n";
-            oss << "        float max_v = st->values[" << field << "_max_v_idx];\n";
-            oss << "        electrical_rt_.element_value_a[" << field << ".electrical_handle.element_id] = "
-                "std::clamp(cmd * gain + offset, min_v, max_v);\n";
-            oss << "    }\n";
-            continue;
-        }
-
-        if (dev.kind == ComponentKind::VariableConductance) {
-            oss << "    if (" << field << ".electrical_handle.element_id < electrical_rt_.element_value_a.size()) {\n";
-            oss << "        float cmd = st->values[" << field << "_cmd_idx];\n";
-            oss << "        float g_min = st->values[" << field << "_g_min_idx];\n";
-            oss << "        float g_max = st->values[" << field << "_g_max_idx];\n";
-            oss << "        float t = std::clamp(cmd, 0.0f, 1.0f);\n";
-            oss << "        electrical_rt_.element_value_a[" << field << ".electrical_handle.element_id] = g_min + (g_max - g_min) * t;\n";
-            oss << "    }\n";
-            continue;
-        }
-
-        if (dev.kind == ComponentKind::AZS) {
-            oss << "    if (" << field << ".electrical_handle.element_id < electrical_rt_.element_value_a.size()) {\n";
-            oss << "        electrical_rt_.element_value_a[" << field << ".electrical_handle.element_id] = "
-                << field << ".closed ? " << field << ".g_closed : " << field << ".g_open;\n";
-            oss << "    }\n";
-            continue;
-        }
-
-        if (dev.kind == ComponentKind::HoldButton) {
-            oss << "    if (" << field << ".electrical_handle.element_id < electrical_rt_.element_value_a.size()) {\n";
-            oss << "        electrical_rt_.element_value_a[" << field << ".electrical_handle.element_id] = "
-                << field << ".is_pressed ? " << field << ".g_closed : " << field << ".g_open;\n";
-            oss << "    }\n";
-            continue;
-        }
-
-        if (dev.kind == ComponentKind::Relay) {
-            oss << "    if (" << field << ".electrical_handle.element_id < electrical_rt_.element_value_a.size()) {\n";
-            oss << "        electrical_rt_.element_value_a[" << field << ".electrical_handle.element_id] = "
-                << field << ".closed ? " << field << ".g_closed : " << field << ".g_open;\n";
-            oss << "    }\n";
-            continue;
-        }
-
-        if (is_knob_switch_kind(dev.kind)) {
-            oss << "    for (int i = 0; i < " << field << ".num_handles; ++i) {\n";
-            oss << "        if (" << field << ".electrical_handles[i].element_id < electrical_rt_.element_value_a.size()) {\n";
-            oss << "            electrical_rt_.element_value_a[" << field << ".electrical_handles[i].element_id] = "
-                << "(" << field << ".selected == i) ? " << field << ".g_closed : " << field << ".g_open;\n";
-            oss << "        }\n";
-            oss << "    }\n";
-        }
-    }
-}
-
 } // namespace
 
 std::string CodeGen::generate_source(
@@ -444,7 +358,9 @@ std::string CodeGen::generate_source(
         oss << "    auto* st = static_cast<SimulationState*>(state);\n";
 
         if (!electrical_plan.islands.empty()) {
-            emit_dynamic_source_patching(oss, devices);
+            if (!electrical_plan.patch_ops.empty()) {
+                oss << "    update_nodal_dynamic_sources(electrical_patch_ops, ELECTRICAL_PATCH_OP_COUNT, *st, electrical_rt_);\n";
+            }
             emit_step_electrical_diagnostics(oss);
         }
 

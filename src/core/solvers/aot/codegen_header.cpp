@@ -102,6 +102,35 @@ void emit_systems_class_declaration(
         }
         oss << "    };\n";
         oss << "\n";
+
+        // Emit patch ops as constexpr NodalPatchOp array.
+        // These replace the per-kind if-chain in the old AOT codegen.
+        if (!electrical_plan.patch_ops.empty()) {
+            oss << "    // Pre-solve patch operations (signal-driven, domain-agnostic)\n";
+            oss << "    static constexpr NodalPatchOp electrical_patch_ops[] = {\n";
+            for (size_t i = 0; i < electrical_plan.patch_ops.size(); ++i) {
+                const auto& op = electrical_plan.patch_ops[i];
+                const char* kind_str = "NodalPatchKind::AffineClamp";
+                switch (op.kind) {
+                    case PatchKindCodegen::AffineClamp:   kind_str = "NodalPatchKind::AffineClamp"; break;
+                    case PatchKindCodegen::LerpClamped01:  kind_str = "NodalPatchKind::LerpClamped01"; break;
+                    case PatchKindCodegen::BoolSwitch:     kind_str = "NodalPatchKind::BoolSwitch"; break;
+                    case PatchKindCodegen::IndexSwitch:    kind_str = "NodalPatchKind::IndexSwitch"; break;
+                    case PatchKindCodegen::CopySignal:     kind_str = "NodalPatchKind::CopySignal"; break;
+                }
+                oss << "        { " << kind_str << ", " << op.element_id << "u"
+                    << ", " << op.s0 << "u, " << op.s1 << "u, " << op.s2 << "u"
+                    << ", " << op.s3 << "u, " << op.s4 << "u"
+                    << ", " << op.index_value
+                    << ", " << locale_safe::format_float(op.state_true_value) << "f"
+                    << ", " << locale_safe::format_float(op.state_false_value) << "f"
+                    << " }" << (i + 1 < electrical_plan.patch_ops.size() ? "," : "") << "\n";
+            }
+            oss << "    };\n";
+            oss << "    static constexpr size_t ELECTRICAL_PATCH_OP_COUNT = "
+                << electrical_plan.patch_ops.size() << ";\n\n";
+        }
+
         oss << "    static void dump_island_debug(uint32_t island_idx);\n";
     }
     oss << "\n";
@@ -150,6 +179,7 @@ std::string CodeGen::generate_header(
     oss << "#include <vector>\n";
     oss << "#include <cmath>\n";
     oss << "#include \"core/solvers/jit/state.h\"\n";
+    oss << "#include \"core/solvers/jit/jit_solver.h\"\n";
     oss << "#include \"core/solvers/jit/components/all.h\"\n";
     oss << "#include \"core/solvers/common/port_registry.h\"\n\n";
     oss << "#ifdef __GNUC__\n";

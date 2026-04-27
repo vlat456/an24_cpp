@@ -37,7 +37,8 @@ inline void update_nodal_dynamic_sources(
         float out = rt.element_value_a[op.element_id];
         switch (op.kind) {
             case NodalPatchKind::AffineClamp: {
-                if (op.s4 >= signal_count) continue;  // s1-s4 all needed
+                if (op.s1 >= signal_count || op.s2 >= signal_count ||
+                    op.s3 >= signal_count || op.s4 >= signal_count) continue;
                 float cmd = st.values[op.s0];
                 float gain = st.values[op.s1];
                 float offset = st.values[op.s2];
@@ -47,7 +48,7 @@ inline void update_nodal_dynamic_sources(
                 break;
             }
             case NodalPatchKind::LerpClamped01: {
-                if (op.s2 >= signal_count) continue;  // s1-s2 needed
+                if (op.s1 >= signal_count || op.s2 >= signal_count) continue;
                 float cmd = st.values[op.s0];
                 float lo = st.values[op.s1];
                 float hi = st.values[op.s2];
