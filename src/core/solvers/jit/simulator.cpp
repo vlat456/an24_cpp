@@ -63,7 +63,7 @@ void Simulator<SolverTag>::start(const JitBuildInput& input) {
     // sizing and initial values never change after build.
     auto slots = build_result_->nodal_slots();
     for (auto& slot : slots) {
-        jit_solver_impl::build_common::init_element_values_from_plan(
+        build_algo::init_element_values_from_plan(
             slot.artifacts.plan, slot.artifacts.runtime);
     }
 

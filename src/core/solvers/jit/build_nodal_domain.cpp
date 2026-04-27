@@ -39,7 +39,7 @@
 
 namespace jit_solver_impl {
 
-using RawElement = build_common::GenericRawElement<NodalElementKind>;
+using RawElement = build_algo::GenericRawElement<NodalElementKind>;
 
 // =====================================================================
 // JitExtractionAdapter — satisfies ExtractionAdapter concept.
@@ -287,13 +287,13 @@ static void build_domain_islands(
         config, devices, result.port_to_signal, result.signal_key_interner);
     auto& artifacts = config.get_artifacts(result);
 
-    build_common::group_into_islands<RawElement, NodalIslandPlan>(
+    build_algo::group_into_islands<RawElement, NodalIslandPlan>(
         raw_elements, artifacts.plan);
 
     config.assign_handles(raw_elements, artifacts.plan.islands, result.devices);
 
     // Data-driven patch ops from solver_role.patch_op metadata.
-    auto element_id_map = build_common::build_element_id_map(raw_elements);
+    auto element_id_map = build_algo::build_element_id_map(raw_elements);
     build_common::build_patch_ops_from_metadata(
         artifacts.patch_ops, devices, element_id_map,
         result.port_to_signal, result.signal_key_interner);

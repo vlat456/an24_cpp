@@ -1,6 +1,6 @@
 #include "nodal_subsolver.h"
 #include "nodal_core.h"
-#include "../build_common.h"
+#include "core/solvers/common/build_algorithms.h"
 
 #include <algorithm>
 #include <cassert>
@@ -301,6 +301,6 @@ void solve_nodal(
     NodalRuntimeState& rt,
     double dt
 ) noexcept {
-    jit_solver_impl::build_common::init_element_values_from_plan(plan, rt);
+    build_algo::init_element_values_from_plan(plan, rt);
     solve_nodal(plan, rt.element_value_a, st, rt, dt);
 }

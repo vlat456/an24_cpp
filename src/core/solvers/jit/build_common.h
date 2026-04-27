@@ -2,12 +2,14 @@
 
 /// JIT-specific build helpers for nodal domain pipelines.
 ///
-/// Extends the pure-algorithm layer in build_algorithms.h with:
+/// Contains ONLY JIT-owning logic:
 /// - Port/param resolution (InternedId-based, strict: throws on missing)
+/// - Element ID → device name map building
 /// - Handle assignment (single + electrical multi-handle)
 /// - Patch op context adapter (JitPatchOpContext)
 ///
-/// Extraction is now in element_extraction.h — parameterized by ExtractionAdapter.
+/// Shared algorithms are in build_algorithms.h — callers use build_algo:: directly.
+/// Extraction is in element_extraction.h — parameterized by ExtractionAdapter.
 /// JIT uses JitExtractionAdapter (in build_nodal_domain.cpp).
 
 #include "jit_solver.h"
@@ -22,15 +24,6 @@
 
 namespace jit_solver_impl {
 namespace build_common {
-
-// =====================================================================
-// Re-export shared algorithms into build_common namespace.
-// Zero-cost — existing callers see the same names.
-// =====================================================================
-using build_algo::GenericRawElement;
-using build_algo::group_into_islands;
-using build_algo::init_element_values_from_plan;
-using build_algo::build_element_id_map;
 
 // =====================================================================
 // Port and param resolution — strict (throws on missing).
@@ -116,7 +109,7 @@ inline bool should_bind_handle(const SolverRole& role) {
 
 /// Build O(1) lookup: element_id → device_name (skips empty device names).
 inline std::unordered_map<uint32_t, std::string> build_element_id_to_device(
-    const std::vector<GenericRawElement<NodalElementKind>>& raw_elements)
+    const std::vector<build_algo::GenericRawElement<NodalElementKind>>& raw_elements)
 {
     std::unordered_map<uint32_t, std::string> map;
     map.reserve(raw_elements.size());
@@ -141,7 +134,7 @@ inline std::unordered_map<uint32_t, std::string> build_element_id_to_device(
 /// `domain_label` is used in error messages (e.g., "Hydraulic").
 template<typename HandleSetter>
 void assign_single_handles(
-    const std::vector<GenericRawElement<NodalElementKind>>& raw_elements,
+    const std::vector<build_algo::GenericRawElement<NodalElementKind>>& raw_elements,
     const std::vector<NodalIslandPlan>& islands,
     BuildDeviceStore& devices,
     HandleSetter&& handle_setter,

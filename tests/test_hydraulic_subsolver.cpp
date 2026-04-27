@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include "core/solvers/jit/subsolvers/nodal_subsolver.h"
 #include "core/solvers/jit/state.h"
-#include "core/solvers/jit/build_common.h"
+#include "core/solvers/common/build_algorithms.h"
 #include <algorithm>
 #include <cmath>
 
@@ -50,7 +50,7 @@ TEST(HydraulicSubsolver, SimplePressureDivider) {
     NodalRuntimeState rt;
     rt.enable_diagnostics = true;
 
-    jit_solver_impl::build_common::init_element_values_from_plan(plan, rt);
+    build_algo::init_element_values_from_plan(plan, rt);
     solve_nodal(plan, rt.element_value_a, st, rt, 0.0);
 
     EXPECT_NEAR(st.values[0], 0.0f, 1e-3f);
@@ -89,7 +89,7 @@ TEST(HydraulicSubsolver, SeriesOrificeChain) {
     SimulationState st = make_sim_state(4);
     NodalRuntimeState rt;
 
-    jit_solver_impl::build_common::init_element_values_from_plan(plan, rt);
+    build_algo::init_element_values_from_plan(plan, rt);
     solve_nodal(plan, rt.element_value_a, st, rt, 0.0);
 
     EXPECT_NEAR(st.values[0], 0.0f, 1e-3f);
@@ -114,7 +114,7 @@ TEST(HydraulicSubsolver, DuplicateFixedPressureDeduplicatedSilently) {
     SimulationState st = make_sim_state(4);
     NodalRuntimeState rt;
 
-    jit_solver_impl::build_common::init_element_values_from_plan(plan, rt);
+    build_algo::init_element_values_from_plan(plan, rt);
     EXPECT_NO_THROW(solve_nodal(plan, rt.element_value_a, st, rt, 0.0));
     EXPECT_NEAR(st.values[0], 0.0f, 1e-3f);
 }
@@ -133,7 +133,7 @@ TEST(HydraulicSubsolver, ZeroConductanceSingularFallback) {
     st.values[1] = 5.0f;
     NodalRuntimeState rt;
 
-    jit_solver_impl::build_common::init_element_values_from_plan(plan, rt);
+    build_algo::init_element_values_from_plan(plan, rt);
     EXPECT_NO_THROW(solve_nodal(plan, rt.element_value_a, st, rt, 0.0));
     EXPECT_NEAR(st.values[1], 5.0f, 1e-3f);
     EXPECT_EQ(rt.counters.singular_fallbacks, 1u);
@@ -156,7 +156,7 @@ TEST(HydraulicSubsolver, BranchFlowStoragePopulated) {
     SimulationState st = make_sim_state(4);
     NodalRuntimeState rt;
 
-    jit_solver_impl::build_common::init_element_values_from_plan(plan, rt);
+    build_algo::init_element_values_from_plan(plan, rt);
     solve_nodal(plan, rt.element_value_a, st, rt, 0.0);
 
     EXPECT_EQ(rt.branch_flows.size(), 8u);
@@ -174,7 +174,7 @@ TEST(HydraulicSubsolver, EmptyPlanClearsBranchFlows) {
     NodalRuntimeState rt;
     rt.branch_flows = {1.0f, 2.0f, 3.0f};
 
-    jit_solver_impl::build_common::init_element_values_from_plan(plan, rt);
+    build_algo::init_element_values_from_plan(plan, rt);
     EXPECT_NO_THROW(solve_nodal(plan, rt.element_value_a, st, rt, 0.0));
     EXPECT_TRUE(rt.branch_flows.empty());
 }
@@ -192,7 +192,7 @@ TEST(HydraulicSubsolver, AllNodesFixedNoSolveNeeded) {
     SimulationState st = make_sim_state(4);
     NodalRuntimeState rt;
 
-    jit_solver_impl::build_common::init_element_values_from_plan(plan, rt);
+    build_algo::init_element_values_from_plan(plan, rt);
     EXPECT_NO_THROW(solve_nodal(plan, rt.element_value_a, st, rt, 0.0));
     EXPECT_NEAR(st.values[0], 0.0f, 1e-3f);
     EXPECT_NEAR(st.values[1], 5.0f, 1e-3f);
@@ -215,7 +215,7 @@ TEST(HydraulicSubsolver, PressureWritebackToSimulationState) {
     st.values.resize(50, 999.0f);
 
     NodalRuntimeState rt;
-    jit_solver_impl::build_common::init_element_values_from_plan(plan, rt);
+    build_algo::init_element_values_from_plan(plan, rt);
     solve_nodal(plan, rt.element_value_a, st, rt, 0.0);
 
     EXPECT_NEAR(st.values[10], 0.0f, 1e-3f);
@@ -241,7 +241,7 @@ TEST(HydraulicSubsolver, SingularIslandPreservesPreviousState) {
     st.values[1] = -3.0f;
     NodalRuntimeState rt;
 
-    jit_solver_impl::build_common::init_element_values_from_plan(plan, rt);
+    build_algo::init_element_values_from_plan(plan, rt);
     EXPECT_NO_THROW(solve_nodal(plan, rt.element_value_a, st, rt, 1.0 / 60.0));
     EXPECT_NEAR(st.values[0], 12.5f, 1e-6f);
     EXPECT_NEAR(st.values[1], -3.0f, 1e-6f);
@@ -285,7 +285,7 @@ TEST(HydraulicSubsolver, SolveCountersTrackSpecializedPaths) {
     st.values[7] = -1.0f;
     NodalRuntimeState rt;
 
-    jit_solver_impl::build_common::init_element_values_from_plan(plan, rt);
+    build_algo::init_element_values_from_plan(plan, rt);
     solve_nodal(plan, rt.element_value_a, st, rt, 0.0);
 
     EXPECT_EQ(rt.counters.islands_total, 4u);
@@ -312,7 +312,7 @@ TEST(HydraulicSubsolver, SolveCountersTrackDensePathForN3) {
     SimulationState st = make_sim_state(8);
     NodalRuntimeState rt;
     rt.enable_diagnostics = true;
-    jit_solver_impl::build_common::init_element_values_from_plan(plan, rt);
+    build_algo::init_element_values_from_plan(plan, rt);
     solve_nodal(plan, rt.element_value_a, st, rt, 0.0);
 
     EXPECT_EQ(rt.counters.islands_total, 1u);
@@ -340,7 +340,7 @@ TEST(HydraulicSubsolver, ReservedScratchBuffersStableAcrossSteps) {
     rt.enable_diagnostics = true;
     rt.reserve(/*max_nodes=*/3, /*max_elements=*/4, /*max_element_id=*/3);
 
-    jit_solver_impl::build_common::init_element_values_from_plan(plan, rt);
+    build_algo::init_element_values_from_plan(plan, rt);
     solve_nodal(plan, rt.element_value_a, st, rt, 0.0);
 
     size_t cap_branch_flows = rt.branch_flows.capacity();
@@ -350,7 +350,7 @@ TEST(HydraulicSubsolver, ReservedScratchBuffersStableAcrossSteps) {
     size_t cap_rhs = rt.scratch_rhs.capacity();
 
     for (int i = 0; i < 100; ++i) {
-        jit_solver_impl::build_common::init_element_values_from_plan(plan, rt);
+        build_algo::init_element_values_from_plan(plan, rt);
         solve_nodal(plan, rt.element_value_a, st, rt, 1.0 / 60.0);
     }
 
