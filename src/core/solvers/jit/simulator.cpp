@@ -14,14 +14,22 @@ void update_nodal_dynamic_sources(
     SimulationState& st,
     NodalRuntimeState& rt)
 {
+    const uint32_t signal_count = static_cast<uint32_t>(st.values.size());
+
     for (const auto& op : ops) {
         if (op.element_id >= rt.element_value_a.size()) {
             continue;
         }
 
+        // Guard: all signal operands must be in-bounds. Prevents UB if a
+        // port mapping is missing (JitProvider returns UNMAPPED = UINT32_MAX
+        // for unmapped ports — debug asserts, but release would be OOB).
+        if (op.s0 >= signal_count) continue;
+
         float out = rt.element_value_a[op.element_id];
         switch (op.kind) {
             case NodalPatchKind::AffineClamp: {
+                if (op.s4 >= signal_count) continue;  // s1-s4 all needed
                 float cmd = st.values[op.s0];
                 float gain = st.values[op.s1];
                 float offset = st.values[op.s2];
@@ -31,6 +39,7 @@ void update_nodal_dynamic_sources(
                 break;
             }
             case NodalPatchKind::LerpClamped01: {
+                if (op.s2 >= signal_count) continue;  // s1-s2 needed
                 float cmd = st.values[op.s0];
                 float lo = st.values[op.s1];
                 float hi = st.values[op.s2];
@@ -206,7 +215,6 @@ void Simulator<SolverTag>::step(double dt) {
     }
 
     // E-008: Clamp dt to prevent physics explosions on frame hitches.
-    static constexpr double MAX_DT = 0.1;
     dt = std::min(dt, MAX_DT);
 
     // ===========================================================================

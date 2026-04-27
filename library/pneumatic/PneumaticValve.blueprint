@@ -2,7 +2,7 @@
   "version": "3.0",
   "id": "PneumaticValve",
   "display_name": "PneumaticValve",
-  "scheduler_role": "Consumer",
+  "scheduler_role": "None",
   "interface": [
     {
       "name": "ctrl",
@@ -47,9 +47,15 @@
     "g_closed": "0.0001"
   },
   "param_schema": {
-    "normally_closed": {"type": "bool"},
-    "g_open": {"type": "float"},
-    "g_closed": {"type": "float"}
+    "normally_closed": {
+      "type": "bool"
+    },
+    "g_open": {
+      "type": "float"
+    },
+    "g_closed": {
+      "type": "float"
+    }
   },
   "solver_role": {
     "kind": "FlowBranch",

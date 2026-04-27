@@ -332,3 +332,92 @@ TEST(PneumaticIntegration, NormallyOpenValve_ClosesWhenCtrlActive) {
     EXPECT_GT(p_out, 600.0f)
         << "Normally-open valve should close when ctrl=1, p_out=" << p_out;
 }
+
+// =============================================================================
+// Edge-case tests for PneumaticCompressor RPM² formula (#333)
+// =============================================================================
+
+/// Standalone compressor test circuit: Compressor → Valve(open) → PRef(0).
+/// Same topology as the working CompressorThroughOpenValve test but with
+/// parameterized RPM for edge-case testing.
+namespace {
+
+const char* kCompressorEdgeCaseJson = R"(
+{
+    "devices": [
+        {
+            "name": "comp",
+            "classname": "PneumaticCompressor",
+            "params": {"max_pressure": "700.0", "internal_r": "0.05", "rated_rpm": "24000.0"}
+        },
+        {
+            "name": "valve",
+            "classname": "PneumaticValve",
+            "params": {"g_open": "5.0", "g_closed": "0.0001"}
+        },
+        {
+            "name": "ref",
+            "classname": "PneumaticRef",
+            "params": {"pressure": "0.0"}
+        }
+    ],
+    "connections": [
+        {"from": "comp.p_out", "to": "valve.flow_in"},
+        {"from": "valve.flow_out", "to": "ref.p"},
+        {"from": "comp.p_ref", "to": "ref.p"}
+    ]
+}
+)";
+
+} // anonymous namespace
+
+TEST(PneumaticIntegration, Compressor_ZeroRpm_ZeroPressure) {
+    auto input = build_input_from_json(kCompressorEdgeCaseJson);
+    input.initial_values["comp.rpm_in"] = 0.0f;
+    input.initial_values["valve.ctrl"] = 1.0f;  // open valve
+
+    JIT_Simulator sim;
+    sim.start(input);
+    for (int i = 0; i < 5; ++i) sim.step(1.0 / 60.0);
+
+    float p_out = get_val(sim, "comp", "p_out");
+    EXPECT_NEAR(p_out, 0.0f, 1.0f)
+        << "Zero RPM should produce zero pressure, got p=" << p_out;
+}
+
+TEST(PneumaticIntegration, Compressor_HalfRpm_QuarterPressure) {
+    // P_source = max_pressure × (rpm / rated_rpm)² = 700 × 0.5² = 175 kPa
+    // With valve open and R_valve = 0.2, R_comp = 0.05:
+    //   p_out = P_source × R_valve / (R_valve + R_comp) = 175 × 0.8 = 140 kPa
+    auto input = build_input_from_json(kCompressorEdgeCaseJson);
+    input.initial_values["comp.rpm_in"] = 12000.0f;  // half of 24000
+    input.initial_values["valve.ctrl"] = 1.0f;  // open valve
+
+    JIT_Simulator sim;
+    sim.start(input);
+    for (int i = 0; i < 5; ++i) sim.step(1.0 / 60.0);
+
+    float p_out = get_val(sim, "comp", "p_out");
+    // Expected: 175 * 0.2 / (0.2 + 0.05) = 175 * 0.8 = 140 kPa
+    EXPECT_NEAR(p_out, 140.0f, 5.0f)
+        << "Half RPM should produce ~25% pressure (RPM² law), got p=" << p_out;
+}
+
+TEST(PneumaticIntegration, Compressor_OverRpm_ClampedByOverspeedLimit) {
+    // rpm_frac is clamped to [0, 1.5], so 2× rated RPM → 1.5² = 2.25
+    // P_source = 700 * 2.25 = 1575 kPa
+    // p_out = 1575 * 0.2 / (0.2 + 0.05) = 1575 * 0.8 = 1260 kPa
+    auto input = build_input_from_json(kCompressorEdgeCaseJson);
+    input.initial_values["comp.rpm_in"] = 48000.0f;  // 2× rated RPM
+    input.initial_values["valve.ctrl"] = 1.0f;  // open valve
+
+    JIT_Simulator sim;
+    sim.start(input);
+    for (int i = 0; i < 5; ++i) sim.step(1.0 / 60.0);
+
+    float p_out = get_val(sim, "comp", "p_out");
+    EXPECT_GT(p_out, 1200.0f)
+        << "Overspeed (2× rated) should produce >1200 kPa, got p=" << p_out;
+    EXPECT_LT(p_out, 1300.0f)
+        << "Overspeed clamp at 1.5× should limit pressure, got p=" << p_out;
+}

@@ -21,9 +21,9 @@ static std::string comparator_sim_json() {
       "bucket": null,
       "critical": false,
       "ports": {
-        "Va": { "direction": "In", "type": "V" },
-        "Vb": { "direction": "In", "type": "V" },
-        "o":  { "direction": "Out", "type": "Bool" }
+        "Va": { "direction": "In", "type": "V", "domain": 1 },
+        "Vb": { "direction": "In", "type": "V", "domain": 1 },
+        "o":  { "direction": "Out", "type": "Bool", "domain": 2 }
       }
     }
   ],

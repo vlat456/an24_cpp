@@ -19,8 +19,8 @@ TEST(EditorComponentVariant, BuildSimpleBatteryResistorCircuit) {
                 "priority": "high",
                 "critical": true,
                 "ports": {
-                    "v_in": {"direction": "In", "type": "V"},
-                    "v_out": {"direction": "Out", "type": "V"}
+                    "v_in": {"direction": "In", "type": "V", "domain": 1},
+                    "v_out": {"direction": "Out", "type": "V", "domain": 1}
                 },
                 "params": {
                     "voltage": "24.0",
@@ -31,8 +31,8 @@ TEST(EditorComponentVariant, BuildSimpleBatteryResistorCircuit) {
                 "name": "load1",
                 "classname": "Resistor",
                 "ports": {
-                    "v_in": {"direction": "In", "type": "V"},
-                    "v_out": {"direction": "Out", "type": "V"}
+                    "v_in": {"direction": "In", "type": "V", "domain": 1},
+                    "v_out": {"direction": "Out", "type": "V", "domain": 1}
                 },
                 "params": {
                     "conductance": "0.1"
@@ -76,16 +76,16 @@ TEST(EditorComponentVariant, MultiDomainComponents) {
                 "name": "bat1",
                 "classname": "ElectricalSource",
                 "ports": {
-                    "v_in": {"direction": "In", "type": "V"},
-                    "v_out": {"direction": "Out", "type": "V"}
+                    "v_in": {"direction": "In", "type": "V", "domain": 1},
+                    "v_out": {"direction": "Out", "type": "V", "domain": 1}
                 }
             },
             {
                 "name": "inertia1",
                 "classname": "InertiaNode",
                 "ports": {
-                    "torque_in": {"direction": "In", "type": "Any"},
-                    "rpm_out": {"direction": "Out", "type": "Any"}
+                    "torque_in": {"direction": "In", "type": "Any", "domain": 4},
+                    "rpm_out": {"direction": "Out", "type": "Any", "domain": 4}
                 }
             }
         ],
@@ -111,7 +111,7 @@ TEST(EditorComponentVariant, RefNodeFixedVoltage) {
                 "name": "gnd",
                 "classname": "RefNode",
                 "ports": {
-                    "v": {"direction": "Out", "type": "V"}
+                    "v": {"direction": "Out", "type": "V", "domain": 1}
                 },
                 "params": {
                     "value": "0.0"
@@ -121,8 +121,8 @@ TEST(EditorComponentVariant, RefNodeFixedVoltage) {
                 "name": "bat1",
                 "classname": "ElectricalSource",
                 "ports": {
-                    "v_in": {"direction": "In", "type": "V"},
-                    "v_out": {"direction": "Out", "type": "V"}
+                    "v_in": {"direction": "In", "type": "V", "domain": 1},
+                    "v_out": {"direction": "Out", "type": "V", "domain": 1}
                 }
             }
         ],
@@ -204,8 +204,8 @@ TEST(EditorComponentVariant, FactoryCreatesCorrectVariant) {
                 "name": "bat1",
                 "classname": "ElectricalSource",
                 "ports": {
-                    "v_in": {"direction": "In", "type": "V"},
-                    "v_out": {"direction": "Out", "type": "V"}
+                    "v_in": {"direction": "In", "type": "V", "domain": 1},
+                    "v_out": {"direction": "Out", "type": "V", "domain": 1}
                 }
             }
         ],

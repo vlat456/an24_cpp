@@ -7,9 +7,9 @@
 #include <cstdint>
 
 #include "core/solvers/common/port_names.h"
+#include "core/model/component_types.h"
 #include "blueprint_v2/interface/direction.h"
 #include "core/model/component_kind.h"
-#include "core/model/component_types.h"
 
 /// True for valid ComponentKind values (not Unknown, not _COUNT).
 inline constexpr bool has_component_metadata(ComponentKind kind) {
@@ -356,21 +356,21 @@ constexpr ComponentPortInfo COMPONENT_PORT_INFO[] = {
     {25, 3, SchedulerRoleKind::Consumer, false},  // Comparator
     {28, 3, SchedulerRoleKind::Consumer, false},  // ControlledCurrentSource
     {31, 8, SchedulerRoleKind::None, true},  // ControlledVoltageSource
-    {39, 3, SchedulerRoleKind::Consumer, true},  // CurrentSense
+    {39, 3, SchedulerRoleKind::None, true},  // CurrentSense
     {42, 3, SchedulerRoleKind::Consumer, false},  // Divide
     {45, 2, SchedulerRoleKind::Consumer, false},  // ElectricHeater
     {47, 3, SchedulerRoleKind::Consumer, false},  // ElectricPump
     {50, 2, SchedulerRoleKind::None, true},  // ElectricalConductance
     {52, 2, SchedulerRoleKind::None, true},  // ElectricalSource
     {54, 2, SchedulerRoleKind::Consumer, false},  // FastTMO
-    {56, 4, SchedulerRoleKind::Consumer, true},  // FuelTank
+    {56, 4, SchedulerRoleKind::None, true},  // FuelTank
     {60, 2, SchedulerRoleKind::None, true},  // Generator
     {62, 3, SchedulerRoleKind::Consumer, false},  // Greater
     {65, 3, SchedulerRoleKind::Consumer, false},  // GreaterEq
     {68, 1, SchedulerRoleKind::Consumer, false},  // Gyroscope
     {69, 4, SchedulerRoleKind::None, true},  // HoldButton
     {73, 2, SchedulerRoleKind::Consumer, false},  // HydraulicAccumulator
-    {75, 3, SchedulerRoleKind::Consumer, true},  // IndicatorLight
+    {75, 3, SchedulerRoleKind::None, true},  // IndicatorLight
     {78, 5, SchedulerRoleKind::Consumer, false},  // InertiaNode
     {83, 4, SchedulerRoleKind::Consumer, false},  // Integrator
     {87, 2, SchedulerRoleKind::Consumer, false},  // Inverter
@@ -392,9 +392,9 @@ constexpr ComponentPortInfo COMPONENT_PORT_INFO[] = {
     {136, 3, SchedulerRoleKind::Consumer, false},  // PD
     {139, 7, SchedulerRoleKind::Consumer, false},  // PI
     {146, 3, SchedulerRoleKind::Consumer, false},  // PID
-    {149, 4, SchedulerRoleKind::Consumer, true},  // PneumaticCompressor
+    {149, 4, SchedulerRoleKind::None, true},  // PneumaticCompressor
     {153, 1, SchedulerRoleKind::Source, true},  // PneumaticRef
-    {154, 4, SchedulerRoleKind::Consumer, true},  // PneumaticValve
+    {154, 4, SchedulerRoleKind::None, true},  // PneumaticValve
     {158, 2, SchedulerRoleKind::Consumer, false},  // Positive_V_to_Bool
     {160, 1, SchedulerRoleKind::Source, true},  // PressureRef
     {161, 2, SchedulerRoleKind::Consumer, false},  // Radiator
@@ -406,7 +406,7 @@ constexpr ComponentPortInfo COMPONENT_PORT_INFO[] = {
     {187, 3, SchedulerRoleKind::Consumer, false},  // SampleHold
     {190, 2, SchedulerRoleKind::Consumer, false},  // SlewRate
     {192, 2, SchedulerRoleKind::Consumer, false},  // Slider
-    {194, 4, SchedulerRoleKind::Consumer, true},  // SolenoidValve
+    {194, 4, SchedulerRoleKind::None, true},  // SolenoidValve
     {198, 3, SchedulerRoleKind::Consumer, false},  // Splitter
     {201, 3, SchedulerRoleKind::Consumer, false},  // Spring
     {204, 3, SchedulerRoleKind::Consumer, false},  // Subtract

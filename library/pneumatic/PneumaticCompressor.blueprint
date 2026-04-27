@@ -2,7 +2,7 @@
   "version": "3.0",
   "id": "PneumaticCompressor",
   "display_name": "PneumaticCompressor",
-  "scheduler_role": "Consumer",
+  "scheduler_role": "None",
   "interface": [
     {
       "name": "rpm_in",
@@ -47,9 +47,15 @@
     "rated_rpm": "24000.0"
   },
   "param_schema": {
-    "max_pressure": {"type": "float"},
-    "internal_r": {"type": "float"},
-    "rated_rpm": {"type": "float"}
+    "max_pressure": {
+      "type": "float"
+    },
+    "internal_r": {
+      "type": "float"
+    },
+    "rated_rpm": {
+      "type": "float"
+    }
   },
   "solver_role": {
     "kind": "PressureSource",

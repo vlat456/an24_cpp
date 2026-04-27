@@ -299,5 +299,60 @@ void extract_fixed_pressure_node(
         element_idx++, bind_handle ? dev.name : std::string{}});
 }
 
+// =====================================================================
+// Generic single-handle assignment — used by hydraulic and pneumatic.
+//
+// Walks island elements, matches those with bound device names back to
+// the component variant, and sets the domain-specific handle member via
+// a visitor callback. This avoids the triplication of the element_id →
+// device_name → variant → handle assignment loop across domain files.
+// =====================================================================
+
+/// Assign handles from island elements to component variants.
+/// `handle_setter` is a callable: void(NodalPrimitiveHandle, ComponentVariant&)
+/// `plan_islands` is the domain's islands from the NodalBuildPlan.
+/// `domain_label` is used in error messages (e.g., "Hydraulic").
+template<typename HandleSetter>
+void assign_single_handles(
+    const std::vector<GenericRawElement<NodalElementKind>>& raw_elements,
+    const std::vector<NodalIslandPlan>& islands,
+    BuildDeviceStore& devices,
+    HandleSetter&& handle_setter,
+    const char* domain_label)
+{
+    // Build O(1) lookup: element_id -> device_name
+    std::unordered_map<uint32_t, std::string> element_id_to_device;
+    element_id_to_device.reserve(raw_elements.size());
+    for (const auto& raw_elem : raw_elements) {
+        if (!raw_elem.device_name.empty()) {
+            element_id_to_device[static_cast<uint32_t>(raw_elem.element_id)] = raw_elem.device_name;
+        }
+    }
+
+    for (size_t island_idx = 0; island_idx < islands.size(); ++island_idx) {
+        const auto& island = islands[island_idx];
+        for (size_t elem_idx = 0; elem_idx < island.elements.size(); ++elem_idx) {
+            const auto& elem = island.elements[elem_idx];
+            auto it_name = element_id_to_device.find(elem.element_id);
+            if (it_name == element_id_to_device.end()) continue;
+
+            const std::string& device_name = it_name->second;
+            ComponentVariant* variant = devices.find_mutable(device_name);
+            if (variant == nullptr) {
+                throw std::runtime_error(std::string(domain_label) +
+                    " handle assignment failed: device '" + device_name +
+                    "' not found in result.devices");
+            }
+
+            NodalPrimitiveHandle handle;
+            handle.island_index = static_cast<uint32_t>(island_idx);
+            handle.element_index = static_cast<uint32_t>(elem_idx);
+            handle.element_id = elem.element_id;
+
+            handle_setter(handle, *variant);
+        }
+    }
+}
+
 } // namespace build_common
 } // namespace jit_solver_impl

@@ -2,7 +2,7 @@
   "version": "3.0",
   "id": "CurrentSense",
   "display_name": "CurrentSense",
-  "scheduler_role": "Consumer",
+  "scheduler_role": "None",
   "interface": [
     {
       "name": "i_out",

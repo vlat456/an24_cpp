@@ -1,5 +1,6 @@
 #include "nodal_subsolver.h"
 #include "nodal_core.h"
+#include "../build_common.h"
 
 #include <algorithm>
 #include <cassert>
@@ -300,30 +301,6 @@ void solve_nodal(
     NodalRuntimeState& rt,
     double dt
 ) noexcept {
-    uint32_t max_element_id = 0;
-    bool has_elements = false;
-    for (const auto& island : plan.islands) {
-        for (const auto& elem : island.elements) {
-            has_elements = true;
-            max_element_id = std::max(max_element_id, elem.element_id);
-        }
-    }
-
-    if (has_elements) {
-        const size_t needed = static_cast<size_t>(max_element_id) + 1;
-        if (rt.element_value_a.size() < needed) {
-            rt.element_value_a.resize(needed, 0.0f);
-            for (const auto& island : plan.islands) {
-                for (const auto& elem : island.elements) {
-                    if (elem.element_id < rt.element_value_a.size()) {
-                        rt.element_value_a[elem.element_id] = elem.value_a;
-                    }
-                }
-            }
-        }
-    } else {
-        rt.element_value_a.clear();
-    }
-
+    jit_solver_impl::build_common::init_element_values_from_plan(plan, rt);
     solve_nodal(plan, rt.element_value_a, st, rt, dt);
 }

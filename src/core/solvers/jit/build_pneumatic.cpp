@@ -13,7 +13,6 @@
 #include "components/pneumatic_compressor.h"
 #include "components/pneumatic_valve.h"
 #include "core/solvers/common/provider.h"
-#include <unordered_set>
 
 namespace jit_solver_impl {
 
@@ -74,48 +73,8 @@ static std::vector<RawElement> extract_pneumatic_raw_elements(
 
 // =====================================================================
 // Phase 3: Assign NodalPrimitiveHandle to component variants
+//          (delegates to build_common::assign_single_handles)
 // =====================================================================
-
-static void assign_pneumatic_handles(
-    const std::vector<RawElement>& raw_elements,
-    BuildResult& result)
-{
-    std::unordered_map<uint32_t, std::string> element_id_to_device;
-    element_id_to_device.reserve(raw_elements.size());
-    for (const auto& raw_elem : raw_elements) {
-        if (!raw_elem.device_name.empty()) {
-            element_id_to_device[static_cast<uint32_t>(raw_elem.element_id)] = raw_elem.device_name;
-        }
-    }
-
-    for (size_t island_idx = 0; island_idx < result.pneumatic.plan.islands.size(); ++island_idx) {
-        const auto& island = result.pneumatic.plan.islands[island_idx];
-        for (size_t elem_idx = 0; elem_idx < island.elements.size(); ++elem_idx) {
-            const auto& elem = island.elements[elem_idx];
-            auto it_name = element_id_to_device.find(elem.element_id);
-            if (it_name == element_id_to_device.end()) continue;
-
-            const std::string& device_name = it_name->second;
-            ComponentVariant* variant = result.devices.find_mutable(device_name);
-            if (variant == nullptr) {
-                throw std::runtime_error("Pneumatic handle assignment failed: device '" +
-                    device_name + "' not found in result.devices");
-            }
-
-            NodalPrimitiveHandle handle;
-            handle.island_index = static_cast<uint32_t>(island_idx);
-            handle.element_index = static_cast<uint32_t>(elem_idx);
-            handle.element_id = elem.element_id;
-
-            std::visit([&](auto& comp) {
-                using T = std::decay_t<decltype(comp)>;
-                if constexpr (requires { comp.pneumatic_handle; }) {
-                    comp.pneumatic_handle = handle;
-                }
-            }, *variant);
-        }
-    }
-}
 
 // =====================================================================
 // Orchestrator: build_pneumatic_islands
@@ -128,7 +87,16 @@ void build_pneumatic_islands(
     auto raw_elements = extract_pneumatic_raw_elements(
         devices, result.port_to_signal, result.signal_key_interner);
     build_common::group_into_islands<RawElement, NodalIslandPlan>(raw_elements, result.pneumatic.plan);
-    assign_pneumatic_handles(raw_elements, result);
+    build_common::assign_single_handles(
+        raw_elements, result.pneumatic.plan.islands, result.devices,
+        [](NodalPrimitiveHandle handle, ComponentVariant& variant) {
+            std::visit([&](auto& comp) {
+                using T = std::decay_t<decltype(comp)>;
+                if constexpr (requires { comp.pneumatic_handle; }) {
+                    comp.pneumatic_handle = handle;
+                }
+            }, variant);
+        }, "Pneumatic");
 }
 
 // =====================================================================

@@ -415,8 +415,13 @@ TEST(PushBuildValidation, SolverOwnedElectricalClassification_MetadataDrivenCove
     EXPECT_TRUE(is_solver_owned_component(ComponentKind::RotarySwitch1ToN));
     EXPECT_TRUE(is_solver_owned_component(ComponentKind::RotarySwitchNTo1));
 
-    // A non-solver-owned electrical observer should stay false.
-    EXPECT_FALSE(is_solver_owned_component(ComponentKind::CurrentSense));
+    // CurrentSense has solver_role (reads branch current from electrical solver)
+    // and scheduler_role: None (executed only via step_ops, not the push scheduler).
+    // It IS solver-owned.
+    EXPECT_TRUE(is_solver_owned_component(ComponentKind::CurrentSense));
+
+    // A genuinely non-solver-owned component (no solver_role, scheduler Consumer).
+    EXPECT_FALSE(is_solver_owned_component(ComponentKind::Accumulator));
 }
 
 TEST(PushBuildValidation, RotarySwitchAliasesInstantiateDistinctVariantTypes) {
@@ -692,8 +697,8 @@ TEST(PushBuildValidation, TypeDefinitionWithoutExecutionIsAccepted) {
         {"description", "test"},
         {"cpp_class", true},
         {"ports", {
-            {"in", {{"direction", "in"}, {"type", "Any"}}},
-            {"out", {{"direction", "out"}, {"type", "Any"}}}
+            {"in", {{"direction", "in"}, {"type", "Any"}, {"domain", 2}}},
+            {"out", {{"direction", "out"}, {"type", "Any"}, {"domain", 2}}}
         }},
         {"domains", {"Logical"}},
         {"params", nlohmann::json::object()}
@@ -956,7 +961,7 @@ TEST(PushBuildValidation, ParamSchemaVisualOnlyFlag) {
         "cpp_class": true,
         "domains": ["Electrical"],
         "interface": [
-            {"name": "v", "direction": 2, "type": "V"}
+            {"name": "v", "direction": 2, "type": "V", "domain": 1}
         ],
         "param_defaults": {
             "port_edge": "bottom",
@@ -1040,7 +1045,7 @@ TEST(PushBuildValidation, ParseTypeDefinition_ParsesSchedulerRole) {
         "cpp_class": true,
         "scheduler_role": "Source",
         "domains": ["Electrical"],
-        "ports": {"v_out": {"direction": "Out", "type": "V"}}
+        "ports": {"v_out": {"direction": "Out", "type": "V", "domain": 1}}
     })");
 
     auto [def, pres] = parse_type_definition(j);
@@ -1054,7 +1059,7 @@ TEST(PushBuildValidation, ParseTypeDefinition_ParsesSchedulerRole) {
         "cpp_class": true,
         "scheduler_role": "Consumer",
         "domains": ["Electrical"],
-        "ports": {"v_in": {"direction": "In", "type": "V"}}
+        "ports": {"v_in": {"direction": "In", "type": "V", "domain": 1}}
     })");
 
     auto [def2, pres2] = parse_type_definition(j2);

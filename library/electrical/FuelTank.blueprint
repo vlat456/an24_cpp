@@ -2,7 +2,7 @@
   "version": "3.0",
   "id": "FuelTank",
   "display_name": "FuelTank",
-  "scheduler_role": "Consumer",
+  "scheduler_role": "None",
   "interface": [
     {
       "name": "flow_out",
@@ -50,12 +50,24 @@
     "tank_height": "1.0"
   },
   "param_schema": {
-    "capacity": {"type": "float"},
-    "density": {"type": "float"},
-    "level": {"type": "float"},
-    "consumption_rate": {"type": "float"},
-    "internal_r": {"type": "float"},
-    "tank_height": {"type": "float"}
+    "capacity": {
+      "type": "float"
+    },
+    "density": {
+      "type": "float"
+    },
+    "level": {
+      "type": "float"
+    },
+    "consumption_rate": {
+      "type": "float"
+    },
+    "internal_r": {
+      "type": "float"
+    },
+    "tank_height": {
+      "type": "float"
+    }
   },
   "solver_role": {
     "kind": "PressureSource",

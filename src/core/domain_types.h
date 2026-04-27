@@ -38,6 +38,11 @@ enum class PortType {
     Any,
 };
 
+/// Default domain for a given port type. Used ONLY as a fallback for
+/// programmatically created ports (bridge ports, editor operations).
+/// Blueprint port definitions MUST specify domain explicitly — the JSON
+/// parser enforces this. Pressure → Hydraulic is a default; pneumatic
+/// blueprints override with domain: 32 (Pneumatic).
 constexpr Domain domain_for_port_type(PortType t) {
     switch (t) {
         case PortType::V:

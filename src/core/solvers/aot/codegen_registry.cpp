@@ -217,7 +217,7 @@ static void emit_build_generic_template(std::ostringstream& oss) {
     oss << R"(/// Generic builder template: construct → consume_params → build_finish.
 /// Handles 69/71 components — only LUT (arena) and RefNode (fixed signals) need custom builders.
 template <typename CompType, SchedulerRoleKind Role>
-static void build_generic(BuildResult& result, const ResolvedDevice& dev, ParamReader& param_reader) {
+static void build_generic(BuildResult& result, const SolverDevice& dev, ParamReader& param_reader) {
      CompType comp;
      consume_params(comp, param_reader);
      if constexpr (requires { comp.pre_load(); }) { comp.pre_load(); }
@@ -238,7 +238,7 @@ static void build_generic(BuildResult& result, const ResolvedDevice& dev, ParamR
 static void emit_build_LUT(std::ostringstream& oss, const ComponentPorts& comp) {
     const std::string& cn = comp.classname;
     oss << "/// Special builder: " << cn << " — table arena allocation before pre_load.\n";
-    oss << "static void build_" << cn << "(BuildResult& result, const ResolvedDevice& dev, ParamReader& param_reader) {\n";
+    oss << "static void build_" << cn << "(BuildResult& result, const SolverDevice& dev, ParamReader& param_reader) {\n";
     oss << "    " << cn << "<JitProvider> comp;\n";
     oss << "    consume_params(comp, param_reader);\n";
     // Emit table arena block (function-level indentation)
@@ -256,7 +256,6 @@ static void emit_build_LUT(std::ostringstream& oss, const ComponentPorts& comp) 
         oss << "        }\n";
         oss << "    }\n";
     }
-    oss << "    if constexpr (requires { comp.pre_load(); }) { comp.pre_load(); }\n";
     oss << "    setup_component_ports(result, dev, comp);\n";
     oss << "    param_reader.validate_all_consumed();\n";
     oss << "    result.devices[dev.name] = std::move(comp);\n";
@@ -268,10 +267,9 @@ static void emit_build_LUT(std::ostringstream& oss, const ComponentPorts& comp) 
 static void emit_build_RefNode(std::ostringstream& oss, const ComponentPorts& comp) {
     const std::string& cn = comp.classname;
     oss << "/// Special builder: " << cn << " — fixed signal registration after scheduler add.\n";
-    oss << "static void build_" << cn << "(BuildResult& result, const ResolvedDevice& dev, ParamReader& param_reader) {\n";
+    oss << "static void build_" << cn << "(BuildResult& result, const SolverDevice& dev, ParamReader& param_reader) {\n";
     oss << "    " << cn << "<JitProvider> comp;\n";
     oss << "    consume_params(comp, param_reader);\n";
-    oss << "    if constexpr (requires { comp.pre_load(); }) { comp.pre_load(); }\n";
     oss << "    setup_component_ports(result, dev, comp);\n";
     oss << "    param_reader.validate_all_consumed();\n";
     oss << "    result.devices[dev.name] = std::move(comp);\n";
@@ -290,11 +288,11 @@ static void emit_build_RefNode(std::ostringstream& oss, const ComponentPorts& co
 /// Emit the dispatch table and main build function.
 static void emit_dispatch_table_and_main(std::ostringstream& oss, const std::vector<ComponentPorts>& all_components) {
     oss << R"(/// Dispatch table — one entry per ComponentKind, indexed by enum value.
-using BuildFn = void(*)(BuildResult&, const ResolvedDevice&, ParamReader&);
+using BuildFn = void(*)(BuildResult&, const SolverDevice&, ParamReader&);
 
 /// Sentinel for unsupported ComponentKind values (Unknown).
 /// Should never be called — guarded by has_component_metadata() check in the main loop.
-[[noreturn]] static void build_unsupported(BuildResult&, const ResolvedDevice& dev, ParamReader&) {
+[[noreturn]] static void build_unsupported(BuildResult&, const SolverDevice& dev, ParamReader&) {
     throw std::runtime_error("No factory handler for component '" + dev.classname + "'");
 }
 
@@ -322,7 +320,7 @@ static const BuildFn BUILD_TABLE[] = {
 
     oss << R"(void build_and_register_components(
     BuildResult& result,
-    const std::vector<ResolvedDevice>& devices)
+    const std::vector<SolverDevice>& devices)
 {
     result.devices.reserve(devices.size());  // Prevent rehash invalidating scheduler pointers
 
@@ -411,6 +409,7 @@ void emit_port_metadata_prelude(std::ostringstream& oss, const std::vector<Compo
     oss << "#include <cstddef>\n";
     oss << "#include <cstdint>\n\n";
     oss << "#include \"core/solvers/common/port_names.h\"\n";
+    oss << "#include \"core/model/component_types.h\"\n";
     oss << "#include \"blueprint_v2/interface/direction.h\"\n";
     oss << "#include \"core/model/component_kind.h\"\n\n";
 

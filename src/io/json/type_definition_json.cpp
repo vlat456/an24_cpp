@@ -35,6 +35,9 @@ Port parse_port(const json& j) {
             }
             port.domain = json_io_internal::parse_domain_mask_int(j["domain"].get<int>());
         } else {
+            // Use domain_for_port_type as fallback for device instances (inline port definitions).
+            // Type definitions (blueprint interface) should always provide explicit domain,
+            // caught by validate_type_definition interface parsing.
             port.domain = domain_for_port_type(port.type);
         }
         if (j.contains("source_writer")) {

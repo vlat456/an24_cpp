@@ -239,6 +239,10 @@ json port_to_json(const Port& port) {
         case PortType::Contextual:  j["type"] = "Contextual"; break;
         case PortType::Any:         j["type"] = "Any"; break;
     }
+
+    // Serialize domain as bitmask
+    j["domain"] = static_cast<uint32_t>(port.domain);
+
     return j;
 }
 

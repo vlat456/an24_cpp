@@ -32,7 +32,7 @@ TEST(JsonParserTest, ParseRejectsInvalidPortDirection) {
                 "name": "bad",
                 "classname": "ElectricalSource",
                 "ports": {
-                    "v_out": {"direction": "sideways", "type": "V"}
+                    "v_out": {"direction": "sideways", "type": "V", "domain": 1}
                 },
                 "params": {"voltage": "28.0", "resistance": "0.1"}
             }
@@ -288,7 +288,7 @@ TEST(JsonParserTest, ParsePortType_FromJson) {
             "name": "batt",
             "classname": "ElectricalSource",
             "ports": {
-                "v_out": {"direction": "Out", "type": "V"}
+                "v_out": {"direction": "Out", "type": "V", "domain": 1}
             }
         }],
         "connections": []
@@ -306,7 +306,7 @@ TEST(JsonParserTest, ParsePortType_RPM_FromJson) {
             "name": "pump",
             "classname": "ElectricalSource",
             "ports": {
-                "v_out": {"direction": "Out", "type": "V"}
+                "v_out": {"direction": "Out", "type": "V", "domain": 1}
             }
         }],
         "connections": []
@@ -329,21 +329,21 @@ TEST(JsonParserTest, ValidateConnection_MismatchedTypes_ShouldFail) {
             "name": "batt",
             "classname": "ElectricalSource",
             "ports": {
-                "v_out": {"direction": "Out", "type": "V"}
+                "v_out": {"direction": "Out", "type": "V", "domain": 1}
             }
         },
         {
             "name": "pump",
             "classname": "ElectricalSource",
             "ports": {
-                "v_out": {"direction": "Out", "type": "V"}
+                "v_out": {"direction": "Out", "type": "V", "domain": 1}
             }
         },
             {
                 "name": "batt2",
                 "classname": "ElectricalSource",
                 "ports": {
-                    "v_in": {"direction": "In", "type": "V"}
+                    "v_in": {"direction": "In", "type": "V", "domain": 1}
                 }
             }
         ],
@@ -368,14 +368,14 @@ TEST(JsonParserTest, ValidateConnection_BoolToV_ShouldFail) {
                 "name": "button",
                 "classname": "HoldButton",
                 "ports": {
-                    "v_out": {"direction": "Out", "type": "Bool"}
+                    "v_out": {"direction": "Out", "type": "Bool", "domain": 2}
                 }
             },
         {
             "name": "batt",
             "classname": "ElectricalSource",
             "ports": {
-                "v_in": {"direction": "In", "type": "V"}
+                "v_in": {"direction": "In", "type": "V", "domain": 1}
             }
         }
         ],
@@ -398,14 +398,14 @@ TEST(JsonParserTest, ValidateConnection_AnyType_ShouldPass) {
                 "name": "batt1",
                 "classname": "ElectricalSource",
                 "ports": {
-                    "v_out": {"direction": "Out", "type": "V"}
+                    "v_out": {"direction": "Out", "type": "V", "domain": 1}
                 }
             },
             {
                 "name": "batt2",
                 "classname": "ElectricalSource",
                 "ports": {
-                    "v_in": {"direction": "In", "type": "V"}
+                    "v_in": {"direction": "In", "type": "V", "domain": 1}
                 }
             }
         ],
@@ -484,7 +484,7 @@ TEST(JsonParserTest, Regression_PortTypeMerge_InlinePortWithType) {
                 "name": "bat",
                 "classname": "ElectricalSource",
                 "ports": {
-                    "v_out": {"direction": "Out", "type": "V"}
+                    "v_out": {"direction": "Out", "type": "V", "domain": 1}
                 }
             }
         ],
@@ -636,7 +636,7 @@ TEST(JsonParserTest, ParseTypeDefinition_ParamSchemaParsed) {
         "param_schema": {
             "r_internal": {"type": "float", "min": 0.000001, "required": true}
         },
-        "ports": {"v": {"direction": "Out", "type": "V"}}
+        "ports": {"v": {"direction": "Out", "type": "V", "domain": 1}}
     })");
 
     auto [def, pres] = parse_type_definition(j);
@@ -806,7 +806,7 @@ TEST(JsonParserTest, ParseTypeDefinition_ParsesSchedulerRole) {
         "cpp_class": true,
         "scheduler_role": "Source",
         "domains": ["Electrical"],
-        "ports": {"v_out": {"direction": "Out", "type": "V"}}
+        "ports": {"v_out": {"direction": "Out", "type": "V", "domain": 1}}
     })");
 
     auto [def, pres] = parse_type_definition(j);
@@ -820,7 +820,7 @@ TEST(JsonParserTest, ParseTypeDefinition_ParsesSchedulerRole) {
         "cpp_class": true,
         "scheduler_role": "Consumer",
         "domains": ["Electrical"],
-        "ports": {"v_in": {"direction": "In", "type": "V"}}
+        "ports": {"v_in": {"direction": "In", "type": "V", "domain": 1}}
     })");
 
     auto [def2, pres2] = parse_type_definition(j2);
@@ -835,7 +835,7 @@ TEST(JsonParserTest, ParseTypeDefinition_SchedulerRoleDefaultsConsumer) {
         "classname": "TestNoField",
         "cpp_class": true,
         "domains": ["Electrical"],
-        "ports": {"v_out": {"direction": "Out", "type": "V"}}
+        "ports": {"v_out": {"direction": "Out", "type": "V", "domain": 1}}
     })");
 
      auto [def, pres] = parse_type_definition(j);

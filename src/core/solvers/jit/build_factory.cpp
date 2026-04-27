@@ -450,21 +450,21 @@ static const BuildFn BUILD_TABLE[] = {
     build_generic<Comparator<JitProvider>, SchedulerRoleKind::Consumer>,  // Comparator
     build_generic<ControlledCurrentSource<JitProvider>, SchedulerRoleKind::Consumer>,  // ControlledCurrentSource
     build_generic<ControlledVoltageSource<JitProvider>, SchedulerRoleKind::None>,  // ControlledVoltageSource
-    build_generic<CurrentSense<JitProvider>, SchedulerRoleKind::Consumer>,  // CurrentSense
+    build_generic<CurrentSense<JitProvider>, SchedulerRoleKind::None>,  // CurrentSense
     build_generic<Divide<JitProvider>, SchedulerRoleKind::Consumer>,  // Divide
     build_generic<ElectricHeater<JitProvider>, SchedulerRoleKind::Consumer>,  // ElectricHeater
     build_generic<ElectricPump<JitProvider>, SchedulerRoleKind::Consumer>,  // ElectricPump
     build_generic<ElectricalConductance<JitProvider>, SchedulerRoleKind::None>,  // ElectricalConductance
     build_generic<ElectricalSource<JitProvider>, SchedulerRoleKind::None>,  // ElectricalSource
     build_generic<FastTMO<JitProvider>, SchedulerRoleKind::Consumer>,  // FastTMO
-    build_generic<FuelTank<JitProvider>, SchedulerRoleKind::Consumer>,  // FuelTank
+    build_generic<FuelTank<JitProvider>, SchedulerRoleKind::None>,  // FuelTank
     build_generic<Generator<JitProvider>, SchedulerRoleKind::None>,  // Generator
     build_generic<Greater<JitProvider>, SchedulerRoleKind::Consumer>,  // Greater
     build_generic<GreaterEq<JitProvider>, SchedulerRoleKind::Consumer>,  // GreaterEq
     build_generic<Gyroscope<JitProvider>, SchedulerRoleKind::Consumer>,  // Gyroscope
     build_generic<HoldButton<JitProvider>, SchedulerRoleKind::None>,  // HoldButton
     build_generic<HydraulicAccumulator<JitProvider>, SchedulerRoleKind::Consumer>,  // HydraulicAccumulator
-    build_generic<IndicatorLight<JitProvider>, SchedulerRoleKind::Consumer>,  // IndicatorLight
+    build_generic<IndicatorLight<JitProvider>, SchedulerRoleKind::None>,  // IndicatorLight
     build_generic<InertiaNode<JitProvider>, SchedulerRoleKind::Consumer>,  // InertiaNode
     build_generic<Integrator<JitProvider>, SchedulerRoleKind::Consumer>,  // Integrator
     build_generic<Inverter<JitProvider>, SchedulerRoleKind::Consumer>,  // Inverter
@@ -486,9 +486,9 @@ static const BuildFn BUILD_TABLE[] = {
     build_generic<PD<JitProvider>, SchedulerRoleKind::Consumer>,  // PD
     build_generic<PI<JitProvider>, SchedulerRoleKind::Consumer>,  // PI
     build_generic<PID<JitProvider>, SchedulerRoleKind::Consumer>,  // PID
-    build_generic<PneumaticCompressor<JitProvider>, SchedulerRoleKind::Consumer>,  // PneumaticCompressor
+    build_generic<PneumaticCompressor<JitProvider>, SchedulerRoleKind::None>,  // PneumaticCompressor
     build_generic<PneumaticRef<JitProvider>, SchedulerRoleKind::Source>,  // PneumaticRef
-    build_generic<PneumaticValve<JitProvider>, SchedulerRoleKind::Consumer>,  // PneumaticValve
+    build_generic<PneumaticValve<JitProvider>, SchedulerRoleKind::None>,  // PneumaticValve
     build_generic<Positive_V_to_Bool<JitProvider>, SchedulerRoleKind::Consumer>,  // Positive_V_to_Bool
     build_generic<PressureRef<JitProvider>, SchedulerRoleKind::Source>,  // PressureRef
     build_generic<Radiator<JitProvider>, SchedulerRoleKind::Consumer>,  // Radiator
@@ -500,7 +500,7 @@ static const BuildFn BUILD_TABLE[] = {
     build_generic<SampleHold<JitProvider>, SchedulerRoleKind::Consumer>,  // SampleHold
     build_generic<SlewRate<JitProvider>, SchedulerRoleKind::Consumer>,  // SlewRate
     build_generic<Slider<JitProvider>, SchedulerRoleKind::Consumer>,  // Slider
-    build_generic<SolenoidValve<JitProvider>, SchedulerRoleKind::Consumer>,  // SolenoidValve
+    build_generic<SolenoidValve<JitProvider>, SchedulerRoleKind::None>,  // SolenoidValve
     build_generic<Splitter<JitProvider>, SchedulerRoleKind::Consumer>,  // Splitter
     build_generic<Spring<JitProvider>, SchedulerRoleKind::Consumer>,  // Spring
     build_generic<Subtract<JitProvider>, SchedulerRoleKind::Consumer>,  // Subtract
