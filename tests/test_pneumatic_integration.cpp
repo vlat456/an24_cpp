@@ -139,8 +139,8 @@ TEST(PneumaticIntegration, ClosedValve_NoFlow) {
     EXPECT_GT(p_out, 600.0f) << "With closed valve, pressure should be near max";
 }
 
-TEST(PneumaticIntegration, PneumaticRefZeroPressure) {
-    // Simplest circuit: just a PneumaticRef
+TEST(PneumaticIntegration, PneumaticRefOutputsConfiguredPressure) {
+    // Simplest circuit: just a PneumaticRef at atmospheric pressure
     const char* json = R"(
     {
         "devices": [

@@ -1,7 +1,6 @@
 #include "pneumatic_compressor.h"
 #include "core/solvers/common/port_names.h"
 #include <algorithm>
-#include <cmath>
 
 template <typename Provider>
 void PneumaticCompressor<Provider>::execute(SimulationState& st, double /*dt*/) {

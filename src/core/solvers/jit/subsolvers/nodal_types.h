@@ -11,7 +11,7 @@
 /// Terminology mapping:
 ///   Electrical:  potential = voltage,  flow = current
 ///   Hydraulic:   potential = pressure, flow = volumetric flow rate
-///   Pneumatic:   potential = pressure, flow = mass flow rate
+///   Pneumatic:   potential = pressure, flow = volumetric flow rate (incompressible approx.)
 
 #include <cstdint>
 #include <vector>

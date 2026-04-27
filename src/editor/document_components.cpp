@@ -120,23 +120,14 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
     node.view.name = unique_id;
     node.layout.x = snapped_pos.x;
     node.layout.y = snapped_pos.y;
+    // Use port_descriptor_from_type_port to ensure all fields (including source_writer)
+    // match what the invariant checker expects from interface_from_type_definition.
     std::vector<bp2::PortDescriptor> iface_ports;
     const auto& def_ports = spec_ports(*def);
     iface_ports.reserve(def_ports.size());
     for (const auto& [port_name, port_def] : def_ports) {
-        auto pid = interner_.intern(port_name);
-        bp2::PortDescriptor pd;
-        pd.name = pid;
-        pd.domain = port_def.domain;
-        if (port_def.direction == bp2::Direction::Input) {
-            pd.direction = bp2::Direction::Input;
-        } else if (port_def.direction == bp2::Direction::Output) {
-            pd.direction = bp2::Direction::Output;
-        } else {
-            pd.direction = bp2::Direction::InOut;
-        }
-        pd.port_type = port_def.type;
-        iface_ports.push_back(std::move(pd));
+        iface_ports.push_back(
+            bp2::port_descriptor_from_type_port(interner_.intern(port_name), port_def));
     }
     node.component().iface = bp2::Interface(std::move(iface_ports));
 

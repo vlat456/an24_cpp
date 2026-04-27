@@ -1985,3 +1985,54 @@ TEST(DocumentSafety, WalkBlueprintNodesProducesNestedInstancePaths) {
     EXPECT_EQ(visited[2].first[1], "group_B");
     EXPECT_EQ(visited[2].second, "leaf");
 }
+
+// Regression: addComponent must build node interfaces that match the registry exactly.
+// Previously, addComponent manually constructed PortDescriptor without copying source_writer,
+// while the invariant checker used interface_from_type_definition (which does copy it).
+// Components with source_writer=true (e.g. PneumaticCompressor.p_out) would fail the
+// integrity check: "component node iface desynced from registry".
+TEST(DocumentSafety, AddComponentWithSourceWriterMatchesRegistryInterface) {
+    Document doc;
+    ComponentRegistry registry = load_component_registry("library/");
+    doc.setComponentRegistry(&registry);
+
+    // PneumaticCompressor has p_out with source_writer=true
+    doc.addComponent("PneumaticCompressor", Pt{64.0f, 64.0f}, WindowScopeId::root(), registry);
+
+    const auto& bp = doc.model().current();
+    ASSERT_EQ(bp.nodes().size(), 1u);
+
+    const auto& node = bp.nodes()[0];
+    ASSERT_TRUE(node.is_component());
+
+    const auto* def = registry.get("PneumaticCompressor");
+    ASSERT_NE(def, nullptr);
+
+    // The node's interface must exactly match what interface_from_type_definition produces.
+    bp2::Interface expected = bp2::interface_from_type_definition(*def, doc.interner());
+    EXPECT_EQ(node.component().iface, expected)
+        << "addComponent produced an interface that desyncs from the registry definition";
+}
+
+// Same regression check for an electrical component with source_writer=true.
+TEST(DocumentSafety, AddComponentElectricalSourceWriterMatchesRegistryInterface) {
+    Document doc;
+    ComponentRegistry registry = load_component_registry("library/");
+    doc.setComponentRegistry(&registry);
+
+    // ElectricalSource has v_out with source_writer=true
+    doc.addComponent("ElectricalSource", Pt{64.0f, 64.0f}, WindowScopeId::root(), registry);
+
+    const auto& bp = doc.model().current();
+    ASSERT_EQ(bp.nodes().size(), 1u);
+
+    const auto& node = bp.nodes()[0];
+    ASSERT_TRUE(node.is_component());
+
+    const auto* def = registry.get("ElectricalSource");
+    ASSERT_NE(def, nullptr);
+
+    bp2::Interface expected = bp2::interface_from_type_definition(*def, doc.interner());
+    EXPECT_EQ(node.component().iface, expected)
+        << "addComponent produced an interface that desyncs from the registry definition";
+}
