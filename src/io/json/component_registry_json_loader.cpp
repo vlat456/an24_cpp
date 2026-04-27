@@ -1,6 +1,7 @@
 #include "io/json/component_registry_json_loader.h"
 
 #include "io/json/json_internal_utils.h"
+#include "io/json/json_parse_internal.h"
 #include "io/json/type_definition_json.h"
 
 #include <algorithm>
@@ -186,32 +187,13 @@ std::pair<ComponentSpec, TypePresentation> parse_blueprint_type_definition(
 
         // Parse optional patch_op declaration for data-driven dynamic patching.
         if (sr.contains("patch_op") && sr["patch_op"].is_object()) {
-            const auto& po = sr["patch_op"];
-            if (!po.contains("kind") || !po["kind"].is_string()) {
-                throw std::runtime_error("patch_op missing required string 'kind' for component '" + classname + "'");
-            }
-            PatchOpDecl decl;
-            decl.kind = parse_patch_op_kind(po["kind"].get<std::string>());
-
-            if (po.contains("signal_ports") && po["signal_ports"].is_array()) {
-                for (const auto& port : po["signal_ports"]) {
-                    if (!port.is_string()) {
-                        throw std::runtime_error("patch_op signal_ports must be strings for component '" + classname + "'");
-                    }
-                    decl.signal_ports.push_back(port.get<std::string>());
+            auto patch_op_opt = json_io_detail::parse_patch_op(sr["patch_op"]);
+            if (patch_op_opt.has_value()) {
+                if (patch_op_opt->kind == PatchOpKind::None) {
+                    throw std::runtime_error("patch_op missing required string 'kind' for component '" + classname + "'");
                 }
+                role.patch_op = std::move(*patch_op_opt);
             }
-            if (po.contains("true_value") && po["true_value"].is_string()) {
-                decl.true_value_param = po["true_value"].get<std::string>();
-            }
-            if (po.contains("false_value") && po["false_value"].is_string()) {
-                decl.false_value_param = po["false_value"].get<std::string>();
-            }
-            if (po.contains("multi_handle") && po["multi_handle"].is_boolean()) {
-                decl.multi_handle = po["multi_handle"].get<bool>();
-            }
-
-            role.patch_op = std::move(decl);
         }
 
         solver_role = std::move(role);

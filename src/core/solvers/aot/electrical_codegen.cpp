@@ -1,6 +1,7 @@
 #include "codegen.h"
 #include "codegen_utils.h"
 #include "../common/signal_key.h"
+#include "../common/nodal_patch_convert.h"
 #include "parse_number.h"
 #include <spdlog/spdlog.h>
 #include <algorithm>
@@ -533,19 +534,6 @@ static void fill_aot_patch_op(
     if (!decl.false_value_param.empty()) {
         op.state_false_value = lookup_param(dev, decl.false_value_param, 0.0f);
     }
-}
-
-/// Convert PatchOpKind to NodalPatchKind (1:1 mapping).
-static NodalPatchKind to_nodal_patch_kind(PatchOpKind k) {
-    switch (k) {
-        case PatchOpKind::AffineClamp:   return NodalPatchKind::AffineClamp;
-        case PatchOpKind::LerpClamped01: return NodalPatchKind::LerpClamped01;
-        case PatchOpKind::BoolSwitch:    return NodalPatchKind::BoolSwitch;
-        case PatchOpKind::IndexSwitch:   return NodalPatchKind::IndexSwitch;
-        case PatchOpKind::CopySignal:    return NodalPatchKind::CopySignal;
-        case PatchOpKind::None:          return NodalPatchKind::BoolSwitch;
-    }
-    return NodalPatchKind::BoolSwitch;
 }
 
 void build_patch_ops(

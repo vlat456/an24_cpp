@@ -6,6 +6,7 @@
 
 #include "jit_solver.h"
 #include "core/solvers/common/signal_key.h"
+#include "core/solvers/common/nodal_patch_convert.h"
 #include "core/utils/union_find.h"
 #include "../../../parse_number.h"
 #include <algorithm>
@@ -447,19 +448,6 @@ inline void fill_patch_op_from_decl(
     if (!decl.false_value_param.empty()) {
         op.state_false_value = resolve_param_float(dev, decl.false_value_param, 0.0f);
     }
-}
-
-/// Convert PatchOpKind to NodalPatchKind (1:1 mapping).
-inline NodalPatchKind to_nodal_patch_kind(PatchOpKind k) {
-    switch (k) {
-        case PatchOpKind::AffineClamp:   return NodalPatchKind::AffineClamp;
-        case PatchOpKind::LerpClamped01: return NodalPatchKind::LerpClamped01;
-        case PatchOpKind::BoolSwitch:    return NodalPatchKind::BoolSwitch;
-        case PatchOpKind::IndexSwitch:   return NodalPatchKind::IndexSwitch;
-        case PatchOpKind::CopySignal:    return NodalPatchKind::CopySignal;
-        case PatchOpKind::None:          return NodalPatchKind::BoolSwitch; // unreachable
-    }
-    return NodalPatchKind::BoolSwitch;
 }
 
 /// Build patch ops from solver_role metadata — zero component visitation.

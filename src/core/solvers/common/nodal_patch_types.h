@@ -9,10 +9,9 @@
 ///   - Shared update_nodal_dynamic_sources() (via nodal_patch_ops.h)
 ///
 /// Adding a new kind requires updating:
-///   1. This enum
-///   2. The switch in update_nodal_dynamic_sources() (nodal_patch_ops.h)
-///   3. The JIT build pipeline (build_electrical.cpp etc.)
-///   4. The AOT build_patch_ops() (electrical_codegen.cpp)
+///   1. This enum (and PatchOpKind in component_types.h)
+///   2. to_nodal_patch_kind() in nodal_patch_convert.h
+///   3. The switch in update_nodal_dynamic_sources() (nodal_patch_ops.h)
 
 #include <cstdint>
 

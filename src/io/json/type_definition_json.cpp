@@ -122,6 +122,34 @@ DeviceInstance parse_device(const json& j) {
 
 } // namespace json_io_detail
 
+namespace json_io_detail {
+
+std::optional<PatchOpDecl> parse_patch_op(const json& po) {
+    if (!po.is_object()) return std::nullopt;
+
+    PatchOpDecl decl;
+    if (po.contains("kind") && po["kind"].is_string()) {
+        decl.kind = parse_patch_op_kind(po["kind"].get<std::string>());
+    }
+    if (po.contains("signal_ports") && po["signal_ports"].is_array()) {
+        for (const auto& p : po["signal_ports"]) {
+            if (p.is_string()) decl.signal_ports.push_back(p.get<std::string>());
+        }
+    }
+    if (po.contains("true_value") && po["true_value"].is_string()) {
+        decl.true_value_param = po["true_value"].get<std::string>();
+    }
+    if (po.contains("false_value") && po["false_value"].is_string()) {
+        decl.false_value_param = po["false_value"].get<std::string>();
+    }
+    if (po.contains("multi_handle") && po["multi_handle"].is_boolean()) {
+        decl.multi_handle = po["multi_handle"].get<bool>();
+    }
+    return decl;
+}
+
+} // namespace json_io_detail
+
 std::pair<ComponentSpec, TypePresentation> parse_type_definition(const json& j) {
     TypePresentation pres;
 
@@ -205,33 +233,9 @@ std::pair<ComponentSpec, TypePresentation> parse_type_definition(const json& j) 
                     role.value_map[key] = value.get<float>();
                 }
             }
-            // Parse optional patch_op (supports both "patch_op" and test JSON format).
-            const auto* po_src = &sr["patch_op"];
-            bool has_patch_op = sr.contains("patch_op") && po_src->is_object();
-            if (!has_patch_op && sr.contains("patch_op") && !sr["patch_op"].is_object()) {
-                // patch_op exists but isn't an object — skip
-            }
-            if (has_patch_op) {
-                const auto& po = *po_src;
-                PatchOpDecl decl;
-                if (po.contains("kind") && po["kind"].is_string()) {
-                    decl.kind = parse_patch_op_kind(po["kind"].get<std::string>());
-                }
-                if (po.contains("signal_ports") && po["signal_ports"].is_array()) {
-                    for (const auto& p : po["signal_ports"]) {
-                        if (p.is_string()) decl.signal_ports.push_back(p.get<std::string>());
-                    }
-                }
-                if (po.contains("true_value") && po["true_value"].is_string()) {
-                    decl.true_value_param = po["true_value"].get<std::string>();
-                }
-                if (po.contains("false_value") && po["false_value"].is_string()) {
-                    decl.false_value_param = po["false_value"].get<std::string>();
-                }
-                if (po.contains("multi_handle") && po["multi_handle"].is_boolean()) {
-                    decl.multi_handle = po["multi_handle"].get<bool>();
-                }
-                role.patch_op = std::move(decl);
+            // Parse optional patch_op declaration.
+            if (sr.contains("patch_op") && sr["patch_op"].is_object()) {
+                role.patch_op = json_io_detail::parse_patch_op(sr["patch_op"]);
             }
             prim.solver.solver_role = role;
         }
