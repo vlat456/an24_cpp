@@ -1,70 +1,12 @@
 #include "simulator.h"
 #include "build_common.h"
+#include "core/solvers/common/nodal_patch_ops.h"
 #include "core/solvers/common/signal_key.h"
 #include "../../../parse_number.h"
 #include <algorithm>
 #include <cmath>
 
 namespace {
-
-/// Pre-solve pass: apply compiled nodal patch operations.
-/// Domain-agnostic: works for electrical, hydraulic, or any nodal domain.
-void update_nodal_dynamic_sources(
-    const std::vector<NodalPatchOp>& ops,
-    SimulationState& st,
-    NodalRuntimeState& rt)
-{
-    const uint32_t signal_count = static_cast<uint32_t>(st.values.size());
-
-    for (const auto& op : ops) {
-        if (op.element_id >= rt.element_value_a.size()) {
-            continue;
-        }
-
-        // Guard: all signal operands must be in-bounds. Prevents UB if a
-        // port mapping is missing (JitProvider returns UNMAPPED = UINT32_MAX
-        // for unmapped ports — debug asserts, but release would be OOB).
-        if (op.s0 >= signal_count) continue;
-
-        float out = rt.element_value_a[op.element_id];
-        switch (op.kind) {
-            case NodalPatchKind::AffineClamp: {
-                if (op.s4 >= signal_count) continue;  // s1-s4 all needed
-                float cmd = st.values[op.s0];
-                float gain = st.values[op.s1];
-                float offset = st.values[op.s2];
-                float min_v = st.values[op.s3];
-                float max_v = st.values[op.s4];
-                out = std::clamp(cmd * gain + offset, min_v, max_v);
-                break;
-            }
-            case NodalPatchKind::LerpClamped01: {
-                if (op.s2 >= signal_count) continue;  // s1-s2 needed
-                float cmd = st.values[op.s0];
-                float lo = st.values[op.s1];
-                float hi = st.values[op.s2];
-                float t = std::clamp(cmd, 0.0f, 1.0f);
-                out = lo + (hi - lo) * t;
-                break;
-            }
-            case NodalPatchKind::BoolSwitch: {
-                const bool state = st.values[op.s0] > 0.5f;
-                out = state ? op.state_true_value : op.state_false_value;
-                break;
-            }
-            case NodalPatchKind::IndexSwitch: {
-                const int idx = static_cast<int>(st.values[op.s0]);
-                out = (idx == op.index_value) ? op.state_true_value : op.state_false_value;
-                break;
-            }
-            case NodalPatchKind::CopySignal: {
-                out = st.values[op.s0];
-                break;
-            }
-        }
-        rt.element_value_a[op.element_id] = out;
-    }
-}
 
 /// Commit pass for solver-owned components that need per-frame state integration.
 /// Uses compiled commit ops to avoid per-frame per-type branching.
