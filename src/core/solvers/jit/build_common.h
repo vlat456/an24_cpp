@@ -111,12 +111,29 @@ inline bool should_bind_handle(const SolverRole& role) {
 }
 
 // =====================================================================
+// Element ID → device name lookup — shared by all handle assignment.
+// =====================================================================
+
+/// Build O(1) lookup: element_id → device_name (skips empty device names).
+inline std::unordered_map<uint32_t, std::string> build_element_id_to_device(
+    const std::vector<GenericRawElement<NodalElementKind>>& raw_elements)
+{
+    std::unordered_map<uint32_t, std::string> map;
+    map.reserve(raw_elements.size());
+    for (const auto& raw_elem : raw_elements) {
+        if (!raw_elem.device_name.empty()) {
+            map[static_cast<uint32_t>(raw_elem.element_id)] = raw_elem.device_name;
+        }
+    }
+    return map;
+}
+
+// =====================================================================
 // Generic single-handle assignment — used by hydraulic and pneumatic.
 //
 // Walks island elements, matches those with bound device names back to
 // the component variant, and sets the domain-specific handle member via
-// a visitor callback. This avoids the triplication of the element_id →
-// device_name → variant → handle assignment loop across domain files.
+// a visitor callback.
 // =====================================================================
 
 /// Assign handles from island elements to component variants.
@@ -130,14 +147,7 @@ void assign_single_handles(
     HandleSetter&& handle_setter,
     const char* domain_label)
 {
-    // Build O(1) lookup: element_id -> device_name
-    std::unordered_map<uint32_t, std::string> element_id_to_device;
-    element_id_to_device.reserve(raw_elements.size());
-    for (const auto& raw_elem : raw_elements) {
-        if (!raw_elem.device_name.empty()) {
-            element_id_to_device[static_cast<uint32_t>(raw_elem.element_id)] = raw_elem.device_name;
-        }
-    }
+    const auto element_id_to_device = build_element_id_to_device(raw_elements);
 
     for (size_t island_idx = 0; island_idx < islands.size(); ++island_idx) {
         const auto& island = islands[island_idx];

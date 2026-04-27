@@ -108,14 +108,7 @@ static void assign_electrical_handles(
     const std::vector<NodalIslandPlan>& islands,
     BuildDeviceStore& devices)
 {
-    // Build element_id → device_name lookup
-    std::unordered_map<uint32_t, std::string> element_id_to_device;
-    element_id_to_device.reserve(raw_elements.size());
-    for (const auto& raw_elem : raw_elements) {
-        if (!raw_elem.device_name.empty()) {
-            element_id_to_device[static_cast<uint32_t>(raw_elem.element_id)] = raw_elem.device_name;
-        }
-    }
+    const auto element_id_to_device = build_common::build_element_id_to_device(raw_elements);
 
     for (size_t island_idx = 0; island_idx < islands.size(); ++island_idx) {
         const auto& island = islands[island_idx];
