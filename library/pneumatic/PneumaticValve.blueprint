@@ -69,6 +69,12 @@
     },
     "values": {
       "bind_handle": 1.0
+    },
+    "patch_op": {
+      "kind": "BoolSwitch",
+      "signal_ports": ["state"],
+      "true_value": "g_open",
+      "false_value": "g_closed"
     }
   }
 }

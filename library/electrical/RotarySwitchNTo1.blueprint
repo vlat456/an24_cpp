@@ -109,6 +109,13 @@
     },
     "values": {
       "bind_handle": 1.0
+    },
+    "patch_op": {
+      "kind": "IndexSwitch",
+      "signal_ports": ["position"],
+      "true_value": "g_closed",
+      "false_value": "g_open",
+      "multi_handle": true
     }
   },
   "content_type": "Knob"

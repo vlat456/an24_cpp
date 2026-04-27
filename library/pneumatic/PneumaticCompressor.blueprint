@@ -70,6 +70,10 @@
     "values": {
       "pressure": 0.0,
       "bind_handle": 1.0
+    },
+    "patch_op": {
+      "kind": "CopySignal",
+      "signal_ports": ["p_source"]
     }
   }
 }

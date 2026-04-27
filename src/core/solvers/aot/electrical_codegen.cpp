@@ -480,9 +480,8 @@ void build_component_debug(
 }
 
 // ===== Section 8: Patch Op Generation =====
-// Build NodalPatchOp arrays from device data for AOT codegen.
-// Mirrors the JIT build_electrical_patch_ops() logic but uses ResolvedDevice
-// data instead of live component variants.
+// Build NodalPatchOp arrays from PatchOpDecl metadata.
+// Zero component-type visitation — all patch ops derived from solver_role.patch_op.
 
 /// Look up a signal index by device name and port name. Returns UINT32_MAX if not found.
 static uint32_t lookup_signal(
@@ -515,6 +514,40 @@ static uint32_t lookup_element_id(
     return (it != binding_map.end()) ? it->second : UINT32_MAX;
 }
 
+/// Fill a NodalPatchOp from PatchOpDecl metadata and AOT port_to_signal.
+static void fill_aot_patch_op(
+    NodalPatchOp& op,
+    const PatchOpDecl& decl,
+    const ResolvedDevice& dev,
+    const std::unordered_map<std::string, uint32_t>& port_to_signal)
+{
+    const size_t n_signals = std::min(decl.signal_ports.size(), size_t(5));
+    uint32_t* targets[] = { &op.s0, &op.s1, &op.s2, &op.s3, &op.s4 };
+    for (size_t i = 0; i < n_signals; ++i) {
+        *targets[i] = lookup_signal(dev.name, decl.signal_ports[i], port_to_signal);
+    }
+
+    if (!decl.true_value_param.empty()) {
+        op.state_true_value = lookup_param(dev, decl.true_value_param, 0.0f);
+    }
+    if (!decl.false_value_param.empty()) {
+        op.state_false_value = lookup_param(dev, decl.false_value_param, 0.0f);
+    }
+}
+
+/// Convert PatchOpKind to NodalPatchKind (1:1 mapping).
+static NodalPatchKind to_nodal_patch_kind(PatchOpKind k) {
+    switch (k) {
+        case PatchOpKind::AffineClamp:   return NodalPatchKind::AffineClamp;
+        case PatchOpKind::LerpClamped01: return NodalPatchKind::LerpClamped01;
+        case PatchOpKind::BoolSwitch:    return NodalPatchKind::BoolSwitch;
+        case PatchOpKind::IndexSwitch:   return NodalPatchKind::IndexSwitch;
+        case PatchOpKind::CopySignal:    return NodalPatchKind::CopySignal;
+        case PatchOpKind::None:          return NodalPatchKind::BoolSwitch;
+    }
+    return NodalPatchKind::BoolSwitch;
+}
+
 void build_patch_ops(
     const std::vector<ResolvedDevice>& devices,
     const std::unordered_map<std::string, uint32_t>& port_to_signal,
@@ -531,68 +564,38 @@ void build_patch_ops(
     }
 
     for (const auto& dev : devices) {
+        if (!dev.solver_role.has_value()) continue;
+        const auto& role = *dev.solver_role;
+        if (!role.patch_op.has_value()) continue;
+        const auto& decl = *role.patch_op;
+        if (decl.kind == PatchOpKind::None) continue;
+
         const std::string field = codegen_detail::sanitize_name(dev.name);
 
-        if (dev.kind == ComponentKind::ControlledVoltageSource) {
-            uint32_t eid = lookup_element_id(field, binding_map);
-            if (eid == UINT32_MAX) continue;
-            NodalPatchOp op;
-            op.kind = NodalPatchKind::AffineClamp;
-            op.element_id = eid;
-            op.s0 = lookup_signal(dev.name, "cmd", port_to_signal);
-            op.s1 = lookup_signal(dev.name, "gain", port_to_signal);
-            op.s2 = lookup_signal(dev.name, "offset", port_to_signal);
-            op.s3 = lookup_signal(dev.name, "min_v", port_to_signal);
-            op.s4 = lookup_signal(dev.name, "max_v", port_to_signal);
-            if (op.s0 == UINT32_MAX) continue;
-            patch_ops.push_back(op);
-        }
-        else if (dev.kind == ComponentKind::VariableConductance) {
-            uint32_t eid = lookup_element_id(field, binding_map);
-            if (eid == UINT32_MAX) continue;
-            NodalPatchOp op;
-            op.kind = NodalPatchKind::LerpClamped01;
-            op.element_id = eid;
-            op.s0 = lookup_signal(dev.name, "cmd", port_to_signal);
-            op.s1 = lookup_signal(dev.name, "g_min", port_to_signal);
-            op.s2 = lookup_signal(dev.name, "g_max", port_to_signal);
-            if (op.s0 == UINT32_MAX) continue;
-            patch_ops.push_back(op);
-        }
-        else if (dev.kind == ComponentKind::AZS ||
-                 dev.kind == ComponentKind::HoldButton ||
-                 dev.kind == ComponentKind::Relay) {
-            uint32_t eid = lookup_element_id(field, binding_map);
-            if (eid == UINT32_MAX) continue;
-            NodalPatchOp op;
-            op.kind = NodalPatchKind::BoolSwitch;
-            op.element_id = eid;
-            op.s0 = lookup_signal(dev.name, "state", port_to_signal);
-            op.state_true_value = lookup_param(dev, "g_closed", 1000.0f);
-            op.state_false_value = lookup_param(dev, "g_open", 1e-6f);
-            if (op.s0 == UINT32_MAX) continue;
-            patch_ops.push_back(op);
-        }
-        else if (is_knob_switch_kind(dev.kind)) {
-            // IndexSwitch: one patch op per handle (throw position).
-            // KnobSwitch generates multiple ConductanceBranch elements, each with
-            // its own binding named "device_0", "device_1", etc.
-            int num_positions = static_cast<int>(lookup_param(dev, "positions", 2.0f));
-            float g_closed = lookup_param(dev, "g_closed", 1000.0f);
-            float g_open = lookup_param(dev, "g_open", 1e-6f);
-
-            for (int i = 0; i < num_positions; ++i) {
+        if (decl.multi_handle) {
+            for (int i = 0; ; ++i) {
                 std::string indexed_name = field + "_" + std::to_string(i);
                 uint32_t eid = lookup_element_id(indexed_name, binding_map);
-                if (eid == UINT32_MAX) continue;
+                if (eid == UINT32_MAX) break;
+
                 NodalPatchOp op;
-                op.kind = NodalPatchKind::IndexSwitch;
+                op.kind = to_nodal_patch_kind(decl.kind);
                 op.element_id = eid;
-                op.s0 = lookup_signal(dev.name, "position", port_to_signal);
                 op.index_value = i;
-                op.state_true_value = g_closed;
-                op.state_false_value = g_open;
-                if (op.s0 == UINT32_MAX) continue;
+                fill_aot_patch_op(op, decl, dev, port_to_signal);
+                if (op.s0 != UINT32_MAX) {
+                    patch_ops.push_back(op);
+                }
+            }
+        } else {
+            uint32_t eid = lookup_element_id(field, binding_map);
+            if (eid == UINT32_MAX) continue;
+
+            NodalPatchOp op;
+            op.kind = to_nodal_patch_kind(decl.kind);
+            op.element_id = eid;
+            fill_aot_patch_op(op, decl, dev, port_to_signal);
+            if (op.s0 != UINT32_MAX) {
                 patch_ops.push_back(op);
             }
         }

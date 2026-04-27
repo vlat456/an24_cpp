@@ -1,44 +1,28 @@
 /// Pneumatic domain build pipeline — element extraction, island grouping,
 /// handle assignment, patch ops, and step ops.
 ///
-/// Uses the same architectural patterns as hydraulic: schema-registered
-/// extractors, union-find island grouping, structural typing for handles.
-/// The unified nodal subsolver handles the actual solve — this file only
-/// produces NodalElement structs with NodalElementKind values.
+/// Uses the same patterns as hydraulic: schema-registered extractors,
+/// union-find island grouping, structural typing for handles, metadata-driven
+/// patch ops.
 
 #include "jit_solver_internal.h"
 #include "build_common.h"
 #include "../common/signal_key.h"
-// Component headers for visit-based build ops.
+// Component headers for step ops only (patch ops are metadata-driven).
 #include "components/pneumatic_compressor.h"
 #include "components/pneumatic_valve.h"
 #include "core/solvers/common/provider.h"
 
 namespace jit_solver_impl {
 
-// =====================================================================
-// RawElement — alias for shared GenericRawElement
-// =====================================================================
-
 using RawElement = build_common::GenericRawElement<NodalElementKind>;
-
-// =====================================================================
-// Element extraction: function-pointer table
-// =====================================================================
-
 using Extractor = build_common::ElementExtractor<RawElement>;
-
-// ---- The extractor table (shared pressure-domain extractors) ----
 
 static const Extractor k_pneumatic_extractors[] = {
     {SolverRoleKind::FixedPressureNode, &build_common::extract_fixed_pressure_node<RawElement>},
     {SolverRoleKind::PressureSource,    &build_common::extract_pressure_source<RawElement>},
     {SolverRoleKind::FlowBranch,        &build_common::extract_flow_branch<RawElement>},
 };
-
-// =====================================================================
-// Phase 1: Extract raw pneumatic elements from solver_role devices
-// =====================================================================
 
 static std::vector<RawElement> extract_pneumatic_raw_elements(
     const std::vector<SolverDevice>& devices,
@@ -52,8 +36,6 @@ static std::vector<RawElement> extract_pneumatic_raw_elements(
     for (const auto& dev : devices) {
         if (!dev.solver_role.has_value()) continue;
         const auto& role = *dev.solver_role;
-
-        // Only process pneumatic domain solver_roles.
         if (role.domain != Domain::Pneumatic) continue;
 
         const auto* extractor = build_common::find_extractor(
@@ -70,15 +52,6 @@ static std::vector<RawElement> extract_pneumatic_raw_elements(
 
     return raw_elements;
 }
-
-// =====================================================================
-// Phase 3: Assign NodalPrimitiveHandle to component variants
-//          (delegates to build_common::assign_single_handles)
-// =====================================================================
-
-// =====================================================================
-// Orchestrator: build_pneumatic_islands
-// =====================================================================
 
 void build_pneumatic_islands(
     BuildResult& result,
@@ -97,49 +70,18 @@ void build_pneumatic_islands(
                 }
             }, variant);
         }, "Pneumatic");
+
+    // Data-driven patch ops from solver_role.patch_op metadata.
+    auto element_id_map = build_common::build_element_id_map(raw_elements);
+    build_common::build_patch_ops_from_metadata(
+        result.pneumatic.patch_ops, devices, element_id_map,
+        result.port_to_signal, result.signal_key_interner);
 }
 
 // =====================================================================
-// Pneumatic patch ops + solver step ops
+// Pneumatic step ops (structural typing)
 // =====================================================================
 
-void build_pneumatic_patch_ops(BuildResult& result)
-{
-    result.pneumatic.patch_ops.clear();
-
-    auto add_op = [&](const NodalPatchOp& op) {
-        if (op.element_id == UINT32_MAX) return;
-        result.pneumatic.patch_ops.push_back(op);
-    };
-
-    result.devices.for_each_mutable([&](const std::string&, ComponentVariant& variant) {
-        std::visit([&](auto& comp) {
-            using T = std::decay_t<decltype(comp)>;
-
-            if constexpr (std::is_same_v<T, PneumaticValve<JitProvider>>) {
-                if (!is_valid(comp.pneumatic_handle)) return;
-                NodalPatchOp op;
-                op.kind = NodalPatchKind::BoolSwitch;
-                op.element_id = comp.pneumatic_handle.element_id;
-                op.s0 = comp.provider.get(PortNames::state);
-                op.state_true_value = comp.g_open;
-                op.state_false_value = comp.g_closed;
-                add_op(op);
-            }
-            else if constexpr (std::is_same_v<T, PneumaticCompressor<JitProvider>>) {
-                if (!is_valid(comp.pneumatic_handle)) return;
-                NodalPatchOp op;
-                op.kind = NodalPatchKind::CopySignal;
-                op.element_id = comp.pneumatic_handle.element_id;
-                op.s0 = comp.provider.get(PortNames::p_source);
-                add_op(op);
-            }
-        }, variant);
-    });
-}
-
-// Trait: true for component types that participate in the pneumatic solver's
-// per-frame execute/commit cycle.
 template<typename T>
 constexpr bool is_pneumatic_solver_owned_v = requires(T t) {
     { t.pneumatic_handle } -> std::same_as<NodalPrimitiveHandle&>;

@@ -355,4 +355,165 @@ void assign_single_handles(
 }
 
 } // namespace build_common
+
+// =====================================================================
+// Data-driven patch op builder — replaces all per-component if-chains.
+//
+// Builds NodalPatchOp arrays from solver_role.patch_op metadata.
+// Zero component visitation — all signal indices and element IDs are
+// resolved from device/port metadata. Works identically for JIT and AOT.
+// =====================================================================
+
+namespace build_common {
+
+/// Build device_name → element_id map from raw extraction results.
+/// For multi-handle devices (same device_name appearing N times), elements
+/// are indexed as "device_0", "device_1", etc. to match PatchOpDecl's
+/// multi_handle convention.
+inline std::unordered_map<std::string, uint32_t> build_element_id_map(
+    const std::vector<GenericRawElement<NodalElementKind>>& raw_elements)
+{
+    // Group by device_name to detect multi-handle
+    std::unordered_map<std::string, std::vector<uint32_t>> device_elements;
+    for (const auto& elem : raw_elements) {
+        if (!elem.device_name.empty()) {
+            device_elements[elem.device_name].push_back(
+                static_cast<uint32_t>(elem.element_id));
+        }
+    }
+
+    std::unordered_map<std::string, uint32_t> result;
+    result.reserve(raw_elements.size());
+    for (auto& [name, ids] : device_elements) {
+        if (ids.size() == 1) {
+            result[name] = ids[0];
+        } else {
+            for (size_t i = 0; i < ids.size(); ++i) {
+                result[name + "_" + std::to_string(i)] = ids[i];
+            }
+        }
+    }
+    return result;
+}
+
+/// Resolve a signal index from device name + port name.
+/// Returns UINT32_MAX if not found (caller decides whether to skip).
+inline uint32_t resolve_port_signal(
+    const std::string& device_name,
+    const std::string& port_name,
+    const PortToSignal& port_to_signal,
+    const core::StringInterner& interner)
+{
+    const std::string full_key = signal_key::make_node_port_key(device_name, port_name);
+    const core::InternedId id = interner.lookup(full_key);
+    if (id.empty()) return UINT32_MAX;
+    auto it = port_to_signal.find(id);
+    return (it != port_to_signal.end()) ? it->second : UINT32_MAX;
+}
+
+/// Resolve a float param from a SolverDevice. Returns default_val if not found.
+inline float resolve_param_float(
+    const SolverDevice& dev,
+    const std::string& param_name,
+    float default_val)
+{
+    auto it = dev.params.find(param_name);
+    if (it == dev.params.end()) return default_val;
+    return locale_safe::parse_float_or(it->second, default_val);
+}
+
+/// Fill a NodalPatchOp from PatchOpDecl metadata.
+/// Resolves signal ports from port_to_signal and constant values from device params.
+inline void fill_patch_op_from_decl(
+    NodalPatchOp& op,
+    const PatchOpDecl& decl,
+    const SolverDevice& dev,
+    const PortToSignal& port_to_signal,
+    const core::StringInterner& interner)
+{
+    // Resolve signal ports → s0..s4
+    const size_t n_signals = std::min(decl.signal_ports.size(), size_t(5));
+    uint32_t* targets[] = { &op.s0, &op.s1, &op.s2, &op.s3, &op.s4 };
+    for (size_t i = 0; i < n_signals; ++i) {
+        *targets[i] = resolve_port_signal(
+            dev.name, decl.signal_ports[i], port_to_signal, interner);
+    }
+
+    // Resolve constant output values from device params.
+    // For BoolSwitch/IndexSwitch: true_value_param and false_value_param.
+    if (!decl.true_value_param.empty()) {
+        op.state_true_value = resolve_param_float(dev, decl.true_value_param, 0.0f);
+    }
+    if (!decl.false_value_param.empty()) {
+        op.state_false_value = resolve_param_float(dev, decl.false_value_param, 0.0f);
+    }
+}
+
+/// Convert PatchOpKind to NodalPatchKind (1:1 mapping).
+inline NodalPatchKind to_nodal_patch_kind(PatchOpKind k) {
+    switch (k) {
+        case PatchOpKind::AffineClamp:   return NodalPatchKind::AffineClamp;
+        case PatchOpKind::LerpClamped01: return NodalPatchKind::LerpClamped01;
+        case PatchOpKind::BoolSwitch:    return NodalPatchKind::BoolSwitch;
+        case PatchOpKind::IndexSwitch:   return NodalPatchKind::IndexSwitch;
+        case PatchOpKind::CopySignal:    return NodalPatchKind::CopySignal;
+        case PatchOpKind::None:          return NodalPatchKind::BoolSwitch; // unreachable
+    }
+    return NodalPatchKind::BoolSwitch;
+}
+
+/// Build patch ops from solver_role metadata — zero component visitation.
+/// Replaces the per-component-type if-chains in build_electrical/hydraulic/pneumatic.cpp.
+/// `element_id_map` is from build_element_id_map() (raw extraction results).
+inline void build_patch_ops_from_metadata(
+    std::vector<NodalPatchOp>& patch_ops,
+    const std::vector<SolverDevice>& devices,
+    const std::unordered_map<std::string, uint32_t>& element_id_map,
+    const PortToSignal& port_to_signal,
+    const core::StringInterner& interner)
+{
+    patch_ops.clear();
+
+    for (const auto& dev : devices) {
+        if (!dev.solver_role.has_value()) continue;
+        const auto& role = *dev.solver_role;
+        if (!role.patch_op.has_value()) continue;
+        const auto& decl = *role.patch_op;
+        if (decl.kind == PatchOpKind::None) continue;
+
+        if (decl.multi_handle) {
+            // Multi-handle: one patch op per indexed element.
+            for (int i = 0; ; ++i) {
+                std::string indexed_name = dev.name + "_" + std::to_string(i);
+                auto it = element_id_map.find(indexed_name);
+                if (it == element_id_map.end()) break;
+
+                NodalPatchOp op;
+                op.kind = to_nodal_patch_kind(decl.kind);
+                op.element_id = it->second;
+                op.index_value = i;
+                fill_patch_op_from_decl(op, decl, dev, port_to_signal, interner);
+
+                if (op.element_id != UINT32_MAX && op.s0 != UINT32_MAX) {
+                    patch_ops.push_back(op);
+                }
+            }
+        } else {
+            // Single-handle: one patch op.
+            auto it = element_id_map.find(dev.name);
+            if (it == element_id_map.end()) continue;
+
+            NodalPatchOp op;
+            op.kind = to_nodal_patch_kind(decl.kind);
+            op.element_id = it->second;
+            fill_patch_op_from_decl(op, decl, dev, port_to_signal, interner);
+
+            if (op.element_id != UINT32_MAX && op.s0 != UINT32_MAX) {
+                patch_ops.push_back(op);
+            }
+        }
+    }
+}
+
+} // namespace build_common
 } // namespace jit_solver_impl

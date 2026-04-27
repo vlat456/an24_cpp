@@ -89,6 +89,10 @@
     "values": {
       "voltage": 0.0,
       "bind_handle": 1.0
+    },
+    "patch_op": {
+      "kind": "AffineClamp",
+      "signal_ports": ["cmd", "gain", "offset", "min_v", "max_v"]
     }
   }
 }

@@ -77,12 +77,82 @@ inline const char* scheduler_role_kind_name(SchedulerRoleKind k) {
     return "Unknown";
 }
 
+// == Patch Op Declaration — data-driven dynamic source patching ==
+
+/// Kind of pre-solve patch operation applied before each nodal solve.
+/// Domain-agnostic: used by electrical, hydraulic, and pneumatic domains.
+/// 1:1 mapping to NodalPatchKind in nodal_patch_types.h.
+enum class PatchOpKind : uint8_t {
+    None,           ///< Static element, no dynamic patching (Resistor, etc.)
+    AffineClamp,    ///< cmd*gain+offset clamped to [min,max]
+    LerpClamped01,  ///< lerp(lo, hi, clamp(cmd, 0, 1))
+    BoolSwitch,     ///< signal > 0.5f → true/false value
+    IndexSwitch,    ///< int(signal) == index → true/false value (multi-handle)
+    CopySignal      ///< copy signal value to element_value_a
+};
+
+/// Parse a patch_op "kind" string into typed enum. Throws on unknown value.
+inline PatchOpKind parse_patch_op_kind(const std::string& s) {
+    if (s == "AffineClamp")    return PatchOpKind::AffineClamp;
+    if (s == "LerpClamped01")  return PatchOpKind::LerpClamped01;
+    if (s == "BoolSwitch")     return PatchOpKind::BoolSwitch;
+    if (s == "IndexSwitch")    return PatchOpKind::IndexSwitch;
+    if (s == "CopySignal")     return PatchOpKind::CopySignal;
+    throw std::runtime_error("Unknown patch_op kind '" + s + "'");
+}
+
+/// Convert PatchOpKind back to string (for diagnostics).
+inline const char* patch_op_kind_name(PatchOpKind k) {
+    switch (k) {
+        case PatchOpKind::None:          return "None";
+        case PatchOpKind::AffineClamp:   return "AffineClamp";
+        case PatchOpKind::LerpClamped01: return "LerpClamped01";
+        case PatchOpKind::BoolSwitch:    return "BoolSwitch";
+        case PatchOpKind::IndexSwitch:   return "IndexSwitch";
+        case PatchOpKind::CopySignal:    return "CopySignal";
+    }
+    return "Unknown";
+}
+
+/// Declares how a solver_role's element gets dynamically patched each frame.
+/// This is the metadata that replaces per-component-type if-chains in the
+/// build pipeline. Every field is derivable from blueprint JSON — zero C++
+/// component visitation needed.
+struct PatchOpDecl {
+    PatchOpKind kind = PatchOpKind::None;
+
+    /// Interface port names to read as signal-driven operands.
+    /// Resolved via device_name + port_name → port_to_signal at build time.
+    ///   AffineClamp:   [cmd, gain, offset, min_v, max_v]  (up to 5)
+    ///   LerpClamped01: [cmd, g_min, g_max]
+    ///   BoolSwitch:    [state]
+    ///   IndexSwitch:   [position]
+    ///   CopySignal:    [source]
+    std::vector<std::string> signal_ports;
+
+    /// Param names for constant output values.
+    /// Resolved via param_map → device.params at build time.
+    /// Empty for signal-only kinds (AffineClamp, LerpClamped01, CopySignal).
+    std::string true_value_param;
+    std::string false_value_param;
+
+    /// True for multi-handle components (KnobSwitchBranches).
+    /// When true, one patch op per element is generated using indexed
+    /// element_id lookup (device_name_0, device_name_1, ...).
+    bool multi_handle = false;
+};
+
+// == Core model types ==
+
 struct SolverRole {
     SolverRoleKind kind;
     Domain domain = Domain::Electrical;
     std::unordered_map<std::string, std::string> port_map;
     std::unordered_map<std::string, std::string> param_map;
     std::unordered_map<std::string, float> value_map;
+
+    /// Patch op declaration for this solver role. Absent means static element.
+    std::optional<PatchOpDecl> patch_op;
 };
 
 enum class ParamSchemaType {

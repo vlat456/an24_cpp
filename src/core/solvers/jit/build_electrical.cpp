@@ -1,7 +1,14 @@
+/// Electrical domain build pipeline — element extraction, island grouping,
+/// handle assignment, patch ops, and step ops.
+///
+/// Patch ops are built from solver_role.patch_op metadata — zero component
+/// visitation. Adding a new solver-owned component requires only a blueprint
+/// JSON change, no build pipeline edits.
+
 #include "jit_solver_internal.h"
 #include "build_common.h"
 #include "../common/signal_key.h"
-// Component headers for visit-based build ops (patch ops + step ops).
+// Component headers for step ops only (patch ops are metadata-driven).
 #include "components/controlled_voltage_source.h"
 #include "components/variable_conductance.h"
 #include "components/azs.h"
@@ -118,8 +125,6 @@ static const Extractor k_electrical_extractors[] = {
 // Phase 1: Extract raw electrical elements from solver_role devices
 // =====================================================================
 
-/// Extract raw electrical elements from all devices that have a solver_role.
-/// Dispatches to registered extractor functions — no if-else chain.
 static std::vector<RawElement> extract_raw_elements(
     const std::vector<SolverDevice>& devices,
     const PortToSignal& port_to_signal,
@@ -133,8 +138,6 @@ static std::vector<RawElement> extract_raw_elements(
         if (!dev.solver_role.has_value()) continue;
         const auto& role = *dev.solver_role;
 
-        // Skip solver_roles for non-electrical domains (e.g., Hydraulic).
-        // These are handled by their respective domain extractors.
         if (role.domain != Domain::Electrical) continue;
 
         const auto* extractor = build_common::find_extractor(
@@ -153,22 +156,13 @@ static std::vector<RawElement> extract_raw_elements(
 }
 
 // =====================================================================
-// Phase 2: Group raw elements into connected islands via union-find
-// (delegates to build_common)
-// =====================================================================
-
-// =====================================================================
 // Phase 3: Assign NodalPrimitiveHandle to component variants
 // =====================================================================
 
-/// Assign handles from island elements to their owning component variants.
-/// Multi-handle components (KnobSwitch) get sequential handles; single-handle
-/// components get one handle.
 static void assign_handles(
     const std::vector<RawElement>& raw_elements,
     BuildResult& result)
 {
-    // Build O(1) lookup: element_id -> device_name
     std::unordered_map<uint32_t, std::string> element_id_to_device;
     element_id_to_device.reserve(raw_elements.size());
     for (const auto& raw_elem : raw_elements) {
@@ -177,13 +171,12 @@ static void assign_handles(
         }
     }
 
-    // Assign handles from island elements
     for (size_t island_idx = 0; island_idx < result.electrical.plan.islands.size(); ++island_idx) {
         const auto& island = result.electrical.plan.islands[island_idx];
         for (size_t elem_idx = 0; elem_idx < island.elements.size(); ++elem_idx) {
             const auto& elem = island.elements[elem_idx];
             auto it_name = element_id_to_device.find(elem.element_id);
-            if (it_name == element_id_to_device.end()) continue;  // Element without handle (e.g. Resistor)
+            if (it_name == element_id_to_device.end()) continue;
 
             const std::string& device_name = it_name->second;
             ComponentVariant* variant = result.devices.find_mutable(device_name);
@@ -199,13 +192,11 @@ static void assign_handles(
 
             std::visit([&](auto& comp) {
                 using T = std::decay_t<decltype(comp)>;
-                // Multi-handle: KnobSwitch/RotarySwitch (has electrical_handles[] + num_handles)
                 if constexpr (requires { comp.electrical_handles; comp.num_handles; }) {
                     if (comp.num_handles < T::MAX_POSITIONS) {
                         comp.electrical_handles[comp.num_handles++] = handle;
                     }
                 }
-                // Single-handle: all other solver-owned components (has electrical_handle)
                 else if constexpr (requires { comp.electrical_handle; }) {
                     comp.electrical_handle = handle;
                 }
@@ -216,6 +207,8 @@ static void assign_handles(
 
 // =====================================================================
 // Orchestrator: build_electrical_islands
+// Handles extraction, island grouping, handle assignment,
+// AND metadata-driven patch op building in one pass.
 // =====================================================================
 
 void build_electrical_islands(
@@ -225,88 +218,21 @@ void build_electrical_islands(
     auto raw_elements = extract_raw_elements(devices, result.port_to_signal, result.signal_key_interner);
     build_common::group_into_islands<RawElement, NodalIslandPlan>(raw_elements, result.electrical.plan);
     assign_handles(raw_elements, result);
+
+    // Data-driven patch ops from solver_role.patch_op metadata.
+    auto element_id_map = build_common::build_element_id_map(raw_elements);
+    build_common::build_patch_ops_from_metadata(
+        result.electrical.patch_ops, devices, element_id_map,
+        result.port_to_signal, result.signal_key_interner);
 }
 
 // =====================================================================
-// Electrical patch ops + solver step ops
+// Electrical step ops (structural typing — already generic)
 // =====================================================================
-
-void build_electrical_patch_ops(BuildResult& result)
-{
-    result.electrical.patch_ops.clear();
-
-    auto add_op = [&](const NodalPatchOp& op) {
-        if (op.element_id == UINT32_MAX) return;
-        result.electrical.patch_ops.push_back(op);
-    };
-
-    // Visit each component once — no typed pointer lists needed.
-    // Signal indices are resolved from the component's provider; runtime
-    // patch execution reads from st.values[] with zero indirection.
-    result.devices.for_each_mutable([&](const std::string&, ComponentVariant& variant) {
-        std::visit([&](auto& comp) {
-            using T = std::decay_t<decltype(comp)>;
-
-            if constexpr (std::is_same_v<T, ControlledVoltageSource<JitProvider>>) {
-                if (!is_valid(comp.electrical_handle)) return;
-                NodalPatchOp op;
-                op.kind = NodalPatchKind::AffineClamp;
-                op.element_id = comp.electrical_handle.element_id;
-                op.s0 = comp.provider.get(PortNames::cmd);
-                op.s1 = comp.provider.get(PortNames::gain);
-                op.s2 = comp.provider.get(PortNames::offset);
-                op.s3 = comp.provider.get(PortNames::min_v);
-                op.s4 = comp.provider.get(PortNames::max_v);
-                add_op(op);
-            }
-            else if constexpr (std::is_same_v<T, VariableConductance<JitProvider>>) {
-                if (!is_valid(comp.electrical_handle)) return;
-                NodalPatchOp op;
-                op.kind = NodalPatchKind::LerpClamped01;
-                op.element_id = comp.electrical_handle.element_id;
-                op.s0 = comp.provider.get(PortNames::cmd);
-                op.s1 = comp.provider.get(PortNames::g_min);
-                op.s2 = comp.provider.get(PortNames::g_max);
-                add_op(op);
-            }
-            else if constexpr (std::is_same_v<T, AZS<JitProvider>> ||
-                               std::is_same_v<T, HoldButton<JitProvider>> ||
-                               std::is_same_v<T, Relay<JitProvider>>) {
-                // BoolSwitch: reads committed closed/is_pressed state from signal.
-                // state=true → closed (high conductance), state=false → open (low conductance).
-                if (!is_valid(comp.electrical_handle)) return;
-                NodalPatchOp op;
-                op.kind = NodalPatchKind::BoolSwitch;
-                op.element_id = comp.electrical_handle.element_id;
-                op.s0 = comp.provider.get(PortNames::state);
-                op.state_true_value = comp.g_closed;
-                op.state_false_value = comp.g_open;
-                add_op(op);
-            }
-            else if constexpr (std::is_same_v<T, KnobSwitch<JitProvider>> ||
-                               std::is_same_v<T, RotarySwitch1ToN<JitProvider>> ||
-                               std::is_same_v<T, RotarySwitchNTo1<JitProvider>>) {
-                // IndexSwitch: multi-element knob, one patch op per branch
-                for (int i = 0; i < comp.num_handles; ++i) {
-                    if (!is_valid(comp.electrical_handles[i])) continue;
-                    NodalPatchOp op;
-                    op.kind = NodalPatchKind::IndexSwitch;
-                    op.element_id = comp.electrical_handles[i].element_id;
-                    op.s0 = comp.provider.get(PortNames::position);
-                    op.index_value = i;
-                    op.state_true_value = comp.g_closed;
-                    op.state_false_value = comp.g_open;
-                    add_op(op);
-                }
-            }
-        }, variant);
-    });
-}
 
 // Trait: true for component types that participate in the electrical solver's
 // per-frame execute/commit cycle. Structural — any component with an
-// electrical_handle or electrical_handles member qualifies. New components
-// with handles automatically get step ops without editing this file.
+// electrical_handle or electrical_handles member qualifies.
 template<typename T>
 constexpr bool is_electrical_solver_owned_v = requires(T t) {
     { t.electrical_handle } -> std::same_as<NodalPrimitiveHandle&>;
@@ -319,8 +245,6 @@ void build_solver_step_ops(BuildResult& result)
     result.electrical.execute_ops.clear();
     result.electrical.commit_ops.clear();
 
-    // Single pass over all components — create typed execute/commit adapters
-    // for solver-owned electrical components. No intermediate pointer lists.
     result.devices.for_each_mutable([&](const std::string&, ComponentVariant& variant) {
         std::visit([&](auto& comp) {
             using T = std::decay_t<decltype(comp)>;

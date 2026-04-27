@@ -57,6 +57,10 @@
     "values": {
       "g": 0.001,
       "bind_handle": 1.0
+    },
+    "patch_op": {
+      "kind": "LerpClamped01",
+      "signal_ports": ["cmd", "g_min", "g_max"]
     }
   }
 }

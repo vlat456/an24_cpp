@@ -59,8 +59,6 @@ void build_electrical_islands(
     BuildResult& result,
     const std::vector<SolverDevice>& devices);
 
-void build_electrical_patch_ops(BuildResult& result);
-
 void build_solver_step_ops(BuildResult& result);
 
 /// Hydraulic building functions
@@ -68,16 +66,12 @@ void build_hydraulic_islands(
     BuildResult& result,
     const std::vector<SolverDevice>& devices);
 
-void build_hydraulic_patch_ops(BuildResult& result);
-
 void build_hydraulic_step_ops(BuildResult& result);
 
 /// Pneumatic building functions
 void build_pneumatic_islands(
     BuildResult& result,
     const std::vector<SolverDevice>& devices);
-
-void build_pneumatic_patch_ops(BuildResult& result);
 
 void build_pneumatic_step_ops(BuildResult& result);
 
