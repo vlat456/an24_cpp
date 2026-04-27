@@ -1,9 +1,14 @@
 #pragma once
 
-/// Shared build helpers used by all nodal domain build pipelines
-/// (electrical, hydraulic, pneumatic).
-/// Extends the pure-algorithm layer in build_algorithms.h with JIT-specific
-/// port/param resolution, extractor tables, and handle assignment.
+/// JIT-specific build helpers for nodal domain pipelines.
+///
+/// Extends the pure-algorithm layer in build_algorithms.h with:
+/// - Port/param resolution (InternedId-based, strict: throws on missing)
+/// - Handle assignment (single + electrical multi-handle)
+/// - Patch op context adapter (JitPatchOpContext)
+///
+/// Extraction is now in element_extraction.h — parameterized by ExtractionAdapter.
+/// JIT uses JitExtractionAdapter (in build_nodal_domain.cpp).
 
 #include "jit_solver.h"
 #include "core/solvers/common/signal_key.h"
@@ -28,7 +33,8 @@ using build_algo::init_element_values_from_plan;
 using build_algo::build_element_id_map;
 
 // =====================================================================
-// Port and param resolution — identical across all nodal domains.
+// Port and param resolution — strict (throws on missing).
+// Used by JitExtractionAdapter and patch op context.
 // =====================================================================
 
 inline uint32_t resolve_port(
@@ -105,90 +111,6 @@ inline bool should_bind_handle(const SolverRole& role) {
 }
 
 // =====================================================================
-// Generic extractor table — works for any domain's raw elements.
-// =====================================================================
-
-/// Extractor function signature: converts a device's solver_role into raw elements.
-template<typename RawElem>
-using ExtractorFn = void(*)(
-    const SolverDevice& dev,
-    const SolverRole& role,
-    const PortToSignal& port_to_signal,
-    const core::StringInterner& interner,
-    bool bind_handle,
-    std::vector<RawElem>& out,
-    size_t& element_idx);
-
-/// One entry in the domain-specific extractor table.
-template<typename RawElem>
-struct ElementExtractor {
-    SolverRoleKind kind;
-    ExtractorFn<RawElem> extract;
-};
-
-/// Find extractor by SolverRoleKind. Linear scan over small array.
-template<typename RawElem>
-const ElementExtractor<RawElem>* find_extractor(
-    const ElementExtractor<RawElem>* table, size_t count, SolverRoleKind kind)
-{
-    for (size_t i = 0; i < count; ++i) {
-        if (table[i].kind == kind) return &table[i];
-    }
-    return nullptr;
-}
-
-// =====================================================================
-// Shared pressure-domain extractors — used by hydraulic and pneumatic.
-//
-// Both domains use the same SolverRoleKinds (PressureSource, FlowBranch,
-// FixedPressureNode) with identical extraction logic. Only the domain
-// filter in the calling code differs.
-// =====================================================================
-
-template<typename RawElem>
-void extract_pressure_source(
-    const SolverDevice& dev, const SolverRole& role,
-    const PortToSignal& pts, const core::StringInterner& intern,
-    bool bind_handle, std::vector<RawElem>& out, size_t& element_idx)
-{
-    float pressure = read_role_param_required(dev, role, "pressure");
-    float resistance = read_role_param_required(dev, role, "resistance");
-    uint32_t node_pos = resolve_role_port(dev, role, "pos", pts, intern);
-    uint32_t node_neg = resolve_role_port(dev, role, "neg", pts, intern);
-
-    out.push_back({NodalElementKind::Source,
-        node_pos, node_neg, pressure, resistance,
-        element_idx++, bind_handle ? dev.name : std::string{}});
-}
-
-template<typename RawElem>
-void extract_flow_branch(
-    const SolverDevice& dev, const SolverRole& role,
-    const PortToSignal& pts, const core::StringInterner& intern,
-    bool bind_handle, std::vector<RawElem>& out, size_t& element_idx)
-{
-    float conductance = read_role_param_required(dev, role, "g");
-    uint32_t node_a = resolve_role_port(dev, role, "a", pts, intern);
-    uint32_t node_b = resolve_role_port(dev, role, "b", pts, intern);
-    out.push_back({NodalElementKind::Branch,
-        node_a, node_b, conductance, 0.0f,
-        element_idx++, bind_handle ? dev.name : std::string{}});
-}
-
-template<typename RawElem>
-void extract_fixed_pressure_node(
-    const SolverDevice& dev, const SolverRole& role,
-    const PortToSignal& pts, const core::StringInterner& intern,
-    bool bind_handle, std::vector<RawElem>& out, size_t& element_idx)
-{
-    float value = read_role_param_required(dev, role, "pressure");
-    uint32_t node_a = resolve_role_port(dev, role, "node", pts, intern);
-    out.push_back({NodalElementKind::FixedNode,
-        node_a, UINT32_MAX, value, 0.0f,
-        element_idx++, bind_handle ? dev.name : std::string{}});
-}
-
-// =====================================================================
 // Generic single-handle assignment — used by hydraulic and pneumatic.
 //
 // Walks island elements, matches those with bound device names back to
@@ -199,7 +121,6 @@ void extract_fixed_pressure_node(
 
 /// Assign handles from island elements to component variants.
 /// `handle_setter` is a callable: void(NodalPrimitiveHandle, ComponentVariant&)
-/// `plan_islands` is the domain's islands from the NodalBuildPlan.
 /// `domain_label` is used in error messages (e.g., "Hydraulic").
 template<typename HandleSetter>
 void assign_single_handles(

@@ -1,51 +1,18 @@
 #include "codegen.h"
 #include "codegen_internal.h"
 #include "core/solvers/common/build_algorithms.h"
+#include "core/solvers/common/element_extraction.h"
 #include "core/solvers/common/signal_key.h"
 #include "core/solvers/common/nodal_patch_convert.h"
 #include "parse_number.h"
 #include <spdlog/spdlog.h>
 #include <algorithm>
-#include <cctype>
 #include <optional>
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
 
 namespace {
-
-/// Maximum throw positions a KnobSwitch can have (must match component definition).
-static constexpr size_t KNOB_SWITCH_MAX_POSITIONS = 5;
-
-/// Terminal names indexed by throw index (0-based).
-static constexpr const char* KNOB_SWITCH_TERMINAL_NAMES[] = {
-    "throw1", "throw2", "throw3", "throw4", "throw5"
-};
-
-float parse_float_codegen(const std::string& value, float default_val) {
-    if (value.empty()) {
-        return default_val;
-    }
-    return locale_safe::parse_float_or(value, default_val);
-}
-
-float read_param_or(const ResolvedDevice& dev, const char* key, float default_val) {
-    auto it = dev.params.find(key);
-    if (it == dev.params.end()) {
-        return default_val;
-    }
-    return parse_float_codegen(it->second, default_val);
-}
-
-/// Read a param through solver_role indirection: role.param_map[key] → dev.params[val] → float.
-float read_role_param(const SolverRole& role, const ResolvedDevice& dev,
-                      const char* key, float default_val) {
-    auto it = role.param_map.find(key);
-    if (it == role.param_map.end()) return default_val;
-    auto it_param = dev.params.find(it->second);
-    if (it_param == dev.params.end()) return default_val;
-    return parse_float_codegen(it_param->second, default_val);
-}
 
 /// Resolve a port name to its signal index. Returns std::nullopt if not found
 /// (throws in strict mode, warns in non-strict mode).
@@ -77,10 +44,10 @@ std::optional<uint32_t> resolve_port_optional(
 
 } // anonymous namespace
 
-// ===== Section 1: Helper Types & Functions for Element Extraction =====
-// AOT-specific raw element — standalone struct (not inheriting from GenericRawElement)
-// for clean aggregate initialization. Compatible with build_algo templates via
-// duck-typed field access (kind, node_a, node_b, value_a, value_b, element_id, device_name).
+// ===== Section 1: Helper Types =====
+
+// AOT-specific raw element — standalone struct for clean aggregate initialization.
+// Compatible with build_algo templates via duck-typed field access.
 struct RawElement {
     NodalElementKind kind;
     uint32_t node_a;
@@ -92,8 +59,7 @@ struct RawElement {
     std::string device_classname;  // AOT-only: needed for debug metadata
 };
 
-/// Convert NodalElementKind to legacy debug role string.
-/// These names are preserved for backward compatibility in generated debug tables.
+/// Convert NodalElementKind to legacy debug role string for generated debug tables.
 std::string kind_to_role(NodalElementKind k) {
     switch (k) {
         case NodalElementKind::FixedNode: return "FixedVoltageNode";
@@ -103,78 +69,53 @@ std::string kind_to_role(NodalElementKind k) {
     return "Unknown";
 }
 
-// ===== Section 2: Raw Element Collection (solver_role path) =====
-// Extract electrical elements from device with explicit solver_role.
-// Handles four element kinds: FixedNode, Source, Branch, KnobSwitchBranches.
-// Returns N elements for KnobSwitchBranches (one per throw terminal).
-std::vector<RawElement> extract_solver_role_element(
-    const ResolvedDevice& dev,
-    const std::unordered_map<std::string, uint32_t>& port_to_signal,
-    const ElectricalExtractOptions& options,
-    size_t& element_idx
-) {
-    std::vector<RawElement> result;
-    if (!dev.solver_role.has_value()) return result;
-    const auto& role = *dev.solver_role;
+// ===== Section 2: AOT Extraction Adapter =====
+// Implements the ExtractionAdapter concept from element_extraction.h.
+// Lenient: returns defaults for missing params, skips elements with missing ports.
 
-    if (role.kind == SolverRoleKind::FixedVoltageNode) {
-        float value = read_role_param(role, dev, "voltage", 0.0f);
-        auto node = resolve_port_optional(dev.name, dev.classname, role.port_map.at("node"), port_to_signal, options);
-        if (!node.has_value()) return result;
-        result.push_back({ NodalElementKind::FixedNode,
-            *node, UINT32_MAX, value, 0.0f, element_idx++, dev.name, dev.classname });
-        return result;
+struct AotExtractionAdapter {
+    const ResolvedDevice& dev;
+    const std::unordered_map<std::string, uint32_t>& port_to_signal;
+    const ElectricalExtractOptions& options;
+    std::vector<RawElement>& out;
+    size_t& element_idx;
+
+    float read_param(const SolverRole& role, const char* key, float default_val) {
+        // Check value_map first (inline constant values)
+        auto it_val = role.value_map.find(key);
+        if (it_val != role.value_map.end()) return it_val->second;
+        // Then param_map → dev.params
+        auto it = role.param_map.find(key);
+        if (it == role.param_map.end()) return default_val;
+        auto it_param = dev.params.find(it->second);
+        if (it_param == dev.params.end()) return default_val;
+        return locale_safe::parse_float_or(it_param->second, default_val);
     }
 
-    if (role.kind == SolverRoleKind::TheveninSource) {
-        float voltage = read_role_param(role, dev, "voltage", 28.0f);
-        float resistance = read_role_param(role, dev, "resistance", 0.01f);
-        auto pos = resolve_port_optional(dev.name, dev.classname, role.port_map.at("pos"), port_to_signal, options);
-        auto neg = resolve_port_optional(dev.name, dev.classname, role.port_map.at("neg"), port_to_signal, options);
-        if (!pos.has_value() || !neg.has_value()) return result;
-        result.push_back({ NodalElementKind::Source,
-            *pos, *neg, voltage, resistance, element_idx++, dev.name, dev.classname });
-        return result;
-    }
-
-    if (role.kind == SolverRoleKind::ConductanceBranch) {
-        float g = read_role_param(role, dev, "g", 0.1f);
-        auto a = resolve_port_optional(dev.name, dev.classname, role.port_map.at("a"), port_to_signal, options);
-        auto b = resolve_port_optional(dev.name, dev.classname, role.port_map.at("b"), port_to_signal, options);
-        if (!a.has_value() || !b.has_value()) return result;
-        result.push_back({ NodalElementKind::Branch,
-            *a, *b, g, 0.0f, element_idx++, dev.name, dev.classname });
-        return result;
-    }
-
-    if (role.kind == SolverRoleKind::KnobSwitchBranches) {
-        int positions = static_cast<int>(read_role_param(role, dev, "positions", 3.0f));
-        positions = std::clamp(positions, 2, static_cast<int>(KNOB_SWITCH_MAX_POSITIONS));
-        int initial_pos = static_cast<int>(read_role_param(role, dev, "initial_position", 0.0f));
-        initial_pos = std::clamp(initial_pos, 0, positions - 1);
-        float g_open_val = read_role_param(role, dev, "g_open", 1e-9f);
-        float g_closed_val = read_role_param(role, dev, "g_closed", 0.1f);
-        auto node_wiper = resolve_port_optional(dev.name, dev.classname, role.port_map.at("wiper"), port_to_signal, options);
-        if (!node_wiper.has_value()) return result;
-        for (int i = 0; i < positions; ++i) {
-            auto node_t = resolve_port_optional(dev.name, dev.classname, role.port_map.at(KNOB_SWITCH_TERMINAL_NAMES[i]), port_to_signal, options);
-            if (!node_t.has_value()) continue;
-            float g = (i == initial_pos) ? g_closed_val : g_open_val;
-            result.push_back({ NodalElementKind::Branch,
-                *node_wiper, *node_t, g, 0.0f, element_idx++, dev.name, dev.classname });
+    std::optional<uint32_t> resolve_port(const SolverRole& role, const char* key) {
+        auto it = role.port_map.find(key);
+        if (it == role.port_map.end()) {
+            throw std::runtime_error(
+                "[codegen] solver_role missing required port key '" +
+                std::string(key) + "' for device '" + dev.name +
+                "' (classname: " + dev.classname + ")");
         }
-        return result;
+        return resolve_port_optional(
+            dev.name, dev.classname, it->second, port_to_signal, options);
     }
 
-    throw std::runtime_error(
-        "[codegen] unsupported solver_role kind '" + std::string(solver_role_kind_name(role.kind)) +
-        "' for device '" + dev.name + "' (classname: " + dev.classname + ")");
-}
+    void emit(NodalElementKind kind, uint32_t node_a, uint32_t node_b,
+              float value_a, float value_b) {
+        out.push_back({kind, node_a, node_b, value_a, value_b,
+            element_idx++, dev.name, dev.classname});
+    }
+};
 
-// ===== Section 3: Device Bindings for Wrapper Components =====
+static_assert(build_algo::ExtractionAdapter<AotExtractionAdapter>,
+    "AotExtractionAdapter must satisfy ExtractionAdapter concept");
+
+// ===== Section 3: Device Bindings =====
 // Build stable symbolic binding list mapping wrapper components to electrical islands.
-// For KnobSwitch: produces N indexed bindings (device_0, device_1, ...) since
-// one KnobSwitch generates N Branch elements (one per throw terminal).
 void build_device_bindings(
     const std::vector<RawElement>& raw_elements,
     const ElectricalPlanCodegen& plan,
@@ -193,10 +134,13 @@ void build_device_bindings(
         }
     }
 
-    // Data-driven: any raw element with a non-empty device_name gets a binding.
-    // The device_name is only set when bind_handle is true in the solver_role.
+    // Build O(1) lookup: element_id → raw element index
+    std::unordered_map<uint32_t, size_t> element_id_to_raw_idx;
+    for (size_t i = 0; i < raw_elements.size(); ++i) {
+        element_id_to_raw_idx[static_cast<uint32_t>(raw_elements[i].element_id)] = i;
+    }
 
-    // Group raw elements by sanitized device name for KnobSwitch multi-handle support
+    // Group raw elements by sanitized device name for multi-handle support
     std::unordered_map<std::string, std::vector<size_t>> device_elements;
     for (size_t i = 0; i < raw_elements.size(); ++i) {
         const auto& re = raw_elements[i];
@@ -207,18 +151,16 @@ void build_device_bindings(
     tmp_bindings.reserve(element_to_island_elem.size());
 
     for (const auto& [element_id, pos] : element_to_island_elem) {
-        auto raw_it = std::find_if(raw_elements.begin(), raw_elements.end(),
-            [element_id](const RawElement& re) { return re.element_id == element_id; });
-        if (raw_it == raw_elements.end()) continue;
-        const auto& re = *raw_it;
+        auto raw_it = element_id_to_raw_idx.find(element_id);
+        if (raw_it == element_id_to_raw_idx.end()) continue;
+        const auto& re = raw_elements[raw_it->second];
 
         const std::string base_name = codegen_detail::sanitize_name(re.device_name);
         const auto kind_opt = parse_component_kind(re.device_classname);
-        if (!kind_opt.has_value()) continue;  // unknown classname — skip binding
+        if (!kind_opt.has_value()) continue;
         const bool is_knob_switch = is_knob_switch_kind(*kind_opt);
 
         if (is_knob_switch) {
-            // Count how many elements this device has produced (for 0-based indexing)
             const auto& indices = device_elements.at(base_name);
             size_t elem_position = 0;
             for (size_t idx : indices) {
@@ -226,21 +168,9 @@ void build_device_bindings(
                 ++elem_position;
             }
             std::string indexed_name = base_name + "_" + std::to_string(elem_position);
-            tmp_bindings.push_back({
-                indexed_name,
-                pos.first,
-                pos.second,
-                element_id
-            });
+            tmp_bindings.push_back({indexed_name, pos.first, pos.second, element_id});
         } else if (!re.device_name.empty()) {
-            // Single-handle binding: any element with bind_handle=true gets a binding.
-            // The device_name is set by the extractor only when bind_handle is true.
-            tmp_bindings.push_back({
-                base_name,
-                pos.first,
-                pos.second,
-                element_id
-            });
+            tmp_bindings.push_back({base_name, pos.first, pos.second, element_id});
         }
     }
 
@@ -262,7 +192,6 @@ void build_device_bindings(
 }
 
 // ===== Section 4: Debug Metadata =====
-// Build component debug tables for introspection and troubleshooting.
 void build_component_debug(
     const std::vector<RawElement>& raw_elements,
     const ElectricalPlanCodegen& plan,
@@ -280,9 +209,7 @@ void build_component_debug(
         for (size_t elem_i = 0; elem_i < island.elements.size(); ++elem_i) {
             const auto& elem = island.elements[elem_i];
             auto raw_it = element_to_raw_idx.find(elem.element_id);
-            if (raw_it == element_to_raw_idx.end()) {
-                continue;
-            }
+            if (raw_it == element_to_raw_idx.end()) continue;
             const auto& re = raw_elements[raw_it->second];
             tmp_debug.push_back({
                 static_cast<uint32_t>(re.element_id),
@@ -308,9 +235,7 @@ void build_component_debug(
 }
 
 // ===== Section 5: AOT Patch Op Context =====
-// Adapts AOT's string-keyed signal resolution for the generic patch op builder.
 
-/// Look up a signal index by device name and port name. Returns UINT32_MAX if not found.
 static uint32_t lookup_signal(
     const std::string& device_name,
     const std::string& port_name,
@@ -321,7 +246,6 @@ static uint32_t lookup_signal(
     return (it != port_to_signal.end()) ? it->second : UINT32_MAX;
 }
 
-/// Look up a float parameter from a ResolvedDevice. Returns default_val if not found.
 static float lookup_param(
     const ResolvedDevice& dev,
     const std::string& param_name,
@@ -332,7 +256,6 @@ static float lookup_param(
     return locale_safe::parse_float_or(it->second, default_val);
 }
 
-/// AOT-specific context adapter for the generic patch op builder.
 struct AotPatchOpContext {
     const std::vector<ResolvedDevice>& devices;
     const std::unordered_map<std::string, uint32_t>& port_to_signal;
@@ -349,7 +272,6 @@ struct AotPatchOpContext {
         return *devices[i].solver_role->patch_op;
     }
 
-    /// AOT uses sanitized device names as element keys (matching DeviceBinding).
     std::string device_element_key(size_t i, int handle_index = -1) const {
         std::string base = codegen_detail::sanitize_name(devices[i].name);
         return handle_index >= 0
@@ -377,8 +299,7 @@ struct AotPatchOpContext {
     }
 };
 
-// ===== Main Entry Point: extract_electrical_plan() =====
-// Orchestrate extraction of electrical elements, island building, and binding generation.
+// ===== Main Entry Point =====
 ElectricalPlanCodegen extract_electrical_plan(
     const std::vector<ResolvedDevice>& devices,
     const std::unordered_map<std::string, uint32_t>& port_to_signal,
@@ -386,7 +307,7 @@ ElectricalPlanCodegen extract_electrical_plan(
 ) {
     ElectricalPlanCodegen plan;
 
-    // Phase 1: Extract electrical elements from devices
+    // Phase 1: Extract electrical elements using shared extraction + AOT adapter
     std::vector<RawElement> raw_elements;
     size_t element_idx = 0;
 
@@ -400,30 +321,30 @@ ElectricalPlanCodegen extract_electrical_plan(
         return false;
     };
 
-    for (const auto& dev : devices) {
-        if (!device_has_any_ports(dev)) {
-            continue;
-        }
+    using ExtractorEntry = build_algo::ExtractorEntry<AotExtractionAdapter>;
+    constexpr size_t k_extractor_count = std::size(build_algo::k_electrical_extractors<AotExtractionAdapter>);
 
+    for (const auto& dev : devices) {
+        if (!device_has_any_ports(dev)) continue;
         if (!dev.solver_role.has_value()) continue;
         const auto& role = *dev.solver_role;
+        if (role.domain != Domain::Electrical) continue;
 
-        // Skip solver_roles for non-electrical domains.
-        if (role.domain != Domain::Electrical) {
-            continue;
-        }
-
-        auto elems = extract_solver_role_element(dev, port_to_signal, options, element_idx);
-        for (auto& elem : elems) {
-            raw_elements.push_back(std::move(elem));
+        AotExtractionAdapter adapter{dev, port_to_signal, options, raw_elements, element_idx};
+        if (!build_algo::extract_with_table(
+                adapter,
+                build_algo::k_electrical_extractors<AotExtractionAdapter>,
+                k_extractor_count,
+                role)) {
+            throw std::runtime_error(
+                "[codegen] unsupported solver_role kind '" + std::string(solver_role_kind_name(role.kind)) +
+                "' for device '" + dev.name + "' (classname: " + dev.classname + ")");
         }
     }
 
-    if (raw_elements.empty()) {
-        return plan;
-    }
+    if (raw_elements.empty()) return plan;
 
-    // Phase 2: Build islands using shared algorithm (replaces DisjointSet + build_electrical_islands)
+    // Phase 2: Build islands using shared algorithm
     build_algo::group_into_islands<RawElement, NodalIslandPlan, ElectricalPlanCodegen>(
         raw_elements, plan);
 
@@ -431,7 +352,7 @@ ElectricalPlanCodegen extract_electrical_plan(
     build_device_bindings(raw_elements, plan, plan.device_bindings);
     build_component_debug(raw_elements, plan, plan.component_debug);
 
-    // Phase 4: Build patch ops using shared generic builder with AOT context adapter
+    // Phase 4: Build patch ops using shared generic builder
     std::unordered_map<std::string, uint32_t> binding_map;
     binding_map.reserve(plan.device_bindings.size());
     for (const auto& b : plan.device_bindings) {

@@ -5,11 +5,15 @@
 ///
 /// Three instantiations: electrical, hydraulic, pneumatic.
 /// Adding a new nodal domain requires only a new DomainConfig specialization.
+///
+/// Extraction is delegated to shared templates in element_extraction.h,
+/// parameterized by JitExtractionAdapter (strict: throws on missing data).
 
 #include "jit_solver_internal.h"
 #include "build_common.h"
 #include "../common/signal_key.h"
 #include "core/solvers/common/provider.h"
+#include "core/solvers/common/element_extraction.h"
 // All component headers for step ops (structural typing visits all).
 #include "components/azs.h"
 #include "components/controlled_voltage_source.h"
@@ -36,103 +40,52 @@
 namespace jit_solver_impl {
 
 using RawElement = build_common::GenericRawElement<NodalElementKind>;
-using Extractor = build_common::ElementExtractor<RawElement>;
 
 // =====================================================================
-// Domain-specific extractor tables
+// JitExtractionAdapter — satisfies ExtractionAdapter concept.
+// Strict: throws on missing params/ports (JIT ports are always allocated).
+// Uses InternedId port lookup + per-element bind_handle control.
 // =====================================================================
 
-// Electrical domain: custom extractors for TheveninSource, ConductanceBranch,
-// KnobSwitchBranches (multi-handle), FixedVoltageNode.
+struct JitExtractionAdapter {
+    const SolverDevice& dev;
+    const PortToSignal& port_to_signal;
+    const core::StringInterner& interner;
+    bool bind_handle;                     // captured from role.value_map before extraction
+    std::vector<RawElement>& out;
+    size_t& element_idx;
 
-static void extract_fixed_voltage_node(
-    const SolverDevice& dev, const SolverRole& role,
-    const PortToSignal& pts, const core::StringInterner& intern,
-    bool bind_handle, std::vector<RawElement>& out, size_t& element_idx)
-{
-    float value = build_common::read_role_param_required(dev, role, "voltage");
-    uint32_t node_a = build_common::resolve_role_port(dev, role, "node", pts, intern);
-    out.push_back({NodalElementKind::FixedNode,
-        node_a, UINT32_MAX, value, 0.0f,
-        element_idx++, bind_handle ? dev.name : std::string{}});
-}
+    float read_param(const SolverRole& role, const char* key, float /*default_val*/) {
+        // JIT is strict: ignore default_val, throw on missing.
+        return build_common::read_role_param_required(dev, role, key);
+    }
 
-static void extract_thevenin_source(
-    const SolverDevice& dev, const SolverRole& role,
-    const PortToSignal& pts, const core::StringInterner& intern,
-    bool bind_handle, std::vector<RawElement>& out, size_t& element_idx)
-{
-    float voltage = build_common::read_role_param_required(dev, role, "voltage");
-    float resistance = build_common::read_role_param_required(dev, role, "resistance");
-    uint32_t node_pos = build_common::resolve_role_port(dev, role, "pos", pts, intern);
-    uint32_t node_neg = build_common::resolve_role_port(dev, role, "neg", pts, intern);
-    out.push_back({NodalElementKind::Source,
-        node_pos, node_neg, voltage, resistance,
-        element_idx++, bind_handle ? dev.name : std::string{}});
-}
+    std::optional<uint32_t> resolve_port(const SolverRole& role, const char* key) {
+        // JIT is strict: throws on missing port key AND missing signal.
+        // Returns optional to satisfy concept — always has_value() or throws.
+        return build_common::resolve_role_port(dev, role, key, port_to_signal, interner);
+    }
 
-static void extract_conductance_branch(
-    const SolverDevice& dev, const SolverRole& role,
-    const PortToSignal& pts, const core::StringInterner& intern,
-    bool bind_handle, std::vector<RawElement>& out, size_t& element_idx)
-{
-    float conductance = build_common::read_role_param_required(dev, role, "g");
-    uint32_t node_a = build_common::resolve_role_port(dev, role, "a", pts, intern);
-    uint32_t node_b = build_common::resolve_role_port(dev, role, "b", pts, intern);
-    out.push_back({NodalElementKind::Branch,
-        node_a, node_b, conductance, 0.0f,
-        element_idx++, bind_handle ? dev.name : std::string{}});
-}
-
-static void extract_knob_switch_branches(
-    const SolverDevice& dev, const SolverRole& role,
-    const PortToSignal& pts, const core::StringInterner& intern,
-    bool bind_handle, std::vector<RawElement>& out, size_t& element_idx)
-{
-    int positions = static_cast<int>(build_common::read_role_param_required(dev, role, "positions"));
-    positions = std::clamp(positions, 2, KnobSwitch<JitProvider>::MAX_POSITIONS);
-    int initial_pos = static_cast<int>(build_common::read_role_param_required(dev, role, "initial_position"));
-    initial_pos = std::clamp(initial_pos, 0, positions - 1);
-    float g_open_val = build_common::read_role_param_required(dev, role, "g_open");
-    float g_closed_val = build_common::read_role_param_required(dev, role, "g_closed");
-    uint32_t node_wiper = build_common::resolve_role_port(dev, role, "wiper", pts, intern);
-
-    static_assert(KnobSwitch<JitProvider>::MAX_POSITIONS <= 5,
-                  "KnobSwitch terminal list supports up to 5 throws");
-    static const char* terminal_names[] = {"throw1", "throw2", "throw3", "throw4", "throw5"};
-
-    for (int i = 0; i < positions; ++i) {
-        uint32_t node_t = build_common::resolve_role_port(dev, role, terminal_names[i], pts, intern);
-        float initial_g = (i == initial_pos) ? g_closed_val : g_open_val;
-        out.push_back({NodalElementKind::Branch,
-            node_wiper, node_t, initial_g, 0.0f,
+    void emit(NodalElementKind kind, uint32_t node_a, uint32_t node_b,
+              float value_a, float value_b) {
+        out.push_back({kind, node_a, node_b, value_a, value_b,
             element_idx++, bind_handle ? dev.name : std::string{}});
     }
-}
-
-static const Extractor k_electrical_extractors[] = {
-    {SolverRoleKind::FixedVoltageNode,    &extract_fixed_voltage_node},
-    {SolverRoleKind::TheveninSource,      &extract_thevenin_source},
-    {SolverRoleKind::ConductanceBranch,   &extract_conductance_branch},
-    {SolverRoleKind::KnobSwitchBranches,  &extract_knob_switch_branches},
 };
 
-// Pressure domains (hydraulic + pneumatic): shared extractors.
-
-static const Extractor k_pressure_extractors[] = {
-    {SolverRoleKind::FixedPressureNode, &build_common::extract_fixed_pressure_node<RawElement>},
-    {SolverRoleKind::PressureSource,    &build_common::extract_pressure_source<RawElement>},
-    {SolverRoleKind::FlowBranch,        &build_common::extract_flow_branch<RawElement>},
-};
+static_assert(build_algo::ExtractionAdapter<JitExtractionAdapter>,
+    "JitExtractionAdapter must satisfy ExtractionAdapter concept");
 
 // =====================================================================
 // DomainConfig — per-domain behavior traits
 // =====================================================================
 
+using JitExtractorEntry = build_algo::ExtractorEntry<JitExtractionAdapter>;
+
 struct DomainConfig {
     Domain domain;
     const char* label;
-    const Extractor* extractors;
+    const JitExtractorEntry* extractors;
     size_t extractor_count;
 
     /// Assign handles from raw elements to component variants.
@@ -163,9 +116,6 @@ static void assign_electrical_handles(
             element_id_to_device[static_cast<uint32_t>(raw_elem.element_id)] = raw_elem.device_name;
         }
     }
-
-    // Build device_name → element count (for multi-handle indexing)
-    std::unordered_map<std::string, int> device_element_count;
 
     for (size_t island_idx = 0; island_idx < islands.size(); ++island_idx) {
         const auto& island = islands[island_idx];
@@ -215,8 +165,8 @@ static bool has_electrical_handle(const ComponentVariant& v) {
 static const DomainConfig k_electrical_config = {
     Domain::Electrical,
     "Electrical",
-    k_electrical_extractors,
-    std::size(k_electrical_extractors),
+    build_algo::k_electrical_extractors<JitExtractionAdapter>,
+    std::size(build_algo::k_electrical_extractors<JitExtractionAdapter>),
     &assign_electrical_handles,
     &get_electrical_artifacts,
     &has_electrical_handle,
@@ -253,8 +203,8 @@ static bool has_hydraulic_handle(const ComponentVariant& v) {
 static const DomainConfig k_hydraulic_config = {
     Domain::Hydraulic,
     "Hydraulic",
-    k_pressure_extractors,
-    std::size(k_pressure_extractors),
+    build_algo::k_pressure_extractors<JitExtractionAdapter>,
+    std::size(build_algo::k_pressure_extractors<JitExtractionAdapter>),
     &assign_hydraulic_handles,
     &get_hydraulic_artifacts,
     &has_hydraulic_handle,
@@ -291,8 +241,8 @@ static bool has_pneumatic_handle(const ComponentVariant& v) {
 static const DomainConfig k_pneumatic_config = {
     Domain::Pneumatic,
     "Pneumatic",
-    k_pressure_extractors,
-    std::size(k_pressure_extractors),
+    build_algo::k_pressure_extractors<JitExtractionAdapter>,
+    std::size(build_algo::k_pressure_extractors<JitExtractionAdapter>),
     &assign_pneumatic_handles,
     &get_pneumatic_artifacts,
     &has_pneumatic_handle,
@@ -302,7 +252,7 @@ static const DomainConfig k_pneumatic_config = {
 // Generic domain build functions
 // =====================================================================
 
-/// Extract raw elements for a domain using its config's extractor table.
+/// Extract raw elements for a domain using shared extraction templates.
 static std::vector<RawElement> extract_domain_raw_elements(
     const DomainConfig& config,
     const std::vector<SolverDevice>& devices,
@@ -318,16 +268,17 @@ static std::vector<RawElement> extract_domain_raw_elements(
         const auto& role = *dev.solver_role;
         if (role.domain != config.domain) continue;
 
-        const auto* extractor = build_common::find_extractor(
-            config.extractors, config.extractor_count, role.kind);
-        if (!extractor) {
+        JitExtractionAdapter adapter{dev, port_to_signal, signal_key_interner,
+            build_common::should_bind_handle(role), raw_elements, element_idx};
+        if (!build_algo::extract_with_table(
+                adapter,
+                config.extractors,
+                config.extractor_count,
+                role)) {
             throw std::runtime_error("Unsupported " + std::string(config.label) +
                 " solver_role kind '" + std::string(solver_role_kind_name(role.kind)) +
                 "' for component '" + dev.name + "' (classname: " + dev.classname + ")");
         }
-
-        extractor->extract(dev, role, port_to_signal, signal_key_interner,
-                           build_common::should_bind_handle(role), raw_elements, element_idx);
     }
 
     return raw_elements;
