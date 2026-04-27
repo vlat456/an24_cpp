@@ -5,6 +5,7 @@
 #include "core/solvers/common/nodal_patch_types.h"
 #include "scheduler.h"
 #include "subsolvers/nodal_types.h"
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <stdexcept>
@@ -118,6 +119,15 @@ struct NodalArtifacts {
     NodalRuntimeState runtime;
 };
 
+/// Lightweight view of one nodal domain slot — used by the simulator
+/// for uniform iteration over all nodal domains without triplicating logic.
+/// Does NOT own data; holds references into BuildResult and a pointer-to-member
+/// for the corresponding SimulationState rt pointer.
+struct NodalSlot {
+    NodalArtifacts& artifacts;
+    NodalRuntimeState* SimulationState::* rt_member;
+};
+
 /// Build port-to-signal mapping from devices and connections
 /// For AOT, this is used by codegen to generate component bindings
 struct BuildResult {
@@ -158,6 +168,17 @@ struct BuildResult {
     /// LUT table arena - accumulated during build, moved to SimulationState at start
     std::vector<float> lut_keys;
     std::vector<float> lut_values;
+
+    /// Uniform iteration view for the simulator pipeline.
+    /// Returned by value — NodalSlot holds references into *this.
+    /// Caller must ensure BuildResult outlives the returned array.
+    std::array<NodalSlot, 3> nodal_slots() noexcept {
+        return {{
+            { electrical, &SimulationState::electrical_rt },
+            { hydraulic,  &SimulationState::hydraulic_rt  },
+            { pneumatic,  &SimulationState::pneumatic_rt  },
+        }};
+    }
 };
 
 /// Build solver runtime from pre-computed input (canonical path).

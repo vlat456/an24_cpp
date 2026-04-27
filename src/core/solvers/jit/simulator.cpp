@@ -61,30 +61,21 @@ void Simulator<SolverTag>::start(const JitBuildInput& input) {
     // Initialize element_value_a from plan defaults — once, at start.
     // These arrays are mutated in-place by patch ops each frame but their
     // sizing and initial values never change after build.
-    jit_solver_impl::build_common::init_element_values_from_plan(
-        build_result_->electrical.plan, build_result_->electrical.runtime);
-    jit_solver_impl::build_common::init_element_values_from_plan(
-        build_result_->hydraulic.plan, build_result_->hydraulic.runtime);
-    jit_solver_impl::build_common::init_element_values_from_plan(
-        build_result_->pneumatic.plan, build_result_->pneumatic.runtime);
+    auto slots = build_result_->nodal_slots();
+    for (auto& slot : slots) {
+        jit_solver_impl::build_common::init_element_values_from_plan(
+            slot.artifacts.plan, slot.artifacts.runtime);
+    }
 
-    // Bootstrap: run solver-owned commit ops BEFORE initializing Value/RefNode
-    // signals. This ensures components like AZS/Relay write their initial
-    // internal state (closed=true) to signal ports. Running BEFORE Value init
-    // means control signals are still 0.0, so no premature state transitions
-    // occur — components simply write their constructor-initialized state.
-    run_solver_owned_ops(build_result_->electrical.commit_ops, state_, 0.0);
-
-    // Bootstrap hydraulic commit ops (same pattern as electrical).
-    run_solver_owned_ops(build_result_->hydraulic.commit_ops, state_, 0.0);
-
-    // Bootstrap hydraulic execute ops so CopySignal patch ops have valid
-    // p_source values on the first frame (e.g., FuelTank gravity pressure).
-    run_solver_owned_ops(build_result_->hydraulic.execute_ops, state_, 0.0);
-
-    // Bootstrap pneumatic commit + execute ops (same pattern).
-    run_solver_owned_ops(build_result_->pneumatic.commit_ops, state_, 0.0);
-    run_solver_owned_ops(build_result_->pneumatic.execute_ops, state_, 0.0);
+    // Bootstrap: run solver-owned commit+execute ops for all domains.
+    // Commit ops write initial component state to signals (e.g., AZS/Relay
+    // write closed=true). Execute ops compute initial source values
+    // (e.g., FuelTank gravity pressure → p_source signal).
+    // Electrical execute ops are safe no-ops here (electrical_rt is null).
+    for (auto& slot : slots) {
+        run_solver_owned_ops(slot.artifacts.commit_ops, state_, 0.0);
+        run_solver_owned_ops(slot.artifacts.execute_ops, state_, 0.0);
+    }
 
     // Initialize RefNode and Value devices from their params.
     for (const auto& dev : input.devices) {
@@ -129,9 +120,10 @@ void Simulator<SolverTag>::start(const JitBuildInput& input) {
     state_.lut_keys = std::move(build_result_->lut_keys);
     state_.lut_values = std::move(build_result_->lut_values);
 
-    state_.electrical_rt = nullptr;
-    state_.hydraulic_rt = nullptr;
-    state_.pneumatic_rt = nullptr;
+    // Null all rt pointers (safety: ensure no stale pointers survive rebuild).
+    for (auto& slot : slots) {
+        state_.*(slot.rt_member) = nullptr;
+    }
 
     time_ = 0.0;
     step_count_ = 0;
@@ -163,11 +155,11 @@ void Simulator<SolverTag>::step(double dt) {
     // Simulation pipeline (E-009: single-solve architecture)
     // ===========================================================================
     //
-    // The pipeline uses ONE electrical solve per frame with one-frame-delayed
+    // The pipeline uses ONE solve per domain per frame with one-frame-delayed
     // actuator states. This is intentional for a game at 60Hz+:
     //
     //   1. update_dynamic_sources — stamp actuator states from PREVIOUS frame
-    //   2. solve_nodal — single Gaussian solve for all islands
+    //   2. solve_nodal — Gaussian solve for all islands in each domain
     //   3. execute solver-owned — post-solve compute (e.g., AZS thermal model)
     //   4. scheduler.step — execute all logical/mechanical/etc. components
     //   5. commit solver-owned — battery discharge, state transitions
@@ -176,57 +168,40 @@ void Simulator<SolverTag>::step(double dt) {
     // NEXT frame's solve, not the current one.
     // ===========================================================================
 
-    // Set pointer before solver runs so components can access electrical_rt.
-    // RAII guard ensures cleanup on ALL exit paths.
-    state_.electrical_rt = &build_result_->electrical.runtime;
+    auto slots = build_result_->nodal_slots();
+
+    // RAII guard: null all rt pointers on every exit path.
     struct RtGuard {
         SimulationState& st;
-        ~RtGuard() { st.electrical_rt = nullptr; st.hydraulic_rt = nullptr; st.pneumatic_rt = nullptr; }
-    } guard{state_};
+        std::array<NodalSlot, 3> slots;
+        ~RtGuard() {
+            for (const auto& slot : slots) {
+                st.*(slot.rt_member) = nullptr;
+            }
+        }
+    } guard{state_, slots};
 
-    // == Electrical domain solve ==
-    update_nodal_dynamic_sources(
-        build_result_->electrical.patch_ops, state_, build_result_->electrical.runtime);
-    solve_nodal(build_result_->electrical.plan,
-                build_result_->electrical.runtime.element_value_a,
-                state_, build_result_->electrical.runtime, dt);
-    run_solver_owned_ops(build_result_->electrical.execute_ops, state_, dt);
-
-    // == Hydraulic domain solve ==
-    if (!build_result_->hydraulic.plan.islands.empty()) {
-        state_.hydraulic_rt = &build_result_->hydraulic.runtime;
+    // == Solve + Execute pass (all domains) ==
+    // Empty islands → empty patch ops, empty solve, empty execute ops → no-op.
+    // Setting the rt pointer unconditionally is safe: components always pair
+    // the rt-null check with is_valid(handle).
+    for (auto& slot : slots) {
+        state_.*(slot.rt_member) = &slot.artifacts.runtime;
         update_nodal_dynamic_sources(
-            build_result_->hydraulic.patch_ops, state_, build_result_->hydraulic.runtime);
-        solve_nodal(build_result_->hydraulic.plan,
-                    build_result_->hydraulic.runtime.element_value_a,
-                    state_, build_result_->hydraulic.runtime, dt);
-        run_solver_owned_ops(build_result_->hydraulic.execute_ops, state_, dt);
+            slot.artifacts.patch_ops, state_, slot.artifacts.runtime);
+        solve_nodal(
+            slot.artifacts.plan,
+            slot.artifacts.runtime.element_value_a,
+            state_, slot.artifacts.runtime, dt);
+        run_solver_owned_ops(slot.artifacts.execute_ops, state_, dt);
     }
 
-    // == Pneumatic domain solve ==
-    if (!build_result_->pneumatic.plan.islands.empty()) {
-        state_.pneumatic_rt = &build_result_->pneumatic.runtime;
-        update_nodal_dynamic_sources(
-            build_result_->pneumatic.patch_ops, state_, build_result_->pneumatic.runtime);
-        solve_nodal(build_result_->pneumatic.plan,
-                    build_result_->pneumatic.runtime.element_value_a,
-                    state_, build_result_->pneumatic.runtime, dt);
-        run_solver_owned_ops(build_result_->pneumatic.execute_ops, state_, dt);
-    }
-
+    // == Scheduler pass (logical, mechanical, etc.) ==
     build_result_->scheduler.step(state_, dt);
 
-    // Explicit commit pass for solver-owned components (Battery discharge, etc).
-    run_solver_owned_ops(build_result_->electrical.commit_ops, state_, dt);
-
-    // Hydraulic commit pass
-    if (!build_result_->hydraulic.plan.islands.empty()) {
-        run_solver_owned_ops(build_result_->hydraulic.commit_ops, state_, dt);
-    }
-
-    // Pneumatic commit pass
-    if (!build_result_->pneumatic.plan.islands.empty()) {
-        run_solver_owned_ops(build_result_->pneumatic.commit_ops, state_, dt);
+    // == Commit pass (all domains) ==
+    for (auto& slot : slots) {
+        run_solver_owned_ops(slot.artifacts.commit_ops, state_, dt);
     }
 
     time_ += dt;
