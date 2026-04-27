@@ -11,32 +11,10 @@
 #include <unordered_map>
 #include <vector>
 
-/// Patch operation kind for AOT codegen.
-/// Mirrors NodalPatchKind from jit_solver.h — kept separate to avoid
-/// pulling the full JIT dependency chain into the codegen tool.
-enum class PatchKindCodegen : uint8_t {
-    AffineClamp = 0,
-    LerpClamped01 = 1,
-    BoolSwitch = 2,
-    IndexSwitch = 3,
-    CopySignal = 4
-};
-
-/// Patch operation for AOT codegen.
-/// Mirrors NodalPatchOp from jit_solver.h — signal-driven, fully resolved
-/// at code generation time. Emitted as constexpr NodalPatchOp in generated code.
-struct PatchOpCodegen {
-    PatchKindCodegen kind = PatchKindCodegen::BoolSwitch;
-    uint32_t element_id = UINT32_MAX;
-    uint32_t s0 = UINT32_MAX;
-    uint32_t s1 = UINT32_MAX;
-    uint32_t s2 = UINT32_MAX;
-    uint32_t s3 = UINT32_MAX;
-    uint32_t s4 = UINT32_MAX;
-    int index_value = 0;
-    float state_true_value = 0.0f;
-    float state_false_value = 0.0f;
-};
+/// Patch operation data for AOT codegen.
+/// Uses the canonical NodalPatchOp/NodalPatchKind from the standalone header.
+/// No mirror types — single source of truth.
+#include "core/solvers/common/nodal_patch_types.h"
 
 /// Result of composite code generation
 struct CompositeCodegenResult {
@@ -91,7 +69,7 @@ struct ElectricalPlanCodegen {
         uint32_t element_id;
     };
     std::vector<DeviceBinding> device_bindings;
-    std::vector<PatchOpCodegen> patch_ops;
+    std::vector<NodalPatchOp> patch_ops;
     std::vector<ComponentDebug> component_debug;
 };
 

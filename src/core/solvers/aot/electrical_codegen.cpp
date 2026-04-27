@@ -509,32 +509,35 @@ static float lookup_param(
 /// Look up element_id for a device from the DeviceBinding list. Returns UINT32_MAX if not found.
 static uint32_t lookup_element_id(
     const std::string& device_name,
-    const std::vector<ElectricalPlanCodegen::DeviceBinding>& bindings)
+    const std::unordered_map<std::string, uint32_t>& binding_map)
 {
-    for (const auto& b : bindings) {
-        if (b.device_field_name == device_name) {
-            return b.element_id;
-        }
-    }
-    return UINT32_MAX;
+    auto it = binding_map.find(device_name);
+    return (it != binding_map.end()) ? it->second : UINT32_MAX;
 }
 
 void build_patch_ops(
     const std::vector<ResolvedDevice>& devices,
     const std::unordered_map<std::string, uint32_t>& port_to_signal,
     const std::vector<ElectricalPlanCodegen::DeviceBinding>& bindings,
-    std::vector<PatchOpCodegen>& patch_ops)
+    std::vector<NodalPatchOp>& patch_ops)
 {
     patch_ops.clear();
+
+    // Build O(1) lookup map from device field name to element_id.
+    std::unordered_map<std::string, uint32_t> binding_map;
+    binding_map.reserve(bindings.size());
+    for (const auto& b : bindings) {
+        binding_map[b.device_field_name] = b.element_id;
+    }
 
     for (const auto& dev : devices) {
         const std::string field = codegen_detail::sanitize_name(dev.name);
 
         if (dev.kind == ComponentKind::ControlledVoltageSource) {
-            uint32_t eid = lookup_element_id(field, bindings);
+            uint32_t eid = lookup_element_id(field, binding_map);
             if (eid == UINT32_MAX) continue;
-            PatchOpCodegen op;
-            op.kind = PatchKindCodegen::AffineClamp;
+            NodalPatchOp op;
+            op.kind = NodalPatchKind::AffineClamp;
             op.element_id = eid;
             op.s0 = lookup_signal(dev.name, "cmd", port_to_signal);
             op.s1 = lookup_signal(dev.name, "gain", port_to_signal);
@@ -545,10 +548,10 @@ void build_patch_ops(
             patch_ops.push_back(op);
         }
         else if (dev.kind == ComponentKind::VariableConductance) {
-            uint32_t eid = lookup_element_id(field, bindings);
+            uint32_t eid = lookup_element_id(field, binding_map);
             if (eid == UINT32_MAX) continue;
-            PatchOpCodegen op;
-            op.kind = PatchKindCodegen::LerpClamped01;
+            NodalPatchOp op;
+            op.kind = NodalPatchKind::LerpClamped01;
             op.element_id = eid;
             op.s0 = lookup_signal(dev.name, "cmd", port_to_signal);
             op.s1 = lookup_signal(dev.name, "g_min", port_to_signal);
@@ -559,10 +562,10 @@ void build_patch_ops(
         else if (dev.kind == ComponentKind::AZS ||
                  dev.kind == ComponentKind::HoldButton ||
                  dev.kind == ComponentKind::Relay) {
-            uint32_t eid = lookup_element_id(field, bindings);
+            uint32_t eid = lookup_element_id(field, binding_map);
             if (eid == UINT32_MAX) continue;
-            PatchOpCodegen op;
-            op.kind = PatchKindCodegen::BoolSwitch;
+            NodalPatchOp op;
+            op.kind = NodalPatchKind::BoolSwitch;
             op.element_id = eid;
             op.s0 = lookup_signal(dev.name, "state", port_to_signal);
             op.state_true_value = lookup_param(dev, "g_closed", 1000.0f);
@@ -580,10 +583,10 @@ void build_patch_ops(
 
             for (int i = 0; i < num_positions; ++i) {
                 std::string indexed_name = field + "_" + std::to_string(i);
-                uint32_t eid = lookup_element_id(indexed_name, bindings);
+                uint32_t eid = lookup_element_id(indexed_name, binding_map);
                 if (eid == UINT32_MAX) continue;
-                PatchOpCodegen op;
-                op.kind = PatchKindCodegen::IndexSwitch;
+                NodalPatchOp op;
+                op.kind = NodalPatchKind::IndexSwitch;
                 op.element_id = eid;
                 op.s0 = lookup_signal(dev.name, "position", port_to_signal);
                 op.index_value = i;

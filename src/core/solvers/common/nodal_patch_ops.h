@@ -6,8 +6,8 @@
 /// member field access. This is the single source of truth for dynamic
 /// source patching, shared between JIT and AOT paths.
 
-#include "core/solvers/jit/jit_solver.h"  // NodalPatchOp, NodalPatchKind
-#include "core/solvers/jit/state.h"       // SimulationState
+#include "core/solvers/common/nodal_patch_types.h"  // NodalPatchOp, NodalPatchKind
+#include "core/solvers/jit/state.h"                // SimulationState
 #include "core/solvers/jit/subsolvers/nodal_types.h"  // NodalRuntimeState
 
 #include <algorithm>
@@ -70,6 +70,8 @@ inline void update_nodal_dynamic_sources(
                 out = st.values[op.s0];
                 break;
             }
+            default:
+                break;  // Future patch kinds: no-op, keep current value
         }
         rt.element_value_a[op.element_id] = out;
     }

@@ -6,26 +6,6 @@
 #include <regex>
 #include <set>
 
-// Compile-time validation: PatchKindCodegen values must stay in sync with
-// NodalPatchKind. If either enum changes, these static_asserts will break.
-static_assert(static_cast<uint8_t>(PatchKindCodegen::AffineClamp)   == static_cast<uint8_t>(NodalPatchKind::AffineClamp));
-static_assert(static_cast<uint8_t>(PatchKindCodegen::LerpClamped01) == static_cast<uint8_t>(NodalPatchKind::LerpClamped01));
-static_assert(static_cast<uint8_t>(PatchKindCodegen::BoolSwitch)    == static_cast<uint8_t>(NodalPatchKind::BoolSwitch));
-static_assert(static_cast<uint8_t>(PatchKindCodegen::IndexSwitch)   == static_cast<uint8_t>(NodalPatchKind::IndexSwitch));
-static_assert(static_cast<uint8_t>(PatchKindCodegen::CopySignal)    == static_cast<uint8_t>(NodalPatchKind::CopySignal));
-// PatchOpCodegen field layout must match NodalPatchOp for correct emission.
-static_assert(sizeof(PatchOpCodegen) == sizeof(NodalPatchOp));
-static_assert(offsetof(PatchOpCodegen, kind)             == offsetof(NodalPatchOp, kind));
-static_assert(offsetof(PatchOpCodegen, element_id)       == offsetof(NodalPatchOp, element_id));
-static_assert(offsetof(PatchOpCodegen, s0)               == offsetof(NodalPatchOp, s0));
-static_assert(offsetof(PatchOpCodegen, s1)               == offsetof(NodalPatchOp, s1));
-static_assert(offsetof(PatchOpCodegen, s2)               == offsetof(NodalPatchOp, s2));
-static_assert(offsetof(PatchOpCodegen, s3)               == offsetof(NodalPatchOp, s3));
-static_assert(offsetof(PatchOpCodegen, s4)               == offsetof(NodalPatchOp, s4));
-static_assert(offsetof(PatchOpCodegen, index_value)      == offsetof(NodalPatchOp, index_value));
-static_assert(offsetof(PatchOpCodegen, state_true_value) == offsetof(NodalPatchOp, state_true_value));
-static_assert(offsetof(PatchOpCodegen, state_false_value)== offsetof(NodalPatchOp, state_false_value));
-
 // ============================================================
 // Composite Systems generation
 // ============================================================

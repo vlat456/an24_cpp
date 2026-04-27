@@ -112,11 +112,11 @@ void emit_systems_class_declaration(
                 const auto& op = electrical_plan.patch_ops[i];
                 const char* kind_str = "NodalPatchKind::AffineClamp";
                 switch (op.kind) {
-                    case PatchKindCodegen::AffineClamp:   kind_str = "NodalPatchKind::AffineClamp"; break;
-                    case PatchKindCodegen::LerpClamped01:  kind_str = "NodalPatchKind::LerpClamped01"; break;
-                    case PatchKindCodegen::BoolSwitch:     kind_str = "NodalPatchKind::BoolSwitch"; break;
-                    case PatchKindCodegen::IndexSwitch:    kind_str = "NodalPatchKind::IndexSwitch"; break;
-                    case PatchKindCodegen::CopySignal:     kind_str = "NodalPatchKind::CopySignal"; break;
+                    case NodalPatchKind::AffineClamp:   kind_str = "NodalPatchKind::AffineClamp"; break;
+                    case NodalPatchKind::LerpClamped01:  kind_str = "NodalPatchKind::LerpClamped01"; break;
+                    case NodalPatchKind::BoolSwitch:     kind_str = "NodalPatchKind::BoolSwitch"; break;
+                    case NodalPatchKind::IndexSwitch:    kind_str = "NodalPatchKind::IndexSwitch"; break;
+                    case NodalPatchKind::CopySignal:     kind_str = "NodalPatchKind::CopySignal"; break;
                 }
                 oss << "        { " << kind_str << ", " << op.element_id << "u"
                     << ", " << op.s0 << "u, " << op.s1 << "u, " << op.s2 << "u"
