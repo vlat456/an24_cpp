@@ -340,10 +340,6 @@ struct AotPatchOpContext {
 
     size_t device_count() const { return devices.size(); }
 
-    bool has_solver_role(size_t i) const {
-        return devices[i].solver_role.has_value();
-    }
-
     bool has_patch_op(size_t i) const {
         return devices[i].solver_role.has_value() &&
                devices[i].solver_role->patch_op.has_value();

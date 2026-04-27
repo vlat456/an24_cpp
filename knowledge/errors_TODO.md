@@ -131,7 +131,7 @@ The curated regression fixture (`tests/fixtures/closed_circuit_regression.bluepr
 
 - `src/core/solvers/common/signal_union_rules.h` — unified signal union rules
 - `src/core/utils/union_find.h` — extracted UnionFind
-- `src/core/solvers/jit/build_signals.cpp`, `build_electrical.cpp`, `simulator.cpp` — JIT changes
+- `src/core/solvers/jit/build_signals.cpp`, `build_nodal_domain.cpp`, `simulator.cpp` — JIT changes
 - `src/core/solvers/aot/codegen_source.cpp`, `codegen_header.cpp`, `codegen.h`, `electrical_codegen.cpp` — AOT changes
 - `tests/test_aot_composite.cpp`, `tests/test_jit_aot_bridge_equivalence.cpp`, `tests/test_electrical_parity_fixtures.cpp`, `tests/test_fixtures.h` — new parity tests
 

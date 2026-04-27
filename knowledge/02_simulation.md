@@ -74,13 +74,25 @@ struct BuildResult {
 
     BuildDeviceStore devices;
     PushScheduler scheduler;
-    ElectricalBuildPlan electrical_plan;
+
+    // Nodal domain plans (electrical, hydraulic, pneumatic)
+    NodalBuildPlan electrical_plan;
+    NodalBuildPlan hydraulic_plan;
+    NodalBuildPlan pneumatic_plan;
+
+    // Dynamic source patch ops (data-driven from solver_role.patch_op)
+    std::vector<NodalPatchOp> electrical_patch_ops;
+    std::vector<NodalPatchOp> hydraulic_patch_ops;
+    std::vector<NodalPatchOp> pneumatic_patch_ops;
+
     SolverOwnedRefs solver_owned;
-    std::vector<ElectricalPatchOp> electrical_patch_ops;
     std::vector<SolverStepOp> solver_execute_ops;
     std::vector<SolverStepOp> solver_commit_ops;
     std::vector<float> lut_keys;
     std::vector<float> lut_values;
+
+    // Nodal domain slots for unified simulator loop
+    std::array<NodalSlot, NODAL_DOMAIN_COUNT> nodal_slots() const;
 };
 ```
 

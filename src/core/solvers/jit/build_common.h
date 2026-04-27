@@ -26,7 +26,6 @@ using build_algo::GenericRawElement;
 using build_algo::group_into_islands;
 using build_algo::init_element_values_from_plan;
 using build_algo::build_element_id_map;
-using build_algo::build_patch_ops_generic;
 
 // =====================================================================
 // Port and param resolution — identical across all nodal domains.
@@ -313,10 +312,6 @@ struct JitPatchOpContext {
     const core::StringInterner& interner;
 
     size_t device_count() const { return devices.size(); }
-
-    bool has_solver_role(size_t i) const {
-        return devices[i].solver_role.has_value();
-    }
 
     bool has_patch_op(size_t i) const {
         return devices[i].solver_role.has_value() &&

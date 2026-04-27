@@ -26,7 +26,7 @@ cd build && ctest
 | All Components | `src/core/solvers/jit/components/all.h` |
 | JIT Solver | `src/core/solvers/jit/jit_solver.h` |
 | JIT signal building | `src/core/solvers/jit/build_signals.cpp` |
-| JIT electrical building | `src/core/solvers/jit/build_electrical.cpp` |
+| JIT domain building | `src/core/solvers/jit/build_nodal_domain.cpp` |
 | JIT component factory | `src/core/solvers/jit/build_factory.cpp` (AUTO-GENERATED) |
 | JIT validation/topo sort | `src/core/solvers/jit/build_components_validation.cpp` |
 | JIT port setup helper | `src/core/solvers/jit/build_components_common.h` |
@@ -41,6 +41,8 @@ cd build && ctest
 | AOT common utilities | `src/core/solvers/common/signal_union_rules.h` |
 | Signal Allocation | `src/core/solvers/common/signal_allocation.h` |
 | UnionFind (shared) | `src/core/utils/union_find.h` |
+| Shared build algorithms | `src/core/solvers/common/build_algorithms.h` |
+| Nodal types (unified) | `src/core/solvers/common/nodal_types.h` |
 | Elaboration Utils | `src/blueprint_v2/elaboration/elaboration_utils.h` |
 | Elaboration Detail | `src/blueprint_v2/elaboration/elaboration_detail.h` |
 | Codegen Elaboration | `src/blueprint_v2/elaboration/codegen_export.h` |

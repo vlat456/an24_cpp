@@ -13,14 +13,12 @@ AOT code generator applies NASA C++ coding standards with strategic refactoring 
 **Before**: 374 LOC, cyclomatic complexity 35-45  
 **After**: 8 focused helpers + 54 LOC orchestrator
 
-**New Functions** (all 30-75 LOC):
-- `extract_solver_role_element()` — 103 LOC, Handle explicit solver_role extraction (3 element kinds)
-- `extract_classname_rule_element()` — 75 LOC, Handle classname-based element extraction
-- `DisjointSet::find()/unite()` — 38 LOC, Union-find implementation (extracted from lambdas)
-- `build_electrical_islands()` — 74 LOC, Island construction via union-find
-- `build_device_bindings()` — 68 LOC, Wrapper component binding collection + dedup
-- `build_component_debug()` — 47 LOC, Debug metadata generation
-- `extract_electrical_plan()` — 54 LOC, Clean orchestrator with 3 phases
+**Functions** (all using shared `build_algo` from `build_algorithms.h`):
+- `extract_solver_role_element()` — Handles 4 element kinds via `NodalElementKind`
+- `build_device_bindings()` — Wrapper component binding collection + dedup
+- `build_component_debug()` — Debug metadata generation
+- `AotPatchOpContext` — AOT adapter for `build_algo::build_patch_ops_generic`
+- `extract_electrical_plan()` — Clean 4-phase orchestrator
 
 **Complexity Reduction**: Cyclomatic complexity per function now 5-12 (was 35-45 monolithic)
 
@@ -118,7 +116,7 @@ Shared helpers also benefit `extract_classname_rule_element` (70 → 24 LOC).
 
 **Build & Tests**:
 - ✅ Full build passes with no compilation errors
-- ✅ All 1850 tests pass (0 failures)
+- ✅ All 1890 tests pass (0 failures)
 - ✅ Generated code output verified identical (byte-for-byte)
 
 ### Test Fixes (Post-Refactoring)
@@ -327,17 +325,14 @@ struct JitProvider {
 
 ## Electrical Plan Codegen
 
-Mirror of runtime electrical plan for static code generation:
+Uses unified `NodalIslandPlan` (same type as JIT). No domain-specific mirror types:
 
 ```cpp
-struct ElectricalIslandPlanCodegen {
-    std::vector<uint32_t> signal_indices;
-    std::vector<ElectricalElementCodegen> elements;  // FixedVoltageNode, TheveninSource, ConductanceBranch
-};
-
 struct ElectricalPlanCodegen {
-    std::vector<ElectricalIslandPlanCodegen> islands;
+    std::vector<NodalIslandPlan> islands;      // Same NodalIslandPlan used by JIT
     std::vector<DeviceBinding> device_bindings;
+    std::vector<NodalPatchOp> patch_ops;       // Data-driven from solver_role.patch_op
+    std::vector<ComponentDebug> component_debug;
 };
 ```
 
@@ -386,6 +381,7 @@ cmake --build build
 - `src/core/solvers/aot/codegen_source.cpp` — Source generation
 - `src/core/solvers/aot/codegen_registry.cpp` — Registry generation, write_files
 - `src/core/solvers/aot/electrical_codegen.cpp` — Electrical plan extraction
+- `src/core/solvers/common/build_algorithms.h` — Shared build algorithms (island grouping, patch ops, element ID map)
 - `src/blueprint_v2/elaboration/elaboration_utils.h` — Shared lightweight utils (no JIT dep)
 - `src/blueprint_v2/elaboration/elaboration_utils.cpp` — node_id_from_path, exposed_key_for_bridge
 - `src/blueprint_v2/elaboration/elaboration_detail.h` — Shared device builder (JIT+codegen)

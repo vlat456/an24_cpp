@@ -7,7 +7,9 @@
 /// include this header. The JIT layer adds port/param resolution on top;
 /// the AOT layer adds codegen-specific metadata on top.
 ///
-/// Dependencies: nodal_types.h, union_find.h, standard headers only.
+/// Dependencies: nodal_types.h, union_find.h, nodal_patch_types.h,
+///   nodal_patch_convert.h (→ component_types.h), standard headers only.
+///   Zero solver/device/variant awareness.
 
 #include "core/solvers/common/nodal_types.h"
 #include "core/utils/union_find.h"
@@ -204,10 +206,8 @@ void init_element_values_from_plan(const BuildPlan& plan, RuntimeState& rt) {
 ///
 /// Ctx must provide:
 ///   size_t device_count() const
-///   bool has_solver_role(size_t i) const
 ///   bool has_patch_op(size_t i) const
 ///   const PatchOpDecl& patch_op_decl(size_t i) const
-///   std::string device_name(size_t i) const
 ///   std::string device_element_key(size_t i, int handle_index = -1) const
 ///   uint32_t lookup_element_id(const std::string& key) const
 ///   void fill_signal_ports(NodalPatchOp& op, const PatchOpDecl& decl, size_t i) const
@@ -219,7 +219,6 @@ void build_patch_ops_generic(
     patch_ops.clear();
 
     for (size_t i = 0; i < ctx.device_count(); ++i) {
-        if (!ctx.has_solver_role(i)) continue;
         if (!ctx.has_patch_op(i)) continue;
 
         const auto& decl = ctx.patch_op_decl(i);
