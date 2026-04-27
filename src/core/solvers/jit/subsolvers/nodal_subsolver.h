@@ -1,6 +1,6 @@
 #pragma once
 
-#include "nodal_types.h"
+#include "core/solvers/common/nodal_types.h"
 #include "../state.h"
 
 /// Solve a nodal network for one timestep.

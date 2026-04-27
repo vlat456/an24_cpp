@@ -3,7 +3,7 @@
 #include "core/solvers/common/provider.h"
 
 #include "../state.h"
-#include "../subsolvers/nodal_types.h"
+#include "../../common/nodal_types.h"
 
 /// CurrentSense - series current measurement node (ammeter)
 /// Sits in series between v_in and v_out with near-zero resistance.

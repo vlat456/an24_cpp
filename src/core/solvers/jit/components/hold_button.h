@@ -3,7 +3,7 @@
 #include "core/solvers/common/provider.h"
 
 #include "../state.h"
-#include "../subsolvers/nodal_types.h"
+#include "../../common/nodal_types.h"
 
 /// HoldButton - hold-to-operate button with press/release detection
 template <typename Provider = JitProvider>

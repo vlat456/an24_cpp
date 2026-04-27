@@ -1,6 +1,6 @@
 #include "azs.h"
 #include "core/solvers/common/port_names.h"
-#include "../subsolvers/nodal_types.h"
+#include "../../common/nodal_types.h"
 #include <cmath>
 
 template <typename Provider>

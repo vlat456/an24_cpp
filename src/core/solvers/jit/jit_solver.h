@@ -4,7 +4,7 @@
 #include "core/solvers/common/port_registry.h"
 #include "core/solvers/common/nodal_patch_types.h"
 #include "scheduler.h"
-#include "subsolvers/nodal_types.h"
+#include "core/solvers/common/nodal_types.h"
 #include <array>
 #include <cstddef>
 #include <cstdint>

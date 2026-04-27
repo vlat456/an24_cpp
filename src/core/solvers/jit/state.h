@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/domain_types.h"
-#include "subsolvers/nodal_types.h"
+#include "core/solvers/common/nodal_types.h"
 #include <cstdint>
 #include <vector>
 

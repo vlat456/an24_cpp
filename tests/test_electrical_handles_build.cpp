@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include "core/solvers/jit/jit_solver.h"
-#include "core/solvers/jit/subsolvers/nodal_types.h"
+#include "core/solvers/common/nodal_types.h"
 #include "core/solvers/common/port_registry.h"
 #include "core/registry/component_resolution.h"
 #include "jit_build_input_test_helper.h"

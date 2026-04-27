@@ -2,12 +2,13 @@
 
 /// Shared build helpers used by all nodal domain build pipelines
 /// (electrical, hydraulic, pneumatic).
-/// Eliminates duplication of resolve_port, union-find, island grouping, etc.
+/// Extends the pure-algorithm layer in build_algorithms.h with JIT-specific
+/// port/param resolution, extractor tables, and handle assignment.
 
 #include "jit_solver.h"
 #include "core/solvers/common/signal_key.h"
+#include "core/solvers/common/build_algorithms.h"
 #include "core/solvers/common/nodal_patch_convert.h"
-#include "core/utils/union_find.h"
 #include "../../../parse_number.h"
 #include <algorithm>
 #include <map>
@@ -16,6 +17,16 @@
 
 namespace jit_solver_impl {
 namespace build_common {
+
+// =====================================================================
+// Re-export shared algorithms into build_common namespace.
+// Zero-cost — existing callers see the same names.
+// =====================================================================
+using build_algo::GenericRawElement;
+using build_algo::group_into_islands;
+using build_algo::init_element_values_from_plan;
+using build_algo::build_element_id_map;
+using build_algo::build_patch_ops_generic;
 
 // =====================================================================
 // Port and param resolution — identical across all nodal domains.
@@ -67,7 +78,7 @@ inline uint32_t resolve_role_port(
     auto it = role.port_map.find(role_key);
     if (it == role.port_map.end()) {
         throw std::runtime_error("solver_role missing required port key '" + role_key +
-            "' for component '" + dev.name + "' (classname: " + dev.classname + ")");
+            "' for component '" + dev.name + "' (classname: " + dev.classname + "'");
     }
     return resolve_port(dev, it->second, port_to_signal, signal_key_interner);
 }
@@ -86,134 +97,12 @@ inline float read_role_param_required(
         return it_val->second;
     }
     throw std::runtime_error("solver_role missing required param key '" + role_key +
-        "' for component '" + dev.name + "' (classname: " + dev.classname + ")");
+        "' for component '" + dev.name + "' (classname: " + dev.classname + "'");
 }
 
 inline bool should_bind_handle(const SolverRole& role) {
     auto it = role.value_map.find("bind_handle");
     return it != role.value_map.end() && it->second > 0.5f;
-}
-
-// =====================================================================
-// Generic island grouping — works for any domain's raw elements.
-// =====================================================================
-
-/// Generic raw element — parameterized by element kind enum.
-template<typename Kind>
-struct GenericRawElement {
-    Kind kind;
-    uint32_t node_a;
-    uint32_t node_b;
-    float value_a;
-    float value_b;
-    size_t element_id;
-    std::string device_name;
-};
-
-/// Group raw elements into connected islands using union-find.
-/// ElementT must have: kind, node_a, node_b, value_a, value_b, element_id.
-/// IslandT must have: signal_indices (vector<uint32_t>), elements (vector<Element>).
-template<typename RawElem, typename IslandPlan, typename BuildPlan>
-void group_into_islands(
-    const std::vector<RawElem>& raw_elements,
-    BuildPlan& plan)
-{
-    if (raw_elements.empty()) return;
-
-    std::unordered_set<uint32_t> all_nodes;
-    for (const auto& elem : raw_elements) {
-        all_nodes.insert(elem.node_a);
-        if (elem.node_b != UINT32_MAX) {
-            all_nodes.insert(elem.node_b);
-        }
-    }
-
-    // Size UnionFind to cover all node indices (may be sparse, e.g. {5, 17, 42}).
-    // Over-allocating to max_node+1 is negligible for typical signal counts.
-    uint32_t max_node = 0;
-    for (uint32_t n : all_nodes) {
-        max_node = std::max(max_node, n);
-    }
-    core::utils::UnionFind uf(static_cast<size_t>(max_node) + 1);
-
-    for (const auto& elem : raw_elements) {
-        if (elem.node_b != UINT32_MAX) {
-            uf.unite(elem.node_a, elem.node_b);
-        }
-    }
-
-    std::map<uint32_t, std::vector<size_t>> island_members;
-    for (size_t i = 0; i < raw_elements.size(); ++i) {
-        uint32_t root = uf.find(raw_elements[i].node_a);
-        island_members[root].push_back(i);
-    }
-
-    std::vector<std::pair<uint32_t, std::vector<size_t>>> sorted_islands(
-        island_members.begin(), island_members.end());
-    std::sort(sorted_islands.begin(), sorted_islands.end(),
-        [](const auto& a, const auto& b) { return a.first < b.first; });
-
-    for (const auto& [root, elem_indices] : sorted_islands) {
-        (void)root;
-        IslandPlan island;
-
-        std::set<uint32_t> island_nodes;
-        for (size_t idx : elem_indices) {
-            island_nodes.insert(raw_elements[idx].node_a);
-            if (raw_elements[idx].node_b != UINT32_MAX) {
-                island_nodes.insert(raw_elements[idx].node_b);
-            }
-        }
-        island.signal_indices.assign(island_nodes.begin(), island_nodes.end());
-
-        std::vector<size_t> sorted_indices(elem_indices.begin(), elem_indices.end());
-        std::sort(sorted_indices.begin(), sorted_indices.end());
-        for (size_t idx : sorted_indices) {
-            const auto& re = raw_elements[idx];
-            island.elements.push_back({
-                re.kind, re.node_a, re.node_b,
-                re.value_a, re.value_b,
-                static_cast<uint32_t>(re.element_id)
-            });
-        }
-
-        plan.islands.push_back(std::move(island));
-    }
-}
-
-// =====================================================================
-// Generic runtime element value initialization.
-// =====================================================================
-
-/// Initialize element_value_a from plan defaults. Used by both subsolvers
-/// and the simulator's ensure_runtime_element_values.
-template<typename BuildPlan, typename RuntimeState>
-void init_element_values_from_plan(const BuildPlan& plan, RuntimeState& rt) {
-    uint32_t max_element_id = 0;
-    bool has_elements = false;
-    for (const auto& island : plan.islands) {
-        for (const auto& elem : island.elements) {
-            has_elements = true;
-            max_element_id = std::max(max_element_id, elem.element_id);
-        }
-    }
-
-    if (!has_elements) {
-        rt.element_value_a.clear();
-        return;
-    }
-
-    const size_t needed = static_cast<size_t>(max_element_id) + 1;
-    if (rt.element_value_a.size() < needed) {
-        rt.element_value_a.resize(needed, 0.0f);
-        for (const auto& island : plan.islands) {
-            for (const auto& elem : island.elements) {
-                if (elem.element_id < rt.element_value_a.size()) {
-                    rt.element_value_a[elem.element_id] = elem.value_a;
-                }
-            }
-        }
-    }
 }
 
 // =====================================================================
@@ -358,44 +247,10 @@ void assign_single_handles(
 } // namespace build_common
 
 // =====================================================================
-// Data-driven patch op builder — replaces all per-component if-chains.
-//
-// Builds NodalPatchOp arrays from solver_role.patch_op metadata.
-// Zero component visitation — all signal indices and element IDs are
-// resolved from device/port metadata. Works identically for JIT and AOT.
+// JIT patch op context — adapts JIT types for the generic builder.
 // =====================================================================
 
 namespace build_common {
-
-/// Build device_name → element_id map from raw extraction results.
-/// For multi-handle devices (same device_name appearing N times), elements
-/// are indexed as "device_0", "device_1", etc. to match PatchOpDecl's
-/// multi_handle convention.
-inline std::unordered_map<std::string, uint32_t> build_element_id_map(
-    const std::vector<GenericRawElement<NodalElementKind>>& raw_elements)
-{
-    // Group by device_name to detect multi-handle
-    std::unordered_map<std::string, std::vector<uint32_t>> device_elements;
-    for (const auto& elem : raw_elements) {
-        if (!elem.device_name.empty()) {
-            device_elements[elem.device_name].push_back(
-                static_cast<uint32_t>(elem.element_id));
-        }
-    }
-
-    std::unordered_map<std::string, uint32_t> result;
-    result.reserve(raw_elements.size());
-    for (auto& [name, ids] : device_elements) {
-        if (ids.size() == 1) {
-            result[name] = ids[0];
-        } else {
-            for (size_t i = 0; i < ids.size(); ++i) {
-                result[name + "_" + std::to_string(i)] = ids[i];
-            }
-        }
-    }
-    return result;
-}
 
 /// Resolve a signal index from device name + port name.
 /// Returns UINT32_MAX if not found (caller decides whether to skip).
@@ -450,9 +305,47 @@ inline void fill_patch_op_from_decl(
     }
 }
 
+/// JIT-specific context adapter for the generic patch op builder.
+struct JitPatchOpContext {
+    const std::vector<SolverDevice>& devices;
+    const std::unordered_map<std::string, uint32_t>& element_id_map;
+    const PortToSignal& port_to_signal;
+    const core::StringInterner& interner;
+
+    size_t device_count() const { return devices.size(); }
+
+    bool has_solver_role(size_t i) const {
+        return devices[i].solver_role.has_value();
+    }
+
+    bool has_patch_op(size_t i) const {
+        return devices[i].solver_role.has_value() &&
+               devices[i].solver_role->patch_op.has_value();
+    }
+
+    const PatchOpDecl& patch_op_decl(size_t i) const {
+        return *devices[i].solver_role->patch_op;
+    }
+
+    std::string device_element_key(size_t i, int handle_index = -1) const {
+        const std::string& name = devices[i].name;
+        return handle_index >= 0
+            ? name + "_" + std::to_string(handle_index)
+            : name;
+    }
+
+    uint32_t lookup_element_id(const std::string& key) const {
+        auto it = element_id_map.find(key);
+        return (it != element_id_map.end()) ? it->second : UINT32_MAX;
+    }
+
+    void fill_signal_ports(NodalPatchOp& op, const PatchOpDecl& decl, size_t i) const {
+        fill_patch_op_from_decl(op, decl, devices[i], port_to_signal, interner);
+    }
+};
+
 /// Build patch ops from solver_role metadata — zero component visitation.
-/// Replaces the per-component-type if-chains in build_electrical/hydraulic/pneumatic.cpp.
-/// `element_id_map` is from build_element_id_map() (raw extraction results).
+/// Delegates to the generic builder via JitPatchOpContext.
 inline void build_patch_ops_from_metadata(
     std::vector<NodalPatchOp>& patch_ops,
     const std::vector<SolverDevice>& devices,
@@ -460,47 +353,8 @@ inline void build_patch_ops_from_metadata(
     const PortToSignal& port_to_signal,
     const core::StringInterner& interner)
 {
-    patch_ops.clear();
-
-    for (const auto& dev : devices) {
-        if (!dev.solver_role.has_value()) continue;
-        const auto& role = *dev.solver_role;
-        if (!role.patch_op.has_value()) continue;
-        const auto& decl = *role.patch_op;
-        if (decl.kind == PatchOpKind::None) continue;
-
-        if (decl.multi_handle) {
-            // Multi-handle: one patch op per indexed element.
-            for (int i = 0; ; ++i) {
-                std::string indexed_name = dev.name + "_" + std::to_string(i);
-                auto it = element_id_map.find(indexed_name);
-                if (it == element_id_map.end()) break;
-
-                NodalPatchOp op;
-                op.kind = to_nodal_patch_kind(decl.kind);
-                op.element_id = it->second;
-                op.index_value = i;
-                fill_patch_op_from_decl(op, decl, dev, port_to_signal, interner);
-
-                if (op.element_id != UINT32_MAX && op.s0 != UINT32_MAX) {
-                    patch_ops.push_back(op);
-                }
-            }
-        } else {
-            // Single-handle: one patch op.
-            auto it = element_id_map.find(dev.name);
-            if (it == element_id_map.end()) continue;
-
-            NodalPatchOp op;
-            op.kind = to_nodal_patch_kind(decl.kind);
-            op.element_id = it->second;
-            fill_patch_op_from_decl(op, decl, dev, port_to_signal, interner);
-
-            if (op.element_id != UINT32_MAX && op.s0 != UINT32_MAX) {
-                patch_ops.push_back(op);
-            }
-        }
-    }
+    JitPatchOpContext ctx{devices, element_id_map, port_to_signal, interner};
+    build_algo::build_patch_ops_generic(patch_ops, ctx);
 }
 
 } // namespace build_common

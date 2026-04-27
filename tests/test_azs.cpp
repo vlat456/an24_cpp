@@ -2,7 +2,7 @@
 #include "core/solvers/jit/components/all.h"
 #include "core/solvers/common/port_registry.h"
 #include "core/solvers/jit/state.h"
-#include "core/solvers/jit/subsolvers/nodal_types.h"
+#include "core/solvers/common/nodal_types.h"
 
 
 template <typename Comp>

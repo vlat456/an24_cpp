@@ -7,7 +7,7 @@
 #include <gtest/gtest.h>
 #include "core/solvers/jit/simulator.h"
 #include "core/solvers/jit/jit_solver.h"
-#include "core/solvers/jit/subsolvers/nodal_types.h"
+#include "core/solvers/common/nodal_types.h"
 #include "core/solvers/jit/build_common.h"
 #include "io/json/parse_json_api.h"
 #include "core/solvers/common/signal_key.h"

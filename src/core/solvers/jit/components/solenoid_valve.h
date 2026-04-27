@@ -3,7 +3,7 @@
 #include "core/solvers/common/provider.h"
 
 #include "../state.h"
-#include "../subsolvers/nodal_types.h"
+#include "../../common/nodal_types.h"
 
 /// SolenoidValve — electrically controlled hydraulic valve.
 ///

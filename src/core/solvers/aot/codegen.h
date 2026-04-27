@@ -11,9 +11,12 @@
 #include <unordered_map>
 #include <vector>
 
+/// Unified nodal types — shared by JIT, AOT, and runtime.
+/// No domain-specific mirror types. Single source of truth.
+#include "core/solvers/common/nodal_types.h"
+
 /// Patch operation data for AOT codegen.
 /// Uses the canonical NodalPatchOp/NodalPatchKind from the standalone header.
-/// No mirror types — single source of truth.
 #include "core/solvers/common/nodal_patch_types.h"
 
 /// Result of composite code generation
@@ -24,30 +27,9 @@ struct CompositeCodegenResult {
 };
 
 // == Electrical plan for AOT codegen ==
-// Codegen-phase plan types. Element kinds map 1:1 to runtime NodalElementKind,
-// but keep domain-specific names for codegen clarity. The generated C++ output
-// uses unified runtime types (NodalElementKind, NodalElement, NodalIslandPlan).
-// Used to emit constexpr electrical island data in generated code.
-
-enum class ElectricalElementKindCodegen : uint8_t {
-    FixedVoltageNode = 0,
-    TheveninSource = 1,
-    ConductanceBranch = 2
-};
-
-struct ElectricalElementCodegen {
-    ElectricalElementKindCodegen kind;
-    uint32_t node_a;
-    uint32_t node_b;
-    float value_a;
-    float value_b;
-    uint32_t element_id;
-};
-
-struct ElectricalIslandPlanCodegen {
-    std::vector<uint32_t> signal_indices;
-    std::vector<ElectricalElementCodegen> elements;
-};
+// Uses unified runtime types (NodalElementKind, NodalElement, NodalIslandPlan)
+// throughout. The generated C++ output emits these directly as constexpr data.
+// Island grouping is done by build_algo::group_into_islands (shared with JIT).
 
 struct ElectricalPlanCodegen {
     struct ComponentDebug {
@@ -61,7 +43,9 @@ struct ElectricalPlanCodegen {
         uint32_t node_b;
     };
 
-    std::vector<ElectricalIslandPlanCodegen> islands;
+    /// Unified island plans — same NodalIslandPlan used by JIT.
+    std::vector<NodalIslandPlan> islands;
+
     struct DeviceBinding {
         std::string device_field_name;
         uint32_t island_index;

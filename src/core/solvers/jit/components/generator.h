@@ -3,7 +3,7 @@
 #include "core/solvers/common/provider.h"
 
 #include "../state.h"
-#include "../subsolvers/nodal_types.h"
+#include "../../common/nodal_types.h"
 
 /// Generator - voltage source like battery
 template <typename Provider = JitProvider>

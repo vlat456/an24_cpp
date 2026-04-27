@@ -3,7 +3,7 @@
 #include "core/solvers/common/provider.h"
 
 #include "../state.h"
-#include "../subsolvers/nodal_types.h"
+#include "../../common/nodal_types.h"
 
 /// AZS (Avtomatom Zaashchity Seti) - Aircraft circuit breaker
 /// Hybrid switch + thermal fuse. Manual toggle via control port.

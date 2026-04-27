@@ -8,7 +8,7 @@
 
 #include "core/solvers/common/nodal_patch_types.h"  // NodalPatchOp, NodalPatchKind
 #include "core/solvers/jit/state.h"                // SimulationState
-#include "core/solvers/jit/subsolvers/nodal_types.h"  // NodalRuntimeState
+#include "core/solvers/common/nodal_types.h"  // NodalRuntimeState
 
 #include <algorithm>
 #include <cstdint>

@@ -1,12 +1,12 @@
 #include "codegen.h"
-#include "codegen_utils.h"
-#include "../common/signal_key.h"
-#include "../common/nodal_patch_convert.h"
+#include "codegen_internal.h"
+#include "core/solvers/common/build_algorithms.h"
+#include "core/solvers/common/signal_key.h"
+#include "core/solvers/common/nodal_patch_convert.h"
 #include "parse_number.h"
 #include <spdlog/spdlog.h>
 #include <algorithm>
 #include <cctype>
-#include <map>
 #include <optional>
 #include <vector>
 #include <unordered_map>
@@ -78,31 +78,34 @@ std::optional<uint32_t> resolve_port_optional(
 } // anonymous namespace
 
 // ===== Section 1: Helper Types & Functions for Element Extraction =====
+// AOT-specific raw element — standalone struct (not inheriting from GenericRawElement)
+// for clean aggregate initialization. Compatible with build_algo templates via
+// duck-typed field access (kind, node_a, node_b, value_a, value_b, element_id, device_name).
 struct RawElement {
-    ElectricalElementKindCodegen kind;
+    NodalElementKind kind;
     uint32_t node_a;
     uint32_t node_b;
     float value_a;
     float value_b;
     size_t element_id;
-    std::string device_name;   // for handle assignment back to wrapper components
-    std::string device_classname;
+    std::string device_name;
+    std::string device_classname;  // AOT-only: needed for debug metadata
 };
 
-// Convert electrical element kind to string representation
-std::string kind_to_role(ElectricalElementKindCodegen k) {
-    if (k == ElectricalElementKindCodegen::FixedVoltageNode) {
-        return "FixedVoltageNode";
+/// Convert NodalElementKind to legacy debug role string.
+/// These names are preserved for backward compatibility in generated debug tables.
+std::string kind_to_role(NodalElementKind k) {
+    switch (k) {
+        case NodalElementKind::FixedNode: return "FixedVoltageNode";
+        case NodalElementKind::Source:    return "TheveninSource";
+        case NodalElementKind::Branch:    return "ConductanceBranch";
     }
-    if (k == ElectricalElementKindCodegen::TheveninSource) {
-        return "TheveninSource";
-    }
-    return "ConductanceBranch";
+    return "Unknown";
 }
 
 // ===== Section 2: Raw Element Collection (solver_role path) =====
 // Extract electrical elements from device with explicit solver_role.
-// Handles three element kinds: FixedVoltageNode, TheveninSource, ConductanceBranch.
+// Handles four element kinds: FixedNode, Source, Branch, KnobSwitchBranches.
 // Returns N elements for KnobSwitchBranches (one per throw terminal).
 std::vector<RawElement> extract_solver_role_element(
     const ResolvedDevice& dev,
@@ -118,7 +121,7 @@ std::vector<RawElement> extract_solver_role_element(
         float value = read_role_param(role, dev, "voltage", 0.0f);
         auto node = resolve_port_optional(dev.name, dev.classname, role.port_map.at("node"), port_to_signal, options);
         if (!node.has_value()) return result;
-        result.push_back({ ElectricalElementKindCodegen::FixedVoltageNode,
+        result.push_back({ NodalElementKind::FixedNode,
             *node, UINT32_MAX, value, 0.0f, element_idx++, dev.name, dev.classname });
         return result;
     }
@@ -129,7 +132,7 @@ std::vector<RawElement> extract_solver_role_element(
         auto pos = resolve_port_optional(dev.name, dev.classname, role.port_map.at("pos"), port_to_signal, options);
         auto neg = resolve_port_optional(dev.name, dev.classname, role.port_map.at("neg"), port_to_signal, options);
         if (!pos.has_value() || !neg.has_value()) return result;
-        result.push_back({ ElectricalElementKindCodegen::TheveninSource,
+        result.push_back({ NodalElementKind::Source,
             *pos, *neg, voltage, resistance, element_idx++, dev.name, dev.classname });
         return result;
     }
@@ -139,7 +142,7 @@ std::vector<RawElement> extract_solver_role_element(
         auto a = resolve_port_optional(dev.name, dev.classname, role.port_map.at("a"), port_to_signal, options);
         auto b = resolve_port_optional(dev.name, dev.classname, role.port_map.at("b"), port_to_signal, options);
         if (!a.has_value() || !b.has_value()) return result;
-        result.push_back({ ElectricalElementKindCodegen::ConductanceBranch,
+        result.push_back({ NodalElementKind::Branch,
             *a, *b, g, 0.0f, element_idx++, dev.name, dev.classname });
         return result;
     }
@@ -157,7 +160,7 @@ std::vector<RawElement> extract_solver_role_element(
             auto node_t = resolve_port_optional(dev.name, dev.classname, role.port_map.at(KNOB_SWITCH_TERMINAL_NAMES[i]), port_to_signal, options);
             if (!node_t.has_value()) continue;
             float g = (i == initial_pos) ? g_closed_val : g_open_val;
-            result.push_back({ ElectricalElementKindCodegen::ConductanceBranch,
+            result.push_back({ NodalElementKind::Branch,
                 *node_wiper, *node_t, g, 0.0f, element_idx++, dev.name, dev.classname });
         }
         return result;
@@ -168,122 +171,10 @@ std::vector<RawElement> extract_solver_role_element(
         "' for device '" + dev.name + "' (classname: " + dev.classname + ")");
 }
 
-// ===== Section 4: Disjoint Set Union for Island Building =====
-// Simple union-find data structure with path compression and union by rank.
-struct DisjointSet {
-    std::unordered_map<uint32_t, uint32_t> parent;
-    std::unordered_map<uint32_t, uint32_t> rank;
-
-    void init(const std::unordered_set<uint32_t>& nodes) {
-        for (uint32_t n : nodes) {
-            parent[n] = n;
-            rank[n] = 0;
-        }
-    }
-
-    uint32_t find(uint32_t x) {
-        while (parent[x] != x) {
-            parent[x] = parent[parent[x]];
-            x = parent[x];
-        }
-        return x;
-    }
-
-    void unite(uint32_t a, uint32_t b) {
-        uint32_t ra = find(a);
-        uint32_t rb = find(b);
-        if (ra == rb) {
-            return;
-        }
-        if (rank[ra] < rank[rb]) {
-            std::swap(ra, rb);
-        }
-        parent[rb] = ra;
-        if (rank[ra] == rank[rb]) {
-            rank[ra]++;
-        }
-    }
-};
-
-// ===== Section 5: Island Construction =====
-// Build electrical islands from raw elements using union-find.
-// LOC: ~50 (tight coupling to island grouping and node collection)
-void build_electrical_islands(
-    const std::vector<RawElement>& raw_elements,
-    ElectricalPlanCodegen& plan
-) {
-    if (raw_elements.empty()) {
-        return;
-    }
-
-    // Collect all nodes and initialize union-find
-    std::unordered_set<uint32_t> all_nodes;
-    for (const auto& elem : raw_elements) {
-        all_nodes.insert(elem.node_a);
-        if (elem.node_b != UINT32_MAX) {
-            all_nodes.insert(elem.node_b);
-        }
-    }
-
-    DisjointSet uf;
-    uf.init(all_nodes);
-
-    // Union nodes for each element
-    for (const auto& elem : raw_elements) {
-        if (elem.node_b != UINT32_MAX) {
-            uf.unite(elem.node_a, elem.node_b);
-        }
-    }
-
-    // Group elements by island root
-    std::map<uint32_t, std::vector<size_t>> island_members;
-    for (size_t i = 0; i < raw_elements.size(); ++i) {
-        uint32_t root = uf.find(raw_elements[i].node_a);
-        island_members[root].push_back(i);
-    }
-
-    // Build island structures (stable order by root)
-    std::vector<std::pair<uint32_t, std::vector<size_t>>> sorted_islands(
-        island_members.begin(), island_members.end());
-    std::sort(sorted_islands.begin(), sorted_islands.end(),
-        [](const auto& a, const auto& b) { return a.first < b.first; });
-
-    for (const auto& [root, elem_indices] : sorted_islands) {
-        (void)root;
-        ElectricalIslandPlanCodegen island;
-
-        std::set<uint32_t> island_nodes;
-        for (size_t idx : elem_indices) {
-            island_nodes.insert(raw_elements[idx].node_a);
-            if (raw_elements[idx].node_b != UINT32_MAX) {
-                island_nodes.insert(raw_elements[idx].node_b);
-            }
-        }
-        island.signal_indices.assign(island_nodes.begin(), island_nodes.end());
-
-        std::vector<size_t> sorted_indices = elem_indices;
-        std::sort(sorted_indices.begin(), sorted_indices.end());
-        for (size_t idx : sorted_indices) {
-            const auto& re = raw_elements[idx];
-            island.elements.push_back({
-                re.kind,
-                re.node_a,
-                re.node_b,
-                re.value_a,
-                re.value_b,
-                static_cast<uint32_t>(re.element_id)
-            });
-        }
-
-        plan.islands.push_back(std::move(island));
-    }
-}
-
-// ===== Section 6: Device Bindings for Wrapper Components =====
+// ===== Section 3: Device Bindings for Wrapper Components =====
 // Build stable symbolic binding list mapping wrapper components to electrical islands.
 // For KnobSwitch: produces N indexed bindings (device_0, device_1, ...) since
-// one KnobSwitch generates N ConductanceBranch elements (one per throw terminal).
-// LOC: ~80
+// one KnobSwitch generates N Branch elements (one per throw terminal).
 void build_device_bindings(
     const std::vector<RawElement>& raw_elements,
     const ElectricalPlanCodegen& plan,
@@ -302,7 +193,6 @@ void build_device_bindings(
         }
     }
 
-    // Wrapper components that need electrical handles (non-KnobSwitch: single binding).
     // Data-driven: any raw element with a non-empty device_name gets a binding.
     // The device_name is only set when bind_handle is true in the solver_role.
 
@@ -371,9 +261,8 @@ void build_device_bindings(
     bindings = std::move(tmp_bindings);
 }
 
-// ===== Section 7: Debug Metadata =====
+// ===== Section 4: Debug Metadata =====
 // Build component debug tables for introspection and troubleshooting.
-// LOC: ~50 (metadata collection + sorting)
 void build_component_debug(
     const std::vector<RawElement>& raw_elements,
     const ElectricalPlanCodegen& plan,
@@ -418,9 +307,8 @@ void build_component_debug(
     debug = std::move(tmp_debug);
 }
 
-// ===== Section 8: Patch Op Generation =====
-// Build NodalPatchOp arrays from PatchOpDecl metadata.
-// Zero component-type visitation — all patch ops derived from solver_role.patch_op.
+// ===== Section 5: AOT Patch Op Context =====
+// Adapts AOT's string-keyed signal resolution for the generic patch op builder.
 
 /// Look up a signal index by device name and port name. Returns UINT32_MAX if not found.
 static uint32_t lookup_signal(
@@ -444,93 +332,57 @@ static float lookup_param(
     return locale_safe::parse_float_or(it->second, default_val);
 }
 
-/// Look up element_id for a device from the DeviceBinding list. Returns UINT32_MAX if not found.
-static uint32_t lookup_element_id(
-    const std::string& device_name,
-    const std::unordered_map<std::string, uint32_t>& binding_map)
-{
-    auto it = binding_map.find(device_name);
-    return (it != binding_map.end()) ? it->second : UINT32_MAX;
-}
+/// AOT-specific context adapter for the generic patch op builder.
+struct AotPatchOpContext {
+    const std::vector<ResolvedDevice>& devices;
+    const std::unordered_map<std::string, uint32_t>& port_to_signal;
+    const std::unordered_map<std::string, uint32_t>& binding_map;
 
-/// Fill a NodalPatchOp from PatchOpDecl metadata and AOT port_to_signal.
-static void fill_aot_patch_op(
-    NodalPatchOp& op,
-    const PatchOpDecl& decl,
-    const ResolvedDevice& dev,
-    const std::unordered_map<std::string, uint32_t>& port_to_signal)
-{
-    const size_t n_signals = std::min(decl.signal_ports.size(), size_t(5));
-    uint32_t* targets[] = { &op.s0, &op.s1, &op.s2, &op.s3, &op.s4 };
-    for (size_t i = 0; i < n_signals; ++i) {
-        *targets[i] = lookup_signal(dev.name, decl.signal_ports[i], port_to_signal);
+    size_t device_count() const { return devices.size(); }
+
+    bool has_solver_role(size_t i) const {
+        return devices[i].solver_role.has_value();
     }
 
-    if (!decl.true_value_param.empty()) {
-        op.state_true_value = lookup_param(dev, decl.true_value_param, 0.0f);
-    }
-    if (!decl.false_value_param.empty()) {
-        op.state_false_value = lookup_param(dev, decl.false_value_param, 0.0f);
-    }
-}
-
-void build_patch_ops(
-    const std::vector<ResolvedDevice>& devices,
-    const std::unordered_map<std::string, uint32_t>& port_to_signal,
-    const std::vector<ElectricalPlanCodegen::DeviceBinding>& bindings,
-    std::vector<NodalPatchOp>& patch_ops)
-{
-    patch_ops.clear();
-
-    // Build O(1) lookup map from device field name to element_id.
-    std::unordered_map<std::string, uint32_t> binding_map;
-    binding_map.reserve(bindings.size());
-    for (const auto& b : bindings) {
-        binding_map[b.device_field_name] = b.element_id;
+    bool has_patch_op(size_t i) const {
+        return devices[i].solver_role.has_value() &&
+               devices[i].solver_role->patch_op.has_value();
     }
 
-    for (const auto& dev : devices) {
-        if (!dev.solver_role.has_value()) continue;
-        const auto& role = *dev.solver_role;
-        if (!role.patch_op.has_value()) continue;
-        const auto& decl = *role.patch_op;
-        if (decl.kind == PatchOpKind::None) continue;
+    const PatchOpDecl& patch_op_decl(size_t i) const {
+        return *devices[i].solver_role->patch_op;
+    }
 
-        const std::string field = codegen_detail::sanitize_name(dev.name);
+    /// AOT uses sanitized device names as element keys (matching DeviceBinding).
+    std::string device_element_key(size_t i, int handle_index = -1) const {
+        std::string base = codegen_detail::sanitize_name(devices[i].name);
+        return handle_index >= 0
+            ? base + "_" + std::to_string(handle_index)
+            : base;
+    }
 
-        if (decl.multi_handle) {
-            for (int i = 0; ; ++i) {
-                std::string indexed_name = field + "_" + std::to_string(i);
-                uint32_t eid = lookup_element_id(indexed_name, binding_map);
-                if (eid == UINT32_MAX) break;
+    uint32_t lookup_element_id(const std::string& key) const {
+        auto it = binding_map.find(key);
+        return (it != binding_map.end()) ? it->second : UINT32_MAX;
+    }
 
-                NodalPatchOp op;
-                op.kind = to_nodal_patch_kind(decl.kind);
-                op.element_id = eid;
-                op.index_value = i;
-                fill_aot_patch_op(op, decl, dev, port_to_signal);
-                if (op.s0 != UINT32_MAX) {
-                    patch_ops.push_back(op);
-                }
-            }
-        } else {
-            uint32_t eid = lookup_element_id(field, binding_map);
-            if (eid == UINT32_MAX) continue;
-
-            NodalPatchOp op;
-            op.kind = to_nodal_patch_kind(decl.kind);
-            op.element_id = eid;
-            fill_aot_patch_op(op, decl, dev, port_to_signal);
-            if (op.s0 != UINT32_MAX) {
-                patch_ops.push_back(op);
-            }
+    void fill_signal_ports(NodalPatchOp& op, const PatchOpDecl& decl, size_t i) const {
+        const size_t n_signals = std::min(decl.signal_ports.size(), size_t(5));
+        uint32_t* targets[] = { &op.s0, &op.s1, &op.s2, &op.s3, &op.s4 };
+        for (size_t j = 0; j < n_signals; ++j) {
+            *targets[j] = lookup_signal(devices[i].name, decl.signal_ports[j], port_to_signal);
+        }
+        if (!decl.true_value_param.empty()) {
+            op.state_true_value = lookup_param(devices[i], decl.true_value_param, 0.0f);
+        }
+        if (!decl.false_value_param.empty()) {
+            op.state_false_value = lookup_param(devices[i], decl.false_value_param, 0.0f);
         }
     }
-}
+};
 
 // ===== Main Entry Point: extract_electrical_plan() =====
 // Orchestrate extraction of electrical elements, island building, and binding generation.
-// LOC: ~80 (clean delegation to helpers, low complexity)
 ElectricalPlanCodegen extract_electrical_plan(
     const std::vector<ResolvedDevice>& devices,
     const std::unordered_map<std::string, uint32_t>& port_to_signal,
@@ -538,7 +390,7 @@ ElectricalPlanCodegen extract_electrical_plan(
 ) {
     ElectricalPlanCodegen plan;
 
-    // Collect electrical elements from devices (phase 1: extraction)
+    // Phase 1: Extract electrical elements from devices
     std::vector<RawElement> raw_elements;
     size_t element_idx = 0;
 
@@ -575,15 +427,22 @@ ElectricalPlanCodegen extract_electrical_plan(
         return plan;
     }
 
-    // Build islands from raw elements (phase 2: island construction)
-    build_electrical_islands(raw_elements, plan);
+    // Phase 2: Build islands using shared algorithm (replaces DisjointSet + build_electrical_islands)
+    build_algo::group_into_islands<RawElement, NodalIslandPlan, ElectricalPlanCodegen>(
+        raw_elements, plan);
 
-    // Build device bindings and debug metadata (phase 3: bindings & debug)
+    // Phase 3: Build device bindings and debug metadata
     build_device_bindings(raw_elements, plan, plan.device_bindings);
     build_component_debug(raw_elements, plan, plan.component_debug);
 
-    // Build patch ops for dynamic source patching (phase 4: patch ops)
-    build_patch_ops(devices, port_to_signal, plan.device_bindings, plan.patch_ops);
+    // Phase 4: Build patch ops using shared generic builder with AOT context adapter
+    std::unordered_map<std::string, uint32_t> binding_map;
+    binding_map.reserve(plan.device_bindings.size());
+    for (const auto& b : plan.device_bindings) {
+        binding_map[b.device_field_name] = b.element_id;
+    }
+    AotPatchOpContext ctx{devices, port_to_signal, binding_map};
+    build_algo::build_patch_ops_generic(plan.patch_ops, ctx);
 
     return plan;
 }

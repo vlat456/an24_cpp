@@ -3,7 +3,7 @@
 #include "core/solvers/common/provider.h"
 
 #include "../state.h"
-#include "../subsolvers/nodal_types.h"
+#include "../../common/nodal_types.h"
 
 /// KnobSwitch - Multi-position passive rotary selector (2-5 positions).
 /// Electrically: N ConductanceBranch elements between wiper and throw1..throwN.

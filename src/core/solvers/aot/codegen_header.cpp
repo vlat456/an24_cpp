@@ -235,9 +235,9 @@ std::string CodeGen::generate_header(
             oss << "constexpr NodalElement island_" << island_idx << "_elements[] = {\n";
             for (const auto& elem : island.elements) {
                 const char* kind_str = "NodalElementKind::FixedNode";
-                if (elem.kind == ElectricalElementKindCodegen::TheveninSource) {
+                if (elem.kind == NodalElementKind::Source) {
                     kind_str = "NodalElementKind::Source";
-                } else if (elem.kind == ElectricalElementKindCodegen::ConductanceBranch) {
+                } else if (elem.kind == NodalElementKind::Branch) {
                     kind_str = "NodalElementKind::Branch";
                 }
                 oss << "    { " << kind_str << ", " << elem.node_a << ", " << elem.node_b
