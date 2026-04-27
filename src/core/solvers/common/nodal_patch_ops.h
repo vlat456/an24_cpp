@@ -2,23 +2,28 @@
 
 /// Pre-solve pass: apply compiled nodal patch operations.
 /// Domain-agnostic: works for electrical, hydraulic, or any nodal domain.
-/// Reads all inputs from st.values[] — fully signal-driven, no component
+/// Reads all inputs from state.values[] — fully signal-driven, no component
 /// member field access. This is the single source of truth for dynamic
 /// source patching, shared between JIT and AOT paths.
+///
+/// Templated on StateType — any struct with a `.values` member (std::vector<float>).
+/// Both JIT and AOT currently pass SimulationState; the template enables AOT to
+/// use a standalone state struct without recompiling this header.
 
 #include "core/solvers/common/nodal_patch_types.h"  // NodalPatchOp, NodalPatchKind
-#include "core/solvers/jit/state.h"                // SimulationState
-#include "core/solvers/common/nodal_types.h"  // NodalRuntimeState
+#include "core/solvers/common/nodal_types.h"         // NodalRuntimeState
 
 #include <algorithm>
 #include <cstdint>
 #include <vector>
 
 /// Apply patch ops from a pointer+count array (for AOT constexpr arrays).
+/// StateType only needs `.values` (std::vector<float>).
+template<typename StateType>
 inline void update_nodal_dynamic_sources(
     const NodalPatchOp* ops,
     size_t op_count,
-    SimulationState& st,
+    StateType& st,
     NodalRuntimeState& rt)
 {
     const uint32_t signal_count = static_cast<uint32_t>(st.values.size());
@@ -78,9 +83,10 @@ inline void update_nodal_dynamic_sources(
 }
 
 /// Overload accepting std::vector (convenience for JIT).
+template<typename StateType>
 inline void update_nodal_dynamic_sources(
     const std::vector<NodalPatchOp>& ops,
-    SimulationState& st,
+    StateType& st,
     NodalRuntimeState& rt)
 {
     update_nodal_dynamic_sources(ops.data(), ops.size(), st, rt);
