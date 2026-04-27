@@ -235,7 +235,13 @@ std::pair<ComponentSpec, TypePresentation> parse_type_definition(const json& j) 
             }
             // Parse optional patch_op declaration.
             if (sr.contains("patch_op") && sr["patch_op"].is_object()) {
-                role.patch_op = json_io_detail::parse_patch_op(sr["patch_op"]);
+                auto patch_op_opt = json_io_detail::parse_patch_op(sr["patch_op"]);
+                if (patch_op_opt.has_value()) {
+                    if (patch_op_opt->kind == PatchOpKind::None) {
+                        throw std::runtime_error("patch_op missing required string 'kind' for component '" + classname + "'");
+                    }
+                    role.patch_op = std::move(*patch_op_opt);
+                }
             }
             prim.solver.solver_role = role;
         }

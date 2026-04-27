@@ -8,7 +8,6 @@
 #include <cctype>
 #include <map>
 #include <optional>
-#include <set>
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
@@ -303,12 +302,9 @@ void build_device_bindings(
         }
     }
 
-    // Wrapper components that need electrical handles (non-KnobSwitch: single binding)
-    static const std::set<std::string> wrapper_classnames{
-        "Generator", "IndicatorLight", "CurrentSense",
-        "ControlledVoltageSource", "VariableConductance",
-        "AZS", "HoldButton", "Relay"
-    };
+    // Wrapper components that need electrical handles (non-KnobSwitch: single binding).
+    // Data-driven: any raw element with a non-empty device_name gets a binding.
+    // The device_name is only set when bind_handle is true in the solver_role.
 
     // Group raw elements by sanitized device name for KnobSwitch multi-handle support
     std::unordered_map<std::string, std::vector<size_t>> device_elements;
@@ -346,7 +342,9 @@ void build_device_bindings(
                 pos.second,
                 element_id
             });
-        } else if (wrapper_classnames.count(re.device_classname) > 0) {
+        } else if (!re.device_name.empty()) {
+            // Single-handle binding: any element with bind_handle=true gets a binding.
+            // The device_name is set by the extractor only when bind_handle is true.
             tmp_bindings.push_back({
                 base_name,
                 pos.first,
