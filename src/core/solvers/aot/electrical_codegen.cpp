@@ -76,31 +76,6 @@ std::optional<uint32_t> resolve_port_optional(
     return it->second;
 }
 
-struct ClassnameElectricalRule {
-    const char* classname;
-    ElectricalElementKindCodegen kind;
-    const char* port_a;
-    const char* port_b;
-    const char* param_a;
-    float param_a_default;
-    const char* param_b;
-    float param_b_default;
-};
-
-constexpr ClassnameElectricalRule k_classname_rules[] = {
-    {"Generator",             ElectricalElementKindCodegen::TheveninSource,   "v_out", "v_in",  "v_nominal",   28.5f, "internal_r", 0.005f},
-    {"RefNode",               ElectricalElementKindCodegen::FixedVoltageNode, "v",     nullptr, "value",        0.0f,  nullptr,      0.0f},
-    {"Resistor",              ElectricalElementKindCodegen::ConductanceBranch,"v_in",  "v_out", "conductance",  0.1f,  nullptr,      0.0f},
-    {"IndicatorLight",        ElectricalElementKindCodegen::ConductanceBranch,"v_in",  "v_out", "conductance",  1.0f,  nullptr,      0.0f},
-    {"CurrentSense",          ElectricalElementKindCodegen::ConductanceBranch,"v_in",  "v_out", "conductance",  1000.0f,nullptr,     0.0f},
-    {"ElectricalConductance", ElectricalElementKindCodegen::ConductanceBranch,"v_in",  "v_out", "conductance",  0.1f,  nullptr,      0.0f},
-    {"ElectricalSource",      ElectricalElementKindCodegen::TheveninSource,   "v_out", "v_in",  "voltage",      28.0f, "resistance", 0.01f},
-    {"ControlledVoltageSource",ElectricalElementKindCodegen::TheveninSource,  "v_pos", "v_neg", "offset",       0.0f,  "r_internal", 0.1f},
-    {"VariableConductance",   ElectricalElementKindCodegen::ConductanceBranch,"v_in",  "v_out", "g_min",        0.001f, nullptr,     0.0f},
-    {"AZS",                   ElectricalElementKindCodegen::ConductanceBranch,"v_in",  "v_out", "g_open",       1e-6f,  nullptr,     0.0f},
-    {"HoldButton",            ElectricalElementKindCodegen::ConductanceBranch,"v_in",  "v_out", "g_open",       1e-6f,  nullptr,     0.0f},
-};
-
 } // anonymous namespace
 
 // ===== Section 1: Helper Types & Functions for Element Extraction =====
@@ -192,41 +167,6 @@ std::vector<RawElement> extract_solver_role_element(
     throw std::runtime_error(
         "[codegen] unsupported solver_role kind '" + std::string(solver_role_kind_name(role.kind)) +
         "' for device '" + dev.name + "' (classname: " + dev.classname + ")");
-}
-
-// ===== Section 3: Raw Element Collection (classname rule path) =====
-// Extract electrical element from device using classname-based rules.
-std::optional<RawElement> extract_classname_rule_element(
-    const ResolvedDevice& dev,
-    const std::unordered_map<std::string, uint32_t>& port_to_signal,
-    const ElectricalExtractOptions& options,
-    size_t& element_idx
-) {
-    for (const auto& rule : k_classname_rules) {
-        if (dev.classname != rule.classname) continue;
-
-        auto node_a = resolve_port_optional(dev.name, dev.classname, rule.port_a, port_to_signal, options);
-        if (!node_a.has_value()) return std::nullopt;
-
-        if (rule.kind == ElectricalElementKindCodegen::FixedVoltageNode) {
-            return RawElement{ rule.kind,
-                *node_a, UINT32_MAX,
-                read_param_or(dev, rule.param_a, rule.param_a_default),
-                0.0f, element_idx++, dev.name, dev.classname };
-        }
-
-        auto node_b = resolve_port_optional(dev.name, dev.classname, rule.port_b, port_to_signal, options);
-        if (!node_b.has_value()) return std::nullopt;
-
-        float value_a = read_param_or(dev, rule.param_a, rule.param_a_default);
-        float value_b = (rule.param_b != nullptr)
-            ? read_param_or(dev, rule.param_b, rule.param_b_default) : 0.0f;
-
-        return RawElement{ rule.kind,
-            *node_a, *node_b, value_a, value_b, element_idx++, dev.name, dev.classname };
-    }
-
-    return std::nullopt;
 }
 
 // ===== Section 4: Disjoint Set Union for Island Building =====
@@ -619,24 +559,17 @@ ElectricalPlanCodegen extract_electrical_plan(
             continue;
         }
 
-        if (dev.solver_role.has_value()) {
-            const auto& role = *dev.solver_role;
-            // Skip solver_roles for non-electrical domains (e.g., Hydraulic).
-            // These are handled by their respective domain extractors.
-            if (role.domain != Domain::Electrical) {
-                continue;
-            }
-            auto elems = extract_solver_role_element(dev, port_to_signal, options, element_idx);
-            for (auto& elem : elems) {
-                raw_elements.push_back(std::move(elem));
-            }
+        if (!dev.solver_role.has_value()) continue;
+        const auto& role = *dev.solver_role;
+
+        // Skip solver_roles for non-electrical domains.
+        if (role.domain != Domain::Electrical) {
             continue;
         }
 
-        // Fall back to classname-based rules
-        auto elem_opt = extract_classname_rule_element(dev, port_to_signal, options, element_idx);
-        if (elem_opt.has_value()) {
-            raw_elements.push_back(std::move(*elem_opt));
+        auto elems = extract_solver_role_element(dev, port_to_signal, options, element_idx);
+        for (auto& elem : elems) {
+            raw_elements.push_back(std::move(elem));
         }
     }
 
