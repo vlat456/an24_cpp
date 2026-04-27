@@ -14,11 +14,13 @@ AOT code generator applies NASA C++ coding standards with strategic refactoring 
 **After**: 8 focused helpers + 54 LOC orchestrator
 
 **Functions** (all using shared `build_algo` from `build_algorithms.h`):
-- `extract_solver_role_element()` — Handles 4 element kinds via `NodalElementKind`
+- `AotExtractionAdapter` — Satisfies `ExtractionAdapter` concept (lenient: returns defaults, skips missing ports)
 - `build_device_bindings()` — Wrapper component binding collection + dedup
 - `build_component_debug()` — Debug metadata generation
 - `AotPatchOpContext` — AOT adapter for `build_algo::build_patch_ops_generic`
 - `extract_electrical_plan()` — Clean 4-phase orchestrator
+
+**Extraction**: Uses shared `extract_with_table()` from `element_extraction.h` with `AotExtractionAdapter`. No per-kind if-chain.
 
 **Complexity Reduction**: Cyclomatic complexity per function now 5-12 (was 35-45 monolithic)
 
@@ -80,12 +82,17 @@ Pipeline: CompositeSpec → `blueprint_from_type_definition()` → `Flattener::f
 Signal allocation is unified in FlatNetlist::compact_signals() (shared with JIT).
 No separate UnionFind, no expand_sub_blueprint_references, no signal_alloc dependency.
 
-#### 5b. electrical_codegen.cpp - extract_solver_role_element() ✅ REFACTORED (P4b)
+#### 5b. electrical_codegen.cpp - Extraction unified via ExtractionAdapter ✅ COMPLETE
 
-**Before**: 103 LOC with 3× repeated param-lookup boilerplate + duplicated resolve_port lambda
-**After**: 32 LOC using shared `resolve_port_optional()` and `read_role_param()` helpers
+**Before**: 103 LOC with 3× repeated param-lookup boilerplate + duplicated resolve_port lambda + per-kind if-chain
+**After**: Uses shared `extract_with_table()` from `element_extraction.h` with `AotExtractionAdapter`
 
-Shared helpers also benefit `extract_classname_rule_element` (70 → 24 LOC).
+The adapter pattern unifies JIT and AOT extraction:
+- `AotExtractionAdapter` — lenient (returns defaults for missing params, skips missing ports)
+- `JitExtractionAdapter` — strict (throws on missing data)
+- Both share identical extraction logic in `element_extraction.h`, differing only in error handling
+
+Adding a new `SolverRoleKind` = add one entry to the extractor table, zero code changes in either JIT or AOT.
 
 ### Compliance Status by File
 
@@ -380,8 +387,9 @@ cmake --build build
 - `src/core/solvers/aot/codegen_header.cpp` — Header generation
 - `src/core/solvers/aot/codegen_source.cpp` — Source generation
 - `src/core/solvers/aot/codegen_registry.cpp` — Registry generation, write_files
-- `src/core/solvers/aot/electrical_codegen.cpp` — Electrical plan extraction
+- `src/core/solvers/aot/electrical_codegen.cpp` — Electrical plan extraction (AotExtractionAdapter + shared templates)
 - `src/core/solvers/common/build_algorithms.h` — Shared build algorithms (island grouping, patch ops, element ID map)
+- `src/core/solvers/common/element_extraction.h` — ExtractionAdapter concept + shared extraction templates + extractor tables
 - `src/blueprint_v2/elaboration/elaboration_utils.h` — Shared lightweight utils (no JIT dep)
 - `src/blueprint_v2/elaboration/elaboration_utils.cpp` — node_id_from_path, exposed_key_for_bridge
 - `src/blueprint_v2/elaboration/elaboration_detail.h` — Shared device builder (JIT+codegen)

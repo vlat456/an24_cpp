@@ -42,6 +42,7 @@ cd build && ctest
 | Signal Allocation | `src/core/solvers/common/signal_allocation.h` |
 | UnionFind (shared) | `src/core/utils/union_find.h` |
 | Shared build algorithms | `src/core/solvers/common/build_algorithms.h` |
+| Shared extraction templates | `src/core/solvers/common/element_extraction.h` |
 | Nodal types (unified) | `src/core/solvers/common/nodal_types.h` |
 | Elaboration Utils | `src/blueprint_v2/elaboration/elaboration_utils.h` |
 | Elaboration Detail | `src/blueprint_v2/elaboration/elaboration_detail.h` |

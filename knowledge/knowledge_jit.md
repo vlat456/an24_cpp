@@ -139,8 +139,8 @@ The build process is split into modular files:
 | `build_factory.cpp` | ~790 | **AUTO-GENERATED** — component construction switch from param_schema |
 | `build_components_common.h` | 30 | Shared port-setup template |
 | `build_components_validation.cpp` | 208 | Source conflict + consumer ordering validation |
-| `build_common.h` | 356 | Shared build helpers + JitPatchOpContext + port/param resolution |
-| `build_nodal_domain.cpp` | 343 | Unified domain builder (DomainConfig template for electrical/hydraulic/pneumatic) |
+| `build_common.h` | 276 | Shared build helpers + JitPatchOpContext + port/param resolution (extraction moved to element_extraction.h) |
+| `build_nodal_domain.cpp` | 371 | Unified domain builder (DomainConfig + JitExtractionAdapter) |
 
 Pipeline:
 1. **Utils** — metadata helpers, ParamReader
@@ -173,21 +173,25 @@ Internal implementation uses `jit_solver_impl` named namespace instead of anonym
 
 ### build_nodal_domain.cpp Detailed Analysis
 
-The unified builder uses `DomainConfig` template parameter to handle electrical/hydraulic/pneumatic:
+The unified builder uses `DomainConfig` to handle electrical/hydraulic/pneumatic:
 
-1. **Element Extraction**: Uses shared `build_algo::extract_elements_generic()` from `build_algorithms.h`
-   - Handles 4 element kinds via `NodalElementKind` enum
-   - Unified metadata-driven + classname-based dispatch
+1. **Element Extraction**: Uses shared `ExtractionAdapter` concept from `element_extraction.h`
+   - `JitExtractionAdapter` satisfies concept — strict (throws on missing data)
+   - `extract_with_table()` dispatches to shared extraction templates
+   - `k_electrical_extractors<JitExtractionAdapter>` and `k_pressure_extractors<JitExtractionAdapter>` tables
+   - Adding a new SolverRoleKind = add one entry to the table, zero code changes
 
-2. **Island Partitioning**: Uses shared `build_algo::group_islands_generic()`
+2. **Island Partitioning**: Uses shared `build_algo::group_into_islands()`
    - Union-find over node connectivity
    - Same algorithm for all domains
 
 3. **Patch Ops**: Uses shared `build_algo::build_patch_ops_generic()`
    - Data-driven from solver_role.patch_op
-   - AOT/JIT adapters (AotPatchOpContext, JitPatchOpContext)
+   - `JitPatchOpContext` adapter for JIT types
 
-**Architecture**: All domain-specific logic moved to shared `build_algorithms.h`. JIT and AOT now share the same build pipeline.
+4. **Handle Assignment**: Domain-specific (electrical multi-handle, hydraulic/pneumatic single-handle)
+
+**Architecture**: All extraction logic is in shared `element_extraction.h`. JIT and AOT each provide an adapter. Adding a new solver-owned component = C++ class + blueprint JSON only.
 
 ### Cyclomatic Complexity
 
@@ -208,11 +212,12 @@ Main phases achieve complexity ~5-7 (acceptable for domain logic).
 - `src/core/solvers/jit/build_factory.cpp` — **AUTO-GENERATED** component factory (do not edit)
 - `src/core/solvers/jit/build_components_common.h` — Shared port-setup template
 - `src/core/solvers/jit/build_components_validation.cpp` — Build-time validation and consumer ordering
-- `src/core/solvers/jit/build_nodal_domain.cpp` — Unified domain builder (DomainConfig template)
+- `src/core/solvers/jit/build_nodal_domain.cpp` — Unified domain builder (DomainConfig + JitExtractionAdapter)
 - `src/core/solvers/jit/jit_solver.h` — BuildResult, SolverOwnedRefs
 - `src/core/solvers/jit/scheduler.h` — PushScheduler
 - `src/core/solvers/jit/simulator.h` — Simulator<T> template
 - `src/core/solvers/jit/state.h` — SimulationState
 - `src/core/solvers/common/provider.h` — JitProvider/AotProvider
-- `src/core/solvers/common/build_algorithms.h` — Shared build algorithms (zero JIT/AOT deps)
+- `src/core/solvers/common/build_algorithms.h` — Shared build algorithms (island grouping, patch ops, element ID map)
+- `src/core/solvers/common/element_extraction.h` — ExtractionAdapter concept + shared extraction templates
 - `src/core/solvers/common/nodal_types.h` — Unified nodal types (moved from jit/subsolvers/)

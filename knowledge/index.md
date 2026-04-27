@@ -16,7 +16,7 @@
 | Persistence boundaries | `knowledge/persistence_boundaries.md` | Canonical vs session vs library vs legacy file roles |
 | Persistence cutover status | `knowledge/errors_TODO.md` (Umbrella section) | Persistence-reset completion status mapped to GitHub issues #99-#103 |
 | Known issues | `knowledge/errors_TODO.md` | Bugs, architectural debts |
-| JIT/AOT shared algorithms | `knowledge/knowledge_jit.md` + `knowledge/knowledge_aot.md` | Build pipeline, island grouping, patch ops |
+| JIT/AOT shared algorithms | `knowledge/knowledge_jit.md` + `knowledge/knowledge_aot.md` | Build pipeline, island grouping, patch ops, extraction adapters |
 
 ## Reading Order
 
@@ -24,4 +24,4 @@
 **Solver:** 02 → 03 → component_authoring → how_to_create_electrical  
 **Editor:** 05 → 04  
 **Adding components:** 03 → how_to_create_electrical → component_authoring → 07 → 08  
-**Build pipeline:** 02 → knowledge_jit → knowledge_aot → build_algorithms.h
+**Build pipeline:** 02 → knowledge_jit → knowledge_aot → build_algorithms.h → element_extraction.h

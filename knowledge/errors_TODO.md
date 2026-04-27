@@ -126,6 +126,15 @@ The curated regression fixture (`tests/fixtures/closed_circuit_regression.bluepr
 | #8 | Field name divergence (`element_id` vs `component_index`) | Unified in AOT codegen |
 | #9 | Parity tests used JIT signal mapping | Rewrote tests with independent AOT allocation |
 | #10 | TypeRegistry boilerplate duplication in tests | Extracted to `tests/test_fixtures.h` |
+| #340 | Umbrella: eliminate special cases | CLOSED — all sub-issues done |
+| #341 | P0: data-driven patch ops | CLOSED — PatchOpDecl in SolverRole |
+| #342 | P1: unified build pipeline | CLOSED — DomainConfig template |
+| #343 | P2: simulator step loop | CLOSED — NodalSlot + pointer-to-member |
+| #344 | P3: delete classname_rules | CLOSED — data-driven dispatch |
+| #345-#347 | AOT↔JIT dedup | CLOSED — shared build_algorithms.h, unified types |
+| #348 | NODAL_DOMAIN_COUNT constant | CLOSED |
+| #349 | JSON field name unification | CLOSED |
+| #352 | Unify AOT/JIT extraction | CLOSED — ExtractionAdapter concept in element_extraction.h |
 
 **Files created/modified:**
 
@@ -1686,3 +1695,29 @@ Wire visualization is **domain-agnostic** — wires carry all signal types (volt
 - `test_issue_23_nested_inline_only.cpp` — no shadow nodes, persistence roundtrip, nested-of-nested
 - `test_embedded_editing_undo.cpp` — undo/redo of inline_def edits
 - `test_embedded_subwindow_scene.cpp` — scene rebuild from inline_def
+
+---
+
+## Open Issues (2026-04)
+
+| Issue | Title | Priority | Status |
+|-------|-------|----------|--------|
+| #350 | Remove JIT dependency from common/nodal_patch_ops.h | Low | Open |
+| #351 | Migrate JIT callers from build_common:: to build_algo:: namespace directly | Low | Open |
+| #353 | Fix O(n²) element lookup in AOT build_device_bindings | Medium | Open |
+| #354 | DRY: extract shared map-building helper for handle assignment | Medium | Open |
+
+### #352 — Unify AOT/JIT Extraction ✅ CLOSED
+
+**Commit:** `cee58e57`
+
+**Problem:** `extract_solver_role_element()` in AOT was a complete copy of JIT electrical extractors. Different error handling (JIT throws, AOT defaults). Adding a new SolverRoleKind required editing both files.
+
+**Resolution:** Introduced `ExtractionAdapter` concept in `element_extraction.h`. Both JIT and AOT provide their own adapter:
+- `JitExtractionAdapter` — strict (throws on missing data)
+- `AotExtractionAdapter` — lenient (returns defaults, skips missing ports)
+- Both share identical extraction logic via `extract_with_table()` dispatch
+
+**Deleted:** 4 hand-written JIT electrical extractors, 3 JIT pressure extractor templates, `ElementExtractor`/`ExtractorFn`/`find_extractor` infrastructure, old AOT if-chain.
+
+**Net:** -207 lines (136 added, 343 removed). 1890/1890 tests pass.
