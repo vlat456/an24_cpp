@@ -128,6 +128,11 @@ struct NodalSlot {
     NodalRuntimeState* SimulationState::* rt_member;
 };
 
+/// Number of nodal solver domains (electrical, hydraulic, pneumatic).
+/// Adding a 4th domain (e.g. Thermal) requires updating this constant,
+/// adding a NodalArtifacts member, and adding a NodalSlot entry.
+static constexpr size_t NODAL_DOMAIN_COUNT = 3;
+
 /// Build port-to-signal mapping from devices and connections
 /// For AOT, this is used by codegen to generate component bindings
 struct BuildResult {
@@ -172,7 +177,7 @@ struct BuildResult {
     /// Uniform iteration view for the simulator pipeline.
     /// Returned by value — NodalSlot holds references into *this.
     /// Caller must ensure BuildResult outlives the returned array.
-    std::array<NodalSlot, 3> nodal_slots() noexcept {
+    std::array<NodalSlot, NODAL_DOMAIN_COUNT> nodal_slots() noexcept {
         return {{
             { electrical, &SimulationState::electrical_rt },
             { hydraulic,  &SimulationState::hydraulic_rt  },

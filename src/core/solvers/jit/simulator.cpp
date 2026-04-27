@@ -173,7 +173,7 @@ void Simulator<SolverTag>::step(double dt) {
     // RAII guard: null all rt pointers on every exit path.
     struct RtGuard {
         SimulationState& st;
-        std::array<NodalSlot, 3> slots;
+        std::array<NodalSlot, NODAL_DOMAIN_COUNT> slots;
         ~RtGuard() {
             for (const auto& slot : slots) {
                 st.*(slot.rt_member) = nullptr;
