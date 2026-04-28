@@ -74,6 +74,11 @@ CompiledPresentationSpec make_presentation_spec(const bp2::Blueprint::Node& node
         }
     }
 
+    // Static badges — resolved at scene-build time from structural properties
+    if (node.is_blueprint_instance()) {
+        spec.static_badges.set(NodeBadge::Composite);
+    }
+
     return spec;
 }
 

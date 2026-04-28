@@ -1,6 +1,7 @@
 #include "editor_app.h"
 
 #include "editor/gl_setup.h"
+#include "editor/icon_font.h"
 #include "editor/imgui_theme.h"
 #include "editor/pi_zn_tuner.h"
 #include "editor/visual/dialogs/file_dialogs.h"
@@ -129,6 +130,10 @@ bool EditorApp::initImGui() {
     io.IniFilename = nullptr;
     
     ImGuiTheme::LoadRobotoWithCyrillic(18.0f);
+    ImFont* fa_font = ImGuiTheme::LoadFontAwesome(io.Fonts, 14.0f);
+    if (fa_font) {
+        icon_font_.handle = fa_font;
+    }
     ImGuiTheme::ApplyModernDarkTheme();
     
     ImGui_ImplSDL2_InitForOpenGL(window_, gl_context_);

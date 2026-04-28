@@ -11,6 +11,7 @@
 #include "blueprint_v2/interface/node_port_projection.h"
 #include "editor/visual/presentation/node_presentation.h"
 #include "editor/visual/presentation/semantic_scene_snapshot.h"
+#include "editor/visual/presentation/node_badge.h"
 #include <spdlog/spdlog.h>
 #include <algorithm>
 #include <cmath>
@@ -26,7 +27,10 @@ namespace {
 
 class HeaderStrip : public Widget {
 public:
-    explicit HeaderStrip(std::string text) : text_(std::move(text)) {
+    explicit HeaderStrip(std::string text,
+                         editor::NodeBadgeSet badges = {},
+                         const editor::IconFont* icon_font = nullptr)
+        : text_(std::move(text)), badges_(badges), icon_font_(icon_font) {
         setFlexible(false);
         setSize(Pt(0.0f, kHeight));
     }
@@ -37,7 +41,8 @@ public:
             text_w = dl ? dl->calc_text_size(text_.c_str(), kFontSize).x
                         : fallback_text_width(text_, kFontSize);
         }
-        return Pt(kPadding * 2.0f + text_w, kHeight);
+        float badges_w = compute_badges_width(dl);
+        return Pt(kPadding * 2.0f + text_w + badges_w, kHeight);
     }
 
     Pt minimumSize(IDrawList* /*dl*/) const override {
@@ -55,13 +60,33 @@ public:
         dl->add_rect_filled_with_rounding_corners(
             origin, max, render_theme::COLOR_HEADER_FILL, rounding, 0x30);
 
-        if (text_.empty()) return;
-
         float font = kFontSize * zoom;
-        Pt text_pos(origin.x + kPadding * zoom,
-                    origin.y + (kVisualHeight - kFontSize) * zoom * 0.5f);
+        float text_w = 0.0f;
+
+        if (!text_.empty()) {
+            Pt text_pos(origin.x + kPadding * zoom,
+                        origin.y + (kVisualHeight - kFontSize) * zoom * 0.5f);
+            dl->set_clip_rect(origin, max);
+            dl->add_text(text_pos, text_.c_str(), render_theme::COLOR_TEXT, font);
+            dl->clear_clip();
+            text_w = dl->calc_text_size(text_.c_str(), font).x;
+        }
+
+        // Badge icons — right-aligned after title text
+        if (badges_.empty() || !icon_font_ || !icon_font_->available()) return;
+
+        float x = origin.x + kPadding * zoom + text_w + kIconPadLeft * zoom;
+        float y = origin.y + (kVisualHeight - kFontSize) * zoom * 0.5f;
+
         dl->set_clip_rect(origin, max);
-        dl->add_text(text_pos, text_.c_str(), render_theme::COLOR_TEXT, font);
+        badges_.for_each([&](editor::NodeBadge badge) {
+            editor::BadgeVisuals vis = editor::get_badge_visuals(badge);
+            char utf8[5];
+            editor::IconFont::codepoint_to_utf8(vis.codepoint, utf8);
+            dl->add_text_with_font(Pt(x, y), utf8, vis.color, font, icon_font_->handle);
+            Pt sz = dl->calc_text_size_with_font(utf8, font, icon_font_->handle);
+            x += sz.x + kIconGap * zoom;
+        });
         dl->clear_clip();
     }
 
@@ -80,11 +105,37 @@ public:
 
 private:
     std::string text_;
+    editor::NodeBadgeSet badges_;
+    const editor::IconFont* icon_font_;
 
-    static constexpr float kHeight = 24.0f;
+    static constexpr float kHeight       = 24.0f;
     static constexpr float kVisualHeight = 20.0f;
-    static constexpr float kFontSize = 12.0f;
-    static constexpr float kPadding = 5.0f;
+    static constexpr float kFontSize     = 12.0f;
+    static constexpr float kPadding      = 5.0f;
+    static constexpr float kIconPadLeft  = 6.0f;   ///< Gap between title text and first icon
+    static constexpr float kIconGap       = 3.0f;   ///< Gap between consecutive icons
+
+    float compute_badges_width(IDrawList* dl) const {
+        if (badges_.empty() || !icon_font_ || !icon_font_->available()) return 0.0f;
+
+        float w = kIconPadLeft;
+        bool first = true;
+        badges_.for_each([&](editor::NodeBadge badge) {
+            editor::BadgeVisuals vis = editor::get_badge_visuals(badge);
+            char utf8[5];
+            editor::IconFont::codepoint_to_utf8(vis.codepoint, utf8);
+            if (dl) {
+                Pt sz = dl->calc_text_size_with_font(utf8, kFontSize, icon_font_->handle);
+                w += sz.x;
+            } else {
+                // Fallback: estimate icon width as font size
+                w += kFontSize;
+            }
+            if (!first) w += kIconGap;
+            first = false;
+        });
+        return w;
+    }
 };
 
 class FooterTypeLabel : public Widget {
@@ -272,11 +323,15 @@ NodeWidget::NodeWidget(const bp2::Blueprint::Node& data,
                        const bp2::Interface& render_iface,
                        const core::StringInterner& interner,
                        const NodeContent& content,
+                       editor::NodeBadgeSet badges,
+                       const editor::IconFont* icon_font,
                        std::optional<editor::NodeColor> color)
     : node_iid_(data.semantic.id)
     , interner_(&interner)
     , name_(data.view.name)
     , type_name_(std::string(interner.resolve(data.semantic.type)))
+    , badges_(badges)
+    , icon_font_(icon_font)
 {
     if (color.has_value()) {
         custom_fill_ = color->to_uint32();
@@ -317,7 +372,7 @@ void NodeWidget::build(const bp2::Blueprint::Node& data,
                        const core::StringInterner& interner,
                        const NodeContent& content) {
     // Header
-    header_ = emplaceChild<HeaderStrip>(name_);
+    header_ = emplaceChild<HeaderStrip>(name_, badges_, icon_font_);
 
     // Footer
     footer_ = emplaceChild<FooterTypeLabel>(type_name_);

@@ -1,4 +1,5 @@
 #include "imgui_theme.h"
+#include "editor/icon_font.h"
 #include <spdlog/spdlog.h>
 #include <filesystem>
 
@@ -10,15 +11,20 @@ static std::string GetFontPath(const char* font_name) {
     std::vector<std::string> candidates = {
         // Relative to executable (when running from build/)
         std::string("fonts/") + font_name,
+        std::string("../src/fonts/") + font_name,
+        std::string("../../src/fonts/") + font_name,
+
+        // Legacy paths (editor/fonts)
         std::string("../src/editor/fonts/") + font_name,
         std::string("../../src/editor/fonts/") + font_name,
 
         // Relative to source (when running tests)
+        std::string("src/fonts/") + font_name,
         std::string("src/editor/fonts/") + font_name,
-        std::string("../src/editor/fonts/") + font_name,
+        std::string("../src/fonts/") + font_name,
 
         // Absolute path
-        std::string("/Users/vladimir/an24_cpp/src/editor/fonts/") + font_name,
+        std::string("/Users/vladimir/an24_cpp/src/fonts/") + font_name,
     };
 
     for (const auto& path : candidates) {
@@ -96,6 +102,17 @@ ImFont* LoadRobotoWithCyrillic(float size_pixels) {
     }
 
     return roboto;
+}
+
+ImFont* LoadFontAwesome(ImFontAtlas* atlas, float size_pixels) {
+    std::string font_path = GetFontPath("fa-solid-900.ttf");
+    if (font_path.empty()) {
+        spdlog::warn("FontAwesome TTF not found — node badges will not render");
+        return nullptr;
+    }
+
+    void* handle = editor::IconFontLoader::load(atlas, font_path.c_str(), size_pixels);
+    return static_cast<ImFont*>(handle);
 }
 
 void ApplyModernDarkTheme() {

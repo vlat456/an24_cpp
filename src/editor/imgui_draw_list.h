@@ -79,6 +79,25 @@ public:
         return ui::Pt(size.x, size.y);
     }
 
+    void add_text_with_font(ui::Pt pos, const char* text, uint32_t color,
+                             float font_size, const void* font_handle) override {
+        ImU32 c = IM_COL32((color >> 0) & 0xFF, (color >> 8) & 0xFF,
+                            (color >> 16) & 0xFF, (color >> 24) & 0xFF);
+        ImFont* font = font_handle
+            ? static_cast<ImFont*>(const_cast<void*>(font_handle))
+            : ImGui::GetFont();
+        dl->AddText(font, font_size, ImVec2(pos.x, pos.y), c, text);
+    }
+
+    ui::Pt calc_text_size_with_font(const char* text, float font_size,
+                                      const void* font_handle) const override {
+        ImFont* font = font_handle
+            ? static_cast<ImFont*>(const_cast<void*>(font_handle))
+            : ImGui::GetFont();
+        ImVec2 size = font->CalcTextSizeA(font_size, FLT_MAX, FLT_MAX, text);
+        return ui::Pt(size.x, size.y);
+    }
+
     void add_polyline(const ui::Pt* points, size_t count, uint32_t color, float thickness = 1.0f) override {
         if (count < 2) return;
         ImU32 c = IM_COL32((color >> 0) & 0xFF, (color >> 8) & 0xFF,

@@ -169,7 +169,8 @@ void rebuild(Scene& scene,
              bp2::PathArena& arena,
              std::span<const core::InternedId> instance_path,
              const ComponentRegistry& registry,
-             const editor::RuntimeNodeStateStore* runtime_state_store) {
+             const editor::RuntimeNodeStateStore* runtime_state_store,
+             const editor::IconFont* icon_font) {
     auto guard = scene.flushGuard();
     scene.clear();
 
@@ -198,10 +199,15 @@ void rebuild(Scene& scene,
                   runtime_state = &it->second;
               }
           }
-          NodeContent content = def ? create_runtime_node_content(n, *def, pres, interner, runtime_state) : NodeContent{};
-           std::optional<editor::NodeColor> color = n.view.color;
-           std::unique_ptr<Widget> widget = NodeFactory::create(
-               n, frame_kind, render_iface, interner, content, color, bus_wires);
+NodeContent content = def ? create_runtime_node_content(n, *def, pres, interner, runtime_state) : NodeContent{};
+           // Resolve static badges from structural properties
+           editor::NodeBadgeSet badges;
+           if (n.is_blueprint_instance()) {
+               badges.set(editor::NodeBadge::Composite);
+           }
+            std::optional<editor::NodeColor> color = n.view.color;
+            std::unique_ptr<Widget> widget = NodeFactory::create(
+                n, frame_kind, render_iface, interner, content, badges, icon_font, color, bus_wires);
           scene.add(std::move(widget));
       }
 

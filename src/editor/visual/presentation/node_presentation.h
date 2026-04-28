@@ -2,6 +2,7 @@
 
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "editor/data/node_state.h"
+#include "editor/visual/presentation/node_badge.h"
 #include "core/strings/interned_id.h"
 #include "core/model/presentation_spec.h"
 #include "core/model/component_spec.h"
@@ -160,6 +161,9 @@ struct CompiledPresentationSpec {
     // Annotation (only meaningful when frame_kind == Annotation)
     std::string annotation_text;
     float annotation_font_size = 12.0f;
+
+    // Badges — small indicator icons in the node title bar
+    NodeBadgeSet static_badges;
 };
 
 // Backwards compatibility alias for compiled presentation spec

@@ -5,6 +5,7 @@
 #include "visual/node/group_node_widget.h"
 #include "visual/node/bus_node_widget.h"
 #include "editor/visual/presentation/node_presentation.h"
+#include "editor/visual/presentation/node_badge.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "core/strings/interned_id.h"
 #include <memory>
@@ -20,6 +21,9 @@ struct NodeFactory {
     /// @param render_iface The authoritative interface to project for rendering
     /// @param interner   String interner for resolving InternedId to strings
     /// @param content    Resolved content semantics (from ComponentSpec + instance params)
+    /// @param badges     Static badges for the node header (Composite, etc.)
+    /// @param icon_font  Icon font for badge rendering (may be nullptr if FA not loaded)
+    /// @param color      Optional node color override
     /// @param wires      All wires in the blueprint (used by BusNodeWidget)
     /// @return Owning pointer to the created widget
     static std::unique_ptr<Widget> create(const bp2::Blueprint::Node& node,
@@ -27,6 +31,8 @@ struct NodeFactory {
                                           const bp2::Interface& render_iface,
                                           const core::StringInterner& interner,
                                           const NodeContent& content,
+                                          editor::NodeBadgeSet badges = {},
+                                          const editor::IconFont* icon_font = nullptr,
                                           std::optional<editor::NodeColor> color = std::nullopt,
                                           const std::vector<BusWireRef>& wires = {}) {
         using editor::presentation::NodeFrameKind;
@@ -49,7 +55,7 @@ struct NodeFactory {
                 return std::make_unique<TextNodeWidget>(node, interner, color);
             case NodeFrameKind::Standard:
             default:
-                return std::make_unique<NodeWidget>(node, render_iface, interner, content, color);
+                return std::make_unique<NodeWidget>(node, render_iface, interner, content, badges, icon_font, color);
         }
     }
 };

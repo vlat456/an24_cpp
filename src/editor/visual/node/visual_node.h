@@ -6,6 +6,7 @@
 #include "visual/node/bounds.h"
 #include "editor/visual/presentation/semantic_scene_snapshot.h"
 #include "editor/visual/presentation/node_slot_layout.h"
+#include "editor/visual/presentation/node_badge.h"
 #include "editor/data/node_state.h"
 #include "core/strings/interned_id.h"
 #include "visual/node/port_layout_resolver.h"
@@ -44,6 +45,8 @@ public:
                const bp2::Interface& render_iface,
                const core::StringInterner& interner,
                const NodeContent& content,
+               editor::NodeBadgeSet badges = {},
+               const editor::IconFont* icon_font = nullptr,
                std::optional<editor::NodeColor> color = std::nullopt);
 
     std::string_view id() const override { return interner_->resolve(node_iid_); }
@@ -148,6 +151,10 @@ private:
     // ---- Slot-driven shell layout state ----
     editor::presentation::NodeShellLayoutSpec shell_spec_{};
     mutable editor::presentation::NodeShellLayout measured_shell_{};
+
+    // ---- Badges ----
+    editor::NodeBadgeSet badges_;
+    const editor::IconFont* icon_font_ = nullptr;
 
     void build(const bp2::Blueprint::Node& data,
                const bp2::Interface& render_iface,

@@ -68,6 +68,7 @@ set(EDITOR_DOCUMENT_SOURCES
 
 # ImGui rendering shell — only used by the visual editor, not by tests
 set(EDITOR_IMGUI_SHELL_SOURCES
+    ${CMAKE_SOURCE_DIR}/src/editor/icon_font.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/imgui_theme.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/canvas_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/oscilloscope_plot.cpp

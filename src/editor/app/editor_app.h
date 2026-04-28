@@ -1,6 +1,7 @@
 #pragma once
 
 #include "editor/window_system.h"
+#include "editor/visual/presentation/node_badge.h"
 #include "editor/visual/menu/main_menu.h"
 #include "editor/visual/panels/inspector_panel.h"
 #include "editor/visual/panels/document_area.h"
@@ -48,6 +49,9 @@ private:
     
     // Business logic
     ::WindowSystem ws_;
+    
+    // Icon font for node badges (loaded in initImGui)
+    editor::IconFont icon_font_;
     
     // UI components (using global namespace classes)
     MainMenu main_menu_;
