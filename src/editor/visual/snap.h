@@ -4,7 +4,6 @@
 #include "core/strings/interned_id.h"
 #include "blueprint_v2/blueprint/node_port.h"
 #include "editor/layout_constants.h"
-#include "editor/visual/presentation/node_presentation.h"
 #include "blueprint_v2/path/path.h"
 #include <cmath>
 
@@ -39,34 +38,33 @@ path_to_node_port(const bp2::WireEndpoint& ep, const bp2::PathArena& /*arena*/) 
 }
 
 // =====================================================================
-// Snap granularity — maps NodeFrameKind → grid step multiplier.
-// Single authoritative source for "how fine should snapping be?"
+// Dual-grid snap (whole-grid strong, half-grid weak)
 // =====================================================================
 
-/// Snap granularity multiplier for a given node frame kind.
-///   Reference → 0.5 (half-grid: between grid lines)
-///   All others → 1.0 (whole-grid: on grid lines)
-constexpr float snap_granularity(editor::presentation::NodeFrameKind kind) {
-    return kind == editor::presentation::NodeFrameKind::Reference ? 0.5f : 1.0f;
+/// Fraction of grid_step defining the "strong" magnetic radius.
+/// Positions within this distance of a whole-grid line snap there.
+/// The remaining corridor (centered at half-grid points) is ~20% of step.
+constexpr float SNAP_STRONG_FRACTION = 0.4f;
+
+/// Snap one axis to the dual grid.
+/// Whole-grid lines are "strong" (large magnetic radius).
+/// Half-grid lines (at grid_step/2 offsets) are "weak" — they only
+/// capture positions that fell through the strong check.
+inline float snap_axis(float v, float step) {
+    float whole = std::round(v / step) * step;
+    float d = std::abs(v - whole);
+    if (d <= step * SNAP_STRONG_FRACTION) return whole;
+    float half = step * 0.5f;
+    return (v > whole) ? whole + half : whole - half;
 }
 
-// =====================================================================
-// User-facing grid snap (input / placement)
-// Zoom-dependent via grid_step parameter.
-// =====================================================================
-
-/// Snap a position to the user-facing grid.
-/// @param pos          World-space position to snap.
-/// @param grid_step    Current zoom-dependent grid step.
-/// @param granularity  Step multiplier (1.0 = whole grid, 0.5 = half grid).
-///                     Use snap_granularity(frame_kind) for type-aware snap.
-inline Pt snap_to_grid(Pt pos, float grid_step, float granularity = 1.0f) {
+/// Snap a position to the dual grid.
+/// No type discrimination — all nodes snap the same way.
+/// @param pos        World-space position to snap.
+/// @param grid_step  Current zoom-dependent grid step.
+inline Pt snap_to_grid(Pt pos, float grid_step) {
     if (grid_step < 1e-6f) return pos;
-    float step = grid_step * granularity;
-    return Pt(
-        std::round(pos.x / step) * step,
-        std::round(pos.y / step) * step
-    );
+    return Pt(snap_axis(pos.x, grid_step), snap_axis(pos.y, grid_step));
 }
 
 // =====================================================================

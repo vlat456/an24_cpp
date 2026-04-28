@@ -111,10 +111,7 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
     }
 
     std::string unique_id = model_.generate_unique_node_id(classname, interner_);
-    const auto* pres = registry.get_presentation(classname);
-    const float granularity = editor_math::snap_granularity(
-        editor::presentation::resolve_frame_kind(def, pres));
-    Pt snapped_pos = editor_math::snap_to_grid(world_pos, viewport().grid_step, granularity);
+    Pt snapped_pos = editor_math::snap_to_grid(world_pos, viewport().grid_step);
 
     bp2::Blueprint::Node node;
     node.content = bp2::Blueprint::Node::ComponentData{};

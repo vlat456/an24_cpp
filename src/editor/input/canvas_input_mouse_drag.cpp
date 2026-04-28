@@ -14,20 +14,7 @@ using namespace canvas_input_impl;
 void CanvasInput::handle_drag_node(Pt world_delta) {
     drag_anchor_ = drag_anchor_ + world_delta;
 
-    // Compute snap granularity: use the coarsest (largest value) across the
-    // selection. Reference nodes → 0.5 (half-grid), all others → 1.0 (whole-grid).
-    // If any non-Reference node is selected, whole-grid wins.
-    float granularity = 1.0f;
-    for (const auto& nid : selected_node_ids()) {
-        if (nid.empty()) continue;
-        const bp2::Blueprint::Node* n = host_->find_node(nid);
-        if (!n) continue;
-        auto kind = editor::presentation::resolve_frame_kind(
-            registry().get(std::string(interner_->resolve(n->semantic.type))),
-            registry().get_presentation(std::string(interner_->resolve(n->semantic.type))));
-        granularity = std::max(granularity, editor_math::snap_granularity(kind));
-    }
-    Pt snapped = editor_math::snap_to_grid(drag_anchor_, viewport_.grid_step, granularity);
+    Pt snapped = editor_math::snap_to_grid(drag_anchor_, viewport_.grid_step);
 
     std::unordered_set<core::InternedId> connected_wire_ids;
 

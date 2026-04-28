@@ -654,7 +654,7 @@ Ref/Value nodes (nodes with `render_hint == "ref"`) now have:
 - `src/editor/visual/scene_mutations.cpp` — `orient_ref_node_ports()` after scene rebuild
 - `src/editor/input/canvas_input.h` — declared `orient_ref_node_port()`
 - `src/editor/input/canvas_input.cpp` — `orient_ref_node_port()` + called from `commit_drag_node()`
-- `src/editor/visual/snap.h` — added `snap_to_half_grid()`
+- `src/editor/visual/snap.h` — dual-grid snap: `snap_axis()` + `snap_to_grid()` (whole-grid strong, half-grid weak, no type discrimination)
 - `src/editor/visual/primitives/primitives.cpp` — Label estimate width 0.6→0.8
 
 **Regression tests needed:**

@@ -386,7 +386,7 @@ Ref/Value nodes are special lightweight nodes that display a single value (numer
 | `ref_node_widget.cpp` | Dynamic size from text, direct text rendering with vertical centering |
 | `scene_mutations.cpp` | `orient_ref_node_ports()` — rebuild-time orientation |
 | `canvas_input.cpp` | `orient_ref_node_port()` — drag-commit orientation |
-| `snap.h` | `snap_to_half_grid()` — snaps to half-grid (grid/2 increments) |
+| `snap.h` | Dual-grid snap: `snap_axis()` + `snap_to_grid()` — whole-grid strong, half-grid weak. No type discrimination. |
 
 ## Wire Rendering
 

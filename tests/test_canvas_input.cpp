@@ -2906,120 +2906,38 @@ TEST(CanvasInputSimMode, ReadOnlyBlocksInlineValueEditor) {
 }
 
 // ============================================================================
-// Regression: Value node snap behavior (Issue #21)
+// Dual-grid snap: all nodes snap uniformly (whole-grid strong, half-grid weak)
 // ============================================================================
 
-TEST(CanvasInputNodeSnap, ValueNodeSnapsToHalfGridDespiteRefRenderHint) {
-    // Regression test for Issue #21: Value nodes must snap to half-grid (0.5x)
-    // even though they have render_hint="ref" (which normally triggers full-grid snap).
-    // Value nodes should be excluded from the full-grid snap logic.
+TEST(CanvasInputNodeSnap, DualGridSnap_AllNodesSnapUniformly) {
+    // With the dual-grid system, all nodes snap identically regardless of type.
+    // snap_to_grid(pos, step) internally picks whole-grid (strong) or half-grid (weak).
     //
-    // Strategy: We test by creating a Blueprint with a Value node that has render_hint="ref",
-    // then calling the snap logic indirectly through the drag handler. We'll verify the snap
-    // behavior by examining the node's position after a drag operation that would disambiguate
-    // between half-grid and full-grid snap.
-    core::StringInterner I;
-    bp2::PathArena arena(I);
-
-    // Create a Battery as a reference
-    auto bat = make_node(I, "bat", "Battery", 200.0f, 200.0f);
-    set_iface(bat, {
-        make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
-    });
-    
-    // Create a Value node with render_hint="ref" at (103, 103)
-    // (not at a grid/half-grid boundary to test snap behavior)
-    auto value_node = make_node(I, "val1", "Value", 103.0f, 103.0f, "ref");
-    
-    // Create a RefNode (for comparison) also with render_hint="ref" at (113, 113)
-    auto ref_node = make_node(I, "ref1", "RefNode", 113.0f, 113.0f, "ref");
-    set_iface(ref_node, {
-        make_port(I, "v", Domain::Electrical, bp2::Direction::Input, PortType::V),
-    });
-    
-    auto wire = make_wire(I, arena, "w1", "bat", "v_out", "ref1", "v");
-    wire.domain = Domain::Electrical;
-    
-    bp2::Blueprint bp;
-    bp = bp.with_node(std::move(bat));
-    bp = bp.with_node(std::move(value_node));
-    bp = bp.with_node(std::move(ref_node));
-    bp = bp.with_wire(std::move(wire));
-
-    bp2::EditorModel model(bp);
-    
-    // Verify that the snap logic will differentiate between half-grid and full-grid:
-    // With grid_step=10:
-    // - Half-grid anchors: 0, 5, 10, 15, 20, ... (multiples of 5)
-    // - Full-grid anchors: 0, 10, 20, 30, ... (multiples of 10)
+    // With grid_step=10, SNAP_STRONG_FRACTION=0.4:
+    //   Strong radius = 4.0
+    //   Zones per cell: [0, 4] → whole, (4, 6) → half at 5, [6, 10] → whole
     //
-    // For Value node at 103:
-    // - Half-grid snap → 105 (distance 2)
-    // - Full-grid snap → 100 (distance 3)
-    // → Half-grid is closer, so should snap to 105
-    //
-    // For RefNode at 113:
-    // - Half-grid snap → 115 (distance 2)
-    // - Full-grid snap → 110 (distance 3)
-    // → Both Value and RefNode use half-grid (NodeFrameKind::Reference)
-    
-    // Update Value node position to 105 via snap (simulating a drag)
-    // We'll call snap_to_grid with granularity=0.5 directly to verify the fix
-    ui::Pt value_pos(103.0f, 103.0f);
-    ui::Pt snapped_half = editor_math::snap_to_grid(value_pos, 10.0f, 0.5f);
-    EXPECT_NEAR(snapped_half.x, 105.0f, 0.01f)
-        << "snap_to_grid(103, 10, 0.5) should snap to 105";
-    EXPECT_NEAR(snapped_half.y, 105.0f, 0.01f)
-        << "snap_to_grid(103, 10, 0.5) should snap to 105";
-    
-    // Verify that full-grid would snap differently
-    ui::Pt snapped_full = editor_math::snap_to_grid(value_pos, 10.0f);
-    EXPECT_NEAR(snapped_full.x, 100.0f, 0.01f)
-        << "snap_to_grid(103, 10) should snap to 100";
-    EXPECT_NEAR(snapped_full.y, 100.0f, 0.01f)
-        << "snap_to_grid(103, 10) should snap to 100";
-    
-    // Now test the fix: When we drag a Value node, it should use half-grid snap,
-    // not full-grid. We do this by checking that the node position after rebuild
-    // is snapped correctly.
-    
-    visual::Scene scene;
-    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
+    // Position 103: nearest whole=100, d=3 ≤ 4 → snaps to 100 (whole)
+    // Position 105: nearest whole=100, d=5 > 4 → snaps to 105 (half)
+    // Position 107: nearest whole=110, d=3 ≤ 4 → snaps to 110 (whole)
 
-    auto* val_widget = dynamic_cast<visual::Widget*>(scene.find("val1"));
-    ASSERT_NE(val_widget, nullptr) << "Value widget should exist in scene";
-    
-    auto* ref_widget = dynamic_cast<visual::RefNodeWidget*>(scene.find("ref1"));
-    ASSERT_NE(ref_widget, nullptr) << "RefNode widget should exist in scene";
+    ui::Pt pos(103.0f, 103.0f);
+    ui::Pt snapped = editor_math::snap_to_grid(pos, 10.0f);
+    EXPECT_NEAR(snapped.x, 100.0f, 0.01f)
+        << "snap_to_grid(103, 10) should snap to 100 (whole-grid, d=3 ≤ 4)";
+    EXPECT_NEAR(snapped.y, 100.0f, 0.01f);
 
-    Viewport vp;
-    vp.grid_step = 10.0f;
-    auto host = create_editor_model_host(model);
+    ui::Pt pos2(105.0f, 105.0f);
+    ui::Pt snapped2 = editor_math::snap_to_grid(pos2, 10.0f);
+    EXPECT_NEAR(snapped2.x, 105.0f, 0.01f)
+        << "snap_to_grid(105, 10) should snap to 105 (half-grid, d=5 > 4)";
+    EXPECT_NEAR(snapped2.y, 105.0f, 0.01f);
 
-    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root(), &ci_reg());
-
-    const Pt canvas_min(0.0f, 0.0f);
-    
-    // Test: Drag RefNode and verify it uses full-grid snap
-    Pt ref_click = ref_widget->worldPos() + Pt(10.0f, 10.0f);  // Click on ref node body
-    input.on_mouse_down(ref_click, MouseButton::Left, canvas_min);
-    
-    if (input.state() == InputState::DraggingNode) {
-        // Drag by -3 units: (113, 113) + (-3, -3) = (110, 110)
-        // Half-grid: snap to 110 (distance 0) or 105 (distance 5) → 110 ✓
-        // Full-grid: snap to 110 (distance 0) or 100 (distance 10) → 110 ✓
-        // (Both agree at 110 because 110 is on full-grid boundary)
-        Pt drag_delta(-3.0f, -3.0f);
-        input.on_mouse_drag(MouseButton::Left, drag_delta, canvas_min);
-        input.on_mouse_up(MouseButton::Left, ref_click + drag_delta, canvas_min);
-        
-        // Rebuild and check position
-        visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
-        
-         Pt ref_pos = dynamic_cast<visual::Widget*>(scene.find("ref1"))->worldPos();
-        EXPECT_NEAR(ref_pos.x, 110.0f, 0.1f)
-            << "RefNode should snap to full-grid (110)";
-    }
+    ui::Pt pos3(107.0f, 107.0f);
+    ui::Pt snapped3 = editor_math::snap_to_grid(pos3, 10.0f);
+    EXPECT_NEAR(snapped3.x, 110.0f, 0.01f)
+        << "snap_to_grid(107, 10) should snap to 110 (whole-grid, d=3 ≤ 4)";
+    EXPECT_NEAR(snapped3.y, 110.0f, 0.01f);
 }
 
 // ============================================================================
@@ -3603,13 +3521,14 @@ TEST(CanvasInputSemanticCancellation, CancelGestureInDraggingSliderReturnsToIdle
 // Regression: Ref node snap uses half-grid, not full-grid (inverted ternary fix)
 // ============================================================================
 
-TEST(CanvasInputNodeSnap, RefNodeDragUsesHalfGridSnap) {
-    // This test exercises the handle_drag_node code path to verify that
-    // ref nodes (render_hint="ref", NOT type=Value) snap to half-grid.
+TEST(CanvasInputNodeSnap, RefNodeDragUsesDualGridSnap) {
+    // With the universal dual-grid system, all nodes snap identically.
+    // The snap picks whole-grid (strong) or half-grid (weak) based on distance,
+    // regardless of node type.
     //
-    // We place a single ref node at grid position (160, 160) with grid_step=16.
-    // After clicking and starting a drag, we apply a delta that moves the
-    // drag anchor to a position where half-grid and full-grid snap differ.
+    // We place a ref node at (160, 160) with grid_step=16.
+    // After clicking and dragging by +7 (landing at ~167):
+    //   nearest whole=160, d=7 > strong_r(6.4) → half-grid at 168.
     core::StringInterner I;
     bp2::PathArena arena(I);
 
@@ -3653,25 +3572,35 @@ TEST(CanvasInputNodeSnap, RefNodeDragUsesHalfGridSnap) {
     input.on_mouse_down(click_pos, MouseButton::Left, canvas_min);
 
     if (input.state() == InputState::DraggingNode) {
-        // After mouse_down, drag_anchor is set to the ref node's world position
-        // (the click position). We drag by +5 to move the anchor off-grid.
-        // With grid_step=16, half_step=8:
-        //   If anchor lands at e.g. 165, half_grid→168, full_grid→160.
-        //   The ref node should snap to half-grid (168), not full-grid (160).
-        input.on_mouse_drag(MouseButton::Left, Pt(5.0f, 5.0f), canvas_min);
+        // Drag by +7: anchor moves from ~170 to ~177.
+        // nearest whole=176, d=1 → strong snap to 176 (whole-grid).
+        // Let's use +7 from click to land in the half-grid corridor instead:
+        // Click pos ~170, drag by +7 → anchor at ~177.
+        // nearest whole=176, d=1 ≤ 6.4 → snaps to 176.
+        // That's whole-grid. To reach half-grid corridor, need to land
+        // past strong_r from nearest whole. With click at ~170:
+        //   Drag by -1 → anchor at ~169, nearest whole=176, d=7 > 6.4 → half at 168.
+        // Actually, the drag_anchor starts at the click world position.
+        // Let's use a larger drag to ensure we hit the half-grid zone.
+        // Click pos is at node(160,160) + offset(10,10) = (170,170).
+        // After drag +7,7 → anchor at (177,177).
+        // nearest whole to 177 = 176, d=1 ≤ 6.4 → whole at 176.
+        // After drag -3,-3 → anchor at (167,167).
+        // nearest whole to 167 = 160, d=7 > 6.4 → half at 168. ✓
+        input.on_mouse_drag(MouseButton::Left, Pt(-3.0f, -3.0f), canvas_min);
 
         Pt new_pos = ref_widget->localPos();
         float half_step = vp.grid_step * 0.5f;  // 8.0
 
-        // Verify the position is on the half-grid
+        // Verify the position is on the half-grid (at 168)
         float rem_x = std::fmod(std::abs(new_pos.x), half_step);
         float rem_y = std::fmod(std::abs(new_pos.y), half_step);
         bool on_half_grid_x = (rem_x < 0.01f || std::abs(rem_x - half_step) < 0.01f);
         bool on_half_grid_y = (rem_y < 0.01f || std::abs(rem_y - half_step) < 0.01f);
         EXPECT_TRUE(on_half_grid_x)
-            << "Ref node X=" << new_pos.x << " must be on half-grid (step=" << half_step << ")";
+            << "Node X=" << new_pos.x << " must be on half-grid (step=" << half_step << ")";
         EXPECT_TRUE(on_half_grid_y)
-            << "Ref node Y=" << new_pos.y << " must be on half-grid (step=" << half_step << ")";
+            << "Node Y=" << new_pos.y << " must be on half-grid (step=" << half_step << ")";
     } else {
         // If the click didn't land on the node body (hit a port instead), skip
          GTEST_SKIP() << "Click landed on port instead of node body; "
