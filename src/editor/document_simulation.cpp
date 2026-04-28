@@ -41,6 +41,7 @@ void Document::startSimulation() {
 
 void Document::stopSimulation() {
     sim_bridge_.stop();
+    rebuild_window_scenes();
 }
 
 void Document::rebuildSimulation() {
@@ -72,6 +73,7 @@ void Document::rebuild_window_scenes() {
     ComponentRegistry empty_reg;
     const ComponentRegistry& reg = type_registry_ ? *type_registry_ : empty_reg;
     const auto& rt = sim_bridge_.runtime_node_states();
+    const editor::IconFont* icon_font = this->icon_font();
 
     for (auto& win : window_manager_.windows()) {
         std::vector<core::InternedId> instance_path = editor::scope_id_to_instance_path(win->resolved_scope_id());
@@ -80,14 +82,14 @@ void Document::rebuild_window_scenes() {
             && win->external_interner && win->external_arena) {
             visual::mutations::rebuild(win->scene, *win->external_blueprint,
                                        *win->external_interner, *win->external_arena, instance_path, reg,
-                                       &rt);
+                                       &rt, icon_font);
             win->input.rebuild_snapshot();
         } else if (win->resolved_scope_id().is_embedded()) {
             if (const bp2::Blueprint* embedded_bp = editor::resolve_embedded_blueprint(
                     model_.current(), win->resolved_scope_id().path())) {
                 visual::mutations::rebuild(win->scene, *embedded_bp,
                                            interner_, arena_, instance_path, reg,
-                                           &rt);
+                                           &rt, icon_font);
                 win->input.rebuild_snapshot();
             } else {
                 spdlog::error("[editor] Embedded window '{}' missing embedded blueprint during rebuild",
@@ -97,7 +99,7 @@ void Document::rebuild_window_scenes() {
         } else {
             visual::mutations::rebuild(win->scene, model_.current(),
                                        interner_, arena_, instance_path, reg,
-                                       &rt);
+                                       &rt, icon_font);
             win->input.rebuild_snapshot();
         }
     }

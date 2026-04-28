@@ -19,6 +19,7 @@
 #include "blueprint_v2/path/path.h"
 #include "core/strings/interned_id.h"
 #include "blueprint_v2/blueprint/node_content_type.h"
+#include "editor/visual/presentation/node_badge.h"
 
 // ============================================================================
 // Helpers
@@ -976,4 +977,560 @@ TEST(SceneMutations, RebuildSeedsWidgetWithLiveDynamicContentState) {
     EXPECT_EQ(switch_content.type, bp2::NodeContentType::Switch);
     EXPECT_TRUE(switch_content.state)
         << "Rebuild must seed NodeWidget with live switch state, not static default";
+}
+
+// ============================================================================
+// Badge Integration — #370
+// ============================================================================
+
+/// Create a bp2::Blueprint containing a single blueprint-instance node.
+/// Used by badge tests to produce a node with the Composite badge.
+static bp2::Blueprint make_composite_bp(core::StringInterner& I) {
+    bp2::Blueprint::Node host;
+    host.semantic.id = I.intern("sub1");
+    host.semantic.type = I.intern("HostType");
+
+    auto inner = std::make_unique<bp2::Blueprint>();
+    *inner = inner->with_id(I.intern("HostType"));
+    *inner = inner->with_interface(bp2::Interface());
+    host.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+            std::make_unique<bp2::Blueprint>(inner->with_id(I.intern("HostType")))
+        )
+    };
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(host));
+    return bp;
+}
+
+TEST(BadgeIntegration, BlueprintInstanceNodeGetsCompositeBadge) {
+    core::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto n1 = make_bp2_node(I, "bat1", "Battery");
+    set_iface(n1, {
+        make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    auto bp = make_composite_bp(I);
+    bp = bp.with_node(std::move(n1));
+
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, bp, I, arena, std::span<const core::InternedId>{}, scene_reg());
+
+    auto* bat_widget = dynamic_cast<visual::NodeWidget*>(scene.find("bat1"));
+    auto* sub_widget = dynamic_cast<visual::NodeWidget*>(scene.find("sub1"));
+
+    ASSERT_NE(bat_widget, nullptr) << "Battery node must exist in scene";
+    ASSERT_NE(sub_widget, nullptr) << "Blueprint-instance node must exist in scene";
+
+    // Regular node has no badges
+    EXPECT_TRUE(bat_widget->badges().empty())
+        << "Regular component node should have no badges";
+
+    // Blueprint-instance node has Composite badge
+    EXPECT_TRUE(sub_widget->badges().test(editor::NodeBadge::Composite))
+        << "Blueprint-instance node must have Composite badge";
+    EXPECT_FALSE(sub_widget->badges().test(editor::NodeBadge::Active))
+        << "Blueprint-instance node should not have Active badge";
+}
+
+TEST(BadgeIntegration, RegularNodeHasNoBadges) {
+    core::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto n1 = make_bp2_node(I, "lamp1", "Lamp");
+    set_iface(n1, {
+        make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(n1));
+
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, bp, I, arena, std::span<const core::InternedId>{}, scene_reg());
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("lamp1"));
+    ASSERT_NE(widget, nullptr);
+    EXPECT_TRUE(widget->badges().empty());
+}
+
+TEST(BadgeIntegration, NullIconFontPropagatedToNodeWidget) {
+    core::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto n1 = make_bp2_node(I, "bat1", "Battery");
+    set_iface(n1, {
+        make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(n1));
+
+    visual::Scene scene;
+    // Pass nullptr for icon_font (default)
+    visual::mutations::rebuild(scene, bp, I, arena, std::span<const core::InternedId>{}, scene_reg(),
+                               nullptr, nullptr);
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("bat1"));
+    ASSERT_NE(widget, nullptr);
+    EXPECT_EQ(widget->icon_font(), nullptr)
+        << "NodeWidget must store null icon_font when none provided";
+}
+
+TEST(BadgeIntegration, NonNullIconFontPropagatedToNodeWidget) {
+    core::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto n1 = make_bp2_node(I, "bat1", "Battery");
+    set_iface(n1, {
+        make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(n1));
+
+    visual::Scene scene;
+
+    // Simulate non-null icon font
+    editor::IconFont fake_font;
+    fake_font.handle = reinterpret_cast<void*>(0xDEADBEEF);
+
+    visual::mutations::rebuild(scene, bp, I, arena, std::span<const core::InternedId>{}, scene_reg(),
+                               nullptr, &fake_font);
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("bat1"));
+    ASSERT_NE(widget, nullptr);
+    EXPECT_EQ(widget->icon_font(), &fake_font)
+        << "NodeWidget must store the icon_font pointer passed to rebuild";
+}
+
+// ============================================================================
+// HeaderStrip Rendering Mock — #371
+// ============================================================================
+
+namespace {
+
+/// Mock draw list that records text-with-font calls for assertion.
+struct MockDrawList : public ui::IDrawList {
+    struct TextCall {
+        ui::Pt pos;
+        std::string text;
+        uint32_t color;
+        float font_size;
+        const void* font_handle;
+    };
+
+    std::vector<TextCall> text_with_font_calls;
+
+    void set_clip_rect(ui::Pt, ui::Pt) override {}
+    void clear_clip() override {}
+    void add_line(ui::Pt, ui::Pt, uint32_t, float = 1.0f) override {}
+    void add_rect(ui::Pt, ui::Pt, uint32_t, float = 1.0f) override {}
+    void add_rect_with_rounding_corners(ui::Pt, ui::Pt, uint32_t, float, int, float = 1.0f) override {}
+    void add_rect_filled(ui::Pt, ui::Pt, uint32_t) override {}
+    void add_rect_filled_with_rounding(ui::Pt, ui::Pt, uint32_t, float) override {}
+    void add_rect_filled_with_rounding_corners(ui::Pt, ui::Pt, uint32_t, float, int) override {}
+    void add_circle(ui::Pt, float, uint32_t, int = 12) override {}
+    void add_circle_filled(ui::Pt, float, uint32_t, int = 12) override {}
+
+    void add_text(ui::Pt, const char*, uint32_t, float = 14.0f) override {}
+
+    void add_polyline(const ui::Pt*, size_t, uint32_t, float = 1.0f) override {}
+    void add_triangle_filled(ui::Pt, ui::Pt, ui::Pt, uint32_t) override {}
+
+    ui::Pt calc_text_size(const char* text, float font_size) const override {
+        // Approximate: each character is 0.6 * font_size wide
+        return ui::Pt(static_cast<float>(std::strlen(text)) * font_size * 0.6f, font_size);
+    }
+
+    void add_text_with_font(ui::Pt pos, const char* text, uint32_t color,
+                            float font_size, const void* font_handle) override {
+        text_with_font_calls.push_back({pos, text, color, font_size, font_handle});
+    }
+
+    ui::Pt calc_text_size_with_font(const char* text, float font_size,
+                                const void* font_handle) const override {
+        (void)font_handle;
+        return calc_text_size(text, font_size);
+    }
+};
+
+} // anonymous namespace
+
+TEST(HeaderStripRendering, BadgesWithIconFontProduceTextWithFontCalls) {
+    core::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto bp = make_composite_bp(I);
+
+    // Non-null icon font
+    editor::IconFont fake_font;
+    fake_font.handle = reinterpret_cast<void*>(0xDEADBEEF);
+
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, bp, I, arena, std::span<const core::InternedId>{}, scene_reg(),
+                               nullptr, &fake_font);
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("sub1"));
+    ASSERT_NE(widget, nullptr);
+    EXPECT_TRUE(widget->badges().test(editor::NodeBadge::Composite));
+
+    // Layout + render
+    MockDrawList dl;
+    widget->setLocalPos(ui::Pt(0, 0));
+    widget->setSize(widget->preferredSize(&dl));
+    widget->layout(widget->size().x, widget->size().y);
+
+    visual::RenderContext rctx;
+    rctx.zoom = 1.0f;
+    widget->renderTree(&dl, rctx);
+
+    // Must have produced at least one add_text_with_font call for the badge icon
+    ASSERT_FALSE(dl.text_with_font_calls.empty())
+        << "Badge rendering must call add_text_with_font when icon_font is available";
+
+    // The font handle must match
+    EXPECT_EQ(dl.text_with_font_calls[0].font_handle, fake_font.handle);
+
+    // The text must be non-empty (the UTF-8 encoded icon)
+    EXPECT_FALSE(dl.text_with_font_calls[0].text.empty());
+
+    // Color must be non-zero (BadgeVisuals::color)
+    EXPECT_NE(dl.text_with_font_calls[0].color, 0u);
+}
+
+TEST(HeaderStripRendering, BadgesWithNullIconFontProduceNoIconCalls) {
+    core::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto bp = make_composite_bp(I);
+
+    // Null icon_font
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, bp, I, arena, std::span<const core::InternedId>{}, scene_reg(),
+                               nullptr, nullptr);
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("sub1"));
+    ASSERT_NE(widget, nullptr);
+    EXPECT_TRUE(widget->badges().test(editor::NodeBadge::Composite));
+
+    MockDrawList dl;
+    widget->setLocalPos(ui::Pt(0, 0));
+    widget->setSize(widget->preferredSize(&dl));
+    widget->layout(widget->size().x, widget->size().y);
+
+    visual::RenderContext rctx;
+    rctx.zoom = 1.0f;
+    widget->renderTree(&dl, rctx);
+
+    // No add_text_with_font calls when icon_font is null
+    EXPECT_TRUE(dl.text_with_font_calls.empty())
+        << "Badge rendering must not call add_text_with_font when icon_font is null";
+}
+
+TEST(HeaderStripRendering, RegularNodeWithNullIconFontNoIconCalls) {
+    core::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto n1 = make_bp2_node(I, "bat1", "Battery");
+    set_iface(n1, {
+        make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(n1));
+
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, bp, I, arena, std::span<const core::InternedId>{}, scene_reg());
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("bat1"));
+    ASSERT_NE(widget, nullptr);
+    EXPECT_TRUE(widget->badges().empty());
+
+    MockDrawList dl;
+    widget->setLocalPos(ui::Pt(0, 0));
+    widget->setSize(widget->preferredSize(&dl));
+    widget->layout(widget->size().x, widget->size().y);
+
+    visual::RenderContext rctx;
+    rctx.zoom = 1.0f;
+    widget->renderTree(&dl, rctx);
+
+    // No icon calls for a regular node with no badges
+    EXPECT_TRUE(dl.text_with_font_calls.empty());
+}
+
+TEST(HeaderStripRendering, NullDrawListDoesNotCrash) {
+    core::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto bp = make_composite_bp(I);
+
+    editor::IconFont fake_font;
+    fake_font.handle = reinterpret_cast<void*>(0xDEADBEEF);
+
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, bp, I, arena, std::span<const core::InternedId>{}, scene_reg(),
+                               nullptr, &fake_font);
+
+    auto* widget = dynamic_cast<visual::NodeWidget*>(scene.find("sub1"));
+    ASSERT_NE(widget, nullptr);
+
+    widget->setLocalPos(ui::Pt(0, 0));
+    widget->setSize(widget->preferredSize(nullptr));
+    widget->layout(widget->size().x, widget->size().y);
+
+    visual::RenderContext rctx;
+    rctx.zoom = 1.0f;
+
+    // render with null draw list — must not crash
+    widget->renderTree(nullptr, rctx);
+    // If we get here, the test passed (no segfault)
+}
+
+// ============================================================================
+// Regression #372: Node content must reset to defaults when simulation stops
+// ============================================================================
+
+/// Helper: create a registry with content-enabled types for simulation reset tests.
+static ComponentRegistry make_sim_reset_registry() {
+    ComponentRegistry reg;
+
+    // Indicator — content_type=Indicator, default brightness=0.0
+    CompositeSpec indicator_spec;
+    indicator_spec.classname = "IndicatorLamp";
+    TypePresentation indicator_pres;
+    indicator_pres.content_type = bp2::NodeContentType::Indicator;
+    reg.register_type("IndicatorLamp", indicator_spec, indicator_pres);
+
+    // Gauge — content_type=Gauge, default value=0.0
+    CompositeSpec gauge_spec;
+    gauge_spec.classname = "Voltmeter";
+    TypePresentation gauge_pres;
+    gauge_pres.content_type = bp2::NodeContentType::Gauge;
+    gauge_spec.params["min"] = ParamSpec{ParamSchemaType::Float, "0"};
+    gauge_spec.params["max"] = ParamSpec{ParamSchemaType::Float, "30"};
+    reg.register_type("Voltmeter", gauge_spec, gauge_pres);
+
+    // Switch — content_type=Switch, default state=false (param "closed"="false")
+    CompositeSpec switch_spec;
+    switch_spec.classname = "ToggleSwitch";
+    TypePresentation switch_pres;
+    switch_pres.content_type = bp2::NodeContentType::Switch;
+    switch_spec.params["closed"] = ParamSpec{ParamSchemaType::Bool, "false"};
+    reg.register_type("ToggleSwitch", switch_spec, switch_pres);
+
+    // Slider — content_type=Slider, default value=0.0 (sliders have no initial_value in base content)
+    CompositeSpec slider_spec;
+    slider_spec.classname = "Throttle";
+    TypePresentation slider_pres;
+    slider_pres.content_type = bp2::NodeContentType::Slider;
+    slider_spec.params["min"] = ParamSpec{ParamSchemaType::Float, "0"};
+    slider_spec.params["max"] = ParamSpec{ParamSchemaType::Float, "100"};
+    reg.register_type("Throttle", slider_spec, slider_pres);
+
+    return reg;
+}
+
+static const ComponentRegistry& sim_reset_reg() {
+    static const ComponentRegistry r = make_sim_reset_registry();
+    return r;
+}
+
+/// Regression: rebuild WITHOUT runtime states (sim stopped → defaults) shows
+/// default content values, not stale simulation values.
+TEST(SimulationReset, IndicatorResetsToDefaultAfterStop) {
+    core::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto n = make_bp2_node(I, "lamp1", "IndicatorLamp");
+    set_iface(n, {
+        make_port(I, "brightness", Domain::Electrical, bp2::Direction::Output, PortType::I),
+        make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(n));
+
+    // Simulate "sim was running" — create a stale runtime state with brightness=1.0
+    editor::RuntimeNodeStateStore stale_state;
+    stale_state.emplace(
+        editor::make_node_instance_key(std::span<const core::InternedId>{}, I.lookup("lamp1")),
+        editor::ScalarNodeRuntimeState{1.0f});
+
+    // First rebuild WITH stale state — shows the sim value
+    visual::Scene scene_stale;
+    visual::mutations::rebuild(scene_stale, bp, I, arena, std::span<const core::InternedId>{},
+                               sim_reset_reg(), &stale_state);
+    auto* widget_stale = dynamic_cast<visual::NodeWidget*>(scene_stale.find("lamp1"));
+    ASSERT_NE(widget_stale, nullptr);
+    EXPECT_FLOAT_EQ(widget_stale->currentContent().value, 1.0f)
+        << "Widget with stale runtime state should show sim value";
+
+    // Second rebuild WITHOUT runtime state (sim stopped → defaults)
+    // This is what happens after stop(): runtime_node_states is reset to defaults,
+    // rebuild_window_scenes() is called with the reset store.
+    // Simulating the reset store by passing nullptr (empty map = no overlay).
+    visual::Scene scene_reset;
+    visual::mutations::rebuild(scene_reset, bp, I, arena, std::span<const core::InternedId>{},
+                               sim_reset_reg(), nullptr);
+    auto* widget_reset = dynamic_cast<visual::NodeWidget*>(scene_reset.find("lamp1"));
+    ASSERT_NE(widget_reset, nullptr);
+    EXPECT_FLOAT_EQ(widget_reset->currentContent().value, 0.0f)
+        << "Widget after stop must show default brightness (0.0), not stale sim value (1.0)";
+}
+
+TEST(SimulationReset, GaugeResetsToDefaultAfterStop) {
+    core::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto n = make_bp2_node(I, "vm1", "Voltmeter");
+    set_iface(n, {
+        make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(n));
+
+    // Stale sim state: voltmeter reading 24.0V
+    editor::RuntimeNodeStateStore stale_state;
+    stale_state.emplace(
+        editor::make_node_instance_key(std::span<const core::InternedId>{}, I.lookup("vm1")),
+        editor::ScalarNodeRuntimeState{24.0f});
+
+    visual::Scene scene_stale;
+    visual::mutations::rebuild(scene_stale, bp, I, arena, std::span<const core::InternedId>{},
+                               sim_reset_reg(), &stale_state);
+    auto* widget_stale = dynamic_cast<visual::NodeWidget*>(scene_stale.find("vm1"));
+    ASSERT_NE(widget_stale, nullptr);
+    EXPECT_FLOAT_EQ(widget_stale->currentContent().value, 24.0f);
+
+    // After stop: no runtime state → default value
+    visual::Scene scene_reset;
+    visual::mutations::rebuild(scene_reset, bp, I, arena, std::span<const core::InternedId>{},
+                               sim_reset_reg(), nullptr);
+    auto* widget_reset = dynamic_cast<visual::NodeWidget*>(scene_reset.find("vm1"));
+    ASSERT_NE(widget_reset, nullptr);
+    EXPECT_FLOAT_EQ(widget_reset->currentContent().value, 0.0f)
+        << "Gauge after stop must show 0.0, not stale 24.0V";
+}
+
+TEST(SimulationReset, SwitchResetsToDefaultAfterStop) {
+    core::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto n = make_bp2_node(I, "sw1", "ToggleSwitch");
+    set_iface(n, {
+        make_port(I, "state", Domain::Electrical, bp2::Direction::Output, PortType::Bool),
+        make_port(I, "control", Domain::Electrical, bp2::Direction::Input, PortType::Signal),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(n));
+
+    // Stale sim state: switch closed=true
+    editor::RuntimeNodeStateStore stale_state;
+    stale_state.emplace(
+        editor::make_node_instance_key(std::span<const core::InternedId>{}, I.lookup("sw1")),
+        editor::BoolNodeRuntimeState{true});
+
+    visual::Scene scene_stale;
+    visual::mutations::rebuild(scene_stale, bp, I, arena, std::span<const core::InternedId>{},
+                               sim_reset_reg(), &stale_state);
+    auto* widget_stale = dynamic_cast<visual::NodeWidget*>(scene_stale.find("sw1"));
+    ASSERT_NE(widget_stale, nullptr);
+    EXPECT_TRUE(widget_stale->currentContent().state)
+        << "Switch with stale runtime state should show closed=true";
+
+    // After stop: no runtime state → default (closed=false from param)
+    visual::Scene scene_reset;
+    visual::mutations::rebuild(scene_reset, bp, I, arena, std::span<const core::InternedId>{},
+                               sim_reset_reg(), nullptr);
+    auto* widget_reset = dynamic_cast<visual::NodeWidget*>(scene_reset.find("sw1"));
+    ASSERT_NE(widget_reset, nullptr);
+    EXPECT_FALSE(widget_reset->currentContent().state)
+        << "Switch after stop must show default state (false), not stale sim state (true)";
+}
+
+TEST(SimulationReset, SliderResetsToParamDefaultAfterStop) {
+    core::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto n = make_bp2_node(I, "thr1", "Throttle");
+    set_iface(n, {
+        make_port(I, "out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+        make_port(I, "control", Domain::Electrical, bp2::Direction::Input, PortType::Signal),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(n));
+
+    // Stale sim state: slider at 87.5%
+    editor::RuntimeNodeStateStore stale_state;
+    stale_state.emplace(
+        editor::make_node_instance_key(std::span<const core::InternedId>{}, I.lookup("thr1")),
+        editor::ScalarNodeRuntimeState{87.5f});
+
+    visual::Scene scene_stale;
+    visual::mutations::rebuild(scene_stale, bp, I, arena, std::span<const core::InternedId>{},
+                               sim_reset_reg(), &stale_state);
+    auto* widget_stale = dynamic_cast<visual::NodeWidget*>(scene_stale.find("thr1"));
+    ASSERT_NE(widget_stale, nullptr);
+    EXPECT_FLOAT_EQ(widget_stale->currentContent().value, 87.5f);
+
+    // After stop: no runtime state → base default value (slider defaults to 0.0)
+    visual::Scene scene_reset;
+    visual::mutations::rebuild(scene_reset, bp, I, arena, std::span<const core::InternedId>{},
+                               sim_reset_reg(), nullptr);
+    auto* widget_reset = dynamic_cast<visual::NodeWidget*>(scene_reset.find("thr1"));
+    ASSERT_NE(widget_reset, nullptr);
+    EXPECT_FLOAT_EQ(widget_reset->currentContent().value, 0.0f)
+        << "Slider after stop must show base default (0.0), not stale sim value (87.5)";
+}
+
+TEST(SimulationReset, ResetRuntimeStateStoreToDefaultsShowsDefaultsInRebuild) {
+    // End-to-end: populate a RuntimeNodeStateStore with sim values,
+    // then clear it (as stop() does), and verify rebuild shows defaults.
+    core::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto n = make_bp2_node(I, "lamp1", "IndicatorLamp");
+    set_iface(n, {
+        make_port(I, "brightness", Domain::Electrical, bp2::Direction::Output, PortType::I),
+        make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+        make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(n));
+
+    const ComponentRegistry& reg = sim_reset_reg();
+
+    // Populate runtime state store with stale sim values (as update_node_content does)
+    editor::RuntimeNodeStateStore rt;
+    auto key = editor::make_node_instance_key(std::span<const core::InternedId>{}, I.lookup("lamp1"));
+    rt.emplace(key, editor::ScalarNodeRuntimeState{0.8f});
+
+    // Verify rebuild with stale state shows sim value
+    visual::Scene scene_before;
+    visual::mutations::rebuild(scene_before, bp, I, arena, std::span<const core::InternedId>{}, reg, &rt);
+    auto* w_before = dynamic_cast<visual::NodeWidget*>(scene_before.find("lamp1"));
+    ASSERT_NE(w_before, nullptr);
+    EXPECT_FLOAT_EQ(w_before->currentContent().value, 0.8f);
+
+    // Clear the store (simulating stop() → reset_node_content() which clears then
+    // rebuilds defaults — since IndicatorLamp has no non-zero default params,
+    // the default state is 0.0)
+    rt.clear();
+
+    // Rebuild with empty state → shows default (0.0 for indicator with no initial param)
+    visual::Scene scene_after;
+    visual::mutations::rebuild(scene_after, bp, I, arena, std::span<const core::InternedId>{}, reg, &rt);
+    auto* w_after = dynamic_cast<visual::NodeWidget*>(scene_after.find("lamp1"));
+    ASSERT_NE(w_after, nullptr);
+    EXPECT_FLOAT_EQ(w_after->currentContent().value, 0.0f)
+        << "After clearing runtime state, rebuild must show default value";
 }

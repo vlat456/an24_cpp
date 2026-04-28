@@ -37,15 +37,17 @@ std::unique_ptr<EditingHost> make_embedded_host(bp2::EditorModel& root_model,
         registry, interner_ptr, arena);
 }
 
-void rebuild_root_scene(BlueprintWindow& window, const ComponentRegistry* parser_registry) {
+void rebuild_root_scene(BlueprintWindow& window, const ComponentRegistry* parser_registry,
+                            const editor::IconFont* icon_font) {
     ComponentRegistry empty_reg;
     const ComponentRegistry& reg = parser_registry ? *parser_registry : empty_reg;
     visual::mutations::rebuild(window.scene, window.root_model.current(), window.interner,
-        window.arena, std::span<const core::InternedId>{}, reg, nullptr);
+        window.arena, std::span<const core::InternedId>{}, reg, nullptr, icon_font);
     window.input.rebuild_snapshot();
 }
 
-void rebuild_embedded_scene(BlueprintWindow& window, const ComponentRegistry* parser_registry) {
+void rebuild_embedded_scene(BlueprintWindow& window, const ComponentRegistry* parser_registry,
+                                const editor::IconFont* icon_font) {
     ComponentRegistry empty_reg;
     const ComponentRegistry& reg = parser_registry ? *parser_registry : empty_reg;
 
@@ -57,22 +59,21 @@ void rebuild_embedded_scene(BlueprintWindow& window, const ComponentRegistry* pa
             + editor::instance_path_to_scope_string(window.interner, window.scope.path()) + "'");
     }
 
-    // window.scope.path() already returns InternedId vector - use directly
     std::vector<core::InternedId> instance_path(window.scope.path().begin(), window.scope.path().end());
     visual::mutations::rebuild(window.scene, *embedded_bp, window.interner,
-        window.arena, instance_path, reg, nullptr);
+        window.arena, instance_path, reg, nullptr, icon_font);
     window.input.rebuild_snapshot();
 }
 
-void rebuild_external_scene(BlueprintWindow& window, const ComponentRegistry* parser_registry) {
+void rebuild_external_scene(BlueprintWindow& window, const ComponentRegistry* parser_registry,
+                                const editor::IconFont* icon_font) {
     ComponentRegistry empty_reg;
     const ComponentRegistry& reg = parser_registry ? *parser_registry : empty_reg;
 
-    // window.scope.path() already returns InternedId vector - use directly
     std::vector<core::InternedId> instance_path(window.scope.path().begin(), window.scope.path().end());
 
     visual::mutations::rebuild(window.scene, require_external_blueprint(window.external_blueprint),
-        window.rendered_interner(), window.rendered_arena(), instance_path, reg, nullptr);
+        window.rendered_interner(), window.rendered_arena(), instance_path, reg, nullptr, icon_font);
     window.input.rebuild_snapshot();
 }
 
@@ -84,7 +85,8 @@ BlueprintWindow::BlueprintWindow(bp2::EditorModel& model,
                                   WindowScopeId scope,
                                   std::string title,
                                   std::unique_ptr<EditingHost> editing_host,
-                                  bool read_only)
+                                  bool read_only,
+                                  const editor::IconFont* icon_font)
     : title(std::move(title))
     , scope(std::move(scope))
     , root_model(model)
@@ -93,7 +95,7 @@ BlueprintWindow::BlueprintWindow(bp2::EditorModel& model,
     , scene()
     , viewport()
     , host(std::move(editing_host))  // may be nullptr for external windows
-    , input(scene, viewport, this->host.get(), this->interner, this->arena, this->scope)
+    , input(scene, viewport, this->host.get(), this->interner, this->arena, this->scope, icon_font)
     , read_only(read_only)
 {
     input.read_only = read_only;
@@ -109,8 +111,9 @@ std::unique_ptr<BlueprintWindow> BlueprintWindow::create_root(
         WindowScopeId::root(),
         std::move(title),
         create_editor_model_host(ctx.model, ctx.type_registry, &ctx.interner, &ctx.arena),
-        false));
-    rebuild_root_scene(*window, ctx.type_registry);
+        false,
+        ctx.icon_font));
+    rebuild_root_scene(*window, ctx.type_registry, ctx.icon_font);
     return window;
 }
 
@@ -127,8 +130,9 @@ std::unique_ptr<BlueprintWindow> BlueprintWindow::create_embedded(
         std::move(scope),
         std::move(title),
         std::move(host),
-        false));
-    rebuild_embedded_scene(*window, ctx.type_registry);
+        false,
+        ctx.icon_font));
+    rebuild_embedded_scene(*window, ctx.type_registry, ctx.icon_font);
     return window;
 }
 
@@ -150,7 +154,8 @@ std::unique_ptr<BlueprintWindow> BlueprintWindow::create_external(
         std::move(scope),
         std::move(title),
         nullptr,  // host created after blueprint is stored
-        true));
+        true,
+        ctx.icon_font));
 
     window->external_blueprint = std::move(external_document.blueprint);
     window->external_interner = std::move(external_document.interner);
@@ -161,7 +166,7 @@ std::unique_ptr<BlueprintWindow> BlueprintWindow::create_external(
     window->input.rebind_host(*window->host);
     window->input.rebind_identity_context(*window->external_interner, *window->external_arena);
 
-    rebuild_external_scene(*window, ctx.type_registry);
+    rebuild_external_scene(*window, ctx.type_registry, ctx.icon_font);
     return window;
 }
 

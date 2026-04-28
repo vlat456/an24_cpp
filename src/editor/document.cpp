@@ -6,9 +6,11 @@
 int Document::next_id_ = 1;
 
 Document::Document(const ComponentRegistry* type_registry,
-                   const bp2::LibraryIndex* library_index)
+                   const bp2::LibraryIndex* library_index,
+                   const editor::RenderingResources* rendering_resources)
     : type_registry_(type_registry)
     , library_index_(library_index)
+    , rendering_resources_(rendering_resources)
 {
     id_ = editor::DocumentId::from_string("doc_" + std::to_string(next_id_++));
     sim_bridge_.set_type_registry(type_registry_);

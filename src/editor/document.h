@@ -4,6 +4,7 @@
 #include "window/window_scope_id.h"
 #include "simulation_bridge.h"
 #include "scope_resolver.h"
+#include "rendering_resources.h"
 #include "visual/scene.h"
 #include "visual/workspace_session.h"
 #include "data/node_state.h"
@@ -30,10 +31,11 @@
 /// - EditorModel — owns blueprint state, undo/redo
 class Document {
 public:
-    /// Create document with optional type registry and library index.
-    /// Registry and library are passed at construction (not two-phase init).
+    /// Create document with optional type registry, library index, and rendering resources.
+    /// All are passed at construction (not two-phase init).
     explicit Document(const ComponentRegistry* type_registry = nullptr,
-                      const bp2::LibraryIndex* library_index = nullptr);
+                      const bp2::LibraryIndex* library_index = nullptr,
+                      const editor::RenderingResources* rendering_resources = nullptr);
 
     /// Non-copyable, non-movable (owns WindowManager which holds references)
     Document(const Document&) = delete;
@@ -105,6 +107,12 @@ public:
 
     const ComponentRegistry* type_registry() const { return type_registry_; }
     const bp2::LibraryIndex* library_index() const { return library_index_; }
+    const editor::RenderingResources* rendering_resources() const { return rendering_resources_; }
+
+    /// Null-safe icon font extraction from rendering resources.
+    const editor::IconFont* icon_font() const {
+        return rendering_resources_ ? rendering_resources_->icon_font : nullptr;
+    }
 
     void startSimulation();
     void stopSimulation();
@@ -244,11 +252,13 @@ private:
 
     const ComponentRegistry* type_registry_ = nullptr;
     const bp2::LibraryIndex* library_index_ = nullptr;
+    const editor::RenderingResources* rendering_resources_ = nullptr;
 
     core::StringInterner interner_;
     bp2::PathArena arena_{interner_};
     bp2::EditorModel model_;
-    WindowManager window_manager_{model_, interner_, arena_, type_registry_};
+    WindowManager window_manager_{model_, interner_, arena_, type_registry_,
+                                    rendering_resources_ ? rendering_resources_->icon_font : nullptr};
 
     /// Simulation binding — owns simulator, signal caches, interaction state.
     /// Receives stable references to model_, window_manager_, interner_, arena_.

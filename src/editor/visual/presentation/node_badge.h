@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <spdlog/spdlog.h>
 
 namespace editor {
 
@@ -90,6 +89,10 @@ struct IconFont {
     /// Convert a Unicode codepoint to UTF-8 bytes.
     /// Returns number of bytes written (1-4). Buffer must be >= 5 bytes.
     static int codepoint_to_utf8(uint32_t cp, char out[5]) {
+        if (cp > 0x10FFFF) {
+            out[0] = '\0';
+            return 0;
+        }
         if (cp < 0x80) {
             out[0] = static_cast<char>(cp);
             out[1] = '\0';

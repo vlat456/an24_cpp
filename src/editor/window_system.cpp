@@ -61,7 +61,7 @@ WindowSystem::WindowSystem()
 }
 
 Document& WindowSystem::createDocument() {
-    auto doc = std::make_unique<Document>(&type_registry_, &library_index_);
+    auto doc = std::make_unique<Document>(&type_registry_, &library_index_, &rendering_resources_);
     Document* doc_ptr = doc.get();
 
     documents_.push_back(std::move(doc));
@@ -97,7 +97,7 @@ Document* WindowSystem::openDocument(const std::string& path) {
         return nullptr;
     }
 
-    auto doc = std::make_unique<Document>(&type_registry_, &library_index_);
+    auto doc = std::make_unique<Document>(&type_registry_, &library_index_, &rendering_resources_);
     if (!doc->load(path)) {
         spdlog::error("[WindowSystem] Failed to load document: {}", path);
         return nullptr;

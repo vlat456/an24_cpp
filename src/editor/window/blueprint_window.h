@@ -1,13 +1,13 @@
 #pragma once
 
-#include "input/canvas_input.h"
-#include "input/editing_host.h"
-#include "viewport/viewport.h"
-#include "visual/scene.h"
 #include "window/window_scope_id.h"
-#include "blueprint_v2/editor_model/editor_model.h"
-#include "blueprint_v2/path/path.h"
-
+#include "editor/input/canvas_input.h"
+#include "editor/visual/presentation/node_badge.h"
+#include "editor/visual/render_context.h"
+#include "editor/visual/scene.h"
+#include "editor/input/editing_host.h"
+#include "editor/viewport/viewport.h"
+#include "core/strings/interned_id.h"
 #include <memory>
 #include <optional>
 #include <string>
@@ -21,6 +21,7 @@ struct BlueprintWindow {
         core::StringInterner& interner;
         bp2::PathArena& arena;
         const ComponentRegistry* type_registry = nullptr;
+        const editor::IconFont* icon_font = nullptr;
     };
 
     struct ExternalDocument {
@@ -87,5 +88,6 @@ private:
                     WindowScopeId scope,
                     std::string title,
                     std::unique_ptr<EditingHost> host,
-                    bool read_only);
+                    bool read_only,
+                    const editor::IconFont* icon_font);
 };

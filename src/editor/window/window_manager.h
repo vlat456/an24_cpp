@@ -21,8 +21,9 @@ class WindowManager {
 public:
     explicit WindowManager(bp2::EditorModel& model, core::StringInterner& interner,
                        bp2::PathArena& arena,
-                       const ComponentRegistry* type_registry = nullptr)
-        : model_(model), interner_(interner), arena_(arena), type_registry_(type_registry)
+                       const ComponentRegistry* type_registry = nullptr,
+                       const editor::IconFont* icon_font = nullptr)
+        : model_(model), interner_(interner), arena_(arena), type_registry_(type_registry), icon_font_(icon_font)
     {
         windows_.push_back(BlueprintWindow::create_root(context(), "Root"));
     }
@@ -204,12 +205,13 @@ private:
     }
 
     BlueprintWindow::Context context() const {
-        return BlueprintWindow::Context{model_, interner_, arena_, type_registry_};
+        return BlueprintWindow::Context{model_, interner_, arena_, type_registry_, icon_font_};
     }
 
     bp2::EditorModel& model_;
     core::StringInterner& interner_;
     bp2::PathArena& arena_;
     const ComponentRegistry* type_registry_ = nullptr;
+    const editor::IconFont* icon_font_ = nullptr;
     std::vector<std::unique_ptr<BlueprintWindow>> windows_;
 };

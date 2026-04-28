@@ -288,6 +288,11 @@ target_link_libraries(scene_mutations_tests PRIVATE
 )
 gtest_discover_tests(scene_mutations_tests)
 
+# ==...== Node Badge Unit Tests ==...==
+
+# Pure unit tests for NodeBadgeSet, BadgeVisuals, codepoint_to_utf8, IconFont
+add_sim_test(node_badge_tests SOURCES test_node_badge.cpp)
+
 # ==...== Document Safety Tests ==...==
 
 add_executable(document_safety_tests

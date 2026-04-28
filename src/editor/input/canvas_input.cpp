@@ -32,10 +32,11 @@ constexpr float DISCRETE_DRAG_PIXELS_PER_STEP = 30.0f;
 
 CanvasInput::CanvasInput(visual::Scene& scene, Viewport& viewport,
                          EditingHost* host, core::StringInterner& interner,
-                         bp2::PathArena& arena, const WindowScopeId& scope_id)
+                         bp2::PathArena& arena, const WindowScopeId& scope_id,
+                         const editor::IconFont* icon_font)
     : scene_(scene), viewport_(viewport), host_(host),
       interner_(&interner), arena_(&arena),
-      scope_id_(scope_id)
+      scope_id_(scope_id), icon_font_(icon_font)
 {
     rebuild_snapshot();
 }
@@ -417,7 +418,8 @@ void CanvasInput::rebuild_scene() {
     // scope_id_.path() already returns InternedId vector - use directly
     std::vector<core::InternedId> instance_path(scope_id_.path().begin(), scope_id_.path().end());
     if (const ComponentRegistry* reg = host_->type_registry()) {
-        visual::mutations::rebuild(scene_, host_->current_blueprint(), *interner_, *arena_, instance_path, *reg);
+        visual::mutations::rebuild(scene_, host_->current_blueprint(), *interner_, *arena_, instance_path, *reg,
+                                   nullptr, icon_font_);
     }
     rebuild_snapshot();
 }

@@ -14,8 +14,9 @@ bool Document::apply_normalized_node_sizes(bool preserve_manual,
     visual::Scene probe_scene;
     ComponentRegistry empty_reg;
     const ComponentRegistry& reg = type_registry_ ? *type_registry_ : empty_reg;
+    const editor::IconFont* icon_font = this->icon_font();
     visual::mutations::rebuild(probe_scene, updated, interner_, arena_, std::span<const core::InternedId>{}, reg,
-                               &runtime_node_states());
+                               &runtime_node_states(), icon_font);
 
     for (const auto& node : model_.current().nodes()) {
         if (preserve_manual && node.layout.manual_size) {

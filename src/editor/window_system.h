@@ -2,6 +2,7 @@
 
 #include "document.h"
 #include "editor_settings.h"
+#include "editor/rendering_resources.h"
 #include "visual/inspector/inspector.h"
 #include "editor/input/editing_host.h"
 #include "window/properties_window.h"
@@ -60,6 +61,7 @@ public:
     PropertiesWindow& propertiesWindow() { return properties_window_; }
     ComponentRegistry& typeRegistry() { return type_registry_; }
     const bp2::LibraryIndex& libraryIndex() const { return library_index_; }
+    editor::RenderingResources& renderingResources() { return rendering_resources_; }
 
     // ── Context menu state (with source document) ──
 
@@ -215,4 +217,5 @@ private:
     bp2::LibraryIndex library_index_;
     Inspector inspector_;
     PropertiesWindow properties_window_;
+    editor::RenderingResources rendering_resources_;
 };

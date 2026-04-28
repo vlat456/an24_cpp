@@ -133,6 +133,7 @@ bool EditorApp::initImGui() {
     ImFont* fa_font = ImGuiTheme::LoadFontAwesome(io.Fonts, 14.0f);
     if (fa_font) {
         icon_font_.handle = fa_font;
+        ws_.renderingResources().icon_font = &icon_font_;
     }
     ImGuiTheme::ApplyModernDarkTheme();
     

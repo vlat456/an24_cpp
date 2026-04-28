@@ -93,6 +93,12 @@ public:
     void setCustomColor(std::optional<uint32_t> c) override { custom_fill_ = c; }
     std::optional<uint32_t> customColor() const override { return custom_fill_; }
 
+    /// Badge set resolved at scene-build time.
+    const editor::NodeBadgeSet& badges() const { return badges_; }
+
+    /// Icon font used for badge rendering (may be null).
+    const editor::IconFont* icon_font() const { return icon_font_; }
+
     /// Snapshot of current cached content (for test inspection / round-trip)
     NodeContent currentContent() const {
         NodeContent c;

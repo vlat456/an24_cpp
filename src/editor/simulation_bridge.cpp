@@ -415,6 +415,7 @@ void SimulationBridge::stop() {
     i.typed_overrides.clear();
     i.held_buttons.clear();
     i.running = false;
+    reset_node_content();              // Reset runtime states to blueprint defaults
     set_windows_simulation_mode(false);
 }
 

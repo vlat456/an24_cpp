@@ -161,8 +161,9 @@ bool Document::load(const std::string& path) {
 
     // Single authoritative scene rebuild for the root window.  Sub-windows
     // were closed above, so only the root needs rebuilding here.
+    const editor::IconFont* icon_font = this->icon_font();
     visual::mutations::rebuild(scene(), model_.current(), interner_, arena_, std::span<const core::InternedId>{}, reg,
-                               &runtime_node_states());
+                               &runtime_node_states(), icon_font);
     root().input.rebuild_snapshot();
 
     filepath_ = path;

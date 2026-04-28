@@ -4167,3 +4167,53 @@ TEST(EditingHostPresentation, ResolvePresentationSpecReturnsDefaultForUnknownNod
     const auto spec = host->resolve_presentation_spec(I.intern("nonexistent"));
     EXPECT_EQ(spec.node_id, core::InternedId{});
 }
+
+// ============================================================================
+// Regression: CanvasInput must preserve icon_font through interactive rebuilds
+// ============================================================================
+
+TEST(CanvasInputIconFont, IconFontPreservedThroughConstruction) {
+    // Regression test for bug: BlueprintWindow never passed icon_font to CanvasInput,
+    // causing interactive rebuild_scene() to pass nullptr for icon_font, vanishing badges.
+    core::StringInterner I;
+    bp2::PathArena arena(I);
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(make_node(I, "n1", "Battery", 100.0f, 100.0f));
+    bp2::EditorModel model(bp);
+
+    auto host = create_editor_model_host(model, &ci_reg(), &I, &arena);
+
+    visual::Scene scene;
+    Viewport vp;
+
+    // Simulate a non-null IconFont (as BlueprintWindow would pass from ctx.icon_font)
+    editor::IconFont fake_font;
+    fake_font.handle = reinterpret_cast<void*>(0xDEADBEEF);  // non-null sentinel
+
+    CanvasInput input(scene, vp, host.get(), I, arena,
+                      WindowScopeId::root(), &fake_font);
+
+    EXPECT_EQ(input.icon_font_for_test(), &fake_font)
+        << "CanvasInput must store the icon_font pointer passed at construction";
+}
+
+TEST(CanvasInputIconFont, NullIconFontIsAccepted) {
+    core::StringInterner I;
+    bp2::PathArena arena(I);
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(make_node(I, "n1", "Battery", 100.0f, 100.0f));
+    bp2::EditorModel model(bp);
+
+    auto host = create_editor_model_host(model, &ci_reg(), &I, &arena);
+
+    visual::Scene scene;
+    Viewport vp;
+
+    CanvasInput input(scene, vp, host.get(), I, arena,
+                      WindowScopeId::root(), nullptr);
+
+    EXPECT_EQ(input.icon_font_for_test(), nullptr)
+        << "CanvasInput must accept nullptr icon_font without crashing";
+}

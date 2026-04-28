@@ -69,8 +69,10 @@ void SubWindowRenderer::renderToolbar(Document& doc, BlueprintWindow& win, ::Win
         std::vector<core::InternedId> instance_path(win.resolved_scope_id().path().begin(), win.resolved_scope_id().path().end());
         ComponentRegistry empty_reg;
         const ComponentRegistry& reg = doc.type_registry() ? *doc.type_registry() : empty_reg;
+        const editor::IconFont* icon_font = doc.icon_font();
         visual::mutations::rebuild(win.scene, rebuild_bp,
-                                   rebuild_interner, rebuild_arena, instance_path, reg);
+                                   rebuild_interner, rebuild_arena, instance_path, reg,
+                                   nullptr, icon_font);
         win.input.rebuild_snapshot();
         fitViewToContent(doc, win);
     }

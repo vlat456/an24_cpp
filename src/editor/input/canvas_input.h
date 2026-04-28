@@ -48,7 +48,8 @@ public:
     /// yet (e.g. external windows), then call rebind_host() before first use.
     CanvasInput(visual::Scene& scene, Viewport& viewport,
                 EditingHost* host, core::StringInterner& interner,
-                bp2::PathArena& arena, const WindowScopeId& scope_id);
+                bp2::PathArena& arena, const WindowScopeId& scope_id,
+                const editor::IconFont* icon_font = nullptr);
 
     /// Rebind to a different EditingHost (used for external window host swap).
     void rebind_host(EditingHost& host) { host_ = &host; }
@@ -135,6 +136,7 @@ private:
     core::StringInterner* interner_;
     bp2::PathArena* arena_;
     WindowScopeId scope_id_ = WindowScopeId::root();
+    const editor::IconFont* icon_font_ = nullptr;
     
     // Initial positions for drag-to-command commit (from blueprint data at drag start).
     std::vector<Pt> drag_initial_positions_;
@@ -227,6 +229,7 @@ private:
 
 public:
     const WindowScopeId& scope_id_for_test() const { return scope_id_; }
+    const editor::IconFont* icon_font_for_test() const { return icon_font_; }
 
     /// Refresh the retained canvas snapshot from the current scene state.
     void rebuild_snapshot();
