@@ -62,12 +62,10 @@ bp2::Blueprint make_root_blueprint(core::StringInterner& interner) {
 } // namespace
 
 TEST(DocumentWorkspaceSession, SaveAndLoadRoundTripAppliesViewportAndReopensWindows) {
-    Document doc;
     ComponentRegistry registry = load_component_registry("library/");
-    doc.setComponentRegistry(&registry);
     bp2::LibraryIndex index;
     index.entries["FirstOrderLag"] = "library/math/FirstOrderLag.blueprint";
-    doc.setLibraryIndex(&index);
+    Document doc(&registry, &index);
 
     core::StringInterner interner;
     bp2::PathArena arena(interner);
@@ -87,9 +85,7 @@ TEST(DocumentWorkspaceSession, SaveAndLoadRoundTripAppliesViewportAndReopensWind
 
     ASSERT_TRUE(doc.saveWorkspaceSession());
 
-    Document restored;
-    restored.setComponentRegistry(&registry);
-    restored.setLibraryIndex(&index);
+    Document restored(&registry, &index);
     ASSERT_TRUE(restored.load(bp_path.string()));
     ASSERT_TRUE(restored.loadWorkspaceSession());
 

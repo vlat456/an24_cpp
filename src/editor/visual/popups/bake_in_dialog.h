@@ -12,16 +12,18 @@
 namespace {
 
 inline std::unique_ptr<EditingHost> create_bake_host_for_scope(Document& doc,
-                                                               const WindowScopeId& scope_id) {
+                                                                const WindowScopeId& scope_id) {
     if (scope_id.is_external()) {
         return nullptr;
     }
     if (scope_id.is_root()) {
-        return create_editor_model_host(doc.model());
+        return create_editor_model_host(doc.model(), doc.type_registry(), &doc.interner(), &doc.arena());
     }
 
     // scope_id.path() already returns InternedId vector - use directly
-    return create_pathful_embedded_host(doc.model(), std::vector<core::InternedId>(scope_id.path().begin(), scope_id.path().end()));
+    return create_pathful_embedded_host(doc.model(),
+        std::vector<core::InternedId>(scope_id.path().begin(), scope_id.path().end()),
+        doc.type_registry(), &doc.interner(), &doc.arena());
 }
 
 inline bp2::BlueprintLibrary build_bake_library(Document& doc) {

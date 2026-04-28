@@ -28,15 +28,20 @@ std::string find_library_index_path() {
 namespace {
 
 std::unique_ptr<EditingHost> create_scoped_host(Document& doc, const WindowScopeId& scope_id) {
+    const ComponentRegistry* reg = doc.type_registry();
+    core::StringInterner* interner = &doc.interner();
+    const bp2::PathArena* arena = &doc.arena();
     if (scope_id.is_external()) {
         return nullptr;
     }
     if (scope_id.is_root()) {
-        return create_editor_model_host(doc.model());
+        return create_editor_model_host(doc.model(), reg, interner, arena);
     }
 
     // scope_id.path() already returns InternedId vector - use directly
-    return create_pathful_embedded_host(doc.model(), std::vector<core::InternedId>(scope_id.path().begin(), scope_id.path().end()));
+    return create_pathful_embedded_host(doc.model(),
+        std::vector<core::InternedId>(scope_id.path().begin(), scope_id.path().end()),
+        reg, interner, arena);
 }
 
 bool scoped_node_still_exists(Document& doc,
@@ -56,10 +61,8 @@ WindowSystem::WindowSystem()
 }
 
 Document& WindowSystem::createDocument() {
-    auto doc = std::make_unique<Document>();
+    auto doc = std::make_unique<Document>(&type_registry_, &library_index_);
     Document* doc_ptr = doc.get();
-    doc_ptr->setComponentRegistry(&type_registry_);
-    doc_ptr->setLibraryIndex(&library_index_);
 
     documents_.push_back(std::move(doc));
     setActiveDocument(doc_ptr);
@@ -94,9 +97,7 @@ Document* WindowSystem::openDocument(const std::string& path) {
         return nullptr;
     }
 
-    auto doc = std::make_unique<Document>();
-    doc->setComponentRegistry(&type_registry_);
-    doc->setLibraryIndex(&library_index_);
+    auto doc = std::make_unique<Document>(&type_registry_, &library_index_);
     if (!doc->load(path)) {
         spdlog::error("[WindowSystem] Failed to load document: {}", path);
         return nullptr;
@@ -282,12 +283,16 @@ void WindowSystem::openPropertiesForNode(core::InternedId node_id,
     if (!node) return;
 
     std::unique_ptr<EditingHost> owned_host;
+    const ComponentRegistry* reg = doc.type_registry();
+    core::StringInterner* interner = &doc.interner();
+    const bp2::PathArena* arena = &doc.arena();
     if (scope_id.is_root()) {
-        owned_host = create_editor_model_host(doc.model());
+        owned_host = create_editor_model_host(doc.model(), reg, interner, arena);
     } else if (scope_id.is_embedded()) {
         // scope_id.path() already returns InternedId vector - use directly
         owned_host = create_pathful_embedded_host(doc.model(),
-            std::vector<core::InternedId>(scope_id.path().begin(), scope_id.path().end()));
+            std::vector<core::InternedId>(scope_id.path().begin(), scope_id.path().end()),
+            reg, interner, arena);
     }
 
     if (!owned_host) {
@@ -357,7 +362,8 @@ void WindowSystem::openInlineValueEditorForNode(core::InternedId node_id,
     if (scope_id.is_embedded()) {
         // scope_id.path() already returns InternedId vector - use directly
         inlineValueEditor.cached_host = create_pathful_embedded_host(doc.model(),
-            std::vector<core::InternedId>(scope_id.path().begin(), scope_id.path().end()));
+            std::vector<core::InternedId>(scope_id.path().begin(), scope_id.path().end()),
+            doc.type_registry(), &doc.interner(), &doc.arena());
     }
 
     inlineValueEditor.open = true;

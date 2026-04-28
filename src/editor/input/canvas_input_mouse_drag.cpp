@@ -5,11 +5,8 @@
 #include "visual/wire/wire.h"
 #include "visual/wire/routing_point.h"
 #include "viewport/viewport.h"
-#include "canvas_input_internal.h"
 #include <algorithm>
 #include <unordered_set>
-
-using namespace canvas_input_impl;
 
 void CanvasInput::handle_drag_node(Pt world_delta) {
     drag_anchor_ = drag_anchor_ + world_delta;

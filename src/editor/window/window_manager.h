@@ -20,18 +20,11 @@ struct ComponentRegistry;
 class WindowManager {
 public:
     explicit WindowManager(bp2::EditorModel& model, core::StringInterner& interner,
-                           bp2::PathArena& arena,
-                           const ComponentRegistry* parser_registry = nullptr)
-        : model_(model), interner_(interner), arena_(arena), parser_registry_(parser_registry)
+                       bp2::PathArena& arena,
+                       const ComponentRegistry* type_registry = nullptr)
+        : model_(model), interner_(interner), arena_(arena), type_registry_(type_registry)
     {
         windows_.push_back(BlueprintWindow::create_root(context(), "Root"));
-    }
-
-    void set_parser_registry(const ComponentRegistry* parser_registry) {
-        parser_registry_ = parser_registry;
-        for (auto& w : windows_) {
-            w->input.set_parser_registry(parser_registry_);
-        }
     }
 
     BlueprintWindow& root() { return *windows_[0]; }
@@ -211,12 +204,12 @@ private:
     }
 
     BlueprintWindow::Context context() const {
-        return BlueprintWindow::Context{model_, interner_, arena_, parser_registry_};
+        return BlueprintWindow::Context{model_, interner_, arena_, type_registry_};
     }
 
     bp2::EditorModel& model_;
     core::StringInterner& interner_;
     bp2::PathArena& arena_;
-    const ComponentRegistry* parser_registry_ = nullptr;
+    const ComponentRegistry* type_registry_ = nullptr;
     std::vector<std::unique_ptr<BlueprintWindow>> windows_;
 };

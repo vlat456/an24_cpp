@@ -8,11 +8,17 @@
 #include "visual/wire/routing_point.h"
 #include "viewport/viewport.h"
 #include "commands/commands.h"
-#include "canvas_input_internal.h"
 #include <algorithm>
 #include <unordered_set>
 
-using namespace canvas_input_impl;
+namespace {
+
+bool is_ref_node(EditingHost& host, const bp2::Blueprint::Node& node) {
+    return host.resolve_frame_kind(node.semantic.id)
+        == editor::presentation::NodeFrameKind::Reference;
+}
+
+} // namespace
 
 void CanvasInput::commit_drag_node() {
      // drag_current_positions_ is populated by handle_drag_node on each drag event.
@@ -51,6 +57,7 @@ void CanvasInput::commit_drag_node() {
          nodes_to_orient.insert(id);
      }
 
+     // After drag, re-orient ref-node ports toward their connected neighbors.
      std::unordered_map<core::InternedId, core::InternedId> ref_to_connected;
      for (const bp2::Blueprint::Wire& w : host_->wires()) {
          auto src_node = w.source.node;
@@ -60,10 +67,10 @@ void CanvasInput::commit_drag_node() {
           const bp2::Blueprint::Node* tgt_n = host_->find_node(tgt_node);
           if (!src_n || !tgt_n) continue;
 
-          if (is_ref_node(*src_n, registry(), *interner_) && ref_to_connected.count(src_node) == 0) {
+          if (is_ref_node(*host_, *src_n) && ref_to_connected.count(src_node) == 0) {
               ref_to_connected.emplace(src_node, tgt_node);
           }
-          if (is_ref_node(*tgt_n, registry(), *interner_) && ref_to_connected.count(tgt_node) == 0) {
+          if (is_ref_node(*host_, *tgt_n) && ref_to_connected.count(tgt_node) == 0) {
               ref_to_connected.emplace(tgt_node, src_node);
           }
 
@@ -76,12 +83,12 @@ void CanvasInput::commit_drag_node() {
      }
      for (core::InternedId id : moved_node_ids) {
          const bp2::Blueprint::Node* n = host_->find_node(id);
-         if (n && is_ref_node(*n, registry(), *interner_) && ref_to_connected.count(id) == 0) {
+         if (n && is_ref_node(*host_, *n) && ref_to_connected.count(id) == 0) {
              orient_ref_node_port_by_wire_scan(id);
          }
      }
 
-    debug_validate_command_boundary(host_->current_blueprint(), *interner_, *arena_, parser_registry_);
+    host_->debug_validate_integrity();
 }
 
 bool CanvasInput::orient_ref_node_port_impl(core::InternedId ref_id, core::InternedId connected_id) {
@@ -116,7 +123,7 @@ bool CanvasInput::orient_ref_node_port_impl(core::InternedId ref_id, core::Inter
 void CanvasInput::orient_ref_node_port_by_wire_scan(core::InternedId ref_node_id) {
      if (ref_node_id.empty()) return;
      const bp2::Blueprint::Node* ref_node = host_->find_node(ref_node_id);
-     if (!ref_node || !is_ref_node(*ref_node, registry(), *interner_)) return;
+     if (!ref_node || !is_ref_node(*host_, *ref_node)) return;
 
      core::InternedId connected_node_id;
      for (const bp2::Blueprint::Wire& w : host_->wires()) {
@@ -345,7 +352,7 @@ auto [tgt_node, _tgt_port] = editor_math::path_to_node_port(w.target, *arena_);
                     }
                 }
             });
-debug_validate_command_boundary(host_->current_blueprint(), *interner_, *arena_, parser_registry_);
+            host_->debug_validate_integrity();
             hovered_rp_id_ = {};
             rebuild_scene();
             clear_selection();

@@ -168,9 +168,8 @@ TEST(DocumentSafety, AddComponentUnknownTypeDoesNotCrashOrMutate) {
 TEST(DocumentSafety, LoadHydratesRootNodeViewFromComponentRegistry) {
     namespace fs = std::filesystem;
 
-    Document doc;
     ComponentRegistry registry = load_component_registry("library/");
-    doc.setComponentRegistry(&registry);
+    Document doc(&registry);
 
     const fs::path dir = make_temp_dir("an24_doc_load_hydrate_root");
     const fs::path bp_path = dir / "root.blueprint";
@@ -219,9 +218,8 @@ TEST(DocumentSafety, LoadHydratesRootNodeViewFromComponentRegistry) {
 TEST(DocumentSafety, LoadHydratesEmbeddedInlineBlueprintNodeViewFromComponentRegistry) {
     namespace fs = std::filesystem;
 
-    Document doc;
     ComponentRegistry registry = load_component_registry("library/");
-    doc.setComponentRegistry(&registry);
+    Document doc(&registry);
 
     const fs::path dir = make_temp_dir("an24_doc_load_hydrate_embedded");
     const fs::path bp_path = dir / "embedded.blueprint";
@@ -275,9 +273,8 @@ TEST(DocumentSafety, LoadHydratesEmbeddedInlineBlueprintNodeViewFromComponentReg
 }
 
 TEST(DocumentSafety, SetSliderValuePreservesCanonicalStaticContent) {
-    Document doc;
     ComponentRegistry registry = load_component_registry("library/");
-    doc.setComponentRegistry(&registry);
+    Document doc(&registry);
 
     core::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
@@ -307,9 +304,8 @@ TEST(DocumentSafety, SetSliderValuePreservesCanonicalStaticContent) {
 }
 
 TEST(DocumentSafety, SetKnobPositionPreservesCanonicalStaticContent) {
-    Document doc;
     ComponentRegistry registry = load_component_registry("library/");
-    doc.setComponentRegistry(&registry);
+    Document doc(&registry);
 
     core::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
@@ -340,9 +336,8 @@ TEST(DocumentSafety, SetKnobPositionPreservesCanonicalStaticContent) {
 TEST(DocumentSafety, LoadHydratesNonDefaultKnobPositionsFromInstanceParams) {
     namespace fs = std::filesystem;
 
-    Document doc;
     ComponentRegistry registry = load_component_registry("library/");
-    doc.setComponentRegistry(&registry);
+    Document doc(&registry);
 
     const fs::path dir = make_temp_dir("an24_doc_knob_positions_load");
     const fs::path bp_path = dir / "knob_positions.blueprint";
@@ -378,9 +373,8 @@ TEST(DocumentSafety, LoadHydratesNonDefaultKnobPositionsFromInstanceParams) {
 TEST(DocumentSafety, LoadHydratesNonDefaultGaugeRangeAndUnitFromInstanceParams) {
     namespace fs = std::filesystem;
 
-    Document doc;
     ComponentRegistry registry = load_component_registry("library/");
-    doc.setComponentRegistry(&registry);
+    Document doc(&registry);
 
     const fs::path dir = make_temp_dir("an24_doc_gauge_params_load");
     const fs::path bp_path = dir / "gauge_params.blueprint";
@@ -422,9 +416,8 @@ TEST(DocumentSafety, LoadHydratesNonDefaultGaugeRangeAndUnitFromInstanceParams) 
 TEST(DocumentSafety, LoadHydratesHoldButtonAsSwitchLikeContent) {
     namespace fs = std::filesystem;
 
-    Document doc;
     ComponentRegistry registry = load_component_registry("library/");
-    doc.setComponentRegistry(&registry);
+    Document doc(&registry);
 
     const fs::path dir = make_temp_dir("an24_doc_hold_button_load");
     const fs::path bp_path = dir / "hold_button.blueprint";
@@ -461,9 +454,8 @@ TEST(DocumentSafety, LoadHydratesHoldButtonAsSwitchLikeContent) {
 }
 
 TEST(DocumentSafety, PropertiesApplyRebuildsSliderWidgetAndInteractionFromEditedParams) {
-    Document doc;
     ComponentRegistry registry = load_component_registry("library/");
-    doc.setComponentRegistry(&registry);
+    Document doc(&registry);
 
     core::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
@@ -482,7 +474,7 @@ TEST(DocumentSafety, PropertiesApplyRebuildsSliderWidgetAndInteractionFromEdited
     ASSERT_NE(original, nullptr);
 
     PropertiesWindow props;
-    props.open(*original, I.intern("slider_apply"), create_editor_model_host(doc.model()), doc.interner(), &registry,
+    props.open(*original, I.intern("slider_apply"), create_editor_model_host(doc.model(), &registry, &doc.interner(), &doc.arena()), doc.interner(), &registry,
                [&doc](core::InternedId) { doc.rebuildAllWindows(); });
     props.set_pending_param("min", -10.0f);
     props.set_pending_param("max", 200.0f);
@@ -525,9 +517,8 @@ TEST(DocumentSafety, PropertiesApplyRebuildsSliderWidgetAndInteractionFromEdited
 }
 
 TEST(DocumentSafety, PropertiesApplyRebuildsKnobWidgetAndInteractionFromEditedParams) {
-    Document doc;
     ComponentRegistry registry = load_component_registry("library/");
-    doc.setComponentRegistry(&registry);
+    Document doc(&registry);
 
     core::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
@@ -546,7 +537,7 @@ TEST(DocumentSafety, PropertiesApplyRebuildsKnobWidgetAndInteractionFromEditedPa
     ASSERT_NE(original, nullptr);
 
     PropertiesWindow props;
-    props.open(*original, I.intern("knob_apply"), create_editor_model_host(doc.model()), doc.interner(), &registry,
+    props.open(*original, I.intern("knob_apply"), create_editor_model_host(doc.model(), &registry, &doc.interner(), &doc.arena()), doc.interner(), &registry,
                [&doc](core::InternedId) { doc.rebuildAllWindows(); });
     props.set_pending_param("positions", 5.0f);
     props.apply();
@@ -582,9 +573,8 @@ TEST(DocumentSafety, PropertiesApplyRebuildsKnobWidgetAndInteractionFromEditedPa
 }
 
 TEST(DocumentSafety, PropertiesApplyRebuildsGaugeWidgetFromEditedParams) {
-    Document doc;
     ComponentRegistry registry = load_component_registry("library/");
-    doc.setComponentRegistry(&registry);
+    Document doc(&registry);
 
     core::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
@@ -603,7 +593,7 @@ TEST(DocumentSafety, PropertiesApplyRebuildsGaugeWidgetFromEditedParams) {
     ASSERT_NE(original, nullptr);
 
     PropertiesWindow props;
-    props.open(*original, I.intern("gauge_apply"), create_editor_model_host(doc.model()), doc.interner(), &registry,
+    props.open(*original, I.intern("gauge_apply"), create_editor_model_host(doc.model(), &registry, &doc.interner(), &doc.arena()), doc.interner(), &registry,
                [&doc](core::InternedId) { doc.rebuildAllWindows(); });
     props.set_pending_param("min", -20.0f);
     props.set_pending_param("max", 60.0f);
@@ -632,9 +622,8 @@ TEST(DocumentSafety, PropertiesApplyRebuildsGaugeWidgetFromEditedParams) {
 }
 
 TEST(DocumentSafety, PropertiesApplyRebuildsSwitchWidgetFromEditedClosedState) {
-    Document doc;
     ComponentRegistry registry = load_component_registry("library/");
-    doc.setComponentRegistry(&registry);
+    Document doc(&registry);
 
     core::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
@@ -652,7 +641,7 @@ TEST(DocumentSafety, PropertiesApplyRebuildsSwitchWidgetFromEditedClosedState) {
     ASSERT_NE(original, nullptr);
 
     PropertiesWindow props;
-    props.open(*original, I.intern("switch_apply"), create_editor_model_host(doc.model()), doc.interner(), &registry,
+    props.open(*original, I.intern("switch_apply"), create_editor_model_host(doc.model(), &registry, &doc.interner(), &doc.arena()), doc.interner(), &registry,
                [&doc](core::InternedId) { doc.rebuildAllWindows(); });
     props.set_pending_param("closed", 1.0f);
     props.apply();
@@ -673,9 +662,8 @@ TEST(DocumentSafety, PropertiesApplyRebuildsSwitchWidgetFromEditedClosedState) {
 }
 
 TEST(DocumentSafety, PropertiesApplyRebuildsAzsVerticalToggleFromEditedClosedState) {
-    Document doc;
     ComponentRegistry registry = load_component_registry("library/");
-    doc.setComponentRegistry(&registry);
+    Document doc(&registry);
 
     core::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
@@ -693,7 +681,7 @@ TEST(DocumentSafety, PropertiesApplyRebuildsAzsVerticalToggleFromEditedClosedSta
     ASSERT_NE(original, nullptr);
 
     PropertiesWindow props;
-    props.open(*original, I.intern("azs_apply"), create_editor_model_host(doc.model()), doc.interner(), &registry,
+    props.open(*original, I.intern("azs_apply"), create_editor_model_host(doc.model(), &registry, &doc.interner(), &doc.arena()), doc.interner(), &registry,
                [&doc](core::InternedId) { doc.rebuildAllWindows(); });
     props.set_pending_param("closed", 1.0f);
     props.apply();
@@ -714,9 +702,8 @@ TEST(DocumentSafety, PropertiesApplyRebuildsAzsVerticalToggleFromEditedClosedSta
 }
 
 TEST(DocumentSafety, PropertiesApplyRebuildsRelaySwitchFromEditedClosedState) {
-    Document doc;
     ComponentRegistry registry = load_component_registry("library/");
-    doc.setComponentRegistry(&registry);
+    Document doc(&registry);
 
     core::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
@@ -734,7 +721,7 @@ TEST(DocumentSafety, PropertiesApplyRebuildsRelaySwitchFromEditedClosedState) {
     ASSERT_NE(original, nullptr);
 
     PropertiesWindow props;
-    props.open(*original, I.intern("relay_apply"), create_editor_model_host(doc.model()), doc.interner(), &registry,
+    props.open(*original, I.intern("relay_apply"), create_editor_model_host(doc.model(), &registry, &doc.interner(), &doc.arena()), doc.interner(), &registry,
                [&doc](core::InternedId) { doc.rebuildAllWindows(); });
     props.set_pending_param("closed", 1.0f);
     props.apply();
@@ -813,9 +800,8 @@ TEST(DocumentSafety, SliderRuntimeReadbackReturnsNulloptWhenNoRelevantPorts) {
 TEST(DocumentSafety, LoadNormalizesLegacyAutosizeWithoutDirtyingOrCreatingUndoHistory) {
     namespace fs = std::filesystem;
 
-    Document doc;
     ComponentRegistry registry = load_component_registry("library/");
-    doc.setComponentRegistry(&registry);
+    Document doc(&registry);
 
     const fs::path dir = make_temp_dir("an24_doc_load_normalize_sizes");
     const fs::path bp_path = dir / "normalize.blueprint";
@@ -871,15 +857,12 @@ TEST(DocumentSafety, LoadNormalizesLegacyAutosizeWithoutDirtyingOrCreatingUndoHi
 TEST(DocumentSafety, OpenExternalRefWindowHydratesNodeViewFromComponentRegistry) {
     namespace fs = std::filesystem;
 
-    Document doc;
     ComponentRegistry registry = load_component_registry("library/");
-    doc.setComponentRegistry(&registry);
-
     bp2::LibraryIndex index;
     const fs::path dir = make_temp_dir("an24_doc_load_hydrate_external");
     const fs::path ext_path = dir / "external.blueprint";
     index.entries["external_test"] = ext_path.string();
-    doc.setLibraryIndex(&index);
+    Document doc(&registry, &index);
 
     core::StringInterner ext_interner;
     bp2::PathArena ext_arena(ext_interner);
@@ -932,15 +915,12 @@ TEST(DocumentSafety, OpenExternalRefWindowHydratesNodeViewFromComponentRegistry)
 TEST(DocumentSafety, NestedExternalRefWindowUsesNestedHostNodeTitle) {
     namespace fs = std::filesystem;
 
-    Document doc;
     ComponentRegistry registry = load_component_registry("library/");
-    doc.setComponentRegistry(&registry);
-
     bp2::LibraryIndex index;
     const fs::path dir = make_temp_dir("an24_doc_nested_external_title");
     const fs::path ext_path = dir / "external.blueprint";
     index.entries["external_test"] = ext_path.string();
-    doc.setLibraryIndex(&index);
+    Document doc(&registry, &index);
 
     core::StringInterner ext_interner;
     bp2::PathArena ext_arena(ext_interner);
@@ -1009,9 +989,8 @@ TEST(DocumentSafety, ClosingDocumentClosesPropertiesWindowOwnedByThatDocument) {
 }
 
 TEST(DocumentSafety, ExplicitNormalizeNodeSizesCreatesUndoableShrinkAndClearsManualIntent) {
-    Document doc;
     ComponentRegistry registry = load_component_registry("library/");
-    doc.setComponentRegistry(&registry);
+    Document doc(&registry);
 
     bp2::Blueprint bp;
     bp = bp.with_id(doc.interner().intern("normalize_manual_doc"));
@@ -1067,9 +1046,8 @@ TEST(DocumentSafety, ExplicitNormalizeNodeSizesCreatesUndoableShrinkAndClearsMan
 TEST(DocumentSafety, SaveLoadRoundTripPreservesCanonicalNodeColor) {
     namespace fs = std::filesystem;
 
-    Document doc;
     ComponentRegistry registry = load_component_registry("library/");
-    doc.setComponentRegistry(&registry);
+    Document doc(&registry);
 
     const fs::path dir = make_temp_dir("an24_doc_save_load_color_session_only");
     const fs::path bp_path = dir / "color.blueprint";
@@ -1093,8 +1071,7 @@ TEST(DocumentSafety, SaveLoadRoundTripPreservesCanonicalNodeColor) {
 
     ASSERT_TRUE(doc.save(bp_path.string()));
 
-    Document loaded;
-    loaded.setComponentRegistry(&registry);
+    Document loaded(&registry);
     ASSERT_TRUE(loaded.load(bp_path.string()));
 
     const auto* loaded_node = require_node(loaded.model().current(), loaded.interner(), "slider1");
@@ -1114,9 +1091,8 @@ TEST(DocumentSafety, SaveLoadRoundTripPreservesCanonicalNodeColor) {
 TEST(DocumentSafety, ExtractSaveLoadRoundTripPreservesEmbeddedBlueprintStructure) {
     namespace fs = std::filesystem;
 
-    Document doc;
     ComponentRegistry registry = load_component_registry("library/");
-    doc.setComponentRegistry(&registry);
+    Document doc(&registry);
 
     doc.model().replace_current(make_extract_roundtrip_fixture(doc.interner(), registry));
 
@@ -1132,8 +1108,7 @@ TEST(DocumentSafety, ExtractSaveLoadRoundTripPreservesEmbeddedBlueprintStructure
     const fs::path bp_path = dir / "extracted.blueprint";
     ASSERT_TRUE(doc.save(bp_path.string()));
 
-    Document loaded;
-    loaded.setComponentRegistry(&registry);
+    Document loaded(&registry);
     ASSERT_TRUE(loaded.load(bp_path.string()));
 
     const auto* collapsed = require_node(loaded.model().current(), loaded.interner(), "extract_inst_1");
@@ -1156,9 +1131,8 @@ TEST(DocumentSafety, ExtractSaveLoadRoundTripPreservesEmbeddedBlueprintStructure
 TEST(DocumentSafety, DeleteSaveLoadRoundTripRemovesNodeAndConnectedWires) {
     namespace fs = std::filesystem;
 
-    Document doc;
     ComponentRegistry registry = load_component_registry("library/");
-    doc.setComponentRegistry(&registry);
+    Document doc(&registry);
 
     bp2::Blueprint bp;
     bp = bp.with_id(doc.interner().intern("delete_roundtrip"));
@@ -1186,8 +1160,7 @@ TEST(DocumentSafety, DeleteSaveLoadRoundTripRemovesNodeAndConnectedWires) {
     const fs::path bp_path = dir / "deleted.blueprint";
     ASSERT_TRUE(doc.save(bp_path.string()));
 
-    Document loaded;
-    loaded.setComponentRegistry(&registry);
+    Document loaded(&registry);
     ASSERT_TRUE(loaded.load(bp_path.string()));
 
     EXPECT_EQ(loaded.model().current().find_node(loaded.interner().lookup("res")), nullptr);
@@ -1199,9 +1172,8 @@ TEST(DocumentSafety, DeleteSaveLoadRoundTripRemovesNodeAndConnectedWires) {
 TEST(DocumentSafety, InspectorEditedParamsRoundTripPreservesRebuiltWidgetAuthority) {
     namespace fs = std::filesystem;
 
-    Document doc;
     ComponentRegistry registry = load_component_registry("library/");
-    doc.setComponentRegistry(&registry);
+    Document doc(&registry);
 
     core::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
@@ -1230,7 +1202,7 @@ TEST(DocumentSafety, InspectorEditedParamsRoundTripPreservesRebuiltWidgetAuthori
         const auto* slider_node = require_node(doc.model().current(), I, "slider_rt");
         ASSERT_NE(slider_node, nullptr);
         PropertiesWindow props;
-        props.open(*slider_node, I.intern("slider_rt"), create_editor_model_host(doc.model()), doc.interner(), &registry,
+        props.open(*slider_node, I.intern("slider_rt"), create_editor_model_host(doc.model(), &registry, &doc.interner(), &doc.arena()), doc.interner(), &registry,
                    [&doc](core::InternedId) { doc.rebuildAllWindows(); });
         props.set_pending_param("min", -10.0f);
         props.set_pending_param("max", 200.0f);
@@ -1241,7 +1213,7 @@ TEST(DocumentSafety, InspectorEditedParamsRoundTripPreservesRebuiltWidgetAuthori
         const auto* knob_node = require_node(doc.model().current(), I, "knob_rt");
         ASSERT_NE(knob_node, nullptr);
         PropertiesWindow props;
-        props.open(*knob_node, I.intern("knob_rt"), create_editor_model_host(doc.model()), doc.interner(), &registry,
+        props.open(*knob_node, I.intern("knob_rt"), create_editor_model_host(doc.model(), &registry, &doc.interner(), &doc.arena()), doc.interner(), &registry,
                    [&doc](core::InternedId) { doc.rebuildAllWindows(); });
         props.set_pending_param("positions", 5.0f);
         props.apply();
@@ -1251,7 +1223,7 @@ TEST(DocumentSafety, InspectorEditedParamsRoundTripPreservesRebuiltWidgetAuthori
         const auto* gauge_node = require_node(doc.model().current(), I, "gauge_rt");
         ASSERT_NE(gauge_node, nullptr);
         PropertiesWindow props;
-        props.open(*gauge_node, I.intern("gauge_rt"), create_editor_model_host(doc.model()), doc.interner(), &registry,
+        props.open(*gauge_node, I.intern("gauge_rt"), create_editor_model_host(doc.model(), &registry, &doc.interner(), &doc.arena()), doc.interner(), &registry,
                    [&doc](core::InternedId) { doc.rebuildAllWindows(); });
         props.set_pending_param("min", -20.0f);
         props.set_pending_param("max", 60.0f);
@@ -1262,8 +1234,7 @@ TEST(DocumentSafety, InspectorEditedParamsRoundTripPreservesRebuiltWidgetAuthori
     const fs::path bp_path = dir / "inspector_roundtrip.blueprint";
     ASSERT_TRUE(doc.save(bp_path.string()));
 
-    Document loaded;
-    loaded.setComponentRegistry(&registry);
+    Document loaded(&registry);
     ASSERT_TRUE(loaded.load(bp_path.string()));
 
     const auto* slider_loaded = require_node(loaded.model().current(), loaded.interner(), "slider_rt");
@@ -1302,8 +1273,8 @@ TEST(DocumentSafety, InspectorEditedParamsRoundTripPreservesRebuiltWidgetAuthori
     Viewport vp;
     vp.zoom = 1.0f;
     vp.pan = Pt(0.0f, 0.0f);
-    auto host = create_editor_model_host(loaded.model());
-    CanvasInput input(loaded.scene(), vp, host.get(), loaded.interner(), loaded.arena(), WindowScopeId::root(), &registry);
+    auto host = create_editor_model_host(loaded.model(), &registry, &loaded.interner(), &loaded.arena());
+    CanvasInput input(loaded.scene(), vp, host.get(), loaded.interner(), loaded.arena(), WindowScopeId::root());
     input.simulation_mode = true;
     input.rebuild_snapshot();
     Pt canvas_min(0.0f, 0.0f);
@@ -1372,9 +1343,8 @@ TEST(DocumentSafety, InspectorEditedParamsRoundTripPreservesRebuiltWidgetAuthori
 TEST(DocumentSafety, InspectorEditedAzsClosedRoundTripPreservesVerticalToggleAuthority) {
     namespace fs = std::filesystem;
 
-    Document doc;
     ComponentRegistry registry = load_component_registry("library/");
-    doc.setComponentRegistry(&registry);
+    Document doc(&registry);
 
     core::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
@@ -1392,7 +1362,7 @@ TEST(DocumentSafety, InspectorEditedAzsClosedRoundTripPreservesVerticalToggleAut
         const auto* azs_node = require_node(doc.model().current(), I, "azs_rt");
         ASSERT_NE(azs_node, nullptr);
         PropertiesWindow props;
-        props.open(*azs_node, I.intern("azs_rt"), create_editor_model_host(doc.model()), doc.interner(), &registry,
+        props.open(*azs_node, I.intern("azs_rt"), create_editor_model_host(doc.model(), &registry, &doc.interner(), &doc.arena()), doc.interner(), &registry,
                    [&doc](core::InternedId) { doc.rebuildAllWindows(); });
         props.set_pending_param("closed", 1.0f);
         props.apply();
@@ -1402,8 +1372,7 @@ TEST(DocumentSafety, InspectorEditedAzsClosedRoundTripPreservesVerticalToggleAut
     const fs::path bp_path = dir / "azs_roundtrip.blueprint";
     ASSERT_TRUE(doc.save(bp_path.string()));
 
-    Document loaded;
-    loaded.setComponentRegistry(&registry);
+    Document loaded(&registry);
     ASSERT_TRUE(loaded.load(bp_path.string()));
 
     const auto* loaded_azs = require_node(loaded.model().current(), loaded.interner(), "azs_rt");
@@ -1425,9 +1394,8 @@ TEST(DocumentSafety, InspectorEditedAzsClosedRoundTripPreservesVerticalToggleAut
 TEST(DocumentSafety, InspectorEditedRelayClosedRoundTripPreservesSwitchAuthority) {
     namespace fs = std::filesystem;
 
-    Document doc;
     ComponentRegistry registry = load_component_registry("library/");
-    doc.setComponentRegistry(&registry);
+    Document doc(&registry);
 
     core::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
@@ -1445,7 +1413,7 @@ TEST(DocumentSafety, InspectorEditedRelayClosedRoundTripPreservesSwitchAuthority
         const auto* relay_node = require_node(doc.model().current(), I, "relay_rt");
         ASSERT_NE(relay_node, nullptr);
         PropertiesWindow props;
-        props.open(*relay_node, I.intern("relay_rt"), create_editor_model_host(doc.model()), doc.interner(), &registry,
+        props.open(*relay_node, I.intern("relay_rt"), create_editor_model_host(doc.model(), &registry, &doc.interner(), &doc.arena()), doc.interner(), &registry,
                    [&doc](core::InternedId) { doc.rebuildAllWindows(); });
         props.set_pending_param("closed", 1.0f);
         props.apply();
@@ -1455,8 +1423,7 @@ TEST(DocumentSafety, InspectorEditedRelayClosedRoundTripPreservesSwitchAuthority
     const fs::path bp_path = dir / "relay_roundtrip.blueprint";
     ASSERT_TRUE(doc.save(bp_path.string()));
 
-    Document loaded;
-    loaded.setComponentRegistry(&registry);
+    Document loaded(&registry);
     ASSERT_TRUE(loaded.load(bp_path.string()));
 
     const auto* loaded_relay = require_node(loaded.model().current(), loaded.interner(), "relay_rt");
@@ -1478,9 +1445,8 @@ TEST(DocumentSafety, InspectorEditedRelayClosedRoundTripPreservesSwitchAuthority
 TEST(DocumentSafety, InspectorEditedHoldButtonParamsRoundTripPreservesSwitchLikeAuthority) {
     namespace fs = std::filesystem;
 
-    Document doc;
     ComponentRegistry registry = load_component_registry("library/");
-    doc.setComponentRegistry(&registry);
+    Document doc(&registry);
 
     core::StringInterner& I = doc.interner();
     bp2::Blueprint bp;
@@ -1499,7 +1465,7 @@ TEST(DocumentSafety, InspectorEditedHoldButtonParamsRoundTripPreservesSwitchLike
         const auto* btn_node = require_node(doc.model().current(), I, "btn_rt");
         ASSERT_NE(btn_node, nullptr);
         PropertiesWindow props;
-        props.open(*btn_node, I.intern("btn_rt"), create_editor_model_host(doc.model()), doc.interner(), &registry,
+        props.open(*btn_node, I.intern("btn_rt"), create_editor_model_host(doc.model(), &registry, &doc.interner(), &doc.arena()), doc.interner(), &registry,
                    [&doc](core::InternedId) { doc.rebuildAllWindows(); });
         props.set_pending_param("idle", 2.5f);
         props.set_pending_param("g_closed", 321.0f);
@@ -1510,8 +1476,7 @@ TEST(DocumentSafety, InspectorEditedHoldButtonParamsRoundTripPreservesSwitchLike
     const fs::path bp_path = dir / "hold_button_roundtrip.blueprint";
     ASSERT_TRUE(doc.save(bp_path.string()));
 
-    Document loaded;
-    loaded.setComponentRegistry(&registry);
+    Document loaded(&registry);
     ASSERT_TRUE(loaded.load(bp_path.string()));
 
     const auto* loaded_btn = require_node(loaded.model().current(), loaded.interner(), "btn_rt");
@@ -1535,9 +1500,8 @@ TEST(DocumentSafety, InspectorEditedHoldButtonParamsRoundTripPreservesSwitchLike
 TEST(DocumentSafety, SaveEmitsCanonicalDocumentWithoutForbiddenFieldsAndSortedWires) {
     namespace fs = std::filesystem;
 
-    Document doc;
     ComponentRegistry registry = load_component_registry("library/");
-    doc.setComponentRegistry(&registry);
+    Document doc(&registry);
     doc.model().replace_current(make_extract_roundtrip_fixture(doc.interner(), registry));
 
     const fs::path dir = make_temp_dir("an24_doc_canonical_save_scan");
@@ -1578,9 +1542,8 @@ TEST(DocumentSafety, SaveEmitsCanonicalDocumentWithoutForbiddenFieldsAndSortedWi
 }
 
 TEST(DocumentSafety, AddBlueprintToEmbeddedScopeAddsNodeInsideInlineBlueprint) {
-    Document doc;
     ComponentRegistry registry = load_component_registry("library/");
-    doc.setComponentRegistry(&registry);
+    Document doc(&registry);
 
     core::StringInterner& I = doc.interner();
 
@@ -1622,9 +1585,8 @@ TEST(DocumentSafety, AddBlueprintToEmbeddedScopeAddsNodeInsideInlineBlueprint) {
 // ============================================================================
 
 TEST(DocumentSafety, NewlyAddedComponentIsImmediatelySelectableViaDocument) {
-    Document doc;
     ComponentRegistry registry = load_component_registry("library/");
-    doc.setComponentRegistry(&registry);
+    Document doc(&registry);
 
     // Start with an empty blueprint
     bp2::Blueprint bp;
@@ -1692,8 +1654,7 @@ TEST(DocumentSafety, CanonicalNodeColorsPersistAndReapplyRoundTrip) {
 
     // --- Phase 1: create document, set colors, save ---
     {
-        Document doc;
-        doc.setComponentRegistry(&registry);
+        Document doc(&registry);
 
         bp2::Blueprint bp;
         bp = bp.with_id(doc.interner().intern("color_test"));
@@ -1717,8 +1678,7 @@ TEST(DocumentSafety, CanonicalNodeColorsPersistAndReapplyRoundTrip) {
 
     // --- Phase 2: load into fresh document, verify colors restored ---
     {
-        Document doc2;
-        doc2.setComponentRegistry(&registry);
+        Document doc2(&registry);
 
         ASSERT_TRUE(doc2.load(bp_path.string()));
 
@@ -1763,8 +1723,7 @@ TEST(DocumentSafety, WorkspaceSessionOmitsNodeColorsWhenNoneSet) {
     const fs::path bp_path = dir / "no_colors.blueprint";
 
     {
-        Document doc;
-        doc.setComponentRegistry(&registry);
+        Document doc(&registry);
 
         core::StringInterner& I = doc.interner();
         bp2::Blueprint bp;
@@ -1793,8 +1752,7 @@ TEST(DocumentSafety, WorkspaceSessionOmitsNodeColorsWhenNoneSet) {
 
     // Loading still works and produces empty color state
     {
-        Document doc2;
-        doc2.setComponentRegistry(&registry);
+        Document doc2(&registry);
         ASSERT_TRUE(doc2.load(bp_path.string()));
         ASSERT_TRUE(doc2.loadWorkspaceSession());
 
@@ -1812,8 +1770,7 @@ TEST(DocumentSafety, CanonicalNodeColorIsSerializedInBlueprintJson) {
     const fs::path dir = make_temp_dir("an24_canonical_node_color_json");
     const fs::path bp_path = dir / "persist.blueprint";
 
-    Document doc;
-    doc.setComponentRegistry(&registry);
+    Document doc(&registry);
 
     bp2::Blueprint bp;
     bp = bp.with_id(doc.interner().intern("persist_color"));
@@ -1844,8 +1801,7 @@ TEST(DocumentSafety, CanonicalNodeColorIsSerializedInBlueprintJson) {
 TEST(DocumentSafety, SettingSameRootNodeColorTwiceDoesNotCreateExtraDirtyHistory) {
     ComponentRegistry registry = load_component_registry("library/");
 
-    Document doc;
-    doc.setComponentRegistry(&registry);
+    Document doc(&registry);
 
     bp2::Blueprint bp;
     bp = bp.with_id(doc.interner().intern("same_color_root"));
@@ -1867,8 +1823,7 @@ TEST(DocumentSafety, EmbeddedNodeColorRoundTripMarksDirtyAndRestoresAfterLoad) {
     namespace fs = std::filesystem;
 
     ComponentRegistry registry = load_component_registry("library/");
-    Document doc;
-    doc.setComponentRegistry(&registry);
+    Document doc(&registry);
 
     bp2::Blueprint inner;
     inner = inner.with_id(doc.interner().intern("InnerColor"));
@@ -1906,8 +1861,7 @@ TEST(DocumentSafety, EmbeddedNodeColorRoundTripMarksDirtyAndRestoresAfterLoad) {
     const fs::path bp_path = dir / "embedded_color.blueprint";
     ASSERT_TRUE(doc.save(bp_path.string()));
 
-    Document loaded;
-    loaded.setComponentRegistry(&registry);
+    Document loaded(&registry);
     ASSERT_TRUE(loaded.load(bp_path.string()));
 
     auto loaded_color = loaded.node_color_for_scope(WindowScopeId::embedded({loaded.interner().intern("group_1")}), loaded.interner().intern("inner_r"));
@@ -1992,9 +1946,8 @@ TEST(DocumentSafety, WalkBlueprintNodesProducesNestedInstancePaths) {
 // Components with source_writer=true (e.g. PneumaticCompressor.p_out) would fail the
 // integrity check: "component node iface desynced from registry".
 TEST(DocumentSafety, AddComponentWithSourceWriterMatchesRegistryInterface) {
-    Document doc;
     ComponentRegistry registry = load_component_registry("library/");
-    doc.setComponentRegistry(&registry);
+    Document doc(&registry);
 
     // PneumaticCompressor has p_out with source_writer=true
     doc.addComponent("PneumaticCompressor", Pt{64.0f, 64.0f}, WindowScopeId::root(), registry);
@@ -2016,9 +1969,8 @@ TEST(DocumentSafety, AddComponentWithSourceWriterMatchesRegistryInterface) {
 
 // Same regression check for an electrical component with source_writer=true.
 TEST(DocumentSafety, AddComponentElectricalSourceWriterMatchesRegistryInterface) {
-    Document doc;
     ComponentRegistry registry = load_component_registry("library/");
-    doc.setComponentRegistry(&registry);
+    Document doc(&registry);
 
     // ElectricalSource has v_out with source_writer=true
     doc.addComponent("ElectricalSource", Pt{64.0f, 64.0f}, WindowScopeId::root(), registry);

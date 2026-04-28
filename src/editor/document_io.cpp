@@ -135,13 +135,11 @@ bool Document::load(const std::string& path) {
     window_manager_.close_all();
     root().input.cancel_gesture();
 
-    if (simulation_running_) {
-        simulation_.stop();
-        simulation_running_ = false;
+    if (isSimulationRunning()) {
+        stopSimulation();
     }
 
     // Clear all editor-owned state from the previous document.
-    runtime_node_states_.clear();
     {
         bp2::EditorModel fresh(std::move(*bp));
         model_ = std::move(fresh);
@@ -164,7 +162,7 @@ bool Document::load(const std::string& path) {
     // Single authoritative scene rebuild for the root window.  Sub-windows
     // were closed above, so only the root needs rebuilding here.
     visual::mutations::rebuild(scene(), model_.current(), interner_, arena_, std::span<const core::InternedId>{}, reg,
-                               &runtime_node_states_);
+                               &runtime_node_states());
     root().input.rebuild_snapshot();
 
     filepath_ = path;

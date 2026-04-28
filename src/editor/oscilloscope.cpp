@@ -218,7 +218,7 @@ void OscilloscopeModel::sample(Document& doc, bool simulation_running, float sam
         for (auto& [key, probe] : partition->probes) {
             float v = 0.0f;
             if (simulation_running && !probe.signal_iid.empty()) {
-                v = doc.simulation().get_signal_value(probe.signal_iid);
+                v = doc.get_signal_value(probe.signal_iid);
             }
             probe.samples.push_back(v);
             while (probe.samples.size() > max_samples_) probe.samples.pop_front();
@@ -230,7 +230,7 @@ void OscilloscopeModel::sample(Document& doc, bool simulation_running, float sam
     if (hover_it != hover_states_.end() && !hover_it->second.signal_iid.empty()) {
         float v = 0.0f;
         if (simulation_running) {
-            v = doc.simulation().get_signal_value(hover_it->second.signal_iid);
+            v = doc.get_signal_value(hover_it->second.signal_iid);
         }
         hover_it->second.samples.push_back(v);
         while (hover_it->second.samples.size() > max_samples_) hover_it->second.samples.pop_front();

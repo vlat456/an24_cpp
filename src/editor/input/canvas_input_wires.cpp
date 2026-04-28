@@ -9,171 +9,27 @@
 #include "editor/visual/presentation/canvas_scene_snapshot.h"
 #include "viewport/viewport.h"
 #include "commands/commands.h"
-#include "canvas_input_internal.h"
 #include "editor/common/port_type_utils.h"
-#include "blueprint_v2/validation/signal_typing.h"
-#include "blueprint_v2/validation/wire_validator.h"
 #include <algorithm>
-
-using namespace canvas_input_impl;
 
 namespace {
 
-PortType resolve_effective_port_type(const bp2::Blueprint& bp,
+/// Bus nodes have a single logical port "v"; all other port names are aliases.
+inline bool is_wire_alias_port_name(std::string_view port_name) {
+    return !port_name.empty() && port_name != "v";
+}
+
+/// Resolve effective port type, falling back to visual-layer type when
+/// the model has no opinion (PortType::Any).
+PortType resolve_effective_port_type(EditingHost& host,
                                      core::InternedId node_id,
                                      core::InternedId port_name,
-                                     const ComponentRegistry& registry,
-                                     core::StringInterner& interner,
                                      PortType fallback_type) {
-    const PortType model_type = resolve_port_type_from_model(bp, node_id, port_name, registry, interner);
+    const PortType model_type = host.resolve_port_type(node_id, port_name);
     return model_type == PortType::Any ? fallback_type : model_type;
 }
 
-std::optional<bp2::PortDescriptor> resolve_port_descriptor_from_model(const bp2::Blueprint& bp,
-                                                                      core::InternedId node_id,
-                                                                      core::InternedId port_name,
-                                                                      const ComponentRegistry& registry,
-                                                                      core::StringInterner& interner) {
-    const bp2::Blueprint::Node* node = bp.find_node(node_id);
-    if (!node) return std::nullopt;
-    const bp2::Interface iface = bp.resolve_node_iface(
-        *node,
-        bp2::Blueprint::NodeIfaceAuthority{interner, &registry});
-    return iface.find(port_name);
-}
-
-Domain resolve_wire_domain_without_registry(const bp2::Blueprint& bp,
-                                            core::StringInterner& interner,
-                                            core::InternedId start_node,
-                                            core::InternedId start_port,
-                                            core::InternedId end_node,
-                                            core::InternedId end_port) {
-    const auto resolved = bp2::resolve_signal_typing(
-        bp,
-        nullptr,
-        interner,
-        bp2::WireEndpoint{start_node, start_port},
-        bp2::WireEndpoint{end_node, end_port});
-    return resolved.resolved.has_value() ? resolved.resolved->domain : Domain::Electrical;
-}
-
-Domain resolve_wire_domain_from_endpoints(const bp2::Blueprint& bp,
-                                          core::InternedId start_node,
-                                          core::InternedId start_port,
-                                          core::InternedId end_node,
-                                          core::InternedId end_port,
-                                          const ComponentRegistry* parser_registry,
-                                          core::StringInterner& interner) {
-    bp2::Blueprint::Wire probe;
-    probe.source = bp2::WireEndpoint{start_node, start_port};
-    probe.target = bp2::WireEndpoint{end_node, end_port};
-
-    if (!parser_registry) {
-        return resolve_wire_domain_without_registry(bp, interner, start_node, start_port, end_node, end_port);
-    }
-
-    const auto result = bp2::WireValidator::validate(probe, bp, *parser_registry, interner);
-    return result.resolved_domain;
-}
-
-bool endpoints_form_valid_wire(const bp2::Blueprint& bp,
-                               core::InternedId start_node,
-                               core::InternedId start_port,
-                               core::InternedId end_node,
-                               core::InternedId end_port,
-                               const ComponentRegistry* parser_registry,
-                               core::StringInterner& interner) {
-    if (!parser_registry) {
-        return true;
-    }
-
-    bp2::Blueprint::Wire probe;
-    probe.source = bp2::WireEndpoint{start_node, start_port};
-    probe.target = bp2::WireEndpoint{end_node, end_port};
-    probe.domain = resolve_wire_domain_from_endpoints(
-        bp,
-        start_node,
-        start_port,
-        end_node,
-        end_port,
-        parser_registry,
-        interner);
-
-    return bp2::WireValidator::validate(probe, bp, *parser_registry, interner).valid;
-}
-
-bool is_bus_alias_hit(const bp2::Blueprint& bp,
-                      core::InternedId node_id,
-                      core::InternedId port_name,
-                      const ComponentRegistry& registry,
-                      core::StringInterner& interner) {
-    return is_bus_node(bp, node_id, registry, interner) && is_wire_alias_port_name(interner.resolve(port_name));
-}
-
-core::InternedId canonicalize_bus_port(const bp2::Blueprint& bp,
-                                     core::InternedId node_id,
-                                     core::InternedId port_id,
-                                     const ComponentRegistry& registry,
-                                     core::StringInterner& interner) {
-    const core::InternedId bus_port = interner.intern("v");
-    return is_bus_node(bp, node_id, registry, interner) ? bus_port : port_id;
-}
-
-bool reconnect_candidate_is_valid(const bp2::Blueprint& bp,
-                                  bool detach_start,
-                                  core::InternedId fixed_node,
-                                  core::InternedId fixed_port,
-                                  core::InternedId candidate_node,
-                                  core::InternedId candidate_port,
-                                  const ComponentRegistry* parser_registry,
-                                  core::StringInterner& interner) {
-    return detach_start
-        ? endpoints_form_valid_wire(
-              bp,
-              candidate_node,
-              candidate_port,
-              fixed_node,
-              fixed_port,
-              parser_registry,
-              interner)
-        : endpoints_form_valid_wire(
-              bp,
-              fixed_node,
-              fixed_port,
-              candidate_node,
-              candidate_port,
-              parser_registry,
-              interner);
-}
-
-Domain resolve_reconnected_wire_domain(const bp2::Blueprint& bp,
-                                       bool detach_start,
-                                       core::InternedId fixed_node,
-                                       core::InternedId fixed_port,
-                                       core::InternedId candidate_node,
-                                       core::InternedId candidate_port,
-                                       const ComponentRegistry* parser_registry,
-                                       core::StringInterner& interner) {
-    return detach_start
-        ? resolve_wire_domain_from_endpoints(
-              bp,
-              candidate_node,
-              candidate_port,
-              fixed_node,
-              fixed_port,
-              parser_registry,
-              interner)
-        : resolve_wire_domain_from_endpoints(
-              bp,
-              fixed_node,
-              fixed_port,
-              candidate_node,
-              candidate_port,
-              parser_registry,
-              interner);
-}
-
-}
+} // namespace
 
 InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
     InputResult result;
@@ -201,10 +57,13 @@ InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
         core::InternedId start_node_iid = start.node_id;
         core::InternedId start_port_iid = start.port_id;
 
-        if (is_bus_node(host_->current_blueprint(), start_node_iid, registry(), *interner_) && start_port_iid != interner_->intern("v")) {
+        // Canonicalize bus ports: all bus-node ports alias to "v".
+        if (host_->resolve_frame_kind(start_node_iid) == editor::presentation::NodeFrameKind::Bus
+            && start_port_iid != interner_->intern("v")) {
             start_port_iid = interner_->intern("v");
         }
-        if (is_bus_node(host_->current_blueprint(), end_node_iid, registry(), *interner_) && end_port_iid != interner_->intern("v")) {
+        if (host_->resolve_frame_kind(end_node_iid) == editor::presentation::NodeFrameKind::Bus
+            && end_port_iid != interner_->intern("v")) {
             end_port_iid = interner_->intern("v");
         }
 
@@ -232,18 +91,11 @@ InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
         w.id     = wire_iid;
         w.source = bp2::WireEndpoint{start_node_iid, start_port_iid};
         w.target = bp2::WireEndpoint{end_node_iid, end_port_iid};
-        w.domain = resolve_wire_domain_from_endpoints(
-            host_->current_blueprint(),
-            start_node_iid,
-            start_port_iid,
-            end_node_iid,
-            end_port_iid,
-            parser_registry_,
-            *interner_);
+        w.domain = host_->resolve_wire_domain(w.source, w.target);
 
         bool added = host_->add_wire(std::move(w));
         if (added) {
-            debug_validate_command_boundary(host_->current_blueprint(), *interner_, *arena_, parser_registry_);
+            host_->debug_validate_integrity();
             rebuild_scene();
             result.rebuild_simulation = true;
         }
@@ -270,11 +122,9 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
         const core::InternedId port_node_iid = ph->node_id;
         const core::InternedId hit_port_iid = ph->port_name;
         const PortType hit_port_type = resolve_effective_port_type(
-            bp,
+            *host_,
             port_node_iid,
             hit_port_iid,
-            registry(),
-            *interner_,
             ph->type);
 
         const core::InternedId detached_node = reconnect_detach_start_ ? wire_src_node : wire_tgt_node;
@@ -284,8 +134,7 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
 
         bp2::Direction fixed_direction = reconnect_fixed_direction_;
         PortType fixed_type = reconnect_fixed_type_;
-        if (const auto fixed_desc = resolve_port_descriptor_from_model(
-                bp, fixed_node, fixed_port, registry(), *interner_)) {
+        if (const auto fixed_desc = host_->resolve_port_descriptor(fixed_node, fixed_port)) {
             fixed_direction = fixed_desc->direction;
             fixed_type = fixed_desc->port_type;
         }
@@ -303,7 +152,10 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
             return result;
         }
 
-        if (is_bus_alias_hit(bp, port_node_iid, ph->port_name, registry(), *interner_)) {
+        // Bus alias reordering: when reconnecting onto a bus alias port,
+        // reorder the wires array instead of changing wire endpoints.
+        const bool is_bus_hit = host_->resolve_frame_kind(port_node_iid) == editor::presentation::NodeFrameKind::Bus;
+        if (is_bus_hit && is_wire_alias_port_name(interner_->resolve(ph->port_name))) {
             const size_t target_wire_idx = find_wire_index(hit_port_iid);
             if (target_wire_idx != SIZE_MAX && target_wire_idx < wires.size()) {
                 if (target_wire_idx != reconnect_wire_idx_) {
@@ -321,55 +173,43 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
                     host_->mutate_atomically([&] {
                         host_->replace_current(std::move(updated_bp));
                     });
-                    debug_validate_command_boundary(host_->current_blueprint(), *interner_, *arena_, parser_registry_);
+                    host_->debug_validate_integrity();
                     rebuild_scene();
                     result.rebuild_simulation = true;
                 }
                 reconnected = true;
             }
         } else {
+            // Standard reconnection: canonicalize bus port if needed.
             const core::InternedId new_node_iid = port_node_iid;
-            const core::InternedId new_port_iid = canonicalize_bus_port(
-                bp,
-                new_node_iid,
-                hit_port_iid,
-                registry(),
-                *interner_);
-
-            if (!reconnect_candidate_is_valid(
-                    bp,
-                    reconnect_detach_start_,
-                    fixed_node,
-                    fixed_port,
-                    new_node_iid,
-                    new_port_iid,
-                    parser_registry_,
-                    *interner_)) {
-                return result;
+            core::InternedId new_port_iid = hit_port_iid;
+            if (host_->resolve_frame_kind(new_node_iid) == editor::presentation::NodeFrameKind::Bus) {
+                new_port_iid = interner_->intern("v");
             }
 
-            const Domain new_domain = resolve_reconnected_wire_domain(
-                bp,
-                reconnect_detach_start_,
-                fixed_node,
-                fixed_port,
-                new_node_iid,
-                new_port_iid,
-                parser_registry_,
-                *interner_);
-            const bp2::WireEndpoint new_ep{new_node_iid, new_port_iid};
+            // Validate the new wire before committing.
+            const bp2::WireEndpoint candidate_ep{new_node_iid, new_port_iid};
+            const bp2::WireEndpoint fixed_ep{fixed_node, fixed_port};
+            const bool valid = reconnect_detach_start_
+                ? host_->validate_wire(candidate_ep, fixed_ep).valid
+                : host_->validate_wire(fixed_ep, candidate_ep).valid;
+            if (!valid) return result;
+
+            const Domain new_domain = reconnect_detach_start_
+                ? host_->resolve_wire_domain(candidate_ep, fixed_ep)
+                : host_->resolve_wire_domain(fixed_ep, candidate_ep);
 
             const bool updated_ok = host_->update_wire(wire.id, [&](bp2::Blueprint::Wire& wr) {
                 if (reconnect_detach_start_) {
-                    wr.source = new_ep;
+                    wr.source = candidate_ep;
                 } else {
-                    wr.target = new_ep;
+                    wr.target = candidate_ep;
                 }
                 wr.domain = new_domain;
             });
 
             if (updated_ok) {
-                debug_validate_command_boundary(host_->current_blueprint(), *interner_, *arena_, parser_registry_);
+                host_->debug_validate_integrity();
                 rebuild_scene();
                 result.rebuild_simulation = true;
                 reconnected = true;
@@ -393,7 +233,9 @@ std::optional<CanvasInput::WirePortMatch> CanvasInput::find_wire_on_port(
 
     std::string_view port_name_sv = interner_->resolve(port_name_iid);
 
-    if (is_bus_node(host_->current_blueprint(), port_node_iid, registry(), *interner_)) {
+    // Bus nodes: wires are keyed by the canonical "v" port.
+    // Alias port names map to the wire whose ID matches the alias.
+    if (host_->resolve_frame_kind(port_node_iid) == editor::presentation::NodeFrameKind::Bus) {
         if (port_name_sv == "v") {
             return std::nullopt;
         }
@@ -453,11 +295,9 @@ CanvasInput::WirePortMatch CanvasInput::build_wire_port_match(
         fixed_direction = bp2::Direction::Input;
         auto [tgt_node, tgt_port] = editor_math::path_to_node_port(w.target, *arena_);
         fixed_type = resolve_effective_port_type(
-            host_->current_blueprint(),
+            *host_,
             tgt_node,
             tgt_port,
-            registry(),
-            *interner_,
             PortType::Any);
         if (!w.routing_points.empty()) {
             anchor_pos = Pt(w.routing_points.front().first, w.routing_points.front().second);
@@ -468,11 +308,9 @@ CanvasInput::WirePortMatch CanvasInput::build_wire_port_match(
         fixed_direction = bp2::Direction::Output;
         auto [src_node, src_port] = editor_math::path_to_node_port(w.source, *arena_);
         fixed_type = resolve_effective_port_type(
-            host_->current_blueprint(),
+            *host_,
             src_node,
             src_port,
-            registry(),
-            *interner_,
             PortType::Any);
         if (!w.routing_points.empty()) {
             anchor_pos = Pt(w.routing_points.back().first, w.routing_points.back().second);

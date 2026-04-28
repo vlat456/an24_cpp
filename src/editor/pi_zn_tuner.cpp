@@ -33,8 +33,8 @@ static std::vector<float> run_closed_loop(Document& doc,
     for (int i = 0; i < steps_total; ++i) {
         doc.updateSimulationStep(dt_sec);
         if (i >= steps_skip) {
-            y.push_back(doc.simulation().get_signal_value(
-                doc.simulation().signal_key_interner().lookup(feedback_signal)));
+            y.push_back(doc.get_signal_value(
+                doc.signal_key_interner().lookup(feedback_signal)));
         }
     }
 

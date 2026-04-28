@@ -64,7 +64,7 @@ static void render_hover_scope_tooltip(Document& doc,
     // Resolve label from signal InternedId for display.
     std::string label = "<signal>";
     if (!signal_iid.empty()) {
-        std::string_view sv = doc.simulation().signal_key_interner().resolve(signal_iid);
+        std::string_view sv = doc.signal_key_interner().resolve(signal_iid);
         label = std::string{sv};
     }
 
@@ -191,7 +191,7 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
         if (signal_iid.empty()) return;
 
         // Dev-only diagnostics: log signal resolution on hover (if AN24_EDITOR_DEBUG_SIGNAL_KEYS=1)
-        float current_value = doc.simulation().get_signal_value(signal_iid);
+        float current_value = doc.get_signal_value(signal_iid);
         maybe_log_hover_signal_resolution(std::string(node_id), std::string(port_name), signal_iid, current_value);
 
         ws.oscilloscope.set_hover_signal(doc.id(), signal_iid);
@@ -205,7 +205,7 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
         if (signal_iid.empty()) return;
 
         // Dev-only diagnostics: log signal resolution on hover (if AN24_EDITOR_DEBUG_SIGNAL_KEYS=1)
-        float current_value = doc.simulation().get_signal_value(signal_iid);
+        float current_value = doc.get_signal_value(signal_iid);
         maybe_log_hover_signal_resolution(std::string(wire_id), "src", signal_iid, current_value);
            
         // Project mouse onto wire segment for tooltip anchor

@@ -10,7 +10,6 @@
 #include "ui/math/pt.h"
 #include "core/strings/interned_id.h"
 #include "blueprint_v2/blueprint/node_port.h"
-#include "core/model/component_registry.h"
 #include "commands/commands.h"
 #include <optional>
 #include <string>
@@ -27,7 +26,6 @@ class Port;
 } // namespace visual
 
 struct Viewport;
-struct ComponentRegistry;
 
 /// Unified canvas input handler — one per editor window.
 /// Owns selection + FSM state, processes raw mouse/key events.
@@ -50,8 +48,7 @@ public:
     /// yet (e.g. external windows), then call rebind_host() before first use.
     CanvasInput(visual::Scene& scene, Viewport& viewport,
                 EditingHost* host, core::StringInterner& interner,
-                bp2::PathArena& arena, const WindowScopeId& scope_id,
-                const ComponentRegistry* parser_registry = nullptr);
+                bp2::PathArena& arena, const WindowScopeId& scope_id);
 
     /// Rebind to a different EditingHost (used for external window host swap).
     void rebind_host(EditingHost& host) { host_ = &host; }
@@ -60,10 +57,6 @@ public:
     void rebind_identity_context(core::StringInterner& interner, bp2::PathArena& arena) {
         interner_ = &interner;
         arena_ = &arena;
-    }
-
-    void set_parser_registry(const ComponentRegistry* parser_registry) {
-        parser_registry_ = parser_registry;
     }
 
     /// When true, the FSM suppresses all editing gestures.
@@ -141,7 +134,6 @@ private:
     EditingHost* host_;
     core::StringInterner* interner_;
     bp2::PathArena* arena_;
-    const ComponentRegistry* parser_registry_ = nullptr;
     WindowScopeId scope_id_ = WindowScopeId::root();
     
     // Initial positions for drag-to-command commit (from blueprint data at drag start).
@@ -316,9 +308,6 @@ private:
 
     /// Rebuild the visual scene from the current blueprint, then refresh the snapshot.
     void rebuild_scene();
-
-    /// Return the registry reference, safe even when parser_registry_ is null.
-    const ComponentRegistry& registry() const;
 
     /// Find the data-layer index of a wire by its InternedId.
     size_t find_wire_index(core::InternedId wire_id) const;

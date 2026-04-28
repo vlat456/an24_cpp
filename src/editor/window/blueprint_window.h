@@ -79,7 +79,6 @@ struct BlueprintWindow {
     std::optional<bp2::Blueprint> external_blueprint;
     std::unique_ptr<core::StringInterner> external_interner;
     std::unique_ptr<bp2::PathArena> external_arena;
-    const ComponentRegistry* type_registry = nullptr;
 
 private:
     BlueprintWindow(bp2::EditorModel& model,
@@ -88,6 +87,5 @@ private:
                     WindowScopeId scope,
                     std::string title,
                     std::unique_ptr<EditingHost> host,
-                    bool read_only,
-                    const ComponentRegistry* parser_registry);
+                    bool read_only);
 };

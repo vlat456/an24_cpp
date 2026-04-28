@@ -21,6 +21,12 @@
 
 namespace editor {
 
+/// Convert a WindowScopeId path to a typed InternedId instance_path.
+/// Shared by SimulationBridge and Document simulation code.
+inline std::vector<core::InternedId> scope_id_to_instance_path(const WindowScopeId& scope_id) {
+    return std::vector<core::InternedId>(scope_id.path().begin(), scope_id.path().end());
+}
+
 /// Select the appropriate readback port for a slider-type node.
 std::optional<std::string_view> select_slider_readback_port(const bp2::Blueprint::Node& node,
                                                              core::StringInterner& interner);

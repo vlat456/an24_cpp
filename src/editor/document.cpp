@@ -5,8 +5,13 @@
 
 int Document::next_id_ = 1;
 
-Document::Document() {
+Document::Document(const ComponentRegistry* type_registry,
+                   const bp2::LibraryIndex* library_index)
+    : type_registry_(type_registry)
+    , library_index_(library_index)
+{
     id_ = editor::DocumentId::from_string("doc_" + std::to_string(next_id_++));
+    sim_bridge_.set_type_registry(type_registry_);
 }
 
 std::string Document::title() const {

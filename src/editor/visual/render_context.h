@@ -1,6 +1,7 @@
 #pragma once
 #include "core/strings/interned_id.h"
 #include "ui/renderer/render_context.h"
+#include "visual/string_view_hash.h"
 #include <vector>
 #include <unordered_set>
 #include <string_view>
@@ -12,14 +13,6 @@ using ui::Pt;
 
 class Widget;
 class Wire;
-
-/// Hash for string_view in unordered containers.
-struct StringViewHash {
-    using is_transparent = void;
-    size_t operator()(std::string_view sv) const noexcept {
-        return std::hash<std::string_view>{}(sv);
-    }
-};
 
 /// Semantic identifier for a hovered routing point.
 /// Decouples the render context from widget pointers — the renderer

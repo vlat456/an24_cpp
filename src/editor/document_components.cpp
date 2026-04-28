@@ -251,7 +251,6 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
         return;
     }
     const std::string unique_id = model_.generate_unique_node_id(blueprint_name, interner_);
-    // Blueprint instances are Group nodes → always whole-grid (default granularity=1.0).
     const Pt snapped_pos = editor_math::snap_to_grid(world_pos, viewport().grid_step);
 
     bp2::Blueprint::Node collapsed;

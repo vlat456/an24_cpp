@@ -1,20 +1,25 @@
 #pragma once
 
 #include "blueprint_v2/blueprint/blueprint.h"
+#include "editor/visual/presentation/node_presentation.h"
 #include "core/strings/interned_id.h"
 #include <functional>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
 namespace bp2 {
 class EditorModel;
 class BlueprintLibrary;
+class PathArena;
 }
 
-namespace ui {
+namespace core {
 class StringInterner;
 }
+
+struct ComponentRegistry;
 
 /// Narrow abstraction for CanvasInput's editing operations.
 /// Covers only the mutation and query surface CanvasInput actually uses.
@@ -80,18 +85,85 @@ public:
 
     /// Allocate a unique wire ID.
     virtual std::string allocate_wire_id() = 0;
+
+    // ── Registry-backed queries ──
+    // These delegate to ComponentRegistry internally. CanvasInput never
+    // touches the registry directly — all model-level queries go through host.
+
+    /// Resolve the visual frame kind for a node (Bus, Reference, Standard, etc.).
+    /// Returns Standard for unknown nodes or when no registry is set.
+    virtual editor::presentation::NodeFrameKind resolve_frame_kind(
+        core::InternedId node_id) const {
+        return editor::presentation::NodeFrameKind::Standard;
+    }
+
+    /// Resolve the model-level port type for a specific port on a node.
+    /// Returns PortType::Any for unknown nodes/ports or when no registry is set.
+    virtual PortType resolve_port_type(
+        core::InternedId node_id, core::InternedId port_name) const {
+        return PortType::Any;
+    }
+
+    /// Resolve the full port descriptor (direction + type) for a port.
+    /// Returns nullopt for unknown nodes/ports or when no registry is set.
+    virtual std::optional<bp2::PortDescriptor> resolve_port_descriptor(
+        core::InternedId node_id, core::InternedId port_name) const {
+        return std::nullopt;
+    }
+
+    /// Validate a potential wire between two endpoints.
+    /// Returns {valid, resolved_domain}.
+    struct WireValidation {
+        bool valid = false;
+        Domain resolved_domain = Domain::Electrical;
+    };
+    virtual WireValidation validate_wire(
+        bp2::WireEndpoint source, bp2::WireEndpoint target) const {
+        return {true, Domain::Electrical};
+    }
+
+    /// Resolve the domain for a potential wire between two endpoints.
+    /// Returns Electrical as default when no registry is set.
+    virtual Domain resolve_wire_domain(
+        bp2::WireEndpoint source, bp2::WireEndpoint target) const {
+        return Domain::Electrical;
+    }
+
+    /// Resolve the full compiled presentation spec for a node.
+    /// Returns a default-constructed spec when no registry is set.
+    virtual editor::presentation::CompiledPresentationSpec resolve_presentation_spec(
+        core::InternedId node_id) const {
+        return {};
+    }
+
+    /// Debug-only integrity check after mutations.
+    /// No-op in release; asserts in debug.
+    virtual void debug_validate_integrity() const {}
+
+    /// Access the type registry (for scene rebuild).
+    /// Returns nullptr when no registry is set.
+    virtual const ComponentRegistry* type_registry() const { return nullptr; }
 };
 
 /// Create editing host backed by EditorModel.
 /// Owned by caller; expects model to outlive the host.
-std::unique_ptr<EditingHost> create_editor_model_host(bp2::EditorModel& model);
+/// registry/interner/arena are optional — when provided, enables type-aware
+/// queries (resolve_frame_kind, validate_wire, etc.).
+std::unique_ptr<EditingHost> create_editor_model_host(
+    bp2::EditorModel& model,
+    const ComponentRegistry* registry = nullptr,
+    core::StringInterner* interner = nullptr,
+    const bp2::PathArena* arena = nullptr);
 
 /// Create editing host backed by a deeply-nested embedded inline blueprint.
 /// Walks the full instance path on every access; propagates mutations back
 /// up through all ancestor nodes to produce a new root Blueprint.
 std::unique_ptr<EditingHost> create_pathful_embedded_host(
     bp2::EditorModel& root_model,
-    std::vector<core::InternedId> instance_path);
+    std::vector<core::InternedId> instance_path,
+    const ComponentRegistry* registry = nullptr,
+    core::StringInterner* interner = nullptr,
+    const bp2::PathArena* arena = nullptr);
 
 /// Create a read-only host backed by a const blueprint reference.
 /// All mutation operations are no-ops. Used for external-ref windows

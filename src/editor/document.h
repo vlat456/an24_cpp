@@ -2,13 +2,12 @@
 
 #include "window/window_manager.h"
 #include "window/window_scope_id.h"
-#include "signal_key_resolver.h"
+#include "simulation_bridge.h"
+#include "scope_resolver.h"
 #include "visual/scene.h"
 #include "visual/workspace_session.h"
 #include "data/node_state.h"
 #include "input/canvas_input.h"
-#include "document_simulation_internal.h"
-#include "core/solvers/jit/simulator.h"
 #include "io/json/component_registry_json_loader.h"
 #include "blueprint_v2/library/library_index.h"
 #include "visual/render_context.h"
@@ -22,18 +21,19 @@
 #include <unordered_map>
 #include <unordered_set>
 
-/// A single open document: owns a Blueprint + Simulator + WindowManager.
-/// Multiple Document instances can coexist for MDI.
+/// A single open document: owns EditorModel + WindowManager + SimulationBridge.
+///
+/// Document is a coordinator — it decides WHEN to start/stop simulation,
+/// WHEN to rebuild windows, WHEN to save/load. The HOW is delegated:
+/// - SimulationBridge — owns simulator, signal caches, interaction binding
+/// - WindowManager — owns windows, scenes, viewports
+/// - EditorModel — owns blueprint state, undo/redo
 class Document {
 public:
-    struct ResolvedSignalScope {
-        const bp2::Blueprint* blueprint = nullptr;
-        const core::StringInterner* interner = nullptr;
-        editor::SignalKeyContext context = editor::root_signal_context();
-    };
-
-    /// Create new untitled document
-    Document();
+    /// Create document with optional type registry and library index.
+    /// Registry and library are passed at construction (not two-phase init).
+    explicit Document(const ComponentRegistry* type_registry = nullptr,
+                      const bp2::LibraryIndex* library_index = nullptr);
 
     /// Non-copyable, non-movable (owns WindowManager which holds references)
     Document(const Document&) = delete;
@@ -64,31 +64,19 @@ public:
 
     // ── Workspace/session persistence (separate from blueprint) ──
 
-    /// Save workspace/session state to a separate .workspace.json file.
-    /// Path is derived from blueprint filepath.
     bool saveWorkspaceSession();
-
-    /// Load workspace/session state from a separate .workspace.json file.
-    /// Path is derived from blueprint filepath. Returns false if file missing or invalid.
     bool loadWorkspaceSession();
-
-    /// Capture current editor-only workspace/session state.
     [[nodiscard]] WorkspaceSession captureWorkspaceSession() const;
-
-    /// Apply workspace/session state onto the current document/editor windows.
     void applyWorkspaceSession(const WorkspaceSession& session);
 
     // ── Blueprint & window access ──
 
     bp2::Blueprint const& blueprint() const { return model_.current(); }
-
     bp2::EditorModel& model() { return model_; }
     const bp2::EditorModel& model() const { return model_; }
-
     core::StringInterner& interner() { return interner_; }
     bp2::PathArena& arena() { return arena_; }
 
-    /// Re-seed next wire id counter from current blueprint wires.
     void sync_next_wire_id();
 
     bool canUndo() const { return model_.can_undo(); }
@@ -99,89 +87,97 @@ public:
     WindowManager& windowManager() { return window_manager_; }
     const WindowManager& windowManager() const { return window_manager_; }
 
-    /// Root window convenience accessors
     BlueprintWindow& root() { return window_manager_.root(); }
     const BlueprintWindow& root() const { return window_manager_.root(); }
     visual::Scene& scene() { return root().scene; }
     Viewport& viewport() { return root().viewport; }
     CanvasInput& input() { return root().input; }
 
-    // ── Simulation ──
+    // ── Simulation (delegates to SimulationBridge) ──
 
-    Simulator<JIT_Solver>& simulation() { return simulation_; }
-    const Simulator<JIT_Solver>& simulation() const { return simulation_; }
-    bool isSimulationRunning() const { return simulation_running_; }
+    bool isSimulationRunning() const { return sim_bridge_.is_running(); }
 
-    /// Set the type registry used to filter visual-only params from simulation JSON.
-    /// Must be called before startSimulation(). Pointer must outlive the Document.
-    void setComponentRegistry(const ComponentRegistry* reg) {
-        type_registry_ = reg;
-        window_manager_.set_parser_registry(reg);
-    }
+    /// Read a signal value by pre-resolved InternedId.
+    float get_signal_value(core::InternedId key) const { return sim_bridge_.get_signal_value(key); }
 
-    /// Get the type registry (may be nullptr if not yet set).
+    /// Access the simulation's signal key interner for key lookup.
+    const core::StringInterner& signal_key_interner() const { return sim_bridge_.signal_key_interner(); }
+
     const ComponentRegistry* type_registry() const { return type_registry_; }
-
-    /// Set the library index used for blueprint path resolution.
-    /// Must be called before openSubWindow() or addBlueprint(). Pointer must outlive the Document.
-    void setLibraryIndex(const bp2::LibraryIndex* idx) { library_index_ = idx; }
-
-    /// Get the library index (may be nullptr if not yet set).
     const bp2::LibraryIndex* library_index() const { return library_index_; }
 
     void startSimulation();
     void stopSimulation();
     void rebuildSimulation();
 
-    /// Cancel all in-flight gestures, rebuild every window's scene from the
-    /// blueprint, then rebuild the simulation.  Use this after any operation
-    /// that mutates the blueprint outside of the normal undo/redo path
-    /// (e.g. bake-in, addComponent, property edits).
+    /// Cancel gestures, rebuild every window's scene, then rebuild simulation.
     void rebuildAllWindows();
 
     void updateSimulationStep(double dt);
-
-    /// Update node_content (gauges, switches, etc.) from simulation values.
     void updateNodeContentFromSimulation();
     void resetNodeContent(const ComponentRegistry& registry);
     void purge_transient_node_state();
 
-    [[nodiscard]] std::optional<editor::NodeColor> node_color_for_scope(const WindowScopeId& scope_id,
-                                                                         core::InternedId node_id) const;
-    void set_node_color_for_scope(const WindowScopeId& scope_id,
-                                  core::InternedId node_id,
-                                  std::optional<editor::NodeColor> color);
+    // ── Node appearance (Document-owning, not simulation) ──
 
-    /// Find a node by id within a scoped blueprint (root, embedded, or external).
-    /// Returns nullptr if the scope or node does not exist.
-    [[nodiscard]] const bp2::Blueprint::Node* find_node_in_scope(
+    [[nodiscard]] std::optional<editor::NodeColor> node_color_for_scope(
         const WindowScopeId& scope_id, core::InternedId node_id) const;
+    void set_node_color_for_scope(const WindowScopeId& scope_id,
+                                   core::InternedId node_id,
+                                   std::optional<editor::NodeColor> color);
 
-    [[nodiscard]] const editor::RuntimeNodeStateStore& runtime_node_states() const { return runtime_node_states_; }
+    /// Find a node by id within a scoped blueprint (delegates to free function).
+    [[nodiscard]] const bp2::Blueprint::Node* find_node_in_scope(
+        const WindowScopeId& scope_id, core::InternedId node_id) const {
+        return editor::find_node_in_scope(scope_id, node_id, model_, window_manager_, interner_);
+    }
 
-    /// Build a set of wire IDs that are energized (have non-zero voltage).
+    [[nodiscard]] const editor::RuntimeNodeStateStore& runtime_node_states() const {
+        return sim_bridge_.runtime_node_states();
+    }
+
     void buildEnergizedWireSet(
         std::unordered_set<std::string_view, visual::StringViewHash>& out,
-        const WindowScopeId& scope_id) const;
+        const WindowScopeId& scope_id) const {
+        sim_bridge_.build_energized_wire_set(out, scope_id);
+    }
 
-ResolvedSignalScope resolve_signal_scope(const WindowScopeId& scope_id) const;
+    // ── Signal overrides (delegates to SimulationBridge) ──
+
+    std::vector<std::pair<core::InternedId, float>>& typedOverrides() {
+        return sim_bridge_.typed_overrides();
+    }
+
+    void triggerSwitch(core::InternedId node_id, const WindowScopeId& scope_id = WindowScopeId::root()) {
+        sim_bridge_.trigger_switch(node_id, scope_id);
+    }
+    void setSliderValue(core::InternedId node_id, float value, const WindowScopeId& scope_id = WindowScopeId::root()) {
+        sim_bridge_.set_slider_value(node_id, value, scope_id);
+    }
+    void setKnobPosition(core::InternedId node_id, int position, const WindowScopeId& scope_id = WindowScopeId::root()) {
+        sim_bridge_.set_knob_position(node_id, position, scope_id);
+    }
+    void holdButtonPress(core::InternedId node_id, const WindowScopeId& scope_id = WindowScopeId::root()) {
+        sim_bridge_.hold_button_press(node_id, scope_id);
+    }
+    void holdButtonRelease(core::InternedId node_id, const WindowScopeId& scope_id = WindowScopeId::root()) {
+        sim_bridge_.hold_button_release(node_id, scope_id);
+    }
+
+    // ── Signal key resolution ──
+
+    editor::ResolvedScope resolve_signal_scope(const WindowScopeId& scope_id) const {
+        return editor::resolve_scope(scope_id, model_, window_manager_, interner_);
+    }
     core::InternedId resolve_endpoint_signal_key(const WindowScopeId& scope_id,
-                                               std::string_view node_id,
-                                               std::string_view port_name) const;
+                                                std::string_view node_id,
+                                                std::string_view port_name) const {
+        return sim_bridge_.resolve_endpoint_signal_key(scope_id, node_id, port_name);
+    }
     core::InternedId resolve_wire_signal_key(const WindowScopeId& scope_id,
-                                        std::string_view wire_id) const;
-
-    // ── Signal overrides (switch/button clicks) ──
-
-    /// Direct access to typed overrides for edge cases.
-    /// InternedId must be resolved against simulation's signal_key_interner().
-    std::vector<std::pair<core::InternedId, float>>& typedOverrides() { return typed_overrides_; }
-
-    void triggerSwitch(core::InternedId node_id, const WindowScopeId& scope_id = WindowScopeId::root());
-    void setSliderValue(core::InternedId node_id, float value, const WindowScopeId& scope_id = WindowScopeId::root());
-    void setKnobPosition(core::InternedId node_id, int position, const WindowScopeId& scope_id = WindowScopeId::root());
-    void holdButtonPress(core::InternedId node_id, const WindowScopeId& scope_id = WindowScopeId::root());
-    void holdButtonRelease(core::InternedId node_id, const WindowScopeId& scope_id = WindowScopeId::root());
+                                            std::string_view wire_id) const {
+        return sim_bridge_.resolve_wire_signal_key(scope_id, wire_id);
+    }
 
     // ── Component/blueprint addition ──
 
@@ -192,8 +188,6 @@ ResolvedSignalScope resolve_signal_scope(const WindowScopeId& scope_id) const;
                       const WindowScopeId& scope_id,
                       ComponentRegistry& registry);
 
-    /// Recompute node sizes from the current layout minimum-size contract.
-    /// When preserve_manual is true, nodes explicitly marked manual_size are left unchanged.
     bool normalizeNodeSizesToFit(bool preserve_manual = true);
 
     bool extractToBlueprint(const std::vector<core::InternedId>& selected_node_ids,
@@ -206,10 +200,6 @@ ResolvedSignalScope resolve_signal_scope(const WindowScopeId& scope_id) const;
 
     void openSubWindow(const WindowScopeId& target_scope);
     void openSubWindow(const WindowScopeId& parent_scope, core::InternedId local_node_id);
-
-    /// Open a parent-bound external reference window for a composite node.
-    /// Loads the external blueprint and creates a read-only sub-window with
-    /// signal keys mapped through the parent instance id.
     void openExternalRefWindow(const WindowScopeId& instance_scope,
                                  const std::string& blueprint_file_path);
 
@@ -238,70 +228,31 @@ ResolvedSignalScope resolve_signal_scope(const WindowScopeId& scope_id) const;
     InputResultAction applyInputResult(const InputResult& r, const WindowScopeId& scope_id);
 
 private:
-    // ── Private helpers ──
-
-    /// Rebuild every open window scene from its authoritative blueprint source.
-    /// Does not cancel gestures and does not rebuild the simulation.
     void rebuild_window_scenes();
 
-    /// Build JitBuildInput directly from current bp2 model (no JSON intermediate).
-    /// This is the canonical simulation start path.
-    JitBuildInput build_jit_input();
-
-    /// Apply node-size normalization with optional history/window side effects.
     bool apply_normalized_node_sizes(bool preserve_manual,
                                      bool push_checkpoint,
                                      bool rebuild_windows);
 
-    /// Extract (node_id, port_name) InternedId pair from a bp2::Path
-    /// (expects PathKind::Port with Node parent). Returns empty pair on error.
-    /// arena_ is mutable because PathArena::parent() may lazily build cache.
-    std::pair<core::InternedId, core::InternedId>
-    bp2_path_to_node_port(const bp2::Path& path) const;
-
-    /// Build the pre-resolved signal cache from current blueprint + simulation interner.
-    /// Called after simulation_.start(). String work happens here (once), not per-frame.
-    void build_signal_cache();
-
-    /// Overload for WireEndpoint — trivially extracts node/port.
-    std::pair<core::InternedId, core::InternedId>
-    bp2_path_to_node_port(const bp2::WireEndpoint& ep) const;
-
     // ── Private data ──
+    // Member order matters: type_registry_ and library_index_ MUST come before
+    // window_manager_ because WindowManager uses them during construction.
 
     editor::DocumentId id_;
     std::string filepath_;
     std::string display_name_ = "Untitled";
 
+    const ComponentRegistry* type_registry_ = nullptr;
+    const bp2::LibraryIndex* library_index_ = nullptr;
+
     core::StringInterner interner_;
     bp2::PathArena arena_{interner_};
     bp2::EditorModel model_;
-    WindowManager window_manager_{model_, interner_, arena_};
-    Simulator<JIT_Solver> simulation_;
-    bool simulation_running_ = false;
+    WindowManager window_manager_{model_, interner_, arena_, type_registry_};
 
-    // Pre-resolved signal keys — zero allocation per frame.
-    // Built at simulation start, cleared on stop.
-    editor::SignalCache signal_cache_;
-
-    // Pre-resolved wire signal keys — zero resolver calls per frame.
-    // Built at simulation start, cleared on stop.
-    editor::WireSignalCache wire_signal_cache_;
-
-    // Typed signal overrides — InternedId resolved once at interaction time.
-    std::vector<std::pair<core::InternedId, float>> typed_overrides_;
-
-    // Persistent merge buffer for overrides — cleared each frame, capacity preserved.
-    // Avoids per-frame heap allocation in updateSimulationStep().
-    std::vector<std::pair<core::InternedId, float>> override_buffer_;
-
-    // Held buttons — key is NodeInstanceKey, value is pre-resolved
-    // control port InternedId (resolved at press time, not per-frame).
-    std::unordered_map<editor::NodeInstanceKey, core::InternedId, editor::NodeInstanceKeyHash> held_buttons_;
-
-    editor::RuntimeNodeStateStore runtime_node_states_;
-    const ComponentRegistry* type_registry_ = nullptr;
-    const bp2::LibraryIndex* library_index_ = nullptr;
+    /// Simulation binding — owns simulator, signal caches, interaction state.
+    /// Receives stable references to model_, window_manager_, interner_, arena_.
+    SimulationBridge sim_bridge_{model_, window_manager_, interner_, arena_};
 
     static int next_id_;
 };

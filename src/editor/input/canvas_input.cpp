@@ -1,7 +1,4 @@
 #include "input/canvas_input.h"
-#include "input/canvas_input_internal.h"
-#include "core/model/component_registry.h"
-#include "core/model/presentation_spec.h"
 #include "visual/scene.h"
 #include "visual/scene_mutations.h"
 #include "visual/widget.h"
@@ -15,7 +12,6 @@
 #include "editor/visual/presentation/canvas_scene_snapshot.h"
 #include "viewport/viewport.h"
 #include "commands/commands.h"
-#include "visual/persist.h"
 #include "visual/presentation/semantic_scene_hittest.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/path/path.h"
@@ -25,8 +21,6 @@
 #include <cassert>
 #include <cstdio>
 #include <unordered_set>
-
-using namespace canvas_input_impl;
 
 namespace {
 constexpr float DISCRETE_DRAG_PIXELS_PER_STEP = 30.0f;
@@ -38,11 +32,9 @@ constexpr float DISCRETE_DRAG_PIXELS_PER_STEP = 30.0f;
 
 CanvasInput::CanvasInput(visual::Scene& scene, Viewport& viewport,
                          EditingHost* host, core::StringInterner& interner,
-                         bp2::PathArena& arena, const WindowScopeId& scope_id,
-                         const ComponentRegistry* parser_registry)
+                         bp2::PathArena& arena, const WindowScopeId& scope_id)
     : scene_(scene), viewport_(viewport), host_(host),
       interner_(&interner), arena_(&arena),
-      parser_registry_(parser_registry),
       scope_id_(scope_id)
 {
     rebuild_snapshot();
@@ -63,7 +55,7 @@ void CanvasInput::snapshot_and_execute(Command cmd) {
             throw std::logic_error("CanvasInput::snapshot_and_execute received unsupported command");
         }
     }, std::move(cmd));
-    debug_validate_command_boundary(host_->current_blueprint(), *interner_, *arena_, parser_registry_);
+    host_->debug_validate_integrity();
 }
 
 // ============================================================================
@@ -291,10 +283,7 @@ void CanvasInput::setup_semantic_interaction_state(const visual::HitNode& node_h
         case CanvasInput::SemanticContentRole::ContinuousScalar: {
             state_ = InputState::DraggingSlider;
             float origin_local_x = content_bounds.x;
-            const std::string type_name(interner_->resolve(node->semantic.type));
-            const ComponentSpec* def = parser_registry_ ? parser_registry_->get(type_name) : nullptr;
-            const TypePresentation* pres = parser_registry_ ? parser_registry_->get_presentation(type_name) : nullptr;
-            auto spec = editor::presentation::make_presentation_spec(*node, def, pres, *interner_);
+            const auto spec = host_->resolve_presentation_spec(node_id);
             semantic_canvas_controller_.set_active_scalar_mapping({
                 origin_local_x,
                 target.primary_min,
@@ -306,10 +295,7 @@ void CanvasInput::setup_semantic_interaction_state(const visual::HitNode& node_h
         }
         case CanvasInput::SemanticContentRole::DiscreteSelector: {
             state_ = InputState::DraggingKnob;
-            const std::string type_name(interner_->resolve(node->semantic.type));
-            const ComponentSpec* def = parser_registry_ ? parser_registry_->get(type_name) : nullptr;
-            const TypePresentation* pres = parser_registry_ ? parser_registry_->get_presentation(type_name) : nullptr;
-            auto spec = editor::presentation::make_presentation_spec(*node, def, pres, *interner_);
+            const auto spec = host_->resolve_presentation_spec(node_id);
             int start_pos = static_cast<int>(spec.content_value);
             int num_positions = target.steps;
             if (num_positions < 2) num_positions = 2;
@@ -430,13 +416,10 @@ void CanvasInput::snapshot_wire_routing_points(core::InternedId wire_id,
 void CanvasInput::rebuild_scene() {
     // scope_id_.path() already returns InternedId vector - use directly
     std::vector<core::InternedId> instance_path(scope_id_.path().begin(), scope_id_.path().end());
-    visual::mutations::rebuild(scene_, host_->current_blueprint(), *interner_, *arena_, instance_path, registry());
+    if (const ComponentRegistry* reg = host_->type_registry()) {
+        visual::mutations::rebuild(scene_, host_->current_blueprint(), *interner_, *arena_, instance_path, *reg);
+    }
     rebuild_snapshot();
-}
-
-const ComponentRegistry& CanvasInput::registry() const {
-    static const ComponentRegistry empty_reg;
-    return parser_registry_ ? *parser_registry_ : empty_reg;
 }
 
 void CanvasInput::rebuild_snapshot() {

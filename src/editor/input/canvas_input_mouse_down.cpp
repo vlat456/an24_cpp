@@ -8,9 +8,6 @@
 #include "visual/wire/routing_point.h"
 #include "editor/visual/presentation/canvas_scene_snapshot.h"
 #include "viewport/viewport.h"
-#include "canvas_input_internal.h"
-
-using namespace canvas_input_impl;
 
 InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas_min, Modifiers mods) {
     InputResult result;

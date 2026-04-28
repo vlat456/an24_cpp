@@ -45,7 +45,8 @@ set(EDITOR_CANVAS_INPUT_SOURCES
 set(EDITOR_DOCUMENT_SOURCES
     ${CMAKE_SOURCE_DIR}/src/editor/document.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/document_components.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/document_export.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/simulation_bridge.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/scope_resolver.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/document_history.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/document_input.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/document_layout.cpp

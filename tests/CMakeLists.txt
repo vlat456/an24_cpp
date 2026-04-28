@@ -542,6 +542,7 @@ add_executable(properties_window_tests
     ${CMAKE_SOURCE_DIR}/src/editor/input/editing_host.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/embedded_path_utils.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/commands/commands.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
 )
 target_compile_definitions(properties_window_tests PRIVATE EDITOR_TESTING)
 target_include_directories(properties_window_tests PRIVATE
@@ -555,6 +556,7 @@ target_include_directories(properties_window_tests PRIVATE
 )
 target_link_libraries(properties_window_tests PRIVATE
     blueprint_v2
+    editor_semantic_canvas
     spdlog::spdlog
     GTest::gtest_main
 )

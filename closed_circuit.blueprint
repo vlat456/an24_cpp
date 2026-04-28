@@ -14,7 +14,7 @@
         "manual_size": true,
         "width": 96.0,
         "x": 272.0,
-        "y": -320.0
+        "y": -336.0
       },
       "params": {
         "closed": false,
@@ -89,7 +89,7 @@
         "height": 144.0,
         "manual_size": true,
         "width": 112.0,
-        "x": 608.0,
+        "x": 624.0,
         "y": 0.0
       },
       "params": {
@@ -1366,7 +1366,7 @@
         "manual_size": true,
         "width": 112.0,
         "x": 32.0,
-        "y": 256.0
+        "y": 272.0
       },
       "source": {
         "blueprint": {
@@ -2033,7 +2033,7 @@
       "layout": {
         "height": 112.0,
         "width": 48.0,
-        "x": 608.0,
+        "x": 624.0,
         "y": -320.0
       },
       "params": {
@@ -2049,7 +2049,7 @@
         "height": 80.0,
         "width": 32.0,
         "x": 488.0,
-        "y": 48.0
+        "y": 32.0
       }
     },
     {
@@ -2102,7 +2102,8 @@
       "label": "resistor_1",
       "layout": {
         "height": 64.0,
-        "width": 32.0,
+        "manual_size": true,
+        "width": 96.0,
         "x": 792.0,
         "y": -224.0
       },
@@ -2174,8 +2175,8 @@
       "kind": "component",
       "label": "controlledvoltagesource_2_gain",
       "layout": {
-        "x": 568.0,
-        "y": 40.0
+        "x": 560.0,
+        "y": 88.0
       },
       "params": {
         "value": 1.0
@@ -2188,7 +2189,7 @@
       "label": "controlledvoltagesource_2_max_v",
       "layout": {
         "x": 560.0,
-        "y": 24.0
+        "y": 72.0
       },
       "params": {
         "value": 30.0
@@ -2200,8 +2201,8 @@
       "kind": "component",
       "label": "controlledvoltagesource_2_min_v",
       "layout": {
-        "x": 568.0,
-        "y": 104.0
+        "x": 560.0,
+        "y": 24.0
       },
       "params": {
         "value": 0.0
@@ -2215,8 +2216,8 @@
       "layout": {
         "height": 32.0,
         "width": 32.0,
-        "x": 568.0,
-        "y": 88.0
+        "x": 560.0,
+        "y": 40.0
       },
       "params": {
         "value": 0.0
@@ -2229,7 +2230,7 @@
       "label": "normalize_1_max",
       "layout": {
         "x": 208.0,
-        "y": 264.0
+        "y": 280.0
       },
       "params": {
         "value": 100.0
@@ -2242,7 +2243,7 @@
       "label": "normalize_1_min",
       "layout": {
         "x": 208.0,
-        "y": 296.0
+        "y": 264.0
       },
       "params": {
         "value": 0.0
@@ -2419,7 +2420,7 @@
         ],
         [
           -32.0,
-          -272.0
+          -304.0
         ]
       ],
       "to": {
@@ -2559,7 +2560,7 @@
         ],
         [
           384.0,
-          96.0
+          64.0
         ]
       ],
       "to": {
@@ -2587,7 +2588,7 @@
       "routing": [
         [
           752.0,
-          32.0
+          48.0
         ]
       ],
       "to": {
@@ -2691,7 +2692,7 @@
       "routing": [
         [
           560.0,
-          64.0
+          112.0
         ]
       ],
       "to": {
@@ -2913,7 +2914,7 @@
         ],
         [
           1024.0,
-          -672.0
+          -688.0
         ]
       ],
       "to": {

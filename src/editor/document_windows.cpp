@@ -94,13 +94,13 @@ void Document::openSubWindow(const WindowScopeId& target_scope) {
         // have an external parent window, so their parent must still resolve as
         // embedded here.
         WindowScopeId external_parent_scope = WindowScopeId::external(parent_path);
-        const ResolvedSignalScope external_parent = resolve_signal_scope(external_parent_scope);
+        const editor::ResolvedScope external_parent = resolve_signal_scope(external_parent_scope);
         if (external_parent.blueprint && external_parent.interner) {
             bp = external_parent.blueprint;
             bp_interner = external_parent.interner;
         } else {
             WindowScopeId embedded_parent_scope = WindowScopeId::embedded(parent_path);
-            const ResolvedSignalScope embedded_parent = resolve_signal_scope(embedded_parent_scope);
+            const editor::ResolvedScope embedded_parent = resolve_signal_scope(embedded_parent_scope);
             bp = embedded_parent.blueprint;
             bp_interner = embedded_parent.interner;
         }

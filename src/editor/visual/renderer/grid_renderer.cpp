@@ -40,7 +40,6 @@ void GridRenderer::render(IDrawList& dl, const Viewport& vp, Pt canvas_min, Pt c
     float half_step_screen = half_step * vp.zoom;
     if (half_step_screen < 4.0f) return;  // too dense to see
 
-    constexpr uint32_t COLOR_GRID_HALF = 0xFF1A1515;  // much darker than COLOR_GRID
     constexpr float half_line_width = 0.25f;
 
     // Vertical half-grid lines: offset by half_step from whole-grid
@@ -48,7 +47,7 @@ void GridRenderer::render(IDrawList& dl, const Viewport& vp, Pt canvas_min, Pt c
     for (float wx = hx_start; wx <= br.x; wx += step) {
         dl.add_line(vp.world_to_screen(Pt(wx, tl.y), canvas_min),
                     vp.world_to_screen(Pt(wx, br.y), canvas_min),
-                    COLOR_GRID_HALF, half_line_width);
+                    render_theme::COLOR_GRID_HALF, half_line_width);
     }
 
     // Horizontal half-grid lines
@@ -56,7 +55,7 @@ void GridRenderer::render(IDrawList& dl, const Viewport& vp, Pt canvas_min, Pt c
     for (float wy = hy_start; wy <= br.y; wy += step) {
         dl.add_line(vp.world_to_screen(Pt(tl.x, wy), canvas_min),
                     vp.world_to_screen(Pt(br.x, wy), canvas_min),
-                    COLOR_GRID_HALF, half_line_width);
+                    render_theme::COLOR_GRID_HALF, half_line_width);
     }
 }
 

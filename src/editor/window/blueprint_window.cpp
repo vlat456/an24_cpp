@@ -28,8 +28,13 @@ const EditingHost& require_host(const std::unique_ptr<EditingHost>& host) {
 // No conversion needed - scope_id.path() already returns InternedId
 std::unique_ptr<EditingHost> make_embedded_host(bp2::EditorModel& root_model,
                                                 core::StringInterner& /*interner*/,
-                                                std::span<const core::InternedId> scope_path) {
-    return create_pathful_embedded_host(root_model, std::vector<core::InternedId>(scope_path.begin(), scope_path.end()));
+                                                std::span<const core::InternedId> scope_path,
+                                                const ComponentRegistry* registry,
+                                                core::StringInterner* interner_ptr,
+                                                const bp2::PathArena* arena) {
+    return create_pathful_embedded_host(root_model,
+        std::vector<core::InternedId>(scope_path.begin(), scope_path.end()),
+        registry, interner_ptr, arena);
 }
 
 void rebuild_root_scene(BlueprintWindow& window, const ComponentRegistry* parser_registry) {
@@ -79,8 +84,7 @@ BlueprintWindow::BlueprintWindow(bp2::EditorModel& model,
                                   WindowScopeId scope,
                                   std::string title,
                                   std::unique_ptr<EditingHost> editing_host,
-                                  bool read_only,
-                                  const ComponentRegistry* parser_registry)
+                                  bool read_only)
     : title(std::move(title))
     , scope(std::move(scope))
     , root_model(model)
@@ -89,9 +93,8 @@ BlueprintWindow::BlueprintWindow(bp2::EditorModel& model,
     , scene()
     , viewport()
     , host(std::move(editing_host))  // may be nullptr for external windows
-    , input(scene, viewport, this->host.get(), this->interner, this->arena, this->scope, parser_registry)
+    , input(scene, viewport, this->host.get(), this->interner, this->arena, this->scope)
     , read_only(read_only)
-    , type_registry(parser_registry)
 {
     input.read_only = read_only;
 }
@@ -105,9 +108,8 @@ std::unique_ptr<BlueprintWindow> BlueprintWindow::create_root(
         ctx.arena,
         WindowScopeId::root(),
         std::move(title),
-        create_editor_model_host(ctx.model),
-        false,
-        ctx.type_registry));
+        create_editor_model_host(ctx.model, ctx.type_registry, &ctx.interner, &ctx.arena),
+        false));
     rebuild_root_scene(*window, ctx.type_registry);
     return window;
 }
@@ -116,7 +118,8 @@ std::unique_ptr<BlueprintWindow> BlueprintWindow::create_embedded(
     const Context& ctx,
     WindowScopeId scope,
     std::string title) {
-    auto host = make_embedded_host(ctx.model, ctx.interner, scope.path());
+    auto host = make_embedded_host(ctx.model, ctx.interner, scope.path(),
+        ctx.type_registry, &ctx.interner, &ctx.arena);
     auto window = std::unique_ptr<BlueprintWindow>(new BlueprintWindow(
         ctx.model,
         ctx.interner,
@@ -124,8 +127,7 @@ std::unique_ptr<BlueprintWindow> BlueprintWindow::create_embedded(
         std::move(scope),
         std::move(title),
         std::move(host),
-        false,
-        ctx.type_registry));
+        false));
     rebuild_embedded_scene(*window, ctx.type_registry);
     return window;
 }
@@ -148,8 +150,7 @@ std::unique_ptr<BlueprintWindow> BlueprintWindow::create_external(
         std::move(scope),
         std::move(title),
         nullptr,  // host created after blueprint is stored
-        true,
-        ctx.type_registry));
+        true));
 
     window->external_blueprint = std::move(external_document.blueprint);
     window->external_interner = std::move(external_document.interner);

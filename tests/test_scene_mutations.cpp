@@ -628,6 +628,31 @@ TEST(SnapMath, DualGrid_FarFromGridOrigin) {
     EXPECT_NEAR(r3.y, 105.0f, 1e-4f);
 }
 
+TEST(SnapMath, DualGrid_NegativeCoordinates) {
+    // Negative positions snap correctly (strong zone, weak zone, boundary).
+    float grid = 10.0f;
+
+    // -3: nearest whole=0, d=3 ≤ 4 → whole at 0
+    auto r1 = editor_math::snap_to_grid(ui::Pt(-3.0f, -3.0f), grid);
+    EXPECT_NEAR(r1.x, 0.0f, 1e-4f);
+    EXPECT_NEAR(r1.y, 0.0f, 1e-4f);
+
+    // -7: nearest whole=-10, d=3 ≤ 4 → whole at -10
+    auto r2 = editor_math::snap_to_grid(ui::Pt(-7.0f, -7.0f), grid);
+    EXPECT_NEAR(r2.x, -10.0f, 1e-4f);
+    EXPECT_NEAR(r2.y, -10.0f, 1e-4f);
+
+    // -4.5: nearest whole=0, d=4.5 > 4, v < whole → half at -5
+    auto r3 = editor_math::snap_to_grid(ui::Pt(-4.5f, -4.5f), grid);
+    EXPECT_NEAR(r3.x, -5.0f, 1e-4f);
+    EXPECT_NEAR(r3.y, -5.0f, 1e-4f);
+
+    // -5.5: nearest whole=-10, d=4.5 > 4, v > whole → half at -5
+    auto r4 = editor_math::snap_to_grid(ui::Pt(-5.5f, -5.5f), grid);
+    EXPECT_NEAR(r4.x, -5.0f, 1e-4f);
+    EXPECT_NEAR(r4.y, -5.0f, 1e-4f);
+}
+
 // ============================================================================
 // side_from_relative_position
 // ============================================================================

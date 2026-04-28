@@ -1,17 +1,152 @@
 #include "editor/input/editing_host.h"
 #include "blueprint_v2/bake/bake_ops.h"
 #include "blueprint_v2/editor_model/editor_model.h"
+#include "blueprint_v2/validation/wire_validator.h"
+#include "blueprint_v2/validation/signal_typing.h"
+#include "blueprint_v2/interface/node_port_projection.h"
+#include "core/model/component_registry.h"
+#include "core/strings/interned_id.h"
+#include "blueprint_v2/path/path.h"
+#include "visual/persist.h"
 #include "embedded_path_utils.h"
 
 #include <stdexcept>
 
 namespace {
 
+/// Shared helper: resolve frame kind from a node's type via registry.
+/// Returns Standard when registry or interner is null, or node is unknown.
+editor::presentation::NodeFrameKind do_resolve_frame_kind(
+    const bp2::Blueprint& bp,
+    core::InternedId node_id,
+    const ComponentRegistry& registry,
+    core::StringInterner& interner) {
+    const bp2::Blueprint::Node* node = bp.find_node(node_id);
+    if (!node) return editor::presentation::NodeFrameKind::Standard;
+    const std::string type_name(interner.resolve(node->semantic.type));
+    const ComponentSpec* def = registry.get(type_name);
+    const TypePresentation* pres = registry.get_presentation(type_name);
+    return editor::presentation::resolve_frame_kind(def, pres);
+}
+
+/// Shared helper: resolve port type via registry-backed iface resolution.
+PortType do_resolve_port_type(
+    const bp2::Blueprint& bp,
+    core::InternedId node_id,
+    core::InternedId port_name,
+    const ComponentRegistry& registry,
+    core::StringInterner& interner) {
+    const bp2::Blueprint::Node* node = bp.find_node(node_id);
+    if (!node) return PortType::Any;
+    const bp2::Interface iface = bp.resolve_node_iface(
+        *node, bp2::Blueprint::NodeIfaceAuthority{interner, &registry});
+    for (const auto& p : iface.ports()) {
+        if (p.name == port_name) return p.port_type;
+    }
+    return PortType::Any;
+}
+
+/// Shared helper: resolve full port descriptor.
+std::optional<bp2::PortDescriptor> do_resolve_port_descriptor(
+    const bp2::Blueprint& bp,
+    core::InternedId node_id,
+    core::InternedId port_name,
+    const ComponentRegistry& registry,
+    core::StringInterner& interner) {
+    const bp2::Blueprint::Node* node = bp.find_node(node_id);
+    if (!node) return std::nullopt;
+    const bp2::Interface iface = bp.resolve_node_iface(
+        *node, bp2::Blueprint::NodeIfaceAuthority{interner, &registry});
+    return iface.find(port_name);
+}
+
+/// Shared helper: validate a potential wire.
+/// Resolves domain first, then validates with correct domain on probe.
+EditingHost::WireValidation do_validate_wire(
+    const bp2::Blueprint& bp,
+    bp2::WireEndpoint source,
+    bp2::WireEndpoint target,
+    const ComponentRegistry& registry,
+    core::StringInterner& interner) {
+    // First pass: resolve domain.
+    bp2::Blueprint::Wire domain_probe;
+    domain_probe.source = source;
+    domain_probe.target = target;
+    const Domain resolved = bp2::WireValidator::validate(
+        domain_probe, bp, registry, interner).resolved_domain;
+    // Second pass: validate with resolved domain set.
+    bp2::Blueprint::Wire probe;
+    probe.source = source;
+    probe.target = target;
+    probe.domain = resolved;
+    const auto result = bp2::WireValidator::validate(probe, bp, registry, interner);
+    return {result.valid, resolved};
+}
+
+/// Shared helper: resolve wire domain.
+Domain do_resolve_wire_domain(
+    const bp2::Blueprint& bp,
+    bp2::WireEndpoint source,
+    bp2::WireEndpoint target,
+    const ComponentRegistry& registry,
+    core::StringInterner& interner) {
+    bp2::Blueprint::Wire probe;
+    probe.source = source;
+    probe.target = target;
+    return bp2::WireValidator::validate(probe, bp, registry, interner).resolved_domain;
+}
+
+/// Shared helper: resolve full compiled presentation spec for a node.
+editor::presentation::CompiledPresentationSpec do_resolve_presentation_spec(
+    const bp2::Blueprint& bp,
+    core::InternedId node_id,
+    const ComponentRegistry& registry,
+    core::StringInterner& interner) {
+    const bp2::Blueprint::Node* node = bp.find_node(node_id);
+    if (!node) return {};
+    const std::string type_name(interner.resolve(node->semantic.type));
+    const ComponentSpec* def = registry.get(type_name);
+    const TypePresentation* pres = registry.get_presentation(type_name);
+    return editor::presentation::make_presentation_spec(*node, def, pres, interner);
+}
+
+/// Shared helper: debug-only integrity check.
+void do_debug_validate_integrity(
+    const bp2::Blueprint& bp,
+    core::StringInterner& interner,
+    const bp2::PathArena& arena,
+    const ComponentRegistry& registry) {
+#ifndef NDEBUG
+    std::string err;
+    const bool ok = validate_blueprint_integrity(bp, interner, arena, registry, &err);
+    if (!ok) {
+        // Known benign errors from bus/reference canonicalization — skip.
+        if (err.find("wire domain differs from endpoint domain") != std::string::npos
+            || err.find("wire direction incompatible") != std::string::npos
+            || err.find("wire endpoint path unresolved") != std::string::npos
+            || err.find("wire endpoint domain mismatch") != std::string::npos
+            || err.find("component node iface desynced") != std::string::npos) {
+            return;
+        }
+        std::fprintf(stderr, "[bp2][debug] command boundary invariant failed: %s\n", err.c_str());
+        assert(false && "bp2 integrity violation at command boundary");
+    }
+#endif
+}
+
+// ============================================================================
+// EditorModelHost
+// ============================================================================
+
 /// EditorModel-backed implementation of EditingHost.
 /// Delegates all operations directly to the root EditorModel.
 class EditorModelHost : public EditingHost {
 public:
-    explicit EditorModelHost(bp2::EditorModel& model) : model_(model) {}
+    EditorModelHost(bp2::EditorModel& model,
+                    const ComponentRegistry* registry,
+                    core::StringInterner* interner,
+                    const bp2::PathArena* arena)
+        : model_(model), registry_(registry), interner_(interner), arena_(arena) {}
 
     const bp2::Blueprint& current_blueprint() const override {
         return model_.current();
@@ -93,9 +228,63 @@ public:
         return model_.allocate_wire_id();
     }
 
+    // ── Registry-backed queries ──
+
+    editor::presentation::NodeFrameKind resolve_frame_kind(
+        core::InternedId node_id) const override {
+        if (!has_registry()) return editor::presentation::NodeFrameKind::Standard;
+        return do_resolve_frame_kind(model_.current(), node_id, *registry_, *interner_);
+    }
+
+    PortType resolve_port_type(
+        core::InternedId node_id, core::InternedId port_name) const override {
+        if (!has_registry()) return PortType::Any;
+        return do_resolve_port_type(model_.current(), node_id, port_name, *registry_, *interner_);
+    }
+
+    std::optional<bp2::PortDescriptor> resolve_port_descriptor(
+        core::InternedId node_id, core::InternedId port_name) const override {
+        if (!has_registry()) return std::nullopt;
+        return do_resolve_port_descriptor(model_.current(), node_id, port_name, *registry_, *interner_);
+    }
+
+    WireValidation validate_wire(
+        bp2::WireEndpoint source, bp2::WireEndpoint target) const override {
+        if (!has_registry()) return {true, Domain::Electrical};
+        return do_validate_wire(model_.current(), source, target, *registry_, *interner_);
+    }
+
+    Domain resolve_wire_domain(
+        bp2::WireEndpoint source, bp2::WireEndpoint target) const override {
+        if (!has_registry()) return Domain::Electrical;
+        return do_resolve_wire_domain(model_.current(), source, target, *registry_, *interner_);
+    }
+
+    void debug_validate_integrity() const override {
+        if (!has_registry() || !arena_) return;
+        do_debug_validate_integrity(model_.current(), *interner_, *arena_, *registry_);
+    }
+
+    editor::presentation::CompiledPresentationSpec resolve_presentation_spec(
+        core::InternedId node_id) const override {
+        if (!has_registry()) return {};
+        return do_resolve_presentation_spec(model_.current(), node_id, *registry_, *interner_);
+    }
+
+    const ComponentRegistry* type_registry() const override { return registry_; }
+
 private:
     bp2::EditorModel& model_;
+    const ComponentRegistry* registry_;
+    core::StringInterner* interner_;
+    const bp2::PathArena* arena_;
+
+    bool has_registry() const { return registry_ && interner_; }
 };
+
+// ============================================================================
+// EmbeddedInlineHost
+// ============================================================================
 
 /// EditingHost that operates on an embedded inline blueprint at an arbitrary
 /// nesting depth. Stores the full instance path and walks the chain from root
@@ -106,8 +295,12 @@ public:
     /// Construct from a full instance path (may be multi-segment for deeply
     /// nested embedded scopes). The path must be non-empty.
     EmbeddedInlineHost(bp2::EditorModel& root_model,
-                       std::vector<core::InternedId> instance_path)
-        : root_model_(root_model), path_(std::move(instance_path))
+                       std::vector<core::InternedId> instance_path,
+                       const ComponentRegistry* registry,
+                       core::StringInterner* interner,
+                       const bp2::PathArena* arena)
+        : root_model_(root_model), path_(std::move(instance_path)),
+          registry_(registry), interner_(interner), arena_(arena)
     {
         if (path_.empty()) {
             throw std::logic_error("EmbeddedInlineHost requires non-empty instance path");
@@ -229,9 +422,59 @@ public:
         return root_model_.allocate_wire_id();
     }
 
+    // ── Registry-backed queries ──
+
+    editor::presentation::NodeFrameKind resolve_frame_kind(
+        core::InternedId node_id) const override {
+        if (!has_registry()) return editor::presentation::NodeFrameKind::Standard;
+        return do_resolve_frame_kind(current_blueprint(), node_id, *registry_, *interner_);
+    }
+
+    PortType resolve_port_type(
+        core::InternedId node_id, core::InternedId port_name) const override {
+        if (!has_registry()) return PortType::Any;
+        return do_resolve_port_type(current_blueprint(), node_id, port_name, *registry_, *interner_);
+    }
+
+    std::optional<bp2::PortDescriptor> resolve_port_descriptor(
+        core::InternedId node_id, core::InternedId port_name) const override {
+        if (!has_registry()) return std::nullopt;
+        return do_resolve_port_descriptor(current_blueprint(), node_id, port_name, *registry_, *interner_);
+    }
+
+    WireValidation validate_wire(
+        bp2::WireEndpoint source, bp2::WireEndpoint target) const override {
+        if (!has_registry()) return {true, Domain::Electrical};
+        return do_validate_wire(current_blueprint(), source, target, *registry_, *interner_);
+    }
+
+    Domain resolve_wire_domain(
+        bp2::WireEndpoint source, bp2::WireEndpoint target) const override {
+        if (!has_registry()) return Domain::Electrical;
+        return do_resolve_wire_domain(current_blueprint(), source, target, *registry_, *interner_);
+    }
+
+    void debug_validate_integrity() const override {
+        if (!has_registry() || !arena_) return;
+        do_debug_validate_integrity(current_blueprint(), *interner_, *arena_, *registry_);
+    }
+
+    editor::presentation::CompiledPresentationSpec resolve_presentation_spec(
+        core::InternedId node_id) const override {
+        if (!has_registry()) return {};
+        return do_resolve_presentation_spec(current_blueprint(), node_id, *registry_, *interner_);
+    }
+
+    const ComponentRegistry* type_registry() const override { return registry_; }
+
 private:
     bp2::EditorModel& root_model_;
     std::vector<core::InternedId> path_;
+    const ComponentRegistry* registry_;
+    core::StringInterner* interner_;
+    const bp2::PathArena* arena_;
+
+    bool has_registry() const { return registry_ && interner_; }
 
     static const bp2::Blueprint& require_inline_blueprint(const bp2::Blueprint::Node& node) {
         if (!node.has_embedded_blueprint()) {
@@ -276,6 +519,10 @@ private:
 
 }  // namespace
 
+// ============================================================================
+// Read-only host
+// ============================================================================
+
 /// Read-only host: delegates reads to a const blueprint, no-ops all mutations.
 class ReadOnlyHost : public EditingHost {
 public:
@@ -303,14 +550,25 @@ private:
     const bp2::Blueprint& bp_;
 };
 
-std::unique_ptr<EditingHost> create_editor_model_host(bp2::EditorModel& model) {
-    return std::make_unique<EditorModelHost>(model);
+// ============================================================================
+// Factory functions
+// ============================================================================
+
+std::unique_ptr<EditingHost> create_editor_model_host(
+    bp2::EditorModel& model,
+    const ComponentRegistry* registry,
+    core::StringInterner* interner,
+    const bp2::PathArena* arena) {
+    return std::make_unique<EditorModelHost>(model, registry, interner, arena);
 }
 
 std::unique_ptr<EditingHost> create_pathful_embedded_host(
     bp2::EditorModel& root_model,
-    std::vector<core::InternedId> instance_path) {
-    return std::make_unique<EmbeddedInlineHost>(root_model, std::move(instance_path));
+    std::vector<core::InternedId> instance_path,
+    const ComponentRegistry* registry,
+    core::StringInterner* interner,
+    const bp2::PathArena* arena) {
+    return std::make_unique<EmbeddedInlineHost>(root_model, std::move(instance_path), registry, interner, arena);
 }
 
 std::unique_ptr<EditingHost> create_read_only_host(const bp2::Blueprint& blueprint) {

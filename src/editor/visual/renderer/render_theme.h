@@ -19,6 +19,7 @@ constexpr uint32_t COLOR_WIRE_UNSEL  = 0xFF605048;  // Wire Inactive
 constexpr uint32_t COLOR_WIRE_HOVER  = 0xFF3A6FA0;  // Wire Hovered (lighter blue)
 constexpr uint32_t COLOR_WIRE_CURRENT= 0xFF2874A0;  // Wire Energized (Amber Mid)
 constexpr uint32_t COLOR_GRID        = 0xFF312625;  // Grid Dot
+constexpr uint32_t COLOR_GRID_HALF   = 0xFF1A1515;  // Half-grid line (very subtle)
 constexpr uint32_t COLOR_SELECTED    = 0xFF2A92C8;  // Selected border (Amber Bright)
 constexpr uint32_t COLOR_PORT_INPUT  = 0xFF986850;  // Port Current (generic input)
 constexpr uint32_t COLOR_PORT_OUTPUT = 0xFF5058B8;  // Port Voltage (generic output)
