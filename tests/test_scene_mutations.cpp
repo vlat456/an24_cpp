@@ -537,34 +537,98 @@ TEST(SceneMutations, RefNodeWithoutWireKeepsDefaultTopOrientation) {
 }
 
 // ============================================================================
-// snap_to_half_grid
+// snap_to_grid with granularity
 // ============================================================================
 
-TEST(SnapMath, SnapToHalfGrid) {
+TEST(SnapMath, SnapToGridHalfGranularity) {
     float grid = 16.0f;
     // Exact half-grid points remain unchanged
-    auto r1 = editor_math::snap_to_half_grid(ui::Pt(8.0f, 8.0f), grid);
+    auto r1 = editor_math::snap_to_grid(ui::Pt(8.0f, 8.0f), grid, 0.5f);
     EXPECT_NEAR(r1.x, 8.0f, 1e-4f);
     EXPECT_NEAR(r1.y, 8.0f, 1e-4f);
 
     // Snaps to nearest half-grid (0, 8, 16, 24, ...)
-    auto r2 = editor_math::snap_to_half_grid(ui::Pt(3.0f, 11.0f), grid);
+    auto r2 = editor_math::snap_to_grid(ui::Pt(3.0f, 11.0f), grid, 0.5f);
     EXPECT_NEAR(r2.x, 0.0f, 1e-4f);   // 3 rounds to 0
     EXPECT_NEAR(r2.y, 8.0f, 1e-4f);   // 11 rounds to 8
 
-    auto r3 = editor_math::snap_to_half_grid(ui::Pt(5.0f, 13.0f), grid);
+    auto r3 = editor_math::snap_to_grid(ui::Pt(5.0f, 13.0f), grid, 0.5f);
     EXPECT_NEAR(r3.x, 8.0f, 1e-4f);   // 5 rounds to 8
     EXPECT_NEAR(r3.y, 16.0f, 1e-4f);  // 13 rounds to 16
 
     // Full grid points are also half-grid points
-    auto r4 = editor_math::snap_to_half_grid(ui::Pt(16.0f, 32.0f), grid);
+    auto r4 = editor_math::snap_to_grid(ui::Pt(16.0f, 32.0f), grid, 0.5f);
     EXPECT_NEAR(r4.x, 16.0f, 1e-4f);
     EXPECT_NEAR(r4.y, 32.0f, 1e-4f);
 
     // Guard: zero grid step returns input unchanged
-    auto r5 = editor_math::snap_to_half_grid(ui::Pt(7.3f, 2.1f), 0.0f);
+    auto r5 = editor_math::snap_to_grid(ui::Pt(7.3f, 2.1f), 0.0f, 0.5f);
     EXPECT_NEAR(r5.x, 7.3f, 1e-4f);
     EXPECT_NEAR(r5.y, 2.1f, 1e-4f);
+}
+
+// ============================================================================
+// snap_granularity — regression tests for Value/Ref node grid snapping
+// ============================================================================
+
+TEST(SnapMath, SnapGranularity_AllFrameKinds) {
+    using editor::presentation::NodeFrameKind;
+    // Reference nodes → half-grid (0.5)
+    EXPECT_FLOAT_EQ(editor_math::snap_granularity(NodeFrameKind::Reference), 0.5f);
+    // All other frame kinds → whole-grid (1.0)
+    EXPECT_FLOAT_EQ(editor_math::snap_granularity(NodeFrameKind::Standard), 1.0f);
+    EXPECT_FLOAT_EQ(editor_math::snap_granularity(NodeFrameKind::Bus), 1.0f);
+    EXPECT_FLOAT_EQ(editor_math::snap_granularity(NodeFrameKind::Group), 1.0f);
+    EXPECT_FLOAT_EQ(editor_math::snap_granularity(NodeFrameKind::Annotation), 1.0f);
+}
+
+TEST(SnapMath, Regression_ValueRefNodesSnapToHalfGrid) {
+    // Regression: Value and RefNode (NodeFrameKind::Reference) must snap to
+    // half-grid, not whole-grid. This was broken by an explicit Value exclusion
+    // in the drag handler (checking n->semantic.type == "Value").
+    //
+    // Grid step = 16. Position = (7, 7):
+    //   Whole-grid → (0, 0)   (snap_to_grid(pos, 16.0))
+    //   Half-grid  → (8, 8)   (snap_to_grid(pos, 16.0, 0.5))
+    //
+    // Reference nodes (Value, RefNode) should snap to (8, 8).
+    float grid = 16.0f;
+    float granularity = editor_math::snap_granularity(
+        editor::presentation::NodeFrameKind::Reference);
+    EXPECT_FLOAT_EQ(granularity, 0.5f);
+
+    ui::Pt pos(7.0f, 7.0f);
+    ui::Pt snapped = editor_math::snap_to_grid(pos, grid, granularity);
+    EXPECT_NEAR(snapped.x, 8.0f, 1e-4f)
+        << "Reference node at x=7 with grid=16 should snap to 8 (half-grid)";
+    EXPECT_NEAR(snapped.y, 8.0f, 1e-4f)
+        << "Reference node at y=7 with grid=16 should snap to 8 (half-grid)";
+
+    // Verify whole-grid would snap differently
+    ui::Pt whole_snapped = editor_math::snap_to_grid(pos, grid);
+    EXPECT_NEAR(whole_snapped.x, 0.0f, 1e-4f);
+    EXPECT_NEAR(whole_snapped.y, 0.0f, 1e-4f);
+}
+
+TEST(SnapMath, Regression_MixedSelectionUsesWholeGrid) {
+    // When selection contains both Reference and non-Reference nodes,
+    // the coarsest granularity wins (whole-grid).
+    float grid = 16.0f;
+    ui::Pt pos(7.0f, 7.0f);
+
+    // Simulate mixed: use granularity=1.0 (whole-grid, the fallback for mixed)
+    ui::Pt snapped = editor_math::snap_to_grid(pos, grid, 1.0f);
+    EXPECT_NEAR(snapped.x, 0.0f, 1e-4f);
+    EXPECT_NEAR(snapped.y, 0.0f, 1e-4f);
+}
+
+TEST(SnapMath, SnapToGrid_DefaultGranularityIsWhole) {
+    // snap_to_grid(pos, grid) without granularity param defaults to whole-grid.
+    float grid = 10.0f;
+    ui::Pt pos(103.0f, 103.0f);
+    ui::Pt snapped = editor_math::snap_to_grid(pos, grid);
+    EXPECT_NEAR(snapped.x, 100.0f, 1e-4f);
+    EXPECT_NEAR(snapped.y, 100.0f, 1e-4f);
 }
 
 // ============================================================================

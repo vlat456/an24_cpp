@@ -2961,16 +2961,16 @@ TEST(CanvasInputNodeSnap, ValueNodeSnapsToHalfGridDespiteRefRenderHint) {
     // For RefNode at 113:
     // - Half-grid snap → 115 (distance 2)
     // - Full-grid snap → 110 (distance 3)
-    // → But RefNode uses full-grid, so should snap to 110
+    // → Both Value and RefNode use half-grid (NodeFrameKind::Reference)
     
     // Update Value node position to 105 via snap (simulating a drag)
-    // We'll call snap_to_half_grid directly to verify the fix
+    // We'll call snap_to_grid with granularity=0.5 directly to verify the fix
     ui::Pt value_pos(103.0f, 103.0f);
-    ui::Pt snapped_half = editor_math::snap_to_half_grid(value_pos, 10.0f);
+    ui::Pt snapped_half = editor_math::snap_to_grid(value_pos, 10.0f, 0.5f);
     EXPECT_NEAR(snapped_half.x, 105.0f, 0.01f)
-        << "snap_to_half_grid(103, 10) should snap to 105";
+        << "snap_to_grid(103, 10, 0.5) should snap to 105";
     EXPECT_NEAR(snapped_half.y, 105.0f, 0.01f)
-        << "snap_to_half_grid(103, 10) should snap to 105";
+        << "snap_to_grid(103, 10, 0.5) should snap to 105";
     
     // Verify that full-grid would snap differently
     ui::Pt snapped_full = editor_math::snap_to_grid(value_pos, 10.0f);
