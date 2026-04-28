@@ -1756,8 +1756,9 @@
       "label": "groundpower_1",
       "layout": {
         "height": 64.0,
-        "width": 32.0,
-        "x": -456.0,
+        "manual_size": true,
+        "width": 128.0,
+        "x": -464.0,
         "y": -624.0
       },
       "source": {
@@ -1785,8 +1786,11 @@
               "kind": "bridge_port",
               "label": "v_in",
               "layout": {
-                "x": 0.0,
-                "y": 160.0
+                "height": 64.0,
+                "manual_size": true,
+                "width": 128.0,
+                "x": -40.0,
+                "y": 112.0
               },
               "port_type": "V"
             },
@@ -1797,8 +1801,11 @@
               "kind": "bridge_port",
               "label": "v_out",
               "layout": {
-                "x": 352.0,
-                "y": 32.0
+                "height": 64.0,
+                "manual_size": true,
+                "width": 128.0,
+                "x": 400.0,
+                "y": 48.0
               },
               "port_type": "V"
             },
@@ -1808,8 +1815,8 @@
               "kind": "component",
               "label": "k_max",
               "layout": {
-                "x": 0.0,
-                "y": 96.0
+                "x": 120.0,
+                "y": 104.0
               },
               "params": {
                 "value": 30.0
@@ -1821,8 +1828,8 @@
               "kind": "component",
               "label": "k_one",
               "layout": {
-                "x": 0.0,
-                "y": 32.0
+                "x": 120.0,
+                "y": 120.0
               },
               "params": {
                 "value": 1.0
@@ -1834,8 +1841,8 @@
               "kind": "component",
               "label": "k_voltage",
               "layout": {
-                "x": 0.0,
-                "y": 0.0
+                "x": 120.0,
+                "y": 88.0
               },
               "params": {
                 "value": 28.5
@@ -1847,8 +1854,8 @@
               "kind": "component",
               "label": "k_zero",
               "layout": {
-                "x": 0.0,
-                "y": 64.0
+                "x": 120.0,
+                "y": 72.0
               },
               "params": {
                 "value": 0.0
@@ -1860,8 +1867,8 @@
               "kind": "component",
               "label": "k_zero_2",
               "layout": {
-                "x": 0.0,
-                "y": 80.0
+                "x": 120.0,
+                "y": 56.0
               },
               "params": {
                 "value": 0.0
@@ -1873,7 +1880,7 @@
               "kind": "component",
               "label": "src",
               "layout": {
-                "x": 160.0,
+                "x": 216.0,
                 "y": 32.0
               },
               "params": {
