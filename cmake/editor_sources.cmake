@@ -57,6 +57,7 @@ set(EDITOR_DOCUMENT_SOURCES
     ${CMAKE_SOURCE_DIR}/src/editor/focus_scope.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/oscilloscope.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/window/properties_window.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/window/script_editor_window.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/subwindow_open_target.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/signal_key_resolver.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/workspace_session_persist.cpp

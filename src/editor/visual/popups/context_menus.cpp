@@ -1,6 +1,7 @@
 #include "context_menus.h"
 #include "editor/input/input_types.h"
 #include "editor/subwindow_open_target.h"
+#include "core/model/component_kind.h"
 #include <imgui.h>
 #include <cstring>
 
@@ -86,6 +87,13 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
         }
         
         if (!is_read_only) {
+            std::string type_name(doc->interner().resolve(node.semantic.type));
+            auto kind = parse_component_kind(type_name);
+            if (kind == ComponentKind::LuaScript) {
+                if (ImGui::MenuItem("Edit Script...")) {
+                    ws.openScriptEditorForNode(ws.nodeContextMenu.node_id, ws.nodeContextMenu.scope_id, *doc);
+                }
+            }
             if (ImGui::MenuItem("Properties...")) {
                 ws.openPropertiesForNode(ws.nodeContextMenu.node_id, ws.nodeContextMenu.scope_id, *doc);
             }

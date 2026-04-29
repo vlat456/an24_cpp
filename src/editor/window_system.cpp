@@ -176,6 +176,10 @@ bool WindowSystem::closeDocument(Document& doc) {
         properties_window_.close();
         properties_window_.clear_owner_document_id();
     }
+    if (script_editor_window_.owner_document_id() == std::optional<editor::DocumentId>(closing_id)) {
+        script_editor_window_.close();
+        script_editor_window_.clear_owner_document_id();
+    }
 
     // Purge oscilloscope probes and hover state for the closing document
     oscilloscope.purge_for(closing_id);
@@ -212,6 +216,10 @@ bool WindowSystem::closeAllDocuments() {
         properties_window_.close();
     }
     properties_window_.clear_owner_document_id();
+    if (script_editor_window_.is_open()) {
+        script_editor_window_.close();
+    }
+    script_editor_window_.clear_owner_document_id();
 
     // Clear all dangling references to documents being destroyed
     contextMenu.source_document_id.reset();
@@ -317,32 +325,13 @@ void WindowSystem::removeClosedDocuments() {
 void WindowSystem::openPropertiesForNode(core::InternedId node_id,
                                          const WindowScopeId& scope_id,
                                          Document& doc) {
-    // External-scope windows are read-only references — property editing is
-    // rejected because their EditingHost resolves against the root model, not
-    // the external blueprint's own identity space.
-    if (scope_id.is_external()) {
-        return;
-    }
+    if (scope_id.is_external()) return;
 
     const bp2::Blueprint::Node* node = doc.find_node_in_scope(scope_id, node_id);
     if (!node) return;
 
-    std::unique_ptr<EditingHost> owned_host;
-    const ComponentRegistry* reg = doc.type_registry();
-    core::StringInterner* interner = &doc.interner();
-    const bp2::PathArena* arena = &doc.arena();
-    if (scope_id.is_root()) {
-        owned_host = create_editor_model_host(doc.model(), reg, interner, arena);
-    } else if (scope_id.is_embedded()) {
-        // scope_id.path() already returns InternedId vector - use directly
-        owned_host = create_pathful_embedded_host(doc.model(),
-            std::vector<core::InternedId>(scope_id.path().begin(), scope_id.path().end()),
-            reg, interner, arena);
-    }
-
-    if (!owned_host) {
-        return;
-    }
+    std::unique_ptr<EditingHost> owned_host = create_scoped_host(doc, scope_id);
+    if (!owned_host) return;
 
     const editor::DocumentId owner_id = doc.id();
     properties_window_.open(*node, node_id, std::move(owned_host), doc.interner(),
@@ -358,6 +347,31 @@ void WindowSystem::openPropertiesForNode(core::InternedId node_id,
             inspector_.markDirty();
         });
     properties_window_.set_owner_document_id(doc.id());
+}
+
+void WindowSystem::openScriptEditorForNode(core::InternedId node_id,
+                                            const WindowScopeId& scope_id,
+                                            Document& doc) {
+    if (scope_id.is_external()) return;
+
+    const bp2::Blueprint::Node* node = doc.find_node_in_scope(scope_id, node_id);
+    if (!node) return;
+
+    std::unique_ptr<EditingHost> owned_host = create_scoped_host(doc, scope_id);
+    if (!owned_host) return;
+
+    const editor::DocumentId owner_id = doc.id();
+    script_editor_window_.open(*node, node_id, std::move(owned_host), doc.interner(),
+        [this, owner_id](core::InternedId) {
+            if (Document* owner = findDocumentById(owner_id)) {
+                owner->rebuildAllWindows();
+                inspector_.markDirty();
+                return;
+            }
+            script_editor_window_.clear_owner_document_id();
+            inspector_.markDirty();
+        });
+    script_editor_window_.set_owner_document_id(doc.id());
 }
 
 void WindowSystem::openColorPickerForNode(core::InternedId node_id, const WindowScopeId& scope_id, Document& doc) {
@@ -509,6 +523,14 @@ void WindowSystem::reconcile_owner_bound_ui() {
         if (!owner_id.has_value() || !findDocumentById(*owner_id)) {
             properties_window_.close();
             properties_window_.clear_owner_document_id();
+        }
+    }
+
+    if (script_editor_window_.is_open()) {
+        const auto& owner_id = script_editor_window_.owner_document_id();
+        if (!owner_id.has_value() || !findDocumentById(*owner_id)) {
+            script_editor_window_.close();
+            script_editor_window_.clear_owner_document_id();
         }
     }
 }

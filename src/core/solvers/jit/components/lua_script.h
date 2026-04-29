@@ -23,8 +23,6 @@ public:
 
     static constexpr uint32_t UNMAPPED = UINT32_MAX;
 
-    // Pre-resolved signal indices — populated at build time.
-    // Unmapped ports hold UNMAPPED sentinel; execute() skips them.
     uint32_t input_indices[MAX_PORTS];
     uint32_t output_indices[MAX_PORTS];
 
@@ -43,15 +41,9 @@ public:
 private:
     lua_State* L_ = nullptr;
     int process_ref_ = 0;
-
-    struct AllocState {
-        size_t current = 0;
-        static constexpr size_t maximum = 64 * 1024;
-    };
-    AllocState alloc_state_;
-
-    friend void* lua_script_alloc(void* ud, void* ptr, size_t osize, size_t nsize);
+    bool ports_mapped_ = false;
 
     bool compile_script();
     lua_State* create_state();
+    void map_ports_once();
 };

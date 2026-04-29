@@ -191,3 +191,23 @@ TEST(LuaScriptTest, ClosureStatePersistsAcrossFrames) {
     step(comp, st, DT);
     EXPECT_FLOAT_EQ(st.values[1], 3.0f);
 }
+
+// =============================================================================
+// Regression: port mapping must work when provider is populated AFTER pre_load
+// =============================================================================
+
+TEST(LuaScriptTest, PortMappingAfterPreLoad) {
+    LuaScript<JitProvider> comp;
+    comp.script = "function process(inputs, dt) return {42.0, 7.0} end";
+
+    comp.pre_load();
+
+    comp.provider.set(PortNames::out1, 0);
+    comp.provider.set(PortNames::out2, 1);
+
+    auto st = make_state(2);
+    step(comp, st, DT);
+
+    EXPECT_FLOAT_EQ(st.values[0], 42.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 7.0f);
+}

@@ -7,33 +7,6 @@
 #include <utility>
 
 // =====================================================================
-// Custom allocator — memory-bounded per LuaScript instance
-// =====================================================================
-
-static void* lua_script_alloc(void* ud, void* ptr, size_t osize, size_t nsize) {
-    auto* state = static_cast<typename LuaScript<>::AllocState*>(ud);
-    if (nsize == 0) {
-        if (ptr) {
-            state->current -= osize;
-            free(ptr);
-        }
-        return nullptr;
-    }
-    if (!ptr) {
-        if (state->current + nsize > state->maximum) return nullptr;
-        state->current += nsize;
-        return malloc(nsize);
-    }
-    if (nsize > osize) {
-        if (state->current + (nsize - osize) > state->maximum) return nullptr;
-        state->current += nsize - osize;
-    } else {
-        state->current -= osize - nsize;
-    }
-    return realloc(ptr, nsize);
-}
-
-// =====================================================================
 // Instruction-count hook — prevents infinite loops
 // =====================================================================
 
@@ -48,7 +21,10 @@ static void instruction_hook(lua_State* L, lua_Debug*) {
 // =====================================================================
 
 template <typename Provider>
-LuaScript<Provider>::LuaScript() = default;
+LuaScript<Provider>::LuaScript() {
+    std::memset(input_indices, 0xFF, sizeof(input_indices));
+    std::memset(output_indices, 0xFF, sizeof(output_indices));
+}
 
 template <typename Provider>
 LuaScript<Provider>::~LuaScript() {
@@ -61,12 +37,13 @@ LuaScript<Provider>::LuaScript(LuaScript&& other) noexcept
     , script(std::move(other.script))
     , L_(other.L_)
     , process_ref_(other.process_ref_)
-    , alloc_state_(other.alloc_state_)
+    , ports_mapped_(other.ports_mapped_)
 {
     std::memcpy(input_indices, other.input_indices, sizeof(input_indices));
     std::memcpy(output_indices, other.output_indices, sizeof(output_indices));
     other.L_ = nullptr;
     other.process_ref_ = 0;
+    other.ports_mapped_ = false;
 }
 
 template <typename Provider>
@@ -79,9 +56,10 @@ LuaScript<Provider>& LuaScript<Provider>::operator=(LuaScript&& other) noexcept 
         std::memcpy(output_indices, other.output_indices, sizeof(output_indices));
         L_ = other.L_;
         process_ref_ = other.process_ref_;
-        alloc_state_ = other.alloc_state_;
+        ports_mapped_ = other.ports_mapped_;
         other.L_ = nullptr;
         other.process_ref_ = 0;
+        other.ports_mapped_ = false;
     }
     return *this;
 }
@@ -92,11 +70,9 @@ LuaScript<Provider>& LuaScript<Provider>::operator=(LuaScript&& other) noexcept 
 
 template <typename Provider>
 lua_State* LuaScript<Provider>::create_state() {
-    alloc_state_ = AllocState{};
-    lua_State* L = lua_newstate(lua_script_alloc, &alloc_state_);
+    lua_State* L = luaL_newstate();
     if (!L) return nullptr;
 
-    // Whitelist only safe libraries
     luaL_requiref(L, LUA_GNAME, luaopen_base, 1);
     luaL_requiref(L, LUA_MATHLIBNAME, luaopen_math, 1);
     luaL_requiref(L, LUA_TABLIBNAME, luaopen_table, 1);
@@ -116,7 +92,6 @@ bool LuaScript<Provider>::compile_script() {
         return false;
     }
 
-    // Cache the process function reference
     lua_getglobal(L_, "process");
     if (!lua_isfunction(L_, -1)) {
         lua_pop(L_, 1);
@@ -127,14 +102,26 @@ bool LuaScript<Provider>::compile_script() {
 }
 
 // =====================================================================
-// pre_load — called by generated factory after param assignment
+// pre_load — param-dependent init only (no port access)
 // =====================================================================
 
 template <typename Provider>
 void LuaScript<Provider>::pre_load() {
-    // Reset all indices to sentinel — only mapped ports get resolved.
-    std::memset(input_indices, 0xFF, sizeof(input_indices));
-    std::memset(output_indices, 0xFF, sizeof(output_indices));
+    if (L_) lua_close(L_);
+    L_ = create_state();
+    if (L_) {
+        compile_script();
+    }
+}
+
+// =====================================================================
+// map_ports_once — deferred port mapping on first execute()
+// =====================================================================
+
+template <typename Provider>
+void LuaScript<Provider>::map_ports_once() {
+    if (ports_mapped_) return;
+    ports_mapped_ = true;
 
     constexpr PortNames input_ports[MAX_PORTS] = {
         PortNames::in1,  PortNames::in2,  PortNames::in3,  PortNames::in4,
@@ -157,13 +144,6 @@ void LuaScript<Provider>::pre_load() {
             output_indices[i] = provider.get(output_ports[i]);
         }
     }
-
-    // Prepare Lua state
-    if (L_) lua_close(L_);
-    L_ = create_state();
-    if (L_) {
-        compile_script();
-    }
 }
 
 // =====================================================================
@@ -172,12 +152,12 @@ void LuaScript<Provider>::pre_load() {
 
 template <typename Provider>
 void LuaScript<Provider>::execute(SimulationState& st, double dt) {
+    map_ports_once();
+
     if (!L_ || process_ref_ == 0) return;
 
-    // Push cached function reference
     lua_rawgeti(L_, LUA_REGISTRYINDEX, process_ref_);
 
-    // Build inputs table (array part, 1-indexed)
     lua_createtable(L_, static_cast<int>(MAX_PORTS), 0);
     for (uint8_t i = 0; i < MAX_PORTS; ++i) {
         float val = (input_indices[i] != UNMAPPED) ? st.signal(input_indices[i]) : 0.0f;
@@ -185,20 +165,16 @@ void LuaScript<Provider>::execute(SimulationState& st, double dt) {
         lua_rawseti(L_, -2, static_cast<int>(i + 1));
     }
 
-    // Push dt
     lua_pushnumber(L_, static_cast<lua_Number>(dt));
 
-    // Set instruction limit hook
     lua_sethook(L_, instruction_hook, LUA_MASKCOUNT, MAX_INSTRUCTIONS);
 
-    // Protected call: 2 args, 1 return
     int status = lua_pcall(L_, 2, 1, 0);
 
-    // Remove hook
     lua_sethook(L_, nullptr, 0, 0);
 
     if (status != LUA_OK) {
-        lua_pop(L_, 1); // pop error message
+        lua_pop(L_, 1);
         for (uint8_t i = 0; i < MAX_PORTS; ++i) {
             if (output_indices[i] != UNMAPPED) {
                 st.signal(output_indices[i]) = 0.0f;
@@ -207,7 +183,6 @@ void LuaScript<Provider>::execute(SimulationState& st, double dt) {
         return;
     }
 
-    // Read outputs from returned table
     if (lua_istable(L_, -1)) {
         for (uint8_t i = 0; i < MAX_PORTS; ++i) {
             if (output_indices[i] != UNMAPPED) {
@@ -217,7 +192,7 @@ void LuaScript<Provider>::execute(SimulationState& st, double dt) {
             }
         }
     }
-    lua_pop(L_, 1); // pop result table
+    lua_pop(L_, 1);
 }
 
 // =====================================================================

@@ -91,6 +91,7 @@ add_library(jit_solver
     components/knob_switch.cpp
     # Lua-scriptable component
     components/lua_script.cpp
+    components/lua_script_validate.cpp
 )
 
 target_include_directories(jit_solver PUBLIC
