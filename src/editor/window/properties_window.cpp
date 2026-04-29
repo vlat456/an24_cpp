@@ -514,8 +514,11 @@ void PropertiesWindow::render_port_layout_row(const std::string& port_name) {
 
 void PropertiesWindow::render_port_layout_section(const bp2::Blueprint::Node& node) {
 #ifndef EDITOR_TESTING
+    // Port layout requires both interner and type registry for iface resolution.
+    if (!interner_ || !type_registry_) return;
+
     // Skip for Bus nodes - they have their own port_edge mechanism
-    if (type_registry_ && interner_) {
+    {
         const std::string type_name(interner_->resolve(node.semantic.type));
         auto fk = editor::presentation::resolve_frame_kind(type_registry_->get(type_name), type_registry_->get_presentation(type_name));
         if (fk == editor::presentation::NodeFrameKind::Bus) return;

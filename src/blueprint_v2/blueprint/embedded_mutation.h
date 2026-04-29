@@ -30,6 +30,7 @@ struct EmbeddedMutationResult {
 };
 
 /// Result of resolving an embedded path to its terminal node.
+/// All pointers are into the caller's Blueprint — valid until it is mutated.
 struct ResolvedEmbeddedNode {
     const Blueprint* parent_blueprint = nullptr;
     const Blueprint::Node* node = nullptr;
@@ -49,7 +50,16 @@ const Blueprint* resolve_embedded_blueprint(
 /// Resolve the host node at the end of an InternedId path.
 /// Returns {parent_blueprint, target_node}. parent_blueprint is the blueprint
 /// containing the target node (or nullptr if resolution fails).
+/// Pointers are into root_bp — stable until root_bp is mutated.
 ResolvedEmbeddedNode resolve_embedded_node(
+    const Blueprint& root_bp,
+    std::span<const core::InternedId> path);
+
+/// Find only the terminal node at the end of an InternedId path.
+/// Returns pointer into root_bp, or nullptr if resolution fails.
+/// Lighter-weight than resolve_embedded_node() when the parent blueprint
+/// is not needed.
+const Blueprint::Node* find_embedded_node(
     const Blueprint& root_bp,
     std::span<const core::InternedId> path);
 

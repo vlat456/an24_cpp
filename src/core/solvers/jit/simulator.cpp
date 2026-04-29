@@ -12,8 +12,8 @@ namespace {
 /// Uses compiled commit ops to avoid per-frame per-type branching.
 void run_solver_owned_ops(const std::vector<SolverStepOp>& ops, SimulationState& st, double dt) {
     for (const auto& op : ops) {
-        if (op.instance != nullptr && op.fn != nullptr) {
-            op.fn(op.instance, st, dt);
+        if (op) {
+            op.invoke(st, dt);
         }
     }
 }

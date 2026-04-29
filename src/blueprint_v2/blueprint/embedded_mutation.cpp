@@ -52,6 +52,23 @@ ResolvedEmbeddedNode resolve_embedded_node(
     return {parent, target};
 }
 
+const Blueprint::Node* find_embedded_node(
+    const Blueprint& root_bp,
+    std::span<const core::InternedId> path)
+{
+    if (path.empty()) return nullptr;
+
+    const Blueprint* current = &root_bp;
+    for (size_t i = 0; i + 1 < path.size(); ++i) {
+        const Blueprint::Node* node = current->find_node(path[i]);
+        if (!node || !node->has_embedded_blueprint() || !node->blueprint_instance().source.inline_def()) {
+            return nullptr;
+        }
+        current = node->blueprint_instance().source.inline_def();
+    }
+    return current->find_node(path.back());
+}
+
 bool embedded_path_exists(
     const Blueprint& root_bp,
     std::span<const core::InternedId> path)

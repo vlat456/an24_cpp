@@ -21,14 +21,9 @@ struct SimulationState;
 // NodalPatchKind and NodalPatchOp are defined in nodal_patch_types.h
 // (standalone header with zero dependencies beyond <cstdint>).
 
-/// Type-erased component step function signature.
-using SolverStepFn = void (*)(void*, SimulationState&, double);
-
 /// Compiled post-solve execute or commit operation for solver-owned components.
-struct SolverStepOp {
-    void* instance = nullptr;
-    SolverStepFn fn = nullptr;
-};
+/// Reuses ErasedStep — type-safe encapsulated dispatch, zero overhead.
+using SolverStepOp = ErasedStep;
 
 /// Guarded component storage.
 ///

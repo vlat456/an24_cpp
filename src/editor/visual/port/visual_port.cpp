@@ -54,6 +54,7 @@ PortArrowGeometry compute_port_arrow_geometry(const Port& port, Pt center, float
 Port::Port(std::string_view name, bp2::Direction direction, PortType type, bp2::PortLayoutSide layout_side)
     : name_(name), direction_(direction), type_(type), layout_side_(layout_side)
 {
+    kind_ = ui::WidgetKind::Port;
     setSize(Pt(PortConstants::RADIUS * 2, PortConstants::RADIUS * 2));
 }
 

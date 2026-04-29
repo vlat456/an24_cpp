@@ -23,6 +23,7 @@ Wire::Wire(core::InternedId iid,
            std::string_view end_node, std::string_view end_port)
     : iid_(iid), id_(id)
 {
+    kind_ = ui::WidgetKind::Wire;
     start_.node_id = start_node;
     start_.port_name = start_port;
     start_.wire_id = id;

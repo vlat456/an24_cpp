@@ -24,6 +24,7 @@ TextNodeWidget::TextNodeWidget(const bp2::Blueprint::Node& data,
     , name_(data.view.name)
     , font_size_base_(editor_constants::Font::Large)
 {
+    kind_ = ui::WidgetKind::TextNode;
     if (color.has_value()) {
         custom_fill_ = color->to_uint32();
     }

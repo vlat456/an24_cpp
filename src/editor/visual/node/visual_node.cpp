@@ -333,6 +333,7 @@ NodeWidget::NodeWidget(const bp2::Blueprint::Node& data,
     , badges_(badges)
     , icon_font_(icon_font)
 {
+    kind_ = ui::WidgetKind::Node;
     if (color.has_value()) {
         custom_fill_ = color->to_uint32();
     }

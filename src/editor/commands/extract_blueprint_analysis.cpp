@@ -120,14 +120,9 @@ bool contains_nonembedded_descendant_nested(const bp2::Blueprint& bp) {
     return false;
 }
 
-bool validate_selected_embedded_nested_merge_safety(const bp2::Blueprint& source,
-                                                    const std::unordered_set<core::InternedId>& selected_set,
-                                                    std::string* error_out) {
-    (void)source;
-    (void)selected_set;
-    (void)error_out;
-    return true;
-}
+/// TODO: validate embedded-nested merge safety when extracting.
+/// Currently a no-op — the check is not yet implemented.
+/// When implemented, call it before the boundary synthesis step.
 
 bool validate_blueprint_name_for_extract(const bp2::Blueprint& source,
                                          const std::string& blueprint_name,
@@ -243,9 +238,8 @@ std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
         plan.max_y = std::max(plan.max_y, node->layout.y + height);
     }
 
-    if (!validate_selected_embedded_nested_merge_safety(bp, selected_set, error_out)) {
-        return std::nullopt;
-    }
+    // TODO: validate_selected_embedded_nested_merge_safety() —
+    // not yet implemented. When added, call it here.
 
     for (const auto& wire : bp.wires()) {
         core::InternedId src_node;

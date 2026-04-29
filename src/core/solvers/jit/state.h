@@ -2,6 +2,7 @@
 
 #include "core/domain_types.h"
 #include "core/solvers/common/nodal_types.h"
+#include <cassert>
 #include <cstdint>
 #include <vector>
 
@@ -43,6 +44,20 @@ struct SimulationState {
         const uint32_t idx = static_cast<uint32_t>(values.size());
         values.push_back(initial_value);
         return idx;
+    }
+
+    /// Bounds-checked signal read. Debug builds assert on out-of-range index.
+    /// Release builds: zero overhead (inlined direct access).
+    float signal(uint32_t idx) const {
+        assert(idx < values.size() && "signal index out of bounds");
+        return values[idx];
+    }
+
+    /// Bounds-checked signal write. Debug builds assert on out-of-range index.
+    /// Release builds: zero overhead (inlined direct access).
+    float& signal(uint32_t idx) {
+        assert(idx < values.size() && "signal index out of bounds");
+        return values[idx];
     }
 
 };

@@ -75,15 +75,4 @@ void build_pneumatic_islands(
 
 void build_pneumatic_step_ops(BuildResult& result);
 
-/// Type-erased component adapters — shared by electrical and hydraulic build.
-template <typename Comp>
-void execute_component_adapter(void* instance, SimulationState& st, double dt) {
-    static_cast<Comp*>(instance)->execute(st, dt);
-}
-
-template <typename Comp>
-void commit_component_adapter(void* instance, SimulationState& st, double dt) {
-    static_cast<Comp*>(instance)->commit(st, dt);
-}
-
 }  // namespace jit_solver_impl

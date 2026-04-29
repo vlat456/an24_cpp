@@ -34,6 +34,7 @@ RefNodeWidget::RefNodeWidget(const bp2::Blueprint::Node& data,
     , name_(data.view.name)
     , type_iid_(data.semantic.type)
 {
+    kind_ = ui::WidgetKind::RefNode;
     // For Value nodes, display the numeric value instead of the name.
     // type_iid_ compared against a pre-interned sentinel — zero string in the constructor.
     // The "Value" sentinel must come from a mutable interner, so we look up from the

@@ -30,6 +30,7 @@ BusNodeWidget::BusNodeWidget(const bp2::Blueprint::Node& data,
     , type_name_(std::string(interner.resolve(data.semantic.type)))
     , port_edge_(port_edge)
 {
+    kind_ = ui::WidgetKind::BusNode;
     if (color.has_value()) {
         custom_fill_ = color->to_uint32();
     }

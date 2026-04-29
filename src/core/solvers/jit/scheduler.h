@@ -1,30 +1,57 @@
 #pragma once
 
+#include "erased_step.h"
+
 #include <cassert>
 #include <cstddef>
 #include <vector>
 
 struct SimulationState;
 
-struct ComponentEntry {
-    using ExecuteFn = void (*)(void* self, SimulationState& st, double dt);
-    using CommitFn = void (*)(void* self, SimulationState& st, double dt);
+/// A scheduled component with separate execute and commit phases.
+/// Constructed exclusively via ScheduledComponent::for_type<T>(T*),
+/// which captures the concrete type in two ErasedStep primitives.
+struct ScheduledComponent {
+    /// Execute the component's per-frame computation.
+    void execute(SimulationState& st, double dt) const {
+        execute_step_.invoke(st, dt);
+    }
 
-    void* self = nullptr;
-    ExecuteFn execute = nullptr;
-    CommitFn commit = nullptr;
+    /// Commit state transitions (one-frame delay semantics).
+    /// No-op if the component has no commit method.
+    void commit(SimulationState& st, double dt) const {
+        if (commit_step_) {
+            commit_step_.invoke(st, dt);
+        }
+    }
+
+    /// Only way to construct — type T is captured in both ErasedSteps.
+    template <typename T>
+    static ScheduledComponent for_type(T* component) {
+        return ScheduledComponent{
+            ErasedStep::execute_for(component),
+            ErasedStep::commit_for(component)
+        };
+    }
+
+private:
+    ScheduledComponent(ErasedStep exec, ErasedStep commit)
+        : execute_step_(exec), commit_step_(commit) {}
+
+    ErasedStep execute_step_;
+    ErasedStep commit_step_;
 };
 
 class PushScheduler {
 public:
     template <typename T>
     void add_source(T* component) {
-        add_component(sources_, component);
+        sources_.push_back(ScheduledComponent::for_type(component));
     }
 
     template <typename T>
     void add_consumer(T* component) {
-        add_component(consumers_, component);
+        consumers_.push_back(ScheduledComponent::for_type(component));
     }
 
     void step(SimulationState& st, double dt) {
@@ -32,25 +59,21 @@ public:
 
         // Execute all sources
         for (auto& e : sources_) {
-            e.execute(e.self, st, dt);
+            e.execute(st, dt);
         }
 
         // Execute all consumers
         for (auto& e : consumers_) {
-            e.execute(e.self, st, dt);
+            e.execute(st, dt);
         }
 
         // Commit all scheduled components (deterministic order: sources then consumers)
         for (auto& e : sources_) {
-            if (e.commit != nullptr) {
-                e.commit(e.self, st, dt);
-            }
+            e.commit(st, dt);
         }
 
         for (auto& e : consumers_) {
-            if (e.commit != nullptr) {
-                e.commit(e.self, st, dt);
-            }
+            e.commit(st, dt);
         }
     }
 
@@ -60,36 +83,6 @@ public:
     void clear_consumers() { consumers_.clear(); }
 
 private:
-    template <typename T>
-    static ComponentEntry make_entry(T* component) {
-        return ComponentEntry{
-            component,
-            [](void* self, SimulationState& st, double dt) {
-                if constexpr (requires(T& c) { c.execute(st, dt); }) {
-                    static_cast<T*>(self)->execute(st, dt);
-                } else {
-                    (void)self;
-                    (void)st;
-                    (void)dt;
-                }
-            },
-            [](void* self, SimulationState& st, double dt) {
-                if constexpr (requires(T& c) { c.commit(st, dt); }) {
-                    static_cast<T*>(self)->commit(st, dt);
-                } else {
-                    (void)self;
-                    (void)st;
-                    (void)dt;
-                }
-            }
-        };
-    }
-
-    template <typename T>
-    void add_component(std::vector<ComponentEntry>& bucket, T* component) {
-        bucket.push_back(make_entry(component));
-    }
-
-    std::vector<ComponentEntry> sources_;
-    std::vector<ComponentEntry> consumers_;
+    std::vector<ScheduledComponent> sources_;
+    std::vector<ScheduledComponent> consumers_;
 };

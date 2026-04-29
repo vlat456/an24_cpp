@@ -24,14 +24,12 @@ std::string encode_port_type(PortType type) {
 
 } // namespace
 
-bool create_bridge_nodes_for_side(
+void create_bridge_nodes_for_side(
     bp2::Blueprint& out,
     const BridgeSideBuildParams& p,
     core::StringInterner& interner,
     std::unordered_set<core::InternedId>& used_node_ids,
-    std::unordered_map<std::string, core::InternedId>& out_bridge_ids,
-    std::string* error_out) {
-    (void)error_out;
+    std::unordered_map<std::string, core::InternedId>& out_bridge_ids) {
     for (size_t i = 0; i < p.conns.size(); ++i) {
         const auto& ec = p.conns[i];
         const PortType port_type = resolve_port_type(ec);
@@ -64,7 +62,6 @@ bool create_bridge_nodes_for_side(
         used_node_ids.insert(interner.intern(bridge_id));
         out_bridge_ids[ec.iface_name] = interner.intern(bridge_id);
     }
-    return true;
 }
 
 void append_bridge_to_internal_wires(
@@ -127,18 +124,14 @@ std::optional<SynthesizedBoundary> synthesize_extracted_boundary(
     BridgeSideBuildParams in_params{plan.inputs, true, node_center_y,
                                     0.0f, 0.0f, WindowScopeId::root(),
                                     "bp_in_", nullptr};
-    if (!create_bridge_nodes_for_side(bridge_host, in_params, interner,
-                                      used_node_ids, input_bridge_ids, error_out)) {
-        return std::nullopt;
-    }
+    create_bridge_nodes_for_side(bridge_host, in_params, interner,
+                                 used_node_ids, input_bridge_ids);
 
     BridgeSideBuildParams out_params{plan.outputs, false, node_center_y,
                                      max_internal_right + kBridgeMarginX, 0.0f,
                                      WindowScopeId::root(), "bp_out_", nullptr};
-    if (!create_bridge_nodes_for_side(bridge_host, out_params, interner,
-                                      used_node_ids, output_bridge_ids, error_out)) {
-        return std::nullopt;
-    }
+    create_bridge_nodes_for_side(bridge_host, out_params, interner,
+                                 used_node_ids, output_bridge_ids);
 
     append_bridge_to_internal_wires(bridge_host, plan.inputs, true, input_bridge_ids,
                                     "bp_bridge_in_wire_", interner, used_wire_ids);

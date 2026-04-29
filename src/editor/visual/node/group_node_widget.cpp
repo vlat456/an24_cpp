@@ -24,6 +24,7 @@ GroupNodeWidget::GroupNodeWidget(const bp2::Blueprint::Node& data,
     , interner_(&interner)
     , name_(data.view.name)
 {
+    kind_ = ui::WidgetKind::GroupNode;
     if (color.has_value()) {
         custom_fill_ = color->to_uint32();
     }

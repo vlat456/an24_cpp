@@ -10,11 +10,30 @@
 
 namespace ui {
 
+/// Concrete widget kind tag — set once at construction, never changed.
+/// Enables O(1) dispatch without RTTI (replaces dynamic_cast cascades).
+enum class WidgetKind : uint8_t {
+    Base,           ///< ui::Widget (abstract base, rarely instantiated)
+    Port,           ///< visual::Port
+    Wire,           ///< visual::Wire
+    RoutingPoint,   ///< visual::RoutingPoint
+    Node,           ///< visual::NodeWidget
+    RefNode,        ///< visual::RefNodeWidget
+    BusNode,        ///< visual::BusNodeWidget
+    GroupNode,      ///< visual::GroupNodeWidget
+    TextNode,       ///< visual::TextNodeWidget
+    Label,          ///< visual::Label
+    Container,      ///< container widgets
+};
+
 /// Base widget with geometry and hierarchy.
 /// Domain-specific widgets (e.g. visual::Widget) inherit from this.
 class Widget {
 public:
     virtual ~Widget() = default;
+
+    /// Concrete type tag — set by each subclass constructor.
+    WidgetKind kind() const { return kind_; }
     
     virtual std::string_view id() const { return {}; }
     
@@ -101,6 +120,7 @@ public:
     }
     
 protected:
+    WidgetKind kind_ = WidgetKind::Base;
     Pt local_pos_{0, 0};
     Pt size_{0, 0};
     float z_order_ = 0.0f;

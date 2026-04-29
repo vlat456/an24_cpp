@@ -312,8 +312,8 @@ static void build_domain_step_ops(
         if (!config.has_handle(variant)) return;
         std::visit([&](auto& comp) {
             using T = std::decay_t<decltype(comp)>;
-            artifacts.execute_ops.push_back({&comp, &execute_component_adapter<T>});
-            artifacts.commit_ops.push_back({&comp, &commit_component_adapter<T>});
+            artifacts.execute_ops.push_back(ErasedStep::execute_for(&comp));
+            artifacts.commit_ops.push_back(ErasedStep::commit_for(&comp));
         }, variant);
     });
 }

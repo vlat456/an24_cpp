@@ -30,15 +30,18 @@ public:
     const Grid& grid() const { return grid_; }
     
     virtual Widget* add(std::unique_ptr<Widget> w) {
-        auto* ptr = w.get();
-        indexWidget(ptr);
-        propagateScene(ptr);
-        auto z = w->zOrder();
+        // Capture z-order before ownership transfer (w is still valid).
+        const auto z = w->zOrder();
         auto it = std::upper_bound(roots_.begin(), roots_.end(), z,
             [](float z_val, const std::unique_ptr<Widget>& r) {
                 return z_val < r->zOrder();
             });
-        roots_.insert(it, std::move(w));
+        // Transfer ownership first — widget now lives in roots_.
+        const auto inserted = roots_.insert(it, std::move(w));
+        Widget* const ptr = inserted->get();
+        // Scene bookkeeping with the stable pointer from the container.
+        indexWidget(ptr);
+        propagateScene(ptr);
         return ptr;
     }
     

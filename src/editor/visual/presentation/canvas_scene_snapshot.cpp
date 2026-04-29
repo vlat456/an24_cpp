@@ -47,21 +47,24 @@ core::InternedId node_widget_iid(const visual::Widget& widget, core::StringInter
 }
 
 /// True if `widget` is a node-like widget (clickable, not a wire/port/routing point).
-/// Matches the same semantics as the old grid-based hit_test_node_body.
+/// Uses WidgetKind tag for O(1) dispatch — no RTTI overhead.
 bool is_node_like(const visual::Widget& widget) {
     if (!widget.isClickable()) return false;
-    if (dynamic_cast<const visual::Wire*>(&widget)) return false;
-    if (dynamic_cast<const visual::Port*>(&widget)) return false;
-    if (dynamic_cast<const visual::RoutingPoint*>(&widget)) return false;
-    return true;
+    const auto k = widget.kind();
+    return k != ui::WidgetKind::Wire
+        && k != ui::WidgetKind::Port
+        && k != ui::WidgetKind::RoutingPoint;
 }
 
 void project_widget_recursive(const visual::Widget& widget,
                              CanvasSceneSnapshot& snapshot,
                              core::StringInterner& interner,
                              uint32_t& next_id) {
+    switch (widget.kind()) {
+
     // ---- Ports ----
-    if (auto* port = dynamic_cast<const visual::Port*>(&widget)) {
+    case ui::WidgetKind::Port: {
+        const auto* port = static_cast<const visual::Port*>(&widget);
         const ui::Pt center = port->worldPos() + ui::Pt(visual::PortConstants::RADIUS, visual::PortConstants::RADIUS);
         const core::InternedId port_node_iid = interner.intern(port->rootAncestorId());
         const core::InternedId port_name_iid = interner.intern(port->name());
@@ -85,9 +88,12 @@ void project_widget_recursive(const visual::Widget& widget,
         ph.port_direction = port->direction();
         ph.port_type = port->type();
         snapshot.hit_objects.push_back(std::move(ph));
+        break;
     }
+
     // ---- Wires ----
-    else if (auto* wire = dynamic_cast<const visual::Wire*>(&widget)) {
+    case ui::WidgetKind::Wire: {
+        const auto* wire = static_cast<const visual::Wire*>(&widget);
         const auto& polyline = wire->polyline();
         if (polyline.size() >= 2) {
             float min_x = polyline[0].x, max_x = polyline[0].x;
@@ -131,21 +137,26 @@ void project_widget_recursive(const visual::Widget& widget,
                 snapshot.hit_objects.push_back(std::move(wh));
             }
         }
+        break;
     }
+
     // ---- Routing points ----
-    else if (auto* rp = dynamic_cast<const visual::RoutingPoint*>(&widget)) {
+    case ui::WidgetKind::RoutingPoint: {
+        const auto* rp = static_cast<const visual::RoutingPoint*>(&widget);
         const ui::Pt rp_pos = rp->worldPos();
         const ui::Rect rp_render_bounds = hit_geometry::centered_square(rp_pos, hit_geometry::routing_point_render_radius());
         const ui::Rect rp_hit_bounds = hit_geometry::centered_square(rp_pos, hit_geometry::routing_point_hit_radius());
 
-        // Find the owning Wire and compute routing-point index
+        // Find the owning Wire and compute routing-point index.
+        // Parent is always a Wire for routing points — use kind() check.
         core::InternedId wire_iid;
         size_t rp_idx = 0;
         if (auto* parent_widget = rp->parent()) {
-            if (auto* wire = dynamic_cast<const visual::Wire*>(parent_widget)) {
-                wire_iid = wire->iid();
-                for (size_t i = 0; i < wire->children().size(); ++i) {
-                    if (wire->children()[i].get() == rp) { rp_idx = i; break; }
+            if (parent_widget->kind() == ui::WidgetKind::Wire) {
+                const auto* parent_wire = static_cast<const visual::Wire*>(parent_widget);
+                wire_iid = parent_wire->iid();
+                for (size_t i = 0; i < parent_wire->children().size(); ++i) {
+                    if (parent_wire->children()[i].get() == rp) { rp_idx = i; break; }
                 }
             }
         }
@@ -169,9 +180,15 @@ void project_widget_recursive(const visual::Widget& widget,
         rph.rp_wire_id = wire_iid;
         rph.rp_index = rp_idx;
         snapshot.hit_objects.push_back(std::move(rph));
+        break;
     }
+
     // ---- Node-like widgets (NodeWidget, RefNodeWidget, BusNodeWidget, TextNodeWidget, GroupNodeWidget) ----
-    else if (is_node_like(widget)) {
+    case ui::WidgetKind::Node:
+    case ui::WidgetKind::RefNode:
+    case ui::WidgetKind::BusNode:
+    case ui::WidgetKind::TextNode:
+    case ui::WidgetKind::GroupNode: {
         core::InternedId node_iid = node_widget_iid(widget, interner);
         const ui::Rect node_bounds = widget_bounds(widget);
 
@@ -182,7 +199,8 @@ void project_widget_recursive(const visual::Widget& widget,
         std::optional<InteractionBinding> content_interaction;
         bool is_group = false;
 
-        if (auto* node = dynamic_cast<const visual::NodeWidget*>(&widget)) {
+        if (widget.kind() == ui::WidgetKind::Node) {
+            const auto* node = static_cast<const visual::NodeWidget*>(&widget);
             has_semantic = node->renders_content_from_semantic_snapshot();
             content_ss = node->content_semantic_snapshot();
             cb = node->contentBounds();
@@ -197,7 +215,7 @@ void project_widget_recursive(const visual::Widget& widget,
             }
         }
 
-        if (dynamic_cast<const visual::GroupNodeWidget*>(&widget)) {
+        if (widget.kind() == ui::WidgetKind::GroupNode) {
             is_group = true;
         }
 
@@ -296,6 +314,11 @@ void project_widget_recursive(const visual::Widget& widget,
                 snapshot.hit_objects.push_back(std::move(rh));
             }
         }
+        break;
+    }
+
+    default:
+        break;
     }
 
     for (const auto& child : widget.children()) {

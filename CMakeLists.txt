@@ -11,9 +11,21 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # in the generated source; the JIT solver does not use -ffast-math at all.
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 
+# AddressSanitizer + UndefinedBehaviorSanitizer for Debug builds.
+# Catches memory errors (use-after-free, buffer overflow) and UB
+# (signed overflow, null deref, misaligned access) at test time.
+# Zero overhead in Release builds.
+option(ENABLE_SANITIZERS "Enable ASan+UBSan in Debug builds" ON)
+
 # Options
 option(BUILD_TESTS "Build tests" ON)
 option(BUILD_BENCHMARKS "Build benchmarks" ON)
+
+# Sanitizer configuration — Debug builds only, zero Release overhead.
+if(ENABLE_SANITIZERS AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_compile_options(-fsanitize=address,undefined -fno-omit-frame-pointer)
+    add_link_options(-fsanitize=address,undefined)
+endif()
 
 # Fetch dependencies
 include(FetchContent)

@@ -308,7 +308,7 @@ public:
     }
 
     const bp2::Blueprint& current_blueprint() const override {
-        return require_inline_blueprint(walk_to_host_node());
+        return require_inline_blueprint(require_host_node());
     }
 
     const bp2::Blueprint::Node* find_node(core::InternedId id) const override {
@@ -489,13 +489,17 @@ private:
 
     /// Walk the full instance path from root to reach the host node
     /// (the node whose inline_def() contains the embedded blueprint).
-    const bp2::Blueprint::Node& walk_to_host_node() const {
-        const bp2::ResolvedEmbeddedNode resolved =
-            bp2::resolve_embedded_node(root_model_.current(), path_);
-        if (!resolved.node) {
+    /// Returns a pointer into root_model_.current() — stable until next mutation.
+    const bp2::Blueprint::Node* find_host_node() const {
+        return bp2::find_embedded_node(root_model_.current(), path_);
+    }
+
+    const bp2::Blueprint::Node& require_host_node() const {
+        const auto* node = find_host_node();
+        if (!node) {
             throw std::logic_error("EmbeddedInlineHost: path segment not found in blueprint");
         }
-        return *resolved.node;
+        return *node;
     }
 
     /// Replace the inline blueprint of the deepest host node and propagate

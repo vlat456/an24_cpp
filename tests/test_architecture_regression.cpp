@@ -125,14 +125,12 @@ TEST(E002_SolverStepOps, PopulatedAfterBuild) {
      EXPECT_EQ(br.electrical.execute_ops.size(), 2u);
      EXPECT_EQ(br.electrical.commit_ops.size(), 2u);
 
-     for (const auto& op : br.electrical.execute_ops) {
-         EXPECT_NE(op.instance, nullptr);
-         EXPECT_NE(op.fn, nullptr);
-     }
-     for (const auto& op : br.electrical.commit_ops) {
-         EXPECT_NE(op.instance, nullptr);
-         EXPECT_NE(op.fn, nullptr);
-     }
+      for (const auto& op : br.electrical.execute_ops) {
+          EXPECT_TRUE(op);
+      }
+      for (const auto& op : br.electrical.commit_ops) {
+          EXPECT_TRUE(op);
+      }
 }
 
 TEST(E002_SolverStepOps, PointersMatchDeviceMap) {
