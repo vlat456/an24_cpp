@@ -2,6 +2,12 @@
 #include "render_context.h"
 #include <algorithm>
 
+#ifdef AN24_EDITOR
+#include "visual/node/visual_node.h"
+#include "visual/node_sprite_cache.h"
+#include <imgui.h>
+#endif
+
 #ifdef AN24_PROFILE
 #include <chrono>
 
@@ -51,12 +57,32 @@ void Scene::render(IDrawList* dl, const RenderContext& ctx) {
 #ifdef AN24_PROFILE
     double layer_us[4] = {};
 #endif
+#ifdef AN24_EDITOR
+    ImDrawList* raw_dl = static_cast<ImDrawList*>(dl->native_draw_list());
+    NodeSpriteCache* cache = ctx.sprite_cache;
+#endif
+
     for (const auto& r : roots_) {
         auto* vw = static_cast<Widget*>(r.get());
 #ifdef AN24_PROFILE
         auto t0 = std::chrono::steady_clock::now();
 #endif
+
+#ifdef AN24_EDITOR
+        // Sprite cache path: blit cached node, then render selection overlay.
+        if (cache && vw->isClickable() && vw->kind() == ui::WidgetKind::Node && raw_dl) {
+            auto* node = static_cast<NodeWidget*>(vw);
+            if (cache->has(node->id())) {
+                cache->blit(*node, raw_dl, ctx);
+                // Selection overlay is always rendered live (not baked).
+                node->renderPost(dl, ctx);
+                continue;
+            }
+        }
+#endif
+
         vw->renderTree(dl, ctx);
+
 #ifdef AN24_PROFILE
         auto t1 = std::chrono::steady_clock::now();
         int li = static_cast<int>(vw->renderLayer());

@@ -6,6 +6,7 @@
 #include "editor/window_system.h"
 #include "editor/visual/canvas_constants.h"
 #include "editor/visual/port/port_circle_atlas.h"
+#include "editor/visual/node_sprite_cache.h"
 
 #ifdef AN24_PROFILE
 #include "editor/app/frame_profiler.h"
@@ -38,6 +39,7 @@ private:
 
 #ifdef AN24_EDITOR
     visual::PortCircleAtlas port_circle_atlas_;
+    visual::NodeSpriteCache sprite_cache_;
 #endif
 
 #ifdef AN24_PROFILE

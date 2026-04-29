@@ -13,6 +13,7 @@ using ui::Pt;
 
 class Widget;
 class Wire;
+class NodeSpriteCache;
 
 /// Semantic identifier for a hovered routing point.
 /// Decouples the render context from widget pointers — the renderer
@@ -42,6 +43,10 @@ struct RenderContext : public ui::RenderContext {
     /// Populated per frame from simulation state. nullptr when simulation is off.
     /// string_view keys reference the StringInterner's stable deque storage.
     const std::unordered_set<std::string_view, StringViewHash>* energized_wires = nullptr;
+
+    /// Node sprite cache — when non-null, Scene::render will blit cached nodes
+    /// instead of calling renderTree(). Editor builds only.
+    NodeSpriteCache* sprite_cache = nullptr;
 
     /// Check whether a node id is selected.
     bool isNodeSelected(std::string_view node_id) const {

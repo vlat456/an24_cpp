@@ -6,6 +6,7 @@
 #include "node_sprite_cache.h"
 #include "visual/node/visual_node.h"
 #include "visual/render_context.h"
+#include "visual/scene.h"
 #include "editor/imgui_draw_list.h"
 
 #include <imgui.h>
@@ -106,6 +107,10 @@ void NodeSpriteCache::bake(const NodeWidget& node, const RenderContext& ctx) {
     // -- Step 1: Render node into a temp ImDrawList --
 
     ImDrawList temp_dl(ImGui::GetDrawListSharedData());
+    // Initialize the draw list — pushes a seed command into CmdBuffer.
+    temp_dl._ResetForNewFrame();
+    temp_dl.PushClipRectFullScreen();
+    temp_dl.PushTextureID(ImGui::GetFont()->ContainerAtlas->TexID);
 
     // Wrap in our IDrawList adapter so renderTree() can call both
     // IDrawList methods and native ImDrawList* directly (port circles).
@@ -154,6 +159,11 @@ void NodeSpriteCache::bake(const NodeWidget& node, const RenderContext& ctx) {
     // ImGui's RenderDrawData saves/restores ALL GL state internally.
     ImGui_ImplOpenGL3_RenderDrawData(&draw_data);
 
+    // Prevent ImDrawData destructor from freeing stack-allocated cmd_lists_ptr.
+    draw_data.CmdLists.Data = nullptr;
+    draw_data.CmdLists.Size = 0;
+    draw_data.CmdLists.Capacity = 0;
+
     // Unbind FBO.
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -182,6 +192,30 @@ bool NodeSpriteCache::blit(const NodeWidget& node, ImDrawList* dl,
                  ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f),
                  IM_COL32_WHITE);
     return true;
+}
+
+void NodeSpriteCache::bake_dirty_nodes(const Scene& scene, const RenderContext& ctx) {
+    for (const auto& root : scene.roots()) {
+        auto* vw = static_cast<Widget*>(root.get());
+
+        // Only bake node widgets that are dirty or not yet cached.
+        if (vw->kind() != ui::WidgetKind::Node) continue;
+        if (!vw->isClickable()) continue;
+
+        auto* node = static_cast<NodeWidget*>(vw);
+        const std::string_view nid = node->id();
+
+        // Only bake if dirty or not yet in cache.
+        auto it = cache_.find(nid);
+        if (it != cache_.end() && !it->second.dirty) {
+            // Check zoom drift.
+            float ratio = std::abs(ctx.zoom - it->second.baked_zoom)
+                        / std::max(it->second.baked_zoom, 0.01f);
+            if (ratio < kZoomThreshold) continue;
+        }
+
+        bake(*node, ctx);
+    }
 }
 
 // ============================================================================

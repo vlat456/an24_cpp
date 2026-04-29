@@ -238,6 +238,12 @@ void CanvasRenderer::renderBlueprint(BlueprintWindow& win, Document& doc, Window
     ctx.port_circle_texture = port_circle_atlas_.texture_id();
 #endif
 
+#ifdef AN24_EDITOR
+    // Bake dirty nodes to sprite cache before rendering.
+    sprite_cache_.bake_dirty_nodes(win.scene, ctx);
+    ctx.sprite_cache = &sprite_cache_;
+#endif
+
     win.scene.render(&dl, ctx);
 #ifdef AN24_PROFILE
     prof.add(3, std::chrono::duration<double, std::micro>(std::chrono::steady_clock::now() - prof_t0).count());

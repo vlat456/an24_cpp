@@ -53,6 +53,9 @@ public:
     /// `dl` must be a raw ImDrawList* (obtained via native_draw_list).
     bool blit(const NodeWidget& node, ImDrawList* dl, const RenderContext& ctx) const;
 
+    /// Bake all dirty nodes in the scene. Call before Scene::render().
+    void bake_dirty_nodes(const class Scene& scene, const RenderContext& ctx);
+
     /// Mark a specific node as needing re-bake.
     void mark_dirty(std::string_view node_id);
 
