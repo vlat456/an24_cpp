@@ -1,27 +1,11 @@
 #include "sub_window_renderer.h"
 #include "editor/document.h"
 #include "editor/window_system.h"
+#include "editor/visual/viewport_fit.h"
 #include <imgui.h>
 #include <algorithm>
 
 namespace {
-
-/// Compute bounding box of all nodes in a blueprint and fit the viewport.
-void fit_viewport_to_blueprint(BlueprintWindow& win, const bp2::Blueprint& bp) {
-    Pt bmin(1e9f, 1e9f), bmax(-1e9f, -1e9f);
-    for (const bp2::Blueprint::Node& node : bp.nodes()) {
-        bmin.x = std::min(bmin.x, node.layout.x);
-        bmin.y = std::min(bmin.y, node.layout.y);
-        float w = node.layout.width.value_or(120.0f);
-        float h = node.layout.height.value_or(80.0f);
-        bmax.x = std::max(bmax.x, node.layout.x + w);
-        bmax.y = std::max(bmax.y, node.layout.y + h);
-    }
-    if (bmin.x < bmax.x && bmin.y < bmax.y) {
-        ImVec2 avail = ImGui::GetContentRegionAvail();
-        win.viewport.fit_content(bmin, bmax, avail.x, avail.y);
-    }
-}
 
 /// Gold border for focused subwindow.
 constexpr ImU32 kFocusedBorderColor = IM_COL32(255, 200, 50, 255);
@@ -136,5 +120,5 @@ void SubWindowRenderer::renderCanvas(Document& doc, BlueprintWindow& win, ::Wind
 }
 
 void SubWindowRenderer::fitViewToContent(Document& doc, BlueprintWindow& win) {
-    fit_viewport_to_blueprint(win, win.rendered_blueprint());
+    editor::fit_viewport_to_blueprint(win, win.rendered_blueprint());
 }

@@ -2,6 +2,7 @@
 
 #include "editor/window/window_manager.h"
 #include "editor/document.h"
+#include "editor/focus_scope.h"
 #include "editor/window/blueprint_window.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/editor_model/editor_model.h"
@@ -580,4 +581,45 @@ TEST(WindowInvariants, ExternalWindowSelfClosesWhenOwnerBecomesEmbedded) {
 
     EXPECT_EQ(wm.count(), 1u);
     EXPECT_EQ(wm.find(WindowScopeId::external({interner.intern("shared_key")})), nullptr);
+}
+
+// =============================================================================
+// Regression #377: FocusScope clear() must zero both pointers
+// =============================================================================
+
+TEST(WindowInvariants, FocusScopeClearZerosBothPointers) {
+    FocusScope focus;
+    focus.document = reinterpret_cast<Document*>(0xDEAD);
+    focus.window = reinterpret_cast<BlueprintWindow*>(0xBEEF);
+
+    focus.clear();
+
+    // After clear, both must be null — no dangling pointers.
+    EXPECT_EQ(focus.document, nullptr);
+    EXPECT_EQ(focus.window, nullptr);
+}
+
+TEST(WindowInvariants, FocusScopeValidRequiresBothNonNull) {
+    FocusScope focus;
+    // Both null → invalid.
+    EXPECT_EQ(focus.document, nullptr);
+    EXPECT_EQ(focus.window, nullptr);
+
+    // Only document → still invalid (window null).
+    focus.document = reinterpret_cast<Document*>(0x1);
+    EXPECT_EQ(focus.window, nullptr);
+
+    // Both set → valid (checked via direct member access to avoid calling
+    // is_valid() which would dereference sentinel pointers).
+    focus.window = reinterpret_cast<BlueprintWindow*>(0x2);
+    EXPECT_NE(focus.document, nullptr);
+    EXPECT_NE(focus.window, nullptr);
+}
+
+TEST(WindowInvariants, FocusScopeDefaultConstructedIsInvalid) {
+    FocusScope focus;
+    EXPECT_FALSE(focus.is_valid());
+    EXPECT_FALSE(focus.is_root());
+    EXPECT_FALSE(focus.is_subwindow());
+    EXPECT_FALSE(focus.is_read_only());
 }

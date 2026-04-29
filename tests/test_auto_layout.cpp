@@ -325,3 +325,91 @@ TEST(AutoLayoutTest, BidirectionalEdgesRankedCorrectly) {
     EXPECT_LT(ax, bx);
     EXPECT_LT(bx, cx);
 }
+
+// =============================================================================
+// Snap grid edge cases
+// =============================================================================
+
+TEST(AutoLayoutTest, SnapGridZeroNoSnapping) {
+    core::StringInterner interner;
+    auto a = make_node(interner.intern("a"));
+    auto bp = build_bp({a}, {});
+
+    LayoutOptions opts;
+    opts.margin_x = 37.0f;   // Not a grid multiple
+    opts.margin_y = 53.0f;
+    opts.snap_grid = 0.0f;    // Disable snapping
+    auto result = compute_layout(bp, opts);
+
+    ASSERT_EQ(result.positions.size(), 1u);
+    // Positions should pass through without snapping.
+    EXPECT_FLOAT_EQ(result.positions[interner.intern("a")].x, 37.0f);
+    EXPECT_FLOAT_EQ(result.positions[interner.intern("a")].y, 53.0f);
+}
+
+TEST(AutoLayoutTest, SnapGridRoundsCorrectly) {
+    core::StringInterner interner;
+    auto a = make_node(interner.intern("a"));
+    auto bp = build_bp({a}, {});
+
+    LayoutOptions opts;
+    opts.margin_x = 37.0f;
+    opts.margin_y = 53.0f;
+    opts.snap_grid = 16.0f;
+    auto result = compute_layout(bp, opts);
+
+    ASSERT_EQ(result.positions.size(), 1u);
+    // 37 / 16 = 2.3125 → round(2.3125) * 16 = 32.0
+    // 53 / 16 = 3.3125 → round(3.3125) * 16 = 48.0
+    EXPECT_FLOAT_EQ(result.positions[interner.intern("a")].x, 32.0f);
+    EXPECT_FLOAT_EQ(result.positions[interner.intern("a")].y, 48.0f);
+}
+
+TEST(AutoLayoutTest, AllNodesAlreadySnappedIsIdempotent) {
+    core::StringInterner interner;
+    auto a = make_node(interner.intern("a"), 48.0f, 64.0f);
+    auto b = make_node(interner.intern("b"), 298.0f, 64.0f);
+    auto w1 = make_wire(interner, interner.intern("a"), "out", interner.intern("b"), "in");
+
+    auto bp = build_bp({a, b}, {w1});
+    LayoutOptions opts;
+    opts.margin_x = 48.0f;
+    opts.margin_y = 64.0f;
+    opts.snap_grid = 16.0f;
+
+    auto result1 = compute_layout(bp, opts);
+    auto result2 = compute_layout(bp, opts);
+
+    // Second layout should produce identical results (idempotent).
+    for (const auto& [id, pos] : result1.positions) {
+        auto it = result2.positions.find(id);
+        ASSERT_NE(it, result2.positions.end());
+        EXPECT_FLOAT_EQ(pos.x, it->second.x);
+        EXPECT_FLOAT_EQ(pos.y, it->second.y);
+    }
+}
+
+// =============================================================================
+// Graph with only feedback edges (all edges in cycles)
+// =============================================================================
+
+TEST(AutoLayoutTest, AllEdgesInCycleStillProducesLayout) {
+    core::StringInterner interner;
+    auto a = make_node(interner.intern("a"));
+    auto b = make_node(interner.intern("b"));
+
+    // A→B→A: every edge is in a cycle.
+    auto w1 = make_wire(interner, interner.intern("a"), "out", interner.intern("b"), "in");
+    auto w2 = make_wire(interner, interner.intern("b"), "out", interner.intern("a"), "in");
+
+    auto bp = build_bp({a, b}, {w1, w2});
+    auto result = compute_layout(bp);
+
+    ASSERT_EQ(result.positions.size(), 2u);
+
+    float ax = result.positions[interner.intern("a")].x;
+    float bx = result.positions[interner.intern("b")].x;
+
+    // They should be at different x positions (one will be reversed by cycle breaker).
+    EXPECT_NE(ax, bx);
+}

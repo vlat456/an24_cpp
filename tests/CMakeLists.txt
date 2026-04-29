@@ -342,6 +342,7 @@ gtest_discover_tests(canvas_input_tests)
 
 add_executable(window_invariants_tests
     test_window_invariants.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/focus_scope.cpp
     ${EDITOR_CANVAS_INPUT_SOURCES}
     ${EDITOR_VISUAL_FULL_SOURCES}
 )

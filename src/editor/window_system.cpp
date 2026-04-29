@@ -182,7 +182,9 @@ bool WindowSystem::closeDocument(Document& doc) {
 
     documents_.erase(it);
 
-    // Update inspector and ensure active_document_ is set
+    // Update inspector and ensure active_document_ is set.
+    // Both branches must reset focus_scope — the erased document's windows
+    // are destroyed, so any raw pointer in focus_scope is now dangling.
     if (!active_document_) {
         if (documents_.empty()) {
             createDocument();  // setActiveDocument called inside
@@ -190,6 +192,8 @@ bool WindowSystem::closeDocument(Document& doc) {
             setActiveDocument(documents_.front().get());
         }
     } else {
+        resetFocusToRoot();
+
         // Force inspector update (setActiveDocument skips if pointer unchanged)
         inspector_.setBlueprint(active_document_->blueprint(),
                                 active_document_->arena(),
@@ -225,6 +229,9 @@ bool WindowSystem::closeAllDocuments() {
 
     // Purge all oscilloscope state (probes + hover) for every document.
     oscilloscope.purge_all();
+
+    // Clear focus scope before clearing documents (raw pointers would dangle).
+    focus_scope.clear();
 
     documents_.clear();
     active_document_ = nullptr;

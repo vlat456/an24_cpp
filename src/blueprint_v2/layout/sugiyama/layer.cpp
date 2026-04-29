@@ -121,14 +121,6 @@ std::unordered_map<core::InternedId, int> longest_path_rank(
         }
     }
 
-    // Build effective predecessor map for ranking.
-    std::unordered_map<core::InternedId, std::vector<core::InternedId>> effective_pred;
-    for (const auto& [src, succs] : cbr.effective_succ) {
-        for (const auto& tgt : succs) {
-            effective_pred[tgt].push_back(src);
-        }
-    }
-
     // Kahn's algorithm for topological order with ranking.
     std::vector<core::InternedId> queue;
     for (const auto& n : graph.nodes) {
