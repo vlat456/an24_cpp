@@ -1,11 +1,30 @@
 #include "sub_window_renderer.h"
 #include "editor/document.h"
 #include "editor/window_system.h"
-#include "editor/input/input_types.h"
-#include "editor/visual/scene_mutations.h"
-#include "core/model/component_registry.h"
 #include <imgui.h>
 #include <algorithm>
+
+namespace {
+
+/// Compute bounding box of all nodes in a blueprint and fit the viewport.
+/// Shared between root canvas and sub-window renderers.
+void fit_viewport_to_blueprint(BlueprintWindow& win, const bp2::Blueprint& bp) {
+    Pt bmin(1e9f, 1e9f), bmax(-1e9f, -1e9f);
+    for (const bp2::Blueprint::Node& node : bp.nodes()) {
+        bmin.x = std::min(bmin.x, node.layout.x);
+        bmin.y = std::min(bmin.y, node.layout.y);
+        float w = node.layout.width.value_or(120.0f);
+        float h = node.layout.height.value_or(80.0f);
+        bmax.x = std::max(bmax.x, node.layout.x + w);
+        bmax.y = std::max(bmax.y, node.layout.y + h);
+    }
+    if (bmin.x < bmax.x && bmin.y < bmax.y) {
+        ImVec2 avail = ImGui::GetContentRegionAvail();
+        win.viewport.fit_content(bmin, bmax, avail.x, avail.y);
+    }
+}
+
+} // namespace
 
 
 void SubWindowRenderer::renderAll(::WindowSystem& ws) {
@@ -59,22 +78,9 @@ void SubWindowRenderer::renderToolbar(Document& doc, BlueprintWindow& win, ::Win
     if (win.read_only) ImGui::BeginDisabled();
     
     if (ImGui::Button("Auto Layout")) {
-        // TODO Phase 8: implement auto_layout_group as a bp2 command.
-        // For now, just cancel any in-flight gesture and rebuild.
         win.input.cancel_gesture();
-        const bp2::Blueprint& rebuild_bp = win.rendered_blueprint();
-        core::StringInterner& rebuild_interner = win.rendered_interner();
-        bp2::PathArena& rebuild_arena = win.rendered_arena();
-        // scope_id.path() already returns InternedId vector - use directly
-        std::vector<core::InternedId> instance_path(win.resolved_scope_id().path().begin(), win.resolved_scope_id().path().end());
-        ComponentRegistry empty_reg;
-        const ComponentRegistry& reg = doc.type_registry() ? *doc.type_registry() : empty_reg;
-        const editor::IconFont* icon_font = doc.icon_font();
-        visual::mutations::rebuild(win.scene, rebuild_bp,
-                                   rebuild_interner, rebuild_arena, instance_path, reg,
-                                   nullptr, icon_font);
-        win.input.rebuild_snapshot();
-        fitViewToContent(doc, win);
+        doc.autoLayoutEmbedded(win.resolved_scope_id());
+        win.pending_auto_fit = true;
     }
     
     ImGui::SameLine();
@@ -106,19 +112,5 @@ void SubWindowRenderer::renderCanvas(Document& doc, BlueprintWindow& win, ::Wind
 }
 
 void SubWindowRenderer::fitViewToContent(Document& doc, BlueprintWindow& win) {
-    Pt bmin(1e9f, 1e9f), bmax(-1e9f, -1e9f);
-    // For external-ref windows, iterate the external blueprint's nodes (root scope)
-    const bp2::Blueprint& bp = win.rendered_blueprint();
-    for (const bp2::Blueprint::Node& node : bp.nodes()) {
-        bmin.x = std::min(bmin.x, node.layout.x);
-        bmin.y = std::min(bmin.y, node.layout.y);
-        float w = node.layout.width.value_or(120.0f);
-        float h = node.layout.height.value_or(80.0f);
-        bmax.x = std::max(bmax.x, node.layout.x + w);
-        bmax.y = std::max(bmax.y, node.layout.y + h);
-    }
-    if (bmin.x < bmax.x && bmin.y < bmax.y) {
-        ImVec2 ws = ImGui::GetContentRegionAvail();
-        win.viewport.fit_content(bmin, bmax, ws.x, ws.y);
-    }
+    fit_viewport_to_blueprint(win, win.rendered_blueprint());
 }

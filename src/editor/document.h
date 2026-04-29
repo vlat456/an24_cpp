@@ -13,6 +13,7 @@
 #include "blueprint_v2/library/library_index.h"
 #include "visual/render_context.h"
 #include "blueprint_v2/editor_model/editor_model.h"
+#include "blueprint_v2/layout/auto_layout.h"
 #include "blueprint_v2/path/path.h"
 #include "core/strings/interned_id.h"
 #include "identity.h"
@@ -197,6 +198,14 @@ public:
                       ComponentRegistry& registry);
 
     bool normalizeNodeSizesToFit(bool preserve_manual = true);
+
+    /// Auto-layout the root blueprint. Pushes a single undo checkpoint.
+    bool autoLayout(const bp2::layout::LayoutOptions& options = {});
+
+    /// Auto-layout an embedded blueprint at the given scope.
+    /// Handles undo checkpoint and propagation automatically.
+    bool autoLayoutEmbedded(const WindowScopeId& scope_id,
+                            const bp2::layout::LayoutOptions& options = {});
 
     bool extractToBlueprint(const std::vector<core::InternedId>& selected_node_ids,
                            const std::string& blueprint_name,

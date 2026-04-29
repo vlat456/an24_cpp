@@ -1,6 +1,28 @@
 #include "document_area.h"
 #include "editor/window_system.h"
+#include <algorithm>
 #include <imgui.h>
+
+namespace {
+
+// TODO: Extract fit_viewport_to_blueprint to shared header (duplicated in sub_window_renderer.cpp).
+void fit_viewport_to_blueprint(BlueprintWindow& win, const bp2::Blueprint& bp) {
+    Pt bmin(1e9f, 1e9f), bmax(-1e9f, -1e9f);
+    for (const bp2::Blueprint::Node& node : bp.nodes()) {
+        bmin.x = std::min(bmin.x, node.layout.x);
+        bmin.y = std::min(bmin.y, node.layout.y);
+        float w = node.layout.width.value_or(120.0f);
+        float h = node.layout.height.value_or(80.0f);
+        bmax.x = std::max(bmax.x, node.layout.x + w);
+        bmax.y = std::max(bmax.y, node.layout.y + h);
+    }
+    if (bmin.x < bmax.x && bmin.y < bmax.y) {
+        ImVec2 avail = ImGui::GetContentRegionAvail();
+        win.viewport.fit_content(bmin, bmax, avail.x, avail.y);
+    }
+}
+
+} // namespace
 
 
 DocumentArea::DocumentArea() = default;
@@ -42,11 +64,22 @@ DocumentArea::Result DocumentArea::render(::WindowSystem& ws, float x, float y,
     return result;
 }
 
-void DocumentArea::renderCanvas(::WindowSystem& ws, float, float, 
-                                 float, float) {
+void DocumentArea::renderCanvas(::WindowSystem& ws, float, float,
+                                  float, float) {
     Document* active_doc = ws.activeDocument();
     if (!active_doc) return;
-    
+
+    // -- Root canvas toolbar --
+    if (ImGui::Button("Auto Layout")) {
+        active_doc->autoLayout();
+        active_doc->root().pending_auto_fit = true;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Fit View")) {
+        fit_viewport_to_blueprint(active_doc->root(), active_doc->blueprint());
+    }
+
+    // -- Canvas --
     auto canvas_min = ImGui::GetWindowContentRegionMin();
     auto canvas_max = ImGui::GetWindowContentRegionMax();
     Pt cmin(canvas_min.x + ImGui::GetWindowPos().x,
@@ -54,7 +87,7 @@ void DocumentArea::renderCanvas(::WindowSystem& ws, float, float,
     Pt cmax(canvas_max.x + ImGui::GetWindowPos().x,
             canvas_max.y + ImGui::GetWindowPos().y);
     bool hovered = ImGui::IsWindowHovered();
-    
+
     canvas_renderer_.render(active_doc->root(), *active_doc, ws, cmin, cmax,
                             ImGui::GetWindowDrawList(), hovered);
 }

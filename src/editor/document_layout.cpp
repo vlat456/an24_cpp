@@ -78,3 +78,35 @@ bool Document::normalizeNodeSizesToFit(bool preserve_manual) {
         true,
         true);
 }
+
+bool Document::autoLayout(const bp2::layout::LayoutOptions& options) {
+    const bp2::Blueprint before = model_.current();
+    const bp2::Blueprint laid_out = bp2::layout::apply_layout(before, options);
+    if (laid_out == before) return false;
+
+    model_.push_checkpoint();
+    model_.replace_current(std::move(laid_out));
+    rebuildAllWindows();
+    return true;
+}
+
+bool Document::autoLayoutEmbedded(const WindowScopeId& scope_id,
+                                   const bp2::layout::LayoutOptions& options) {
+    if (scope_id.is_root()) {
+        return autoLayout(options);
+    }
+
+    const auto& path = scope_id.path();
+    auto path_span = std::span<const core::InternedId>(path.data(), path.size());
+
+    const bp2::MutationResult result = model_.mutate_embedded(path_span,
+        [&options](const bp2::Blueprint& embedded) -> bp2::Blueprint {
+            return bp2::layout::apply_layout(embedded, options);
+        });
+
+    if (result == bp2::MutationResult::Changed) {
+        rebuildAllWindows();
+        return true;
+    }
+    return false;
+}

@@ -26,6 +26,11 @@ add_library(blueprint_v2 STATIC
     validation/invariant_checker.cpp
     diagnostics/repair.cpp
     bake/bake_ops.cpp
+    layout/sugiyama/graph.cpp
+    layout/sugiyama/layer.cpp
+    layout/sugiyama/crossing.cpp
+    layout/sugiyama/coordinates.cpp
+    layout/auto_layout.cpp
 )
 target_include_directories(blueprint_v2 PUBLIC
     ${CMAKE_SOURCE_DIR}/src

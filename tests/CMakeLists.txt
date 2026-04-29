@@ -372,6 +372,21 @@ target_link_libraries(oscilloscope_stats_tests PRIVATE
 )
 gtest_discover_tests(oscilloscope_stats_tests)
 
+# ==...== Auto Layout Tests ==...==
+
+add_executable(auto_layout_tests
+    test_auto_layout.cpp
+)
+target_include_directories(auto_layout_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+target_link_libraries(auto_layout_tests PRIVATE
+    blueprint_v2
+    core_registry
+    GTest::gtest_main
+)
+gtest_discover_tests(auto_layout_tests)
+
 # ==...== Canvas Scene Snapshot Tests ==...==
 
 add_executable(canvas_scene_snapshot_tests
