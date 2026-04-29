@@ -3,7 +3,6 @@
 #include "sugiyama/layer.h"
 #include "sugiyama/crossing.h"
 #include "sugiyama/coordinates.h"
-#include "blueprint_v2/blueprint/blueprint_replace.h"
 #include <cmath>
 
 namespace bp2::layout {
@@ -54,26 +53,21 @@ Blueprint apply_layout(const Blueprint& bp, const LayoutOptions& options) {
     auto layout = compute_layout(bp, options);
     if (layout.positions.empty()) return bp;
 
-    // Batch-update: apply all positions in a single pass through replace_node.
-    // Each call is O(N) but total is O(N²) for N nodes. For editor blueprints
-    // (typically 10-100 nodes) this is negligible.
-    Blueprint result = bp;
+    // Build batch update list — O(N) single pass.
+    std::vector<NodePositionUpdate> updates;
+    updates.reserve(layout.positions.size());
     for (const auto& node : bp.nodes()) {
         auto it = layout.positions.find(node.semantic.id);
         if (it == layout.positions.end()) continue;
 
-        float new_x = it->second.x;
-        float new_y = it->second.y;
+        // Skip if position unchanged.
+        if (node.layout.x == it->second.x && node.layout.y == it->second.y) continue;
 
-        if (node.layout.x == new_x && node.layout.y == new_y) continue;
-
-        auto updated = node;
-        updated.layout.x = new_x;
-        updated.layout.y = new_y;
-        result = bp2::replace_node_preserve_order(result, std::move(updated));
+        updates.push_back({node.semantic.id, it->second.x, it->second.y});
     }
 
-    return result;
+    if (updates.empty()) return bp;
+    return bp.with_updated_positions(updates);
 }
 
 } // namespace bp2::layout

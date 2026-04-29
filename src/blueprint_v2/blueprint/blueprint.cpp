@@ -311,6 +311,27 @@ Blueprint Blueprint::without_wire(core::InternedId id) const {
     return copy;
 }
 
+Blueprint Blueprint::with_updated_positions(const std::vector<NodePositionUpdate>& updates) const {
+    if (updates.empty()) return *this;
+
+    // Build lookup: node_id → new position.
+    std::unordered_map<core::InternedId, std::pair<float, float>> pos_map;
+    pos_map.reserve(updates.size());
+    for (const auto& u : updates) {
+        pos_map[u.id] = {u.x, u.y};
+    }
+
+    Blueprint copy = *this;
+    for (auto& node : copy.nodes_) {
+        auto it = pos_map.find(node.semantic.id);
+        if (it != pos_map.end()) {
+            node.layout.x = it->second.first;
+            node.layout.y = it->second.second;
+        }
+    }
+    return copy;
+}
+
 Interface Blueprint::resolve_node_iface(Node const& node,
                                         NodeIfaceAuthority authority) const {
     if (node.is_blueprint_instance()) {

@@ -14,7 +14,8 @@ MainMenu::Result MainMenu::render(WindowSystem& ws) {
         return result;
     }
 
-    const FocusScope& focus = ws.focus_scope;
+    // Resolve IDs to live pointers (safe — returns nulls if closed).
+    const auto focus = ws.resolve_focus();
 
     // Simulation indicator — always visible when running.
     if (focus.document && focus.document->isSimulationRunning()) {
@@ -201,7 +202,7 @@ void MainMenu::renderToolsMenu(WindowSystem& ws) {
 // Scope-aware menus
 // =============================================================================
 
-void MainMenu::renderBlueprintMenu(WindowSystem& ws, const FocusScope& focus) {
+void MainMenu::renderBlueprintMenu(WindowSystem& ws, const FocusScope::Resolved& focus) {
     if (!ImGui::BeginMenu("Blueprint")) return;
 
     Document* doc = focus.document;
@@ -258,7 +259,7 @@ void MainMenu::renderBlueprintMenu(WindowSystem& ws, const FocusScope& focus) {
     ImGui::EndMenu();
 }
 
-void MainMenu::renderEditMenu(WindowSystem& ws, const FocusScope& focus) {
+void MainMenu::renderEditMenu(WindowSystem& ws, const FocusScope::Resolved& focus) {
     if (!ImGui::BeginMenu("Edit")) return;
 
     Document* doc = focus.document;
@@ -288,7 +289,7 @@ void MainMenu::renderEditMenu(WindowSystem& ws, const FocusScope& focus) {
     ImGui::EndMenu();
 }
 
-void MainMenu::renderViewMenu(WindowSystem& ws, const FocusScope& focus) {
+void MainMenu::renderViewMenu(WindowSystem& ws, const FocusScope::Resolved& focus) {
     if (!ImGui::BeginMenu("View")) return;
 
     // Global toggles — always visible.

@@ -18,6 +18,13 @@ struct ComponentRegistry;
 
 namespace bp2 {
 
+/// Position update for batch node position changes.
+struct NodePositionUpdate {
+    core::InternedId id;
+    float x;
+    float y;
+};
+
 class Blueprint {
 public:
     struct NodeIfaceAuthority {
@@ -228,6 +235,11 @@ public:
     Blueprint with_name(std::string n) const;
     Blueprint with_interface(Interface iface) const;
     Blueprint clone(core::InternedId new_id) const;
+
+    /// Batch-update node positions in a single pass (O(N)).
+    /// Returns a new blueprint with updated layout.x/layout.y for matching nodes.
+    /// Nodes not in the update list are unchanged.
+    Blueprint with_updated_positions(const std::vector<NodePositionUpdate>& updates) const;
 
     /// Returns all (path, port) pairs reachable from this blueprint.
     std::vector<std::pair<Path, PortDescriptor>> all_ports(PathArena& arena,

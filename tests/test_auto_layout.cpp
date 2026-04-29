@@ -241,6 +241,48 @@ TEST(AutoLayoutTest, ApplyLayoutPreservesNodeCount) {
 }
 
 // =============================================================================
+// Blueprint::with_updated_positions (batch O(N) update)
+// =============================================================================
+
+TEST(AutoLayoutTest, BatchPositionUpdateIsCorrect) {
+    core::StringInterner interner;
+    auto a = make_node(interner.intern("a"), 0.0f, 0.0f);
+    auto b = make_node(interner.intern("b"), 100.0f, 100.0f);
+
+    auto bp = build_bp({a, b}, {});
+
+    std::vector<bp2::NodePositionUpdate> updates;
+    updates.push_back({interner.intern("a"), 200.0f, 300.0f});
+    updates.push_back({interner.intern("b"), 400.0f, 500.0f});
+
+    auto updated = bp.with_updated_positions(updates);
+
+    const auto* a_node = updated.find_node(interner.intern("a"));
+    const auto* b_node = updated.find_node(interner.intern("b"));
+    ASSERT_NE(a_node, nullptr);
+    ASSERT_NE(b_node, nullptr);
+
+    EXPECT_FLOAT_EQ(a_node->layout.x, 200.0f);
+    EXPECT_FLOAT_EQ(a_node->layout.y, 300.0f);
+    EXPECT_FLOAT_EQ(b_node->layout.x, 400.0f);
+    EXPECT_FLOAT_EQ(b_node->layout.y, 500.0f);
+}
+
+TEST(AutoLayoutTest, BatchPositionUpdateEmptyListReturnsSame) {
+    core::StringInterner interner;
+    auto a = make_node(interner.intern("a"), 10.0f, 20.0f);
+    auto bp = build_bp({a}, {});
+
+    std::vector<bp2::NodePositionUpdate> empty;
+    auto result = bp.with_updated_positions(empty);
+
+    const auto* node = result.find_node(interner.intern("a"));
+    ASSERT_NE(node, nullptr);
+    EXPECT_FLOAT_EQ(node->layout.x, 10.0f);
+    EXPECT_FLOAT_EQ(node->layout.y, 20.0f);
+}
+
+// =============================================================================
 // Self-loop edge ignored
 // =============================================================================
 

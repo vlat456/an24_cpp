@@ -51,8 +51,8 @@ void DocumentArea::renderCanvas(::WindowSystem& ws, float, float,
 
     // Track focus for menu context — root canvas was interacted with.
     if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
-        ws.focus_scope.document = active_doc;
-        ws.focus_scope.window = &active_doc->root();
+        ws.focus_scope.document_id = active_doc->id();
+        ws.focus_scope.scope_id = WindowScopeId::root();
     }
 
     auto canvas_min = ImGui::GetWindowContentRegionMin();

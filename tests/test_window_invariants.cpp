@@ -584,42 +584,51 @@ TEST(WindowInvariants, ExternalWindowSelfClosesWhenOwnerBecomesEmbedded) {
 }
 
 // =============================================================================
-// Regression #377: FocusScope clear() must zero both pointers
+// Regression #377: FocusScope stores IDs, never raw pointers
 // =============================================================================
 
-TEST(WindowInvariants, FocusScopeClearZerosBothPointers) {
+TEST(WindowInvariants, FocusScopeClearZerosIds) {
     FocusScope focus;
-    focus.document = reinterpret_cast<Document*>(0xDEAD);
-    focus.window = reinterpret_cast<BlueprintWindow*>(0xBEEF);
+    focus.document_id = editor::DocumentId::from_string("test_doc");
+    focus.scope_id = WindowScopeId::embedded({});
 
     focus.clear();
 
-    // After clear, both must be null — no dangling pointers.
-    EXPECT_EQ(focus.document, nullptr);
-    EXPECT_EQ(focus.window, nullptr);
+    EXPECT_TRUE(focus.document_id.str().empty());
+    EXPECT_TRUE(focus.scope_id.is_root());
 }
 
-TEST(WindowInvariants, FocusScopeValidRequiresBothNonNull) {
+TEST(WindowInvariants, FocusScopeIsSetRequiresDocumentId) {
     FocusScope focus;
-    // Both null → invalid.
-    EXPECT_EQ(focus.document, nullptr);
-    EXPECT_EQ(focus.window, nullptr);
+    // Default-constructed → not set.
+    EXPECT_FALSE(focus.is_set());
 
-    // Only document → still invalid (window null).
-    focus.document = reinterpret_cast<Document*>(0x1);
-    EXPECT_EQ(focus.window, nullptr);
-
-    // Both set → valid (checked via direct member access to avoid calling
-    // is_valid() which would dereference sentinel pointers).
-    focus.window = reinterpret_cast<BlueprintWindow*>(0x2);
-    EXPECT_NE(focus.document, nullptr);
-    EXPECT_NE(focus.window, nullptr);
+    // With document_id → set.
+    focus.document_id = editor::DocumentId::from_string("doc");
+    EXPECT_TRUE(focus.is_set());
 }
 
 TEST(WindowInvariants, FocusScopeDefaultConstructedIsInvalid) {
     FocusScope focus;
-    EXPECT_FALSE(focus.is_valid());
-    EXPECT_FALSE(focus.is_root());
-    EXPECT_FALSE(focus.is_subwindow());
-    EXPECT_FALSE(focus.is_read_only());
+    EXPECT_FALSE(focus.is_set());
+    EXPECT_TRUE(focus.scope_id.is_root());
+    EXPECT_FALSE(focus.is_root_scope());
+    EXPECT_FALSE(focus.is_subwindow_scope());
+}
+
+TEST(WindowInvariants, FocusScopeRootScopeDetection) {
+    FocusScope focus;
+    focus.document_id = editor::DocumentId::from_string("doc");
+    focus.scope_id = WindowScopeId::root();
+    EXPECT_TRUE(focus.is_root_scope());
+    EXPECT_FALSE(focus.is_subwindow_scope());
+}
+
+TEST(WindowInvariants, FocusScopeSubwindowScopeDetection) {
+    core::StringInterner interner;
+    FocusScope focus;
+    focus.document_id = editor::DocumentId::from_string("doc");
+    focus.scope_id = WindowScopeId::embedded({interner.intern("inst_1")});
+    EXPECT_FALSE(focus.is_root_scope());
+    EXPECT_TRUE(focus.is_subwindow_scope());
 }

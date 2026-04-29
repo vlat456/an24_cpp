@@ -55,18 +55,18 @@ public:
     size_t documentCount() const { return documents_.size(); }
     Document* findDocumentByPath(const std::string& path);
     Document* findDocumentById(const editor::DocumentId& id);
+    const Document* findDocumentById(const editor::DocumentId& id) const;
 
     // ── Focus scope (menu context) ──
 
     FocusScope focus_scope;
 
-    /// Validate focus_scope: if the focused window was closed/removed,
-    /// revert to root of the same document. If the document was removed,
-    /// clear entirely. Call once per frame before menu rendering.
-    void validateFocusScope();
-
     /// Reset focus to root of active document. Called on tab switch.
     void resetFocusToRoot();
+
+    /// Resolve focus_scope IDs to live pointers.
+    /// Returns {nullptr, nullptr} if document was closed or window removed.
+    FocusScope::Resolved resolve_focus();
 
     // ── Global panels ──
 

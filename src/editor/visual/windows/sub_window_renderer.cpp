@@ -38,8 +38,9 @@ void SubWindowRenderer::renderWindow(Document& doc, BlueprintWindow& win, ::Wind
     win_title += " [" + doc.displayName() + "]###" + doc.id().str() + ":" + mode_prefix + win_hash_key;
 
     // Highlight border if this subwindow holds menu focus.
-    bool has_menu_focus = ws.focus_scope.is_subwindow()
-                          && ws.focus_scope.window == &win;
+    bool has_menu_focus = ws.focus_scope.is_subwindow_scope()
+                          && ws.focus_scope.document_id == doc.id()
+                          && ws.focus_scope.scope_id == win.resolved_scope_id();
     if (has_menu_focus) {
         ImGui::PushStyleColor(ImGuiCol_Border,
                               ImGui::ColorConvertU32ToFloat4(kFocusedBorderColor));
@@ -56,10 +57,10 @@ void SubWindowRenderer::renderWindow(Document& doc, BlueprintWindow& win, ::Wind
         return;
     }
 
-    // Track focus for next frame's menu context.
+    // Track focus for next frame's menu context (IDs, never dangles).
     if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
-        ws.focus_scope.document = &doc;
-        ws.focus_scope.window = &win;
+        ws.focus_scope.document_id = doc.id();
+        ws.focus_scope.scope_id = win.resolved_scope_id();
     }
 
     renderToolbar(doc, win, ws);

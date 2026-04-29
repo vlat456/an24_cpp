@@ -230,7 +230,7 @@ bool WindowSystem::closeAllDocuments() {
     // Purge all oscilloscope state (probes + hover) for every document.
     oscilloscope.purge_all();
 
-    // Clear focus scope before clearing documents (raw pointers would dangle).
+    // Clear focus scope (IDs are value types, but clear for semantic correctness).
     focus_scope.clear();
 
     documents_.clear();
@@ -253,41 +253,31 @@ void WindowSystem::setActiveDocument(Document* doc) {
     }
 }
 
-void WindowSystem::validateFocusScope() {
-    if (!focus_scope.document) {
-        return;
-    }
-
-    // Document still alive?
-    Document* doc = findDocumentById(focus_scope.document->id());
-    if (!doc) {
-        focus_scope.clear();
-        return;
-    }
-    focus_scope.document = doc;
-
-    // Window still alive and open?
-    if (!focus_scope.window) {
-        resetFocusToRoot();
-        return;
-    }
-
-    WindowManager& wm = doc->windowManager();
-    BlueprintWindow* found = wm.find(focus_scope.window->resolved_scope_id());
-    if (!found || !found->open) {
-        focus_scope.window = &doc->root();
+void WindowSystem::resetFocusToRoot() {
+    if (active_document_) {
+        focus_scope.document_id = active_document_->id();
+        focus_scope.scope_id = WindowScopeId::root();
     } else {
-        focus_scope.window = found;
+        focus_scope.clear();
     }
 }
 
-void WindowSystem::resetFocusToRoot() {
-    if (active_document_) {
-        focus_scope.document = active_document_;
-        focus_scope.window = &active_document_->root();
+FocusScope::Resolved WindowSystem::resolve_focus() {
+    FocusScope::Resolved r;
+    if (!focus_scope.is_set()) return r;
+
+    r.document = findDocumentById(focus_scope.document_id);
+    if (!r.document) return r;
+
+    if (focus_scope.scope_id.is_root()) {
+        r.window = &r.document->root();
     } else {
-        focus_scope.clear();
+        r.window = r.document->windowManager().find(focus_scope.scope_id);
+        if (!r.window) {
+            r.window = &r.document->root();
+        }
     }
+    return r;
 }
 
 Document* WindowSystem::findDocumentByPath(const std::string& path) {
@@ -302,6 +292,16 @@ Document* WindowSystem::findDocumentByPath(const std::string& path) {
 Document* WindowSystem::findDocumentById(const editor::DocumentId& id) {
     if (id.empty()) return nullptr;
     for (auto& doc : documents_) {
+        if (doc->id() == id) {
+            return doc.get();
+        }
+    }
+    return nullptr;
+}
+
+const Document* WindowSystem::findDocumentById(const editor::DocumentId& id) const {
+    if (id.empty()) return nullptr;
+    for (const auto& doc : documents_) {
         if (doc->id() == id) {
             return doc.get();
         }
