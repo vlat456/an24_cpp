@@ -41,14 +41,10 @@ MainMenu::Result MainMenu::render(WindowSystem& ws) {
         renderToolsMenu(ws);
     }
 
-    // Build number — right-aligned, display only, no handler.
-    {
-        const char* label = BUILD_NUMBER;
-        ImVec2 text_size = ImGui::CalcTextSize(label);
-        float avail_x = ImGui::GetWindowContentRegionMax().x;
-        ImGui::SameLine(avail_x - text_size.x - 8.0f);
-        ImGui::TextDisabled("%s", label);
-    }
+#ifndef NDEBUG
+    // Build number — last menu item, DEBUG only, no handler.
+    ImGui::MenuItem(BUILD_NUMBER, nullptr, false, false);
+#endif
 
     // About dialog (opened from File menu).
     renderAboutDialog();
