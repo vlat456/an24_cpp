@@ -211,7 +211,9 @@ void NodeSpriteCache::bake_dirty_nodes(const Scene& scene, const RenderContext& 
 
         // Check if content changed since last bake.
         if (node->consume_content_dirty()) {
-            // Content changed — force dirty even if zoom is stable.
+            // Content changed — force cache entry dirty.
+            auto it = cache_.find(nid);
+            if (it != cache_.end()) it->second.dirty = true;
         } else {
             // Skip if cached and zoom hasn't drifted.
             auto it = cache_.find(nid);
