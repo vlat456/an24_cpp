@@ -24,7 +24,7 @@ struct ImDrawList;
 
 namespace visual {
 
-class NodeWidget;
+class Widget;
 struct RenderContext;
 
 /// Manages GL textures for baked node sprites.
@@ -45,13 +45,11 @@ public:
     NodeSpriteCache(NodeSpriteCache&&) = delete;
     NodeSpriteCache& operator=(NodeSpriteCache&&) = delete;
 
-    /// Bake a dirty node to its texture. No-op if node is not dirty.
-    /// `node` must outlive this call (not stored).
-    void bake(const NodeWidget& node, const RenderContext& ctx);
+    /// Bake a dirty widget to its texture. No-op if not dirty.
+    void bake(const Widget& widget, const RenderContext& ctx);
 
-    /// Blit a cached node texture via AddImage. Returns false if not cached.
-    /// `dl` must be a raw ImDrawList* (obtained via native_draw_list).
-    bool blit(const NodeWidget& node, ImDrawList* dl, const RenderContext& ctx) const;
+    /// Blit a cached widget texture via AddImage. Returns false if not cached.
+    bool blit(const Widget& widget, ImDrawList* dl, const RenderContext& ctx) const;
 
     /// Bake all dirty nodes in the scene. Call before Scene::render().
     void bake_dirty_nodes(const class Scene& scene, const RenderContext& ctx);

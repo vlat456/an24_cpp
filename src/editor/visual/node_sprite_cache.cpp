@@ -4,7 +4,7 @@
 #ifdef AN24_EDITOR
 
 #include "node_sprite_cache.h"
-#include "visual/node/visual_node.h"
+#include "visual/widget.h"
 #include "visual/render_context.h"
 #include "visual/scene.h"
 #include "editor/imgui_draw_list.h"
@@ -69,8 +69,8 @@ void NodeSpriteCache::clear() {
     cache_.clear();
 }
 
-void NodeSpriteCache::bake(const NodeWidget& node, const RenderContext& ctx) {
-    const std::string_view nid = node.id();
+void NodeSpriteCache::bake(const Widget& widget, const RenderContext& ctx) {
+    const std::string_view nid = widget.id();
 
     // Check if we need to re-bake based on zoom change.
     auto it = cache_.find(nid);
@@ -85,9 +85,9 @@ void NodeSpriteCache::bake(const NodeWidget& node, const RenderContext& ctx) {
     }
 
     // Compute texture size in pixels (world-space size × retina scale).
-    const Pt node_sz = node.size();
-    const int tex_w = std::max(1, static_cast<int>(std::ceil(node_sz.x * kPixelScale)));
-    const int tex_h = std::max(1, static_cast<int>(std::ceil(node_sz.y * kPixelScale)));
+    const Pt widget_sz = widget.size();
+    const int tex_w = std::max(1, static_cast<int>(std::ceil(widget_sz.x * kPixelScale)));
+    const int tex_h = std::max(1, static_cast<int>(std::ceil(widget_sz.y * kPixelScale)));
 
     if (tex_w > 4096 || tex_h > 4096) return;
 
@@ -121,16 +121,16 @@ void NodeSpriteCache::bake(const NodeWidget& node, const RenderContext& ctx) {
     // to texture pixel coordinates:
     //   world_to_screen(P) = (P - pan) * zoom + canvas_min
     // With pan = node.worldPos(), zoom = kPixelScale, canvas_min = (0,0):
-    //   world_to_screen(nodePos + offset) = offset * kPixelScale ✓
+    //   world_to_screen(widgetPos + offset) = offset * kPixelScale ✓
     RenderContext bake_ctx;
     bake_ctx.zoom = static_cast<float>(kPixelScale);
-    bake_ctx.pan = node.worldPos();
+    bake_ctx.pan = widget.worldPos();
     bake_ctx.canvas_min = Pt(0, 0);
     bake_ctx.port_circle_texture = ctx.port_circle_texture;
     // Selection state is NOT baked — rendered live as overlay.
     bake_ctx.selected_node_ids = nullptr;
 
-    node.renderTree(&bake_dl, bake_ctx);
+    widget.renderTree(&bake_dl, bake_ctx);
 
     // -- Step 2: Bake temp draw list to FBO texture via ImGui's GL backend --
 
@@ -171,17 +171,17 @@ void NodeSpriteCache::bake(const NodeWidget& node, const RenderContext& ctx) {
     entry.baked_zoom = ctx.zoom;
 }
 
-bool NodeSpriteCache::blit(const NodeWidget& node, ImDrawList* dl,
+bool NodeSpriteCache::blit(const Widget& widget, ImDrawList* dl,
                            const RenderContext& ctx) const {
-    auto it = cache_.find(node.id());
+    auto it = cache_.find(widget.id());
     if (it == cache_.end() || !it->second.texture) return false;
 
     const Entry& entry = it->second;
 
-    // Compute screen-space blit rect from node world bounds.
-    const Pt node_pos = node.worldPos();
-    const Pt screen_min = ctx.world_to_screen(node_pos);
-    const Pt screen_max = ctx.world_to_screen(node_pos + node.size());
+    // Compute screen-space blit rect from widget world bounds.
+    const Pt w_pos = widget.worldPos();
+    const Pt screen_min = ctx.world_to_screen(w_pos);
+    const Pt screen_max = ctx.world_to_screen(w_pos + widget.size());
 
     const ImTextureID tex_id = reinterpret_cast<ImTextureID>(
         static_cast<intptr_t>(entry.texture));
@@ -198,11 +198,15 @@ void NodeSpriteCache::bake_dirty_nodes(const Scene& scene, const RenderContext& 
     for (const auto& root : scene.roots()) {
         auto* vw = static_cast<Widget*>(root.get());
 
-        // Only bake node widgets that are dirty or not yet cached.
-        if (vw->kind() != ui::WidgetKind::Node) continue;
         if (!vw->isClickable()) continue;
 
-        auto* node = static_cast<NodeWidget*>(vw);
+        // Bake all node types (Node, RefNode, BusNode, GroupNode, TextNode).
+        auto kind = vw->kind();
+        if (kind != ui::WidgetKind::Node && kind != ui::WidgetKind::RefNode &&
+            kind != ui::WidgetKind::BusNode && kind != ui::WidgetKind::GroupNode &&
+            kind != ui::WidgetKind::TextNode) continue;
+
+        auto* node = static_cast<Widget*>(vw);
         const std::string_view nid = node->id();
 
         // Only bake if dirty or not yet in cache.
@@ -214,8 +218,7 @@ void NodeSpriteCache::bake_dirty_nodes(const Scene& scene, const RenderContext& 
             if (ratio < kZoomThreshold) continue;
         }
 
-        bake(*node, ctx);
-    }
+        bake(*node, ctx);    }
 }
 
 // ============================================================================
