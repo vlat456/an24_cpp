@@ -189,7 +189,7 @@ bool NodeSpriteCache::blit(const Widget& widget, ImDrawList* dl,
     dl->AddImage(tex_id,
                  ImVec2(screen_min.x, screen_min.y),
                  ImVec2(screen_max.x, screen_max.y),
-                 ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f),
+                 ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f),
                  IM_COL32_WHITE);
     return true;
 }
@@ -209,16 +209,21 @@ void NodeSpriteCache::bake_dirty_nodes(const Scene& scene, const RenderContext& 
         auto* node = static_cast<Widget*>(vw);
         const std::string_view nid = node->id();
 
-        // Only bake if dirty or not yet in cache.
-        auto it = cache_.find(nid);
-        if (it != cache_.end() && !it->second.dirty) {
-            // Check zoom drift.
-            float ratio = std::abs(ctx.zoom - it->second.baked_zoom)
-                        / std::max(it->second.baked_zoom, 0.01f);
-            if (ratio < kZoomThreshold) continue;
+        // Check if content changed since last bake.
+        if (node->consume_content_dirty()) {
+            // Content changed — force dirty even if zoom is stable.
+        } else {
+            // Skip if cached and zoom hasn't drifted.
+            auto it = cache_.find(nid);
+            if (it != cache_.end() && !it->second.dirty) {
+                float ratio = std::abs(ctx.zoom - it->second.baked_zoom)
+                            / std::max(it->second.baked_zoom, 0.01f);
+                if (ratio < kZoomThreshold) continue;
+            }
         }
 
-        bake(*node, ctx);    }
+        bake(*node, ctx);
+    }
 }
 
 // ============================================================================

@@ -56,6 +56,10 @@ public:
     void setPaintEnabled(bool enabled) { paint_enabled_ = enabled; }
     bool paintEnabled() const { return paint_enabled_; }
 
+    /// Mark that this widget's visual content changed (for sprite cache invalidation).
+    void mark_content_dirty() { content_dirty_ = true; }
+    bool consume_content_dirty() { bool d = content_dirty_; content_dirty_ = false; return d; }
+
     // The context-free render path (inherited from ui::Widget) is not meaningful
     // for visual widgets. Override to catch accidental misuse in debug builds.
     // Visual widgets must be rendered via render(IDrawList*, const RenderContext&).
@@ -86,6 +90,7 @@ protected:
     friend class Scene;
     Scene* scene_ = nullptr;
     bool paint_enabled_ = true;
+    bool content_dirty_ = true; // Start dirty so first bake happens
     void updateGridRecursive(Widget* w);
 };
 

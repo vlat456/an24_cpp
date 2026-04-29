@@ -450,6 +450,7 @@ void NodeWidget::updateContent(const ::NodeContent& content) {
     cached_content_label_ = content.label;
     cached_content_state_ = content.state;
     cached_content_unit_ = content.unit;
+    mark_content_dirty();
     refresh_content_semantic_snapshot();
 }
 
