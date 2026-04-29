@@ -16,6 +16,8 @@ build_fulltests/
 # Generated files
 generated/*.cpp
 generated/*.h
+build_counter.txt
+build_counter_stamp.txt
 
 # CMake
 CMakeCache.txt

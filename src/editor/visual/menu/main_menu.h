@@ -24,9 +24,12 @@ private:
     void renderFileMenu(WindowSystem& ws, Result& result);
     void renderToolsMenu(WindowSystem& ws);
     void renderRecentFilesMenu(WindowSystem& ws);
+    void renderAboutDialog();
 
     // Scope-aware menus — operate on resolved FocusScope.
     void renderBlueprintMenu(WindowSystem& ws, const FocusScope::Resolved& focus);
     void renderEditMenu(WindowSystem& ws, const FocusScope::Resolved& focus);
     void renderViewMenu(WindowSystem& ws, const FocusScope::Resolved& focus);
+
+    bool about_open_ = false;
 };

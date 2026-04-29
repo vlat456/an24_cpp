@@ -2,6 +2,7 @@
 #include "editor/visual/dialogs/file_dialogs.h"
 #include "editor/window/blueprint_window.h"
 #include "editor/pi_zn_tuner.h"
+#include <build_info.h>
 #include <imgui.h>
 #include <filesystem>
 #include <cstring>
@@ -39,6 +40,18 @@ MainMenu::Result MainMenu::render(WindowSystem& ws) {
     if (focus.is_root()) {
         renderToolsMenu(ws);
     }
+
+    // Build number — right-aligned, display only, no handler.
+    {
+        const char* label = BUILD_NUMBER;
+        ImVec2 text_size = ImGui::CalcTextSize(label);
+        float avail_x = ImGui::GetWindowContentRegionMax().x;
+        ImGui::SameLine(avail_x - text_size.x - 8.0f);
+        ImGui::TextDisabled("%s", label);
+    }
+
+    // About dialog (opened from File menu).
+    renderAboutDialog();
 
     ImGui::EndMainMenuBar();
     return result;
@@ -93,6 +106,12 @@ void MainMenu::renderFileMenu(WindowSystem& ws, Result& result) {
 
     if (ImGui::MenuItem("Exit", "Alt+F4")) {
         result.exit_requested = true;
+    }
+
+    ImGui::Separator();
+
+    if (ImGui::MenuItem("About")) {
+        about_open_ = true;
     }
 
     ImGui::EndMenu();
@@ -332,4 +351,32 @@ void MainMenu::renderViewMenu(WindowSystem& ws, const FocusScope::Resolved& focu
     }
 
     ImGui::EndMenu();
+}
+
+// =============================================================================
+// About dialog
+// =============================================================================
+
+void MainMenu::renderAboutDialog() {
+    if (!about_open_) return;
+
+    ImGui::OpenPopup("About");
+
+    ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+    if (ImGui::BeginPopupModal("About", &about_open_, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::Text("An-24 Flight Simulator");
+        ImGui::Spacing();
+        ImGui::TextDisabled("Build %s", BUILD_NUMBER);
+        ImGui::TextDisabled("%s", BUILD_DATE);
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+        if (ImGui::Button("Close", ImVec2(120, 0))) {
+            about_open_ = false;
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }
 }

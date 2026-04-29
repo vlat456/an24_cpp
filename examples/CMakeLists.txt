@@ -32,6 +32,7 @@ add_executable(an24_editor
 target_include_directories(an24_editor PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_BINARY_DIR}/generated
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
     ${imgui_SOURCE_DIR}
     ${imgui_SOURCE_DIR}/backends
