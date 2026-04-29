@@ -78,6 +78,14 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(nfde)
 
+# Lua 5.4 (for LuaScript component)
+FetchContent_Declare(
+    lua
+    GIT_REPOSITORY https://github.com/walterschell/Lua.git
+    GIT_TAG v5.4.7
+)
+FetchContent_MakeAvailable(lua)
+
 # =====================================================================
 # Build number generation
 # Format: YYYYMMDD+NNNTAG (e.g. 20260429+003DEBUG)

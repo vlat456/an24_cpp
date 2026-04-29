@@ -176,6 +176,39 @@ constexpr PortMeta PORT_META[] = {
     {"A", bp2::Direction::Input, 2, false},
     {"B", bp2::Direction::Input, 2, false},
     {"o", bp2::Direction::Output, 2, false},
+    // LuaScript
+    {"in1", bp2::Direction::Input, 2, false},
+    {"in10", bp2::Direction::Input, 2, false},
+    {"in11", bp2::Direction::Input, 2, false},
+    {"in12", bp2::Direction::Input, 2, false},
+    {"in13", bp2::Direction::Input, 2, false},
+    {"in14", bp2::Direction::Input, 2, false},
+    {"in15", bp2::Direction::Input, 2, false},
+    {"in16", bp2::Direction::Input, 2, false},
+    {"in2", bp2::Direction::Input, 2, false},
+    {"in3", bp2::Direction::Input, 2, false},
+    {"in4", bp2::Direction::Input, 2, false},
+    {"in5", bp2::Direction::Input, 2, false},
+    {"in6", bp2::Direction::Input, 2, false},
+    {"in7", bp2::Direction::Input, 2, false},
+    {"in8", bp2::Direction::Input, 2, false},
+    {"in9", bp2::Direction::Input, 2, false},
+    {"out1", bp2::Direction::Output, 2, false},
+    {"out10", bp2::Direction::Output, 2, false},
+    {"out11", bp2::Direction::Output, 2, false},
+    {"out12", bp2::Direction::Output, 2, false},
+    {"out13", bp2::Direction::Output, 2, false},
+    {"out14", bp2::Direction::Output, 2, false},
+    {"out15", bp2::Direction::Output, 2, false},
+    {"out16", bp2::Direction::Output, 2, false},
+    {"out2", bp2::Direction::Output, 2, false},
+    {"out3", bp2::Direction::Output, 2, false},
+    {"out4", bp2::Direction::Output, 2, false},
+    {"out5", bp2::Direction::Output, 2, false},
+    {"out6", bp2::Direction::Output, 2, false},
+    {"out7", bp2::Direction::Output, 2, false},
+    {"out8", bp2::Direction::Output, 2, false},
+    {"out9", bp2::Direction::Output, 2, false},
     // Max
     {"A", bp2::Direction::Input, 2, false},
     {"B", bp2::Direction::Input, 2, false},
@@ -379,52 +412,53 @@ constexpr ComponentPortInfo COMPONENT_PORT_INFO[] = {
     {99, 2, SchedulerRoleKind::Consumer, false},  // LerpNode
     {101, 3, SchedulerRoleKind::Consumer, false},  // Lesser
     {104, 3, SchedulerRoleKind::Consumer, false},  // LesserEq
-    {107, 3, SchedulerRoleKind::Consumer, false},  // Max
-    {110, 3, SchedulerRoleKind::Consumer, false},  // Merger
-    {113, 3, SchedulerRoleKind::Consumer, false},  // Min
-    {116, 2, SchedulerRoleKind::Consumer, false},  // Monostable
-    {118, 3, SchedulerRoleKind::Consumer, false},  // Multiply
-    {121, 3, SchedulerRoleKind::Consumer, false},  // NAND
-    {124, 2, SchedulerRoleKind::Consumer, false},  // NOT
-    {126, 4, SchedulerRoleKind::Consumer, false},  // Normalize
-    {130, 3, SchedulerRoleKind::Consumer, false},  // OR
-    {133, 3, SchedulerRoleKind::Consumer, false},  // P
-    {136, 3, SchedulerRoleKind::Consumer, false},  // PD
-    {139, 7, SchedulerRoleKind::Consumer, false},  // PI
-    {146, 3, SchedulerRoleKind::Consumer, false},  // PID
-    {149, 4, SchedulerRoleKind::None, true},  // PneumaticCompressor
-    {153, 1, SchedulerRoleKind::Source, true},  // PneumaticRef
-    {154, 4, SchedulerRoleKind::None, true},  // PneumaticValve
-    {158, 2, SchedulerRoleKind::Consumer, false},  // Positive_V_to_Bool
-    {160, 1, SchedulerRoleKind::Source, true},  // PressureRef
-    {161, 2, SchedulerRoleKind::Consumer, false},  // Radiator
-    {163, 1, SchedulerRoleKind::Source, true},  // RefNode
-    {164, 5, SchedulerRoleKind::None, true},  // Relay
-    {169, 2, SchedulerRoleKind::None, true},  // Resistor
-    {171, 8, SchedulerRoleKind::None, true},  // RotarySwitch1ToN
-    {179, 8, SchedulerRoleKind::None, true},  // RotarySwitchNTo1
-    {187, 3, SchedulerRoleKind::Consumer, false},  // SampleHold
-    {190, 2, SchedulerRoleKind::Consumer, false},  // SlewRate
-    {192, 2, SchedulerRoleKind::Consumer, false},  // Slider
-    {194, 4, SchedulerRoleKind::None, true},  // SolenoidValve
-    {198, 3, SchedulerRoleKind::Consumer, false},  // Splitter
-    {201, 3, SchedulerRoleKind::Consumer, false},  // Spring
-    {204, 3, SchedulerRoleKind::Consumer, false},  // Subtract
-    {207, 4, SchedulerRoleKind::Consumer, false},  // Switch
-    {211, 2, SchedulerRoleKind::Consumer, false},  // TempSensor
-    {213, 2, SchedulerRoleKind::Consumer, false},  // TimeDelay
-    {215, 2, SchedulerRoleKind::Consumer, false},  // Transformer
-    {217, 1, SchedulerRoleKind::Source, false},  // Value
-    {218, 5, SchedulerRoleKind::None, true},  // VariableConductance
-    {223, 5, SchedulerRoleKind::Consumer, false},  // VoltageSense
-    {228, 1, SchedulerRoleKind::Consumer, false},  // Voltmeter
-    {229, 3, SchedulerRoleKind::Consumer, false},  // XOR
+    {107, 32, SchedulerRoleKind::Consumer, false},  // LuaScript
+    {139, 3, SchedulerRoleKind::Consumer, false},  // Max
+    {142, 3, SchedulerRoleKind::Consumer, false},  // Merger
+    {145, 3, SchedulerRoleKind::Consumer, false},  // Min
+    {148, 2, SchedulerRoleKind::Consumer, false},  // Monostable
+    {150, 3, SchedulerRoleKind::Consumer, false},  // Multiply
+    {153, 3, SchedulerRoleKind::Consumer, false},  // NAND
+    {156, 2, SchedulerRoleKind::Consumer, false},  // NOT
+    {158, 4, SchedulerRoleKind::Consumer, false},  // Normalize
+    {162, 3, SchedulerRoleKind::Consumer, false},  // OR
+    {165, 3, SchedulerRoleKind::Consumer, false},  // P
+    {168, 3, SchedulerRoleKind::Consumer, false},  // PD
+    {171, 7, SchedulerRoleKind::Consumer, false},  // PI
+    {178, 3, SchedulerRoleKind::Consumer, false},  // PID
+    {181, 4, SchedulerRoleKind::None, true},  // PneumaticCompressor
+    {185, 1, SchedulerRoleKind::Source, true},  // PneumaticRef
+    {186, 4, SchedulerRoleKind::None, true},  // PneumaticValve
+    {190, 2, SchedulerRoleKind::Consumer, false},  // Positive_V_to_Bool
+    {192, 1, SchedulerRoleKind::Source, true},  // PressureRef
+    {193, 2, SchedulerRoleKind::Consumer, false},  // Radiator
+    {195, 1, SchedulerRoleKind::Source, true},  // RefNode
+    {196, 5, SchedulerRoleKind::None, true},  // Relay
+    {201, 2, SchedulerRoleKind::None, true},  // Resistor
+    {203, 8, SchedulerRoleKind::None, true},  // RotarySwitch1ToN
+    {211, 8, SchedulerRoleKind::None, true},  // RotarySwitchNTo1
+    {219, 3, SchedulerRoleKind::Consumer, false},  // SampleHold
+    {222, 2, SchedulerRoleKind::Consumer, false},  // SlewRate
+    {224, 2, SchedulerRoleKind::Consumer, false},  // Slider
+    {226, 4, SchedulerRoleKind::None, true},  // SolenoidValve
+    {230, 3, SchedulerRoleKind::Consumer, false},  // Splitter
+    {233, 3, SchedulerRoleKind::Consumer, false},  // Spring
+    {236, 3, SchedulerRoleKind::Consumer, false},  // Subtract
+    {239, 4, SchedulerRoleKind::Consumer, false},  // Switch
+    {243, 2, SchedulerRoleKind::Consumer, false},  // TempSensor
+    {245, 2, SchedulerRoleKind::Consumer, false},  // TimeDelay
+    {247, 2, SchedulerRoleKind::Consumer, false},  // Transformer
+    {249, 1, SchedulerRoleKind::Source, false},  // Value
+    {250, 5, SchedulerRoleKind::None, true},  // VariableConductance
+    {255, 5, SchedulerRoleKind::Consumer, false},  // VoltageSense
+    {260, 1, SchedulerRoleKind::Consumer, false},  // Voltmeter
+    {261, 3, SchedulerRoleKind::Consumer, false},  // XOR
     {0, 0, SchedulerRoleKind::Consumer, false},  // Unknown (sentinel)
 };
 
 static_assert(sizeof(COMPONENT_PORT_INFO) / sizeof(COMPONENT_PORT_INFO[0]) == static_cast<size_t>(ComponentKind::_COUNT),
     "COMPONENT_PORT_INFO size must match ComponentKind count");
-static_assert(232 == sizeof(PORT_META) / sizeof(PORT_META[0]),
+static_assert(264 == sizeof(PORT_META) / sizeof(PORT_META[0]),
     "PORT_META total entries must match sum of all component port counts");
 
 /// Number of ports for a given ComponentKind. Returns 0 for Unknown.

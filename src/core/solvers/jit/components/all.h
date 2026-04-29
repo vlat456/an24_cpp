@@ -79,5 +79,6 @@
 #include "pneumatic_compressor.h"
 #include "pneumatic_ref.h"
 #include "pneumatic_valve.h"
+#include "lua_script.h"
 
 // No class declarations here - all are in their respective headers

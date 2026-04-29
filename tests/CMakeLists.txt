@@ -617,6 +617,9 @@ add_sim_test(integrator_tests SOURCES test_integrator.cpp LINKS jit_solver json_
 # Accumulator component tests
 add_sim_test(accumulator_tests SOURCES test_accumulator.cpp LINKS jit_solver json_io)
 
+# LuaScript component tests
+add_sim_test(lua_script_tests SOURCES test_lua_script.cpp LINKS jit_solver json_io lua_static)
+
 # 12SAM28 composite battery tests
 add_sim_test(sam28_tests SOURCES test_12sam28.cpp LINKS jit_solver json_io)
 

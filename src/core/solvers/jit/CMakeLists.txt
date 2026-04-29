@@ -89,6 +89,8 @@ add_library(jit_solver
     components/value.cpp
     # Multi-position rotary selector switch
     components/knob_switch.cpp
+    # Lua-scriptable component
+    components/lua_script.cpp
 )
 
 target_include_directories(jit_solver PUBLIC
@@ -101,4 +103,5 @@ target_link_libraries(jit_solver PRIVATE
     spdlog::spdlog
     json_io
     signal_allocation
+    lua_static
 )

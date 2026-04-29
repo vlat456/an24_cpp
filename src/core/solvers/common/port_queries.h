@@ -45,6 +45,7 @@ using ComponentVariant = std::variant<
     LerpNode<JitProvider>,
     Lesser<JitProvider>,
     LesserEq<JitProvider>,
+    LuaScript<JitProvider>,
     Max<JitProvider>,
     Merger<JitProvider>,
     Min<JitProvider>,
@@ -127,44 +128,45 @@ static_assert(static_cast<size_t>(ComponentKind::LUT) == 31ull, "LUT enum positi
 static_assert(static_cast<size_t>(ComponentKind::LerpNode) == 32ull, "LerpNode enum position mismatch — re-run update_port_registry");
 static_assert(static_cast<size_t>(ComponentKind::Lesser) == 33ull, "Lesser enum position mismatch — re-run update_port_registry");
 static_assert(static_cast<size_t>(ComponentKind::LesserEq) == 34ull, "LesserEq enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::Max) == 35ull, "Max enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::Merger) == 36ull, "Merger enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::Min) == 37ull, "Min enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::Monostable) == 38ull, "Monostable enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::Multiply) == 39ull, "Multiply enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::NAND) == 40ull, "NAND enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::NOT) == 41ull, "NOT enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::Normalize) == 42ull, "Normalize enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::OR) == 43ull, "OR enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::P) == 44ull, "P enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::PD) == 45ull, "PD enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::PI) == 46ull, "PI enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::PID) == 47ull, "PID enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::PneumaticCompressor) == 48ull, "PneumaticCompressor enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::PneumaticRef) == 49ull, "PneumaticRef enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::PneumaticValve) == 50ull, "PneumaticValve enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::Positive_V_to_Bool) == 51ull, "Positive_V_to_Bool enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::PressureRef) == 52ull, "PressureRef enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::Radiator) == 53ull, "Radiator enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::RefNode) == 54ull, "RefNode enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::Relay) == 55ull, "Relay enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::Resistor) == 56ull, "Resistor enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::RotarySwitch1ToN) == 57ull, "RotarySwitch1ToN enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::RotarySwitchNTo1) == 58ull, "RotarySwitchNTo1 enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::SampleHold) == 59ull, "SampleHold enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::SlewRate) == 60ull, "SlewRate enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::Slider) == 61ull, "Slider enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::SolenoidValve) == 62ull, "SolenoidValve enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::Splitter) == 63ull, "Splitter enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::Spring) == 64ull, "Spring enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::Subtract) == 65ull, "Subtract enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::Switch) == 66ull, "Switch enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::TempSensor) == 67ull, "TempSensor enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::TimeDelay) == 68ull, "TimeDelay enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::Transformer) == 69ull, "Transformer enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::Value) == 70ull, "Value enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::VariableConductance) == 71ull, "VariableConductance enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::VoltageSense) == 72ull, "VoltageSense enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::Voltmeter) == 73ull, "Voltmeter enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::XOR) == 74ull, "XOR enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::LuaScript) == 35ull, "LuaScript enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::Max) == 36ull, "Max enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::Merger) == 37ull, "Merger enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::Min) == 38ull, "Min enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::Monostable) == 39ull, "Monostable enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::Multiply) == 40ull, "Multiply enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::NAND) == 41ull, "NAND enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::NOT) == 42ull, "NOT enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::Normalize) == 43ull, "Normalize enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::OR) == 44ull, "OR enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::P) == 45ull, "P enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::PD) == 46ull, "PD enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::PI) == 47ull, "PI enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::PID) == 48ull, "PID enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::PneumaticCompressor) == 49ull, "PneumaticCompressor enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::PneumaticRef) == 50ull, "PneumaticRef enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::PneumaticValve) == 51ull, "PneumaticValve enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::Positive_V_to_Bool) == 52ull, "Positive_V_to_Bool enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::PressureRef) == 53ull, "PressureRef enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::Radiator) == 54ull, "Radiator enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::RefNode) == 55ull, "RefNode enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::Relay) == 56ull, "Relay enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::Resistor) == 57ull, "Resistor enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::RotarySwitch1ToN) == 58ull, "RotarySwitch1ToN enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::RotarySwitchNTo1) == 59ull, "RotarySwitchNTo1 enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::SampleHold) == 60ull, "SampleHold enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::SlewRate) == 61ull, "SlewRate enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::Slider) == 62ull, "Slider enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::SolenoidValve) == 63ull, "SolenoidValve enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::Splitter) == 64ull, "Splitter enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::Spring) == 65ull, "Spring enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::Subtract) == 66ull, "Subtract enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::Switch) == 67ull, "Switch enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::TempSensor) == 68ull, "TempSensor enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::TimeDelay) == 69ull, "TimeDelay enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::Transformer) == 70ull, "Transformer enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::Value) == 71ull, "Value enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::VariableConductance) == 72ull, "VariableConductance enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::VoltageSense) == 73ull, "VoltageSense enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::Voltmeter) == 74ull, "Voltmeter enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::XOR) == 75ull, "XOR enum position mismatch — re-run update_port_registry");
 
