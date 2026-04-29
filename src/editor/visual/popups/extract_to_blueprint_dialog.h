@@ -28,7 +28,7 @@ public:
             ? ws.findDocumentById(*ws.pendingExtract.document_id)
             : nullptr;
         if (!doc_for_preview) {
-            ws.pendingExtract.reset();
+            ws.pendingExtract.close();
             ImGui::CloseCurrentPopup();
             ImGui::EndPopup();
             return;
@@ -126,7 +126,7 @@ public:
                     spdlog::warn("[extract] failed: {}", err);
                 }
             }
-            ws.pendingExtract.reset();
+            ws.pendingExtract.close();
             ImGui::CloseCurrentPopup();
         }
         if (!can_extract) {
@@ -135,7 +135,7 @@ public:
 
         ImGui::SameLine();
         if (ImGui::Button("Cancel")) {
-            ws.pendingExtract.reset();
+            ws.pendingExtract.close();
             ImGui::CloseCurrentPopup();
         }
 

@@ -54,6 +54,7 @@ set(EDITOR_DOCUMENT_SOURCES
     ${CMAKE_SOURCE_DIR}/src/editor/document_simulation.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/document_windows.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/window_system.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/transient_ui_manager.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/focus_scope.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/oscilloscope.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/window/properties_window.cpp

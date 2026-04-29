@@ -28,6 +28,10 @@ struct IDrawList {
     virtual void add_triangle_filled(Pt a, Pt b, Pt c, uint32_t color) = 0;
     virtual Pt calc_text_size(const char* text, float font_size) const = 0;
 
+    /// Access the underlying platform draw list for hot-path bypass.
+    /// Returns nullptr if no native draw list is available.
+    virtual void* native_draw_list() const { return nullptr; }
+
     /// Render text with an explicit font handle (opaque, platform-specific).
     /// Default falls through to add_text (ignores font_handle).
     /// Used for icon font rendering where per-icon color control is needed.

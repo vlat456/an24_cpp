@@ -199,7 +199,7 @@ TEST(OwnershipIsolation, PendingBakeInResetClearsTypedState) {
     ws.pendingBakeIn.scope_id = WindowScopeId::embedded({doc.interner().intern("group_1")});
     ws.pendingBakeIn.node_id = doc.interner().intern("node_a");
 
-    ws.pendingBakeIn.reset();
+    ws.pendingBakeIn.close();
 
     EXPECT_FALSE(ws.pendingBakeIn.show_confirmation);
     EXPECT_FALSE(ws.pendingBakeIn.document_id.has_value());

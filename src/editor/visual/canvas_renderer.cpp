@@ -15,6 +15,25 @@
 #include <cstdio>
 #include <cstdlib>
 
+#ifdef AN24_PROFILE
+#include <chrono>
+
+an24::FrameProfiler& CanvasRenderer::profiler() {
+    static an24::FrameProfiler p;
+    static bool init = false;
+    if (!init) {
+        init = true;
+        (void)p.register_section("canvas: grid");
+        (void)p.register_section("canvas: energized_set");
+        (void)p.register_section("canvas: wire_crossings");
+        (void)p.register_section("canvas: scene.render");
+        (void)p.register_section("canvas: tooltips");
+        (void)p.register_section("canvas: input");
+    }
+    return p;
+}
+#endif
+
 // ===========================================================================
 // Development diagnostics: hover signal key resolution trace
 // ===========================================================================
@@ -112,7 +131,12 @@ static ImGuiDrawList make_dl(ImDrawList* raw) {
 void CanvasRenderer::render(BlueprintWindow& win, Document& doc, WindowSystem& ws,
                             Pt cmin, Pt cmax, ImDrawList* draw_list, bool hovered) {
     auto dl = make_dl(draw_list);
-    
+
+#ifdef AN24_PROFILE
+    auto& prof = profiler();
+    auto prof_t0 = std::chrono::steady_clock::now();
+#endif
+
     if (hovered) {
         ImVec2 mp = ImGui::GetMousePos();
         Pt mouse_world = win.viewport.screen_to_world(Pt(mp.x, mp.y), cmin);
@@ -121,16 +145,41 @@ void CanvasRenderer::render(BlueprintWindow& win, Document& doc, WindowSystem& w
         win.input.update_hover(Pt(CanvasConstants::HOVER_CLEAR_X, CanvasConstants::HOVER_CLEAR_Y));
     }
 
+#ifdef AN24_PROFILE
+    prof_t0 = std::chrono::steady_clock::now();
+#endif
     renderGrid(win, cmin, cmax, draw_list);
+#ifdef AN24_PROFILE
+    prof.add(0, std::chrono::duration<double, std::micro>(std::chrono::steady_clock::now() - prof_t0).count());
+#endif
+
     renderBlueprint(win, doc, ws, cmin, cmax, draw_list);
+
+#ifdef AN24_PROFILE
+    prof_t0 = std::chrono::steady_clock::now();
+#endif
     renderTooltips(win, doc, ws, cmin, draw_list);
     renderTempWire(win, cmin, draw_list);
     render_probe_markers(win, doc, ws, cmin, draw_list);
     renderMarquee(win, cmin, draw_list);
-    
+#ifdef AN24_PROFILE
+    prof.add(4, std::chrono::duration<double, std::micro>(std::chrono::steady_clock::now() - prof_t0).count());
+#endif
+
     if (hovered) {
+#ifdef AN24_PROFILE
+        prof_t0 = std::chrono::steady_clock::now();
+#endif
         handleInput(win, doc, ws, cmin);
+#ifdef AN24_PROFILE
+        prof.add(5, std::chrono::duration<double, std::micro>(std::chrono::steady_clock::now() - prof_t0).count());
+#endif
     }
+
+#ifdef AN24_PROFILE
+    prof.add_frame(0.0); // use frame count for averaging
+    prof.maybe_report();
+#endif
 }
 
 void CanvasRenderer::renderGrid(BlueprintWindow& win, Pt cmin, Pt cmax, ImDrawList* draw_list) {
@@ -140,15 +189,37 @@ void CanvasRenderer::renderGrid(BlueprintWindow& win, Pt cmin, Pt cmax, ImDrawLi
 }
 
 void CanvasRenderer::renderBlueprint(BlueprintWindow& win, Document& doc, WindowSystem& ws,
-                                     Pt cmin, Pt cmax, ImDrawList* draw_list) {
+                                      Pt cmin, Pt cmax, ImDrawList* draw_list) {
     auto dl = make_dl(draw_list);
 
-    // Build energized wire set from simulation (reuse buffer across frames)
+#ifdef AN24_PROFILE
+    auto& prof = profiler();
+    auto prof_t0 = std::chrono::steady_clock::now();
+#endif
+
     energized_buf_.clear();
     doc.buildEnergizedWireSet(energized_buf_, win.resolved_scope_id());
 
-    // Resolve selected node IDs to stable string_views for this frame.
+#ifdef AN24_PROFILE
+    prof.add(1, std::chrono::duration<double, std::micro>(std::chrono::steady_clock::now() - prof_t0).count());
+    prof_t0 = std::chrono::steady_clock::now();
+#endif
+
     auto sel_nodes = win.input.selected_node_id_views();
+
+    if (win.scene.crossings_dirty()) {
+#ifdef AN24_PROFILE
+        prof_t0 = std::chrono::steady_clock::now();
+#endif
+        visual::compute_wire_crossings(win.scene);
+        win.scene.clear_crossings_dirty();
+#ifdef AN24_PROFILE
+        prof.add(2, std::chrono::duration<double, std::micro>(std::chrono::steady_clock::now() - prof_t0).count());
+#endif
+    }
+#ifdef AN24_PROFILE
+    prof_t0 = std::chrono::steady_clock::now();
+#endif
 
     visual::RenderContext ctx;
     ctx.zoom = win.viewport.zoom;
@@ -162,8 +233,15 @@ void CanvasRenderer::renderBlueprint(BlueprintWindow& win, Document& doc, Window
     ctx.show_debug_bounds = ws.showDebugLayoutBounds;
     ctx.show_debug_paint_bounds = ws.showDebugPaintBounds;
 
-    visual::compute_wire_crossings(win.scene);
+#ifdef AN24_EDITOR
+    port_circle_atlas_.ensure();
+    ctx.port_circle_texture = port_circle_atlas_.texture_id();
+#endif
+
     win.scene.render(&dl, ctx);
+#ifdef AN24_PROFILE
+    prof.add(3, std::chrono::duration<double, std::micro>(std::chrono::steady_clock::now() - prof_t0).count());
+#endif
 }
 
 void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowSystem& ws,

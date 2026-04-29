@@ -40,10 +40,12 @@ public:
     void close();
     bool is_open() const { return open_; }
 
-    /// Typed owner identity for the current session, if any.
     const std::optional<editor::DocumentId>& owner_document_id() const { return owner_document_id_; }
     void set_owner_document_id(editor::DocumentId id) { owner_document_id_ = std::move(id); }
     void clear_owner_document_id() { owner_document_id_.reset(); }
+
+    bool owns_document(const editor::DocumentId& id) const;
+    bool still_valid(class WindowSystem& ws) const;
 
     /// Apply changes and close. Diffs pending state against snapshot, emits
     /// commands to the host, then invokes the on_apply callback.

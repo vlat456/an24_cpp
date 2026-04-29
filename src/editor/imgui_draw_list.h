@@ -10,6 +10,8 @@ class ImGuiDrawList : public ui::IDrawList {
 public:
     ImDrawList* dl = nullptr;
 
+    void* native_draw_list() const override { return dl; }
+
     void set_clip_rect(ui::Pt min, ui::Pt max) override {
         ImGui::PushClipRect(ImVec2(min.x, min.y), ImVec2(max.x, max.y), true);
     }

@@ -1,4 +1,5 @@
 #include "script_editor_window.h"
+#include "editor/window_system.h"
 #include "core/solvers/jit/components/lua_script_validate.h"
 #include "blueprint_v2/blueprint/blueprint_replace.h"
 
@@ -42,6 +43,20 @@ const bp2::Blueprint::Node* ScriptEditorWindow::resolve_target() const {
 
 void ScriptEditorWindow::close() {
     cancel_and_close();
+}
+
+bool ScriptEditorWindow::owns_document(const editor::DocumentId& id) const {
+    return owner_document_id_.has_value() && *owner_document_id_ == id;
+}
+
+bool ScriptEditorWindow::still_valid(WindowSystem& ws) const {
+#ifndef EDITOR_TESTING
+    if (!owner_document_id_.has_value()) return true;
+    return ws.findDocumentById(*owner_document_id_) != nullptr;
+#else
+    (void)ws;
+    return true;
+#endif
 }
 
 void ScriptEditorWindow::cancel_and_close() {

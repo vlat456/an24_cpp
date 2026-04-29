@@ -49,7 +49,7 @@ public:
         pending_removals_.push_back(w);
     }
     
-    void flushRemovals() {
+    virtual void flushRemovals() {
         while (!pending_removals_.empty()) {
             auto batch = std::move(pending_removals_);
             pending_removals_.clear();
@@ -66,7 +66,7 @@ public:
         }
     }
     
-    void clear() {
+    virtual void clear() {
         pending_removals_.clear();
         for (auto& r : roots_) {
             unindexWidget(r.get());

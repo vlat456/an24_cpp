@@ -3,7 +3,6 @@
 #include "editor/gl_setup.h"
 #include "editor/icon_font.h"
 #include "editor/imgui_theme.h"
-#include "editor/pi_zn_tuner.h"
 #include "editor/visual/dialogs/file_dialogs.h"
 
 #include <imgui.h>
@@ -22,12 +21,15 @@
 #include <filesystem>
 #include <cstring>
 
+#ifdef AN24_PROFILE
+#include <chrono>
+#endif
+
 namespace {
 
 void save_active_document_with_existing_flow(WindowSystem& ws, Document* doc) {
     if (!doc) return;
 
-    // Keep behavior aligned with File -> Save menu.
     if (doc->blueprint().name().empty()) {
         ws.setName.show = true;
         ws.setName.document_id = doc->id();
@@ -69,8 +71,6 @@ static void ensureConfigDir(const std::string& path) {
     std::filesystem::create_directories(dir, ec);
 }
 
-
-
 EditorApp::~EditorApp() {
     shutdown();
 }
@@ -80,24 +80,24 @@ bool EditorApp::initSDL() {
         printf("SDL_Init failed: %s\n", SDL_GetError());
         return false;
     }
-    
+
     const char* glsl_version = gl_setup::GLSL_VERSION;
-    
+
     if (gl_setup::FORWARD_COMPAT) {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
     }
     if (gl_setup::CORE_PROFILE) {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     }
-    
+
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, gl_setup::GL_MAJOR);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, gl_setup::GL_MINOR);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, gl_setup::DOUBLE_BUFFER);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, gl_setup::DEPTH_SIZE);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, gl_setup::STENCIL_SIZE);
-    
+
     SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-    
+
     window_ = SDL_CreateWindow("AN-24 Blueprint Editor",
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
         1400, 900, window_flags);
@@ -106,7 +106,7 @@ bool EditorApp::initSDL() {
         SDL_Quit();
         return false;
     }
-    
+
     gl_context_ = SDL_GL_CreateContext(window_);
     if (!gl_context_) {
         printf("SDL_GL_CreateContext failed: %s\n", SDL_GetError());
@@ -116,10 +116,10 @@ bool EditorApp::initSDL() {
     }
     SDL_GL_MakeCurrent(window_, gl_context_);
     SDL_GL_SetSwapInterval(1);
-    
+
     printf("OpenGL: %s\n", glGetString(GL_VERSION));
     printf("GLSL: %s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
-    
+
     return true;
 }
 
@@ -128,7 +128,7 @@ bool EditorApp::initImGui() {
     ImGui::CreateContext();
     auto& io = ImGui::GetIO();
     io.IniFilename = nullptr;
-    
+
     ImGuiTheme::LoadRobotoWithCyrillic(18.0f);
     ImFont* fa_font = ImGuiTheme::LoadFontAwesome(io.Fonts, 14.0f);
     if (fa_font) {
@@ -136,23 +136,23 @@ bool EditorApp::initImGui() {
         ws_.renderingResources().icon_font = &icon_font_;
     }
     ImGuiTheme::ApplyModernDarkTheme();
-    
+
     ImGui_ImplSDL2_InitForOpenGL(window_, gl_context_);
     ImGui_ImplOpenGL3_Init(gl_setup::GLSL_VERSION);
-    
+
     return true;
 }
 
 void EditorApp::shutdown() {
     if (shutdown_done_) return;
     shutdown_done_ = true;
-    
+
     if (ImGui::GetCurrentContext()) {
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplSDL2_Shutdown();
         ImGui::DestroyContext();
     }
-    
+
     if (gl_context_) SDL_GL_DeleteContext(gl_context_);
     if (window_) SDL_DestroyWindow(window_);
     SDL_Quit();
@@ -164,17 +164,13 @@ int EditorApp::run() {
         shutdown();
         return -1;
     }
-    
+
     std::string settings_path = getConfigPath();
     ensureConfigDir(settings_path);
     ws_.settings.loadFrom(settings_path);
-    
-    // Restore open tabs from previous session
+
     if (ws_.settings.hasOpenTabs()) {
-        // IMPORTANT: snapshot the list before iterating.
-        // openDocument() calls settings.addOpenTab() which mutates the same
-        // vector returned by openTabs(), invalidating range-for iterators.
-        const auto saved_tabs = ws_.settings.openTabs();  // copy
+        const auto saved_tabs = ws_.settings.openTabs();
         bool had_failures = false;
         std::string failed_list;
         for (const auto& path : saved_tabs) {
@@ -182,7 +178,6 @@ int EditorApp::run() {
                 had_failures = true;
                 if (!failed_list.empty()) failed_list += "\n";
                 failed_list += path;
-                // Remove from persisted tabs so we don't retry on every launch
                 ws_.settings.removeOpenTab(path);
             }
         }
@@ -190,7 +185,6 @@ int EditorApp::run() {
             pending_open_error_.show = true;
             pending_open_error_.message = "Failed to open one or more tabs:\n" + failed_list;
         }
-        // Restore active tab focus
         if (!ws_.settings.activeTab().empty()) {
             if (Document* doc = ws_.findDocumentByPath(ws_.settings.activeTab())) {
                 ws_.setActiveDocument(doc);
@@ -198,14 +192,44 @@ int EditorApp::run() {
             }
         }
     }
-    
+
+#ifdef AN24_PROFILE
+    prof_events_ = profiler_.register_section("handleEvents");
+    prof_imgui_newframe_ = profiler_.register_section("ImGui NewFrame");
+    prof_sim_step_ = profiler_.register_section("sim_step");
+    prof_node_content_ = profiler_.register_section("update_node_content");
+    prof_osc_blueprint_ = profiler_.register_section("osc_blueprint_changed");
+    prof_osc_sample_ = profiler_.register_section("osc_sample");
+    prof_render_menu_ = profiler_.register_section("render_menu");
+    prof_render_inspector_ = profiler_.register_section("  inspector");
+    prof_render_doc_area_ = profiler_.register_section("  document_area");
+    prof_render_sub_windows_ = profiler_.register_section("  sub_windows");
+    prof_render_osc_ = profiler_.register_section("  oscilloscope");
+    prof_render_dialogs_ = profiler_.register_section("  dialogs/properties");
+    prof_render_present_ = profiler_.register_section("render_present(gl+swap)");
+#endif
+
     running_ = true;
     while (running_) {
+#ifdef AN24_PROFILE
+        auto frame_t0 = std::chrono::steady_clock::now();
+        auto t0 = std::chrono::steady_clock::now();
+#endif
         handleEvents();
+#ifdef AN24_PROFILE
+        auto t1 = std::chrono::steady_clock::now();
+        profiler_.add(prof_events_, std::chrono::duration<double, std::micro>(t1 - t0).count());
+#endif
+
         update();
         render();
-        
-        // Track active tab for session restore
+
+#ifdef AN24_PROFILE
+        profiler_.add_frame(std::chrono::duration<double, std::micro>(
+            std::chrono::steady_clock::now() - frame_t0).count());
+        profiler_.maybe_report();
+#endif
+
         if (Document* doc = ws_.activeDocument()) {
             if (!doc->filepath().empty()) {
                 ws_.settings.setActiveTab(doc->filepath());
@@ -216,7 +240,7 @@ int EditorApp::run() {
             ws_.settings.setActiveTab("");
         }
     }
-    
+
     ws_.settings.saveTo(settings_path);
     shutdown();
     return 0;
@@ -226,7 +250,7 @@ void EditorApp::handleEvents() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         ImGui_ImplSDL2_ProcessEvent(&event);
-        
+
         if (event.type == SDL_QUIT) {
             running_ = false;
         }
@@ -235,64 +259,91 @@ void EditorApp::handleEvents() {
 
 void EditorApp::update() {
     auto& io = ImGui::GetIO();
-    
+
+#ifdef AN24_PROFILE
+    auto t0 = std::chrono::steady_clock::now();
+#endif
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
-    
-    // Save: Cmd+S (macOS) / Ctrl+S — always available, even when
-    // properties panel is open or a text field has keyboard focus.
+#ifdef AN24_PROFILE
+    auto t1 = std::chrono::steady_clock::now();
+    profiler_.add(prof_imgui_newframe_, std::chrono::duration<double, std::micro>(t1 - t0).count());
+#endif
+
     if (Document* doc = ws_.activeDocument()) {
         if (ImGui::IsKeyChordPressed(ImGuiMod_Shortcut | ImGuiKey_S)) {
             save_active_document_with_existing_flow(ws_, doc);
         }
     }
 
-    // Canvas-oriented shortcuts: blocked when a text field captures
-    // the keyboard or the properties panel is open.
     if (!io.WantCaptureKeyboard && !ws_.propertiesWindow().is_open()) {
         if (Document* doc = ws_.activeDocument()) {
             if (ImGui::IsKeyPressed(ImGuiKey_Space)) {
                 if (doc->isSimulationRunning()) doc->stopSimulation();
                 else doc->startSimulation();
             }
-            // Undo: Cmd+Z (macOS) / Ctrl+Z (others)
             if (ImGui::IsKeyChordPressed(ImGuiMod_Shortcut | ImGuiKey_Z)) {
                 doc->performUndo();
             }
-            // Redo: Cmd+Shift+Z (macOS) / Ctrl+Shift+Z, or Cmd+Y / Ctrl+Y
             if (ImGui::IsKeyChordPressed(ImGuiMod_Shortcut | ImGuiMod_Shift | ImGuiKey_Z) ||
                 ImGui::IsKeyChordPressed(ImGuiMod_Shortcut | ImGuiKey_Y)) {
                 doc->performRedo();
             }
         }
     }
-    
+
     if (Document* doc = ws_.activeDocument()) {
+#ifdef AN24_PROFILE
+        t0 = std::chrono::steady_clock::now();
+#endif
         doc->updateSimulationStep(io.DeltaTime);
+#ifdef AN24_PROFILE
+        t1 = std::chrono::steady_clock::now();
+        profiler_.add(prof_sim_step_, std::chrono::duration<double, std::micro>(t1 - t0).count());
+#endif
+
+#ifdef AN24_PROFILE
+        t0 = std::chrono::steady_clock::now();
+#endif
         doc->updateNodeContentFromSimulation();
-        // NOTE: on_blueprint_changed re-resolves probe signal keys via string
-        // construction. With 0-5 probes this is negligible. The main per-frame
-        // allocation win comes from the NodeSignalCache (10-50 animated nodes,
-        // now zero-allocation). Moving this to mutation sites only would require
-        // Document → Oscilloscope coupling that doesn't currently exist.
+#ifdef AN24_PROFILE
+        t1 = std::chrono::steady_clock::now();
+        profiler_.add(prof_node_content_, std::chrono::duration<double, std::micro>(t1 - t0).count());
+#endif
+
+#ifdef AN24_PROFILE
+        t0 = std::chrono::steady_clock::now();
+#endif
         ws_.oscilloscope.on_blueprint_changed(*doc);
+#ifdef AN24_PROFILE
+        t1 = std::chrono::steady_clock::now();
+        profiler_.add(prof_osc_blueprint_, std::chrono::duration<double, std::micro>(t1 - t0).count());
+#endif
+
+#ifdef AN24_PROFILE
+        t0 = std::chrono::steady_clock::now();
+#endif
         ws_.oscilloscope.sample(*doc, doc->isSimulationRunning(), io.DeltaTime);
+#ifdef AN24_PROFILE
+        t1 = std::chrono::steady_clock::now();
+        profiler_.add(prof_osc_sample_, std::chrono::duration<double, std::micro>(t1 - t0).count());
+#endif
     }
 }
 
 void EditorApp::render() {
     auto& io = ImGui::GetIO();
 
+#ifdef AN24_PROFILE
+    auto t0 = std::chrono::steady_clock::now();
+#endif
     auto menu_result = main_menu_.render(ws_);
     if (menu_result.exit_requested) {
         running_ = false;
     }
 
-    if (ws_.znTune.show_result_popup) {
-        ImGui::OpenPopup("ZN PI Tune Result");
-        ws_.znTune.show_result_popup = false;
-    }
+    zn_tune_result_dialog_.render(ws_);
 
     if (pending_open_error_.show) {
         ImGui::OpenPopup("Open Tabs Error");
@@ -307,80 +358,20 @@ void EditorApp::render() {
         }
         ImGui::EndPopup();
     }
+#ifdef AN24_PROFILE
+    auto t1 = std::chrono::steady_clock::now();
+    profiler_.add(prof_render_menu_, std::chrono::duration<double, std::micro>(t1 - t0).count());
+#endif
 
-    ImGui::SetNextWindowSize(ImVec2(560.0f, 0.0f), ImGuiCond_Appearing);
-    if (ImGui::BeginPopupModal("ZN PI Tune Result", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-        if (ws_.znTune.last_ok) {
-            ImGui::Text("Ku: %.6f", ws_.znTune.Ku);
-            ImGui::Text("Tu: %.6f s", ws_.znTune.Tu);
-            ImGui::Separator();
-            ImGui::Text("PI tuned:");
-            ImGui::Text("Kp: %.6f", ws_.znTune.Kp);
-            ImGui::Text("Ki: %.6f", ws_.znTune.Ki);
-        } else {
-            ImGui::TextWrapped("ZN tune failed: %s", ws_.znTune.error);
-            ImGui::Spacing();
-            ImGui::TextDisabled("Try: increase run time, lower settle time, or start with higher Kp range.");
-        }
-        if (ws_.znTune.last_ok && ws_.znTune.last_was_preview) {
-            ImGui::Separator();
-            if (ImGui::Button("Apply")) {
-                if (Document* doc = ws_.activeDocument()) {
-                    std::string err;
-                    bool ok = apply_pi_params(*doc, ws_.znTune.last_cfg.pi_node,
-                                              ws_.znTune.Kp, ws_.znTune.Ki, &err);
-                    if (!ok) {
-                        std::memset(ws_.znTune.error, 0, sizeof(ws_.znTune.error));
-                        std::strncpy(ws_.znTune.error, err.c_str(), sizeof(ws_.znTune.error) - 1);
-                        ws_.znTune.last_ok = false;
-                    } else {
-                        ws_.znTune.last_was_preview = false;
-                    }
-                }
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("Apply + Restart Sim")) {
-                if (Document* doc = ws_.activeDocument()) {
-                    std::string err;
-                    bool ok = apply_pi_params(*doc, ws_.znTune.last_cfg.pi_node,
-                                              ws_.znTune.Kp, ws_.znTune.Ki, &err);
-                    if (!ok) {
-                        std::memset(ws_.znTune.error, 0, sizeof(ws_.znTune.error));
-                        std::strncpy(ws_.znTune.error, err.c_str(), sizeof(ws_.znTune.error) - 1);
-                        ws_.znTune.last_ok = false;
-                    } else {
-                        doc->stopSimulation();
-                        doc->startSimulation();
-                        ws_.znTune.last_was_preview = false;
-                    }
-                }
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("Copy values")) {
-                char buf[256];
-                std::snprintf(buf, sizeof(buf), "Ku=%.6f Tu=%.6f Kp=%.6f Ki=%.6f",
-                              ws_.znTune.Ku, ws_.znTune.Tu, ws_.znTune.Kp, ws_.znTune.Ki);
-                ImGui::SetClipboardText(buf);
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("OK")) {
-                ImGui::CloseCurrentPopup();
-            }
-        } else {
-            ImGui::Separator();
-            if (ImGui::Button("OK")) {
-                ImGui::CloseCurrentPopup();
-            }
-        }
-        ImGui::EndPopup();
-    }
-    
     float menu_height = ImGui::GetFrameHeight();
     float available_h = io.DisplaySize.y - menu_height;
     float available_w = io.DisplaySize.x;
-    
+
+#ifdef AN24_PROFILE
+    t0 = std::chrono::steady_clock::now();
+#endif
     inspector_panel_.setVisible(ws_.showInspector);
-    
+
     if (inspector_panel_.visible()) {
         auto inspector_result = inspector_panel_.render(ws_, menu_height, available_h, available_w);
         if (!inspector_result.selected_node_id.empty() && ws_.activeDocument()) {
@@ -388,22 +379,51 @@ void EditorApp::render() {
         }
         ws_.showInspector = inspector_panel_.visible();
     }
-    
+#ifdef AN24_PROFILE
+    t1 = std::chrono::steady_clock::now();
+    profiler_.add(prof_render_inspector_, std::chrono::duration<double, std::micro>(t1 - t0).count());
+#endif
+
     float canvas_x = inspector_panel_.totalWidth();
 
     ws_.reconcile_owner_bound_ui();
-    
+
+#ifdef AN24_PROFILE
+    t0 = std::chrono::steady_clock::now();
+#endif
     auto doc_result = document_area_.render(ws_, canvas_x, menu_height, available_w - canvas_x, available_h);
     if (doc_result.close_requested) {
         ws_.closeDocument(*doc_result.close_requested);
     }
-    
+#ifdef AN24_PROFILE
+    t1 = std::chrono::steady_clock::now();
+    profiler_.add(prof_render_doc_area_, std::chrono::duration<double, std::micro>(t1 - t0).count());
+#endif
+
+#ifdef AN24_PROFILE
+    t0 = std::chrono::steady_clock::now();
+#endif
     sub_window_renderer_.renderAll(ws_);
+#ifdef AN24_PROFILE
+    t1 = std::chrono::steady_clock::now();
+    profiler_.add(prof_render_sub_windows_, std::chrono::duration<double, std::micro>(t1 - t0).count());
+#endif
+
+#ifdef AN24_PROFILE
+    t0 = std::chrono::steady_clock::now();
+#endif
     oscilloscope_window_.render(ws_);
-    
+#ifdef AN24_PROFILE
+    t1 = std::chrono::steady_clock::now();
+    profiler_.add(prof_render_osc_, std::chrono::duration<double, std::micro>(t1 - t0).count());
+#endif
+
+#ifdef AN24_PROFILE
+    t0 = std::chrono::steady_clock::now();
+#endif
     context_menus_.renderAddComponent(ws_);
     context_menus_.renderNodeContext(ws_);
-    
+
     color_picker_.render(ws_);
     bake_in_dialog_.render(ws_);
     set_name_dialog_.render(ws_);
@@ -412,12 +432,22 @@ void EditorApp::render() {
     ws_.scriptEditorWindow().render();
 
     ws_.propertiesWindow().render();
-    
+#ifdef AN24_PROFILE
+    t1 = std::chrono::steady_clock::now();
+    profiler_.add(prof_render_dialogs_, std::chrono::duration<double, std::micro>(t1 - t0).count());
+#endif
+
+#ifdef AN24_PROFILE
+    t0 = std::chrono::steady_clock::now();
+#endif
     ImGui::Render();
     glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
     glClearColor(0.078f, 0.082f, 0.102f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    
     SDL_GL_SwapWindow(window_);
+#ifdef AN24_PROFILE
+    t1 = std::chrono::steady_clock::now();
+    profiler_.add(prof_render_present_, std::chrono::duration<double, std::micro>(t1 - t0).count());
+#endif
 }

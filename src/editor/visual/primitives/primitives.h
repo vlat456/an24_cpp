@@ -19,6 +19,9 @@ public:
     Pt preferredSize(IDrawList* dl) const override;
     void render(IDrawList* dl, const RenderContext& ctx) const override;
 
+    const std::string& text() const { return text_; }
+    TextAlign align() const { return align_; }
+
 private:
     std::string text_;
     float font_size_;

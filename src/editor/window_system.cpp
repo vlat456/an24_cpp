@@ -6,6 +6,10 @@
 #include <cstdio>
 #include <filesystem>
 
+// =====================================================================
+// Helpers (file-local)
+// =====================================================================
+
 namespace {
 
 std::string find_library_index_path() {
@@ -20,12 +24,8 @@ std::string find_library_index_path() {
             return p;
         }
     }
-    return "library/library_index.json";  // fallback (will produce a clear error)
+    return "library/library_index.json";
 }
-
-} // namespace
-
-namespace {
 
 std::unique_ptr<EditingHost> create_scoped_host(Document& doc, const WindowScopeId& scope_id) {
     const ComponentRegistry* reg = doc.type_registry();
@@ -38,7 +38,6 @@ std::unique_ptr<EditingHost> create_scoped_host(Document& doc, const WindowScope
         return create_editor_model_host(doc.model(), reg, interner, arena);
     }
 
-    // scope_id.path() already returns InternedId vector - use directly
     return create_pathful_embedded_host(doc.model(),
         std::vector<core::InternedId>(scope_id.path().begin(), scope_id.path().end()),
         reg, interner, arena);
@@ -52,12 +51,156 @@ bool scoped_node_still_exists(Document& doc,
 
 } // namespace
 
+// =====================================================================
+// Transient UI struct protocol — out-of-line definitions
+// =====================================================================
+
+// -- ContextMenuState --
+
+bool WindowSystem::ContextMenuState::is_open() const { return show; }
+void WindowSystem::ContextMenuState::close() { show = false; source_document_id.reset(); }
+bool WindowSystem::ContextMenuState::owns_document(const editor::DocumentId& id) const {
+    return source_document_id.has_value() && *source_document_id == id;
+}
+bool WindowSystem::ContextMenuState::still_valid(WindowSystem& ws) const {
+    return !source_document_id.has_value() || ws.findDocumentById(*source_document_id) != nullptr;
+}
+
+// -- NodeContextMenuState --
+
+bool WindowSystem::NodeContextMenuState::is_open() const { return show; }
+void WindowSystem::NodeContextMenuState::close() { show = false; source_document_id.reset(); }
+bool WindowSystem::NodeContextMenuState::owns_document(const editor::DocumentId& id) const {
+    return source_document_id.has_value() && *source_document_id == id;
+}
+bool WindowSystem::NodeContextMenuState::still_valid(WindowSystem& ws) const {
+    return !source_document_id.has_value() || ws.findDocumentById(*source_document_id) != nullptr;
+}
+
+// -- ColorPickerState --
+
+bool WindowSystem::ColorPickerState::is_open() const { return show; }
+void WindowSystem::ColorPickerState::close() { show = false; source_document_id.reset(); }
+bool WindowSystem::ColorPickerState::owns_document(const editor::DocumentId& id) const {
+    return source_document_id.has_value() && *source_document_id == id;
+}
+bool WindowSystem::ColorPickerState::still_valid(WindowSystem& ws) const {
+    if (!source_document_id) return true;
+    Document* doc = ws.findDocumentById(*source_document_id);
+    if (!doc) return false;
+    return scoped_node_still_exists(*doc, scope_id, node_id);
+}
+
+// -- PendingBakeIn --
+
+bool WindowSystem::PendingBakeIn::is_open() const { return show_confirmation; }
+void WindowSystem::PendingBakeIn::close() {
+    show_confirmation = false;
+    document_id.reset();
+    scope_id = WindowScopeId::root();
+    node_id = {};
+}
+bool WindowSystem::PendingBakeIn::owns_document(const editor::DocumentId& id) const {
+    return document_id.has_value() && *document_id == id;
+}
+bool WindowSystem::PendingBakeIn::still_valid(WindowSystem& ws) const {
+    if (!document_id) return true;
+    Document* doc = ws.findDocumentById(*document_id);
+    if (!doc || scope_id.is_external()) return false;
+    return scoped_node_still_exists(*doc, scope_id, node_id);
+}
+
+// -- SetNameState --
+
+bool WindowSystem::SetNameState::is_open() const { return show; }
+void WindowSystem::SetNameState::close() { show = false; document_id.reset(); }
+bool WindowSystem::SetNameState::owns_document(const editor::DocumentId& id) const {
+    return document_id.has_value() && *document_id == id;
+}
+bool WindowSystem::SetNameState::still_valid(WindowSystem& ws) const {
+    return !document_id.has_value() || ws.findDocumentById(*document_id) != nullptr;
+}
+
+// -- PendingExtractToBlueprint --
+
+bool WindowSystem::PendingExtractToBlueprint::is_open() const { return show_dialog; }
+void WindowSystem::PendingExtractToBlueprint::close() {
+    show_dialog = false;
+    document_id.reset();
+    scope_id = WindowScopeId::root();
+    selected_node_ids.clear();
+    std::memset(name_buf, 0, sizeof(name_buf));
+    has_preview = false;
+    preview = {};
+    preview_error.clear();
+    preview_name.clear();
+    allow_nonembedded_descendant_refs = false;
+    preview_allow_nonembedded_descendant_refs = false;
+}
+bool WindowSystem::PendingExtractToBlueprint::owns_document(const editor::DocumentId& id) const {
+    return document_id.has_value() && *document_id == id;
+}
+bool WindowSystem::PendingExtractToBlueprint::still_valid(WindowSystem& ws) const {
+    if (!document_id) return true;
+    Document* doc = ws.findDocumentById(*document_id);
+    if (!doc || scope_id.is_external()) return false;
+    auto host = create_scoped_host(*doc, scope_id);
+    if (!host) return false;
+    for (auto iid : selected_node_ids) {
+        if (!host->find_node(iid)) return false;
+    }
+    return true;
+}
+
+// -- ZNTuneState --
+
+bool WindowSystem::ZNTuneState::is_open() const { return show_result_popup; }
+void WindowSystem::ZNTuneState::close() { show_result_popup = false; }
+bool WindowSystem::ZNTuneState::owns_document(const editor::DocumentId&) const { return false; }
+bool WindowSystem::ZNTuneState::still_valid(WindowSystem&) const { return true; }
+
+// -- InlineValueEditorState --
+
+bool WindowSystem::InlineValueEditorState::is_open() const { return open; }
+void WindowSystem::InlineValueEditorState::close() {
+    open = false;
+    document_id.reset();
+    cached_host.reset();
+}
+bool WindowSystem::InlineValueEditorState::owns_document(const editor::DocumentId& id) const {
+    return document_id.has_value() && *document_id == id;
+}
+bool WindowSystem::InlineValueEditorState::still_valid(WindowSystem& ws) const {
+    if (!document_id) return true;
+    Document* doc = ws.findDocumentById(*document_id);
+    if (!doc || scope_id.is_external()) return false;
+    return scoped_node_still_exists(*doc, scope_id, node_id);
+}
+
+// =====================================================================
+// WindowSystem
+// =====================================================================
+
 WindowSystem::WindowSystem()
     : type_registry_(load_component_registry())
     , library_index_(bp2::load_library_index(find_library_index_path()))
     , inspector_()
 {
+    register_transient_ui();
     createDocument();
+}
+
+void WindowSystem::register_transient_ui() {
+    transient_ui_.register_entry(contextMenu);
+    transient_ui_.register_entry(nodeContextMenu);
+    transient_ui_.register_entry(colorPicker);
+    transient_ui_.register_entry(pendingBakeIn);
+    transient_ui_.register_entry(setName);
+    transient_ui_.register_entry(pendingExtract);
+    transient_ui_.register_entry(znTune);
+    transient_ui_.register_entry(inlineValueEditor);
+    transient_ui_.register_entry(properties_window_);
+    transient_ui_.register_entry(script_editor_window_);
 }
 
 Document& WindowSystem::createDocument() {
@@ -74,7 +217,6 @@ Document& WindowSystem::createDocument() {
 }
 
 Document* WindowSystem::openDocument(const std::string& path) {
-    // Check if already open
     if (Document* existing = findDocumentByPath(path)) {
         setActiveDocument(existing);
         pending_tab_focus_ = existing;
@@ -83,7 +225,6 @@ Document* WindowSystem::openDocument(const std::string& path) {
         return existing;
     }
 
-    // If only one document exists and it's pristine (empty Untitled), replace it
     if (documents_.size() == 1 && documents_.front()->isPristine()) {
         Document* pristine = documents_.front().get();
         if (pristine->load(path)) {
@@ -122,15 +263,12 @@ bool WindowSystem::closeDocument(Document& doc) {
 
     spdlog::info("[WindowSystem] Closing document: {}", doc.displayName());
 
-    // Track open tabs before closing
     if (!doc.filepath().empty()) {
         settings.removeOpenTab(doc.filepath());
     }
 
-    // If this was the active document, pick a replacement BEFORE erasing
     if (active_document_ == &doc) {
         active_document_ = nullptr;
-        // Prefer the next document, or the previous one
         auto next = std::next(it);
         if (next != documents_.end()) {
             active_document_ = next->get();
@@ -139,66 +277,26 @@ bool WindowSystem::closeDocument(Document& doc) {
         }
     }
 
-    // Force-close all popups/menu state owned by the closing document.
-    // If we only reset source_document_id without closing show, the render
-    // path falls back to activeDocument() and can mutate the wrong doc.
-    const editor::DocumentId& closing_id = doc.id();
-    if (contextMenu.source_document_id == closing_id) {
-        contextMenu.source_document_id.reset();
-        contextMenu.show = false;
-    }
-    if (nodeContextMenu.source_document_id == closing_id) {
-        nodeContextMenu.source_document_id.reset();
-        nodeContextMenu.show = false;
-    }
-    if (colorPicker.source_document_id == closing_id) {
-        colorPicker.source_document_id.reset();
-        colorPicker.show = false;
-    }
-    if (pendingBakeIn.document_id == closing_id) {
-        pendingBakeIn.reset();
-    }
-    if (setName.document_id == closing_id) {
-        setName.document_id.reset();
-        setName.show = false;
-    }
-    if (pendingExtract.document_id == closing_id) {
-        pendingExtract.reset();
-    }
-    if (inlineValueEditor.document_id == closing_id) {
-        inlineValueEditor.close();
-    }
+    const editor::DocumentId closing_id = doc.id();
+
+    transient_ui_.close_for_document(closing_id);
+
     if (pending_tab_focus_ == &doc) {
         pending_tab_focus_ = nullptr;
     }
 
-    if (properties_window_.owner_document_id() == std::optional<editor::DocumentId>(closing_id)) {
-        properties_window_.close();
-        properties_window_.clear_owner_document_id();
-    }
-    if (script_editor_window_.owner_document_id() == std::optional<editor::DocumentId>(closing_id)) {
-        script_editor_window_.close();
-        script_editor_window_.clear_owner_document_id();
-    }
-
-    // Purge oscilloscope probes and hover state for the closing document
     oscilloscope.purge_for(closing_id);
 
     documents_.erase(it);
 
-    // Update inspector and ensure active_document_ is set.
-    // Both branches must reset focus_scope — the erased document's windows
-    // are destroyed, so any raw pointer in focus_scope is now dangling.
     if (!active_document_) {
         if (documents_.empty()) {
-            createDocument();  // setActiveDocument called inside
+            createDocument();
         } else {
             setActiveDocument(documents_.front().get());
         }
     } else {
         resetFocusToRoot();
-
-        // Force inspector update (setActiveDocument skips if pointer unchanged)
         inspector_.setBlueprint(active_document_->blueprint(),
                                 active_document_->arena(),
                                 active_document_->interner(),
@@ -211,35 +309,11 @@ bool WindowSystem::closeDocument(Document& doc) {
 }
 
 bool WindowSystem::closeAllDocuments() {
-    // Close properties window (holds raw pointers into document state)
-    if (properties_window_.is_open()) {
-        properties_window_.close();
-    }
-    properties_window_.clear_owner_document_id();
-    if (script_editor_window_.is_open()) {
-        script_editor_window_.close();
-    }
-    script_editor_window_.clear_owner_document_id();
+    transient_ui_.close_all();
 
-    // Clear all dangling references to documents being destroyed
-    contextMenu.source_document_id.reset();
-    contextMenu.show = false;
-    nodeContextMenu.source_document_id.reset();
-    nodeContextMenu.show = false;
-    colorPicker.source_document_id.reset();
-    colorPicker.show = false;
-    pendingBakeIn.reset();
-    setName.document_id.reset();
-    setName.show = false;
-    pendingExtract.reset();
-    inlineValueEditor.close();
-    pending_tab_focus_ = nullptr;
-
-    // Purge all oscilloscope state (probes + hover) for every document.
-    oscilloscope.purge_all();
-
-    // Clear focus scope (IDs are value types, but clear for semantic correctness).
     focus_scope.clear();
+    oscilloscope.purge_all();
+    pending_tab_focus_ = nullptr;
 
     documents_.clear();
     active_document_ = nullptr;
@@ -318,8 +392,6 @@ const Document* WindowSystem::findDocumentById(const editor::DocumentId& id) con
 }
 
 void WindowSystem::removeClosedDocuments() {
-    // This is a no-op for now - documents are removed immediately in closeDocument
-    // This method exists for future deferred removal if needed
 }
 
 void WindowSystem::openPropertiesForNode(core::InternedId node_id,
@@ -415,11 +487,8 @@ void WindowSystem::openInlineValueEditorForNode(core::InternedId node_id,
         current = it->second;
     }
 
-    // Pre-build the EditingHost for embedded scopes so the dialog doesn't
-    // recreate it every render frame.
     inlineValueEditor.cached_host.reset();
     if (scope_id.is_embedded()) {
-        // scope_id.path() already returns InternedId vector - use directly
         inlineValueEditor.cached_host = create_pathful_embedded_host(doc.model(),
             std::vector<core::InternedId>(scope_id.path().begin(), scope_id.path().end()),
             doc.type_registry(), &doc.interner(), &doc.arena());
@@ -466,71 +535,5 @@ void WindowSystem::handleInputAction(const Document::InputResultAction& action, 
 }
 
 void WindowSystem::reconcile_owner_bound_ui() {
-    if (colorPicker.source_document_id) {
-        Document* doc = findDocumentById(*colorPicker.source_document_id);
-        if (!doc || !scoped_node_still_exists(*doc, colorPicker.scope_id, colorPicker.node_id)) {
-            colorPicker.source_document_id.reset();
-            colorPicker.show = false;
-        }
-    }
-
-    if (pendingBakeIn.document_id) {
-        Document* doc = findDocumentById(*pendingBakeIn.document_id);
-        if (!doc || pendingBakeIn.scope_id.is_external()
-            || !scoped_node_still_exists(*doc, pendingBakeIn.scope_id, pendingBakeIn.node_id)) {
-            pendingBakeIn.reset();
-        }
-    }
-
-    if (pendingExtract.document_id) {
-        Document* doc = findDocumentById(*pendingExtract.document_id);
-        if (!doc || pendingExtract.scope_id.is_external()) {
-            pendingExtract.reset();
-        } else {
-            std::unique_ptr<EditingHost> host = create_scoped_host(*doc, pendingExtract.scope_id);
-            if (!host) {
-                pendingExtract.reset();
-            } else {
-                bool all_selected_exist = true;
-                for (core::InternedId iid : pendingExtract.selected_node_ids) {
-                    if (!host->find_node(iid)) {
-                        all_selected_exist = false;
-                        break;
-                    }
-                }
-                if (!all_selected_exist) {
-                    pendingExtract.reset();
-                }
-            }
-        }
-    }
-
-    if (setName.document_id && !findDocumentById(*setName.document_id)) {
-        setName.document_id.reset();
-        setName.show = false;
-    }
-
-    if (inlineValueEditor.document_id) {
-        Document* doc = findDocumentById(*inlineValueEditor.document_id);
-        if (!doc || inlineValueEditor.scope_id.is_external()
-            || !scoped_node_still_exists(*doc, inlineValueEditor.scope_id, inlineValueEditor.node_id)) {
-            inlineValueEditor.close();
-        }
-    }
-
-    if (properties_window_.is_open()) {
-        const auto& owner_id = properties_window_.owner_document_id();
-        if (!owner_id.has_value() || !findDocumentById(*owner_id)) {
-            properties_window_.close();
-            properties_window_.clear_owner_document_id();
-        }
-    }
-
-    if (script_editor_window_.is_open()) {
-        const auto& owner_id = script_editor_window_.owner_document_id();
-        if (!owner_id.has_value() || !findDocumentById(*owner_id)) {
-            script_editor_window_.close();
-            script_editor_window_.clear_owner_document_id();
-        }
-    }
+    transient_ui_.reconcile(*this);
 }

@@ -66,6 +66,8 @@
     "indicatorlight_3": "IndicatorLight",
     "indicatorlight_4": "IndicatorLight",
     "indicatorlight_5": "IndicatorLight",
+    "luascript_1": "LuaScript",
+    "merger_1": "Merger",
     "multiply_1": "Multiply",
     "normalize_1": "Normalize",
     "refnode_4": "RefNode",
@@ -74,6 +76,7 @@
     "resistor_2": "Resistor",
     "rotaryswitch1ton_1": "RotarySwitch1ToN",
     "slider_1": "Slider",
+    "splitter_1": "Splitter",
     "val_controlledvoltagesource_2_gain": "Value",
     "val_controlledvoltagesource_2_max_v": "Value",
     "val_controlledvoltagesource_2_min_v": "Value",
@@ -83,13 +86,19 @@
     "val_relay_1_hold_threshold": "Value",
     "val_variableconductance_1_g_max": "Value",
     "val_variableconductance_1_g_min": "Value",
+    "value_1": "Value",
     "value_2": "Value",
+    "value_3": "Value",
     "value_9": "Value",
     "variableconductance_1": "VariableConductance",
     "voltmeter_1": "Voltmeter"
   },
-  "signal_count": 106,
+  "signal_count": 142,
   "topology": [
+    [
+      "azs_1.v_out",
+      "variableconductance_1.v_in"
+    ],
     [
       "azs_1.v_in",
       "bus_2.v",
@@ -106,10 +115,6 @@
       "relay_1.v_in",
       "resistor_1.v_in",
       "voltmeter_1.v_in"
-    ],
-    [
-      "azs_1.v_out",
-      "variableconductance_1.v_in"
     ],
     [
       "bus_1.v",
@@ -133,24 +138,24 @@
       "resistor_2.v_out"
     ],
     [
-      "controlledvoltagesource_2.max_v",
-      "val_controlledvoltagesource_2_max_v.o"
-    ],
-    [
-      "controlledvoltagesource_2.gain",
-      "val_controlledvoltagesource_2_gain.o"
-    ],
-    [
-      "controlledvoltagesource_2.cmd",
-      "multiply_1.o"
+      "controlledvoltagesource_2.min_v",
+      "val_controlledvoltagesource_2_min_v.o"
     ],
     [
       "controlledvoltagesource_2.offset",
       "val_controlledvoltagesource_2_offset.o"
     ],
     [
-      "controlledvoltagesource_2.min_v",
-      "val_controlledvoltagesource_2_min_v.o"
+      "controlledvoltagesource_2.cmd",
+      "multiply_1.o"
+    ],
+    [
+      "controlledvoltagesource_2.max_v",
+      "val_controlledvoltagesource_2_max_v.o"
+    ],
+    [
+      "controlledvoltagesource_2.gain",
+      "val_controlledvoltagesource_2_gain.o"
     ],
     [
       "currentsense_1.v_in",
@@ -175,20 +180,20 @@
       "extract_inst_1:val_pi_1_output_min.o"
     ],
     [
-      "extract_inst_1:pi_1.output_max",
-      "extract_inst_1:val_pi_1_output_max.o"
-    ],
-    [
-      "extract_inst_1:pi_1.setpoint",
-      "extract_inst_1:value_1.o"
-    ],
-    [
       "extract_inst_1:pi_1.Ki",
       "extract_inst_1:val_pi_1_Ki.o"
     ],
     [
       "extract_inst_1:pi_1.Kp",
       "extract_inst_1:val_pi_1_Kp.o"
+    ],
+    [
+      "extract_inst_1:pi_1.output_max",
+      "extract_inst_1:val_pi_1_output_max.o"
+    ],
+    [
+      "extract_inst_1:pi_1.setpoint",
+      "extract_inst_1:value_1.o"
     ],
     [
       "extract_inst_2.out",
@@ -202,26 +207,26 @@
       "extract_inst_2:multiply_4.o"
     ],
     [
-      "extract_inst_2:clamp_1.max",
-      "extract_inst_2:val_clamp_1_max.o"
-    ],
-    [
       "extract_inst_2:clamp_1.min",
       "extract_inst_2:val_clamp_1_min.o"
+    ],
+    [
+      "extract_inst_2:clamp_1.max",
+      "extract_inst_2:val_clamp_1_max.o"
     ],
     [
       "extract_inst_2:divide_1.o",
       "extract_inst_2:multiply_4.A"
     ],
     [
-      "extract_inst_2:divide_1.A",
-      "extract_inst_2:integrator_1.out",
-      "extract_inst_2:multiply_2.A"
-    ],
-    [
       "extract_inst_2:divide_1.B",
       "extract_inst_2:subtract_1.A",
       "extract_inst_2:voltagesense_1.out"
+    ],
+    [
+      "extract_inst_2:divide_1.A",
+      "extract_inst_2:integrator_1.out",
+      "extract_inst_2:multiply_2.A"
     ],
     [
       "extract_inst_2:integrator_1.in",
@@ -240,12 +245,12 @@
       "extract_inst_2:value_3.o"
     ],
     [
-      "extract_inst_2:multiply_3.A",
-      "extract_inst_2:subtract_1.o"
-    ],
-    [
       "extract_inst_2:multiply_3.B",
       "extract_inst_2:value_4.o"
+    ],
+    [
+      "extract_inst_2:multiply_3.A",
+      "extract_inst_2:subtract_1.o"
     ],
     [
       "extract_inst_2:multiply_4.B",
@@ -284,36 +289,36 @@
       "extract_inst_3:multiply_5.o"
     ],
     [
-      "extract_inst_3:clamp_2.in",
-      "extract_inst_3:integrator_2.out"
-    ],
-    [
       "extract_inst_3:clamp_2.out",
       "extract_inst_3:subtract_3.B"
     ],
     [
-      "extract_inst_3:clamp_2.max",
-      "extract_inst_3:val_clamp_2_max.o"
+      "extract_inst_3:clamp_2.in",
+      "extract_inst_3:integrator_2.out"
     ],
     [
       "extract_inst_3:clamp_2.min",
       "extract_inst_3:val_clamp_2_min.o"
     ],
     [
-      "extract_inst_3:clamp_3.in",
-      "extract_inst_3:subtract_2.o"
+      "extract_inst_3:clamp_2.max",
+      "extract_inst_3:val_clamp_2_max.o"
     ],
     [
       "extract_inst_3:clamp_3.out",
       "extract_inst_3:multiply_8.A"
     ],
     [
-      "extract_inst_3:clamp_3.max",
-      "extract_inst_3:val_clamp_3_max.o"
+      "extract_inst_3:clamp_3.in",
+      "extract_inst_3:subtract_2.o"
     ],
     [
       "extract_inst_3:clamp_3.min",
       "extract_inst_3:val_clamp_3_min.o"
+    ],
+    [
+      "extract_inst_3:clamp_3.max",
+      "extract_inst_3:val_clamp_3_max.o"
     ],
     [
       "extract_inst_3:integrator_2.in",
@@ -363,6 +368,10 @@
       "normalize_1.in"
     ],
     [
+      "extract_inst_4:divide_rotor_accel.damping",
+      "extract_inst_4:value_rotor_damping.o"
+    ],
+    [
       "extract_inst_4:divide_rotor_accel.inv_inertia",
       "extract_inst_4:value_rotor_inv_inertia.o"
     ],
@@ -371,20 +380,12 @@
       "extract_inst_4:value_rotor_mass.o"
     ],
     [
-      "extract_inst_4:divide_rotor_accel.damping",
-      "extract_inst_4:value_rotor_damping.o"
-    ],
-    [
-      "firstorderlag_1:accumulator.in",
-      "firstorderlag_1:multiply.o"
-    ],
-    [
       "firstorderlag_1:accumulator.out",
       "firstorderlag_1:splitter.i"
     ],
     [
-      "firstorderlag_1:multiply.A",
-      "firstorderlag_1:subtract.o"
+      "firstorderlag_1:accumulator.in",
+      "firstorderlag_1:multiply.o"
     ],
     [
       "firstorderlag_1.rate",
@@ -392,6 +393,10 @@
       "firstorderlag_1:rate.ext",
       "firstorderlag_1:rate.port",
       "value_2.o"
+    ],
+    [
+      "firstorderlag_1:multiply.A",
+      "firstorderlag_1:subtract.o"
     ],
     [
       "firstorderlag_1.out",
@@ -448,16 +453,32 @@
       "variableconductance_1.v_out"
     ],
     [
+      "luascript_1.out3",
+      "merger_1.i1"
+    ],
+    [
+      "luascript_1.out2",
+      "merger_1.i2"
+    ],
+    [
+      "luascript_1.out1",
+      "splitter_1.i"
+    ],
+    [
+      "luascript_1.in1",
+      "value_1.o"
+    ],
+    [
       "multiply_1.B",
       "normalize_1.out"
     ],
     [
-      "normalize_1.max",
-      "val_normalize_1_max.o"
-    ],
-    [
       "normalize_1.min",
       "val_normalize_1_min.o"
+    ],
+    [
+      "normalize_1.max",
+      "val_normalize_1_max.o"
     ],
     [
       "relay_1.v_out",
@@ -683,6 +704,41 @@
     "indicatorlight_5.brightness": 1.1909657615660763e-07,
     "indicatorlight_5.v_in": 3.3347039334330475e-06,
     "indicatorlight_5.v_out": 0.0,
+    "luascript_1.in1": 12.0,
+    "luascript_1.in10": 0.0,
+    "luascript_1.in11": 0.0,
+    "luascript_1.in12": 0.0,
+    "luascript_1.in13": 0.0,
+    "luascript_1.in14": 0.0,
+    "luascript_1.in15": 0.0,
+    "luascript_1.in16": 0.0,
+    "luascript_1.in2": 0.0,
+    "luascript_1.in3": 0.0,
+    "luascript_1.in4": 0.0,
+    "luascript_1.in5": 0.0,
+    "luascript_1.in6": 0.0,
+    "luascript_1.in7": 0.0,
+    "luascript_1.in8": 0.0,
+    "luascript_1.in9": 0.0,
+    "luascript_1.out1": 48.0,
+    "luascript_1.out10": 0.0,
+    "luascript_1.out11": 0.0,
+    "luascript_1.out12": 0.0,
+    "luascript_1.out13": 0.0,
+    "luascript_1.out14": 0.0,
+    "luascript_1.out15": 0.0,
+    "luascript_1.out16": 0.0,
+    "luascript_1.out2": 0.0,
+    "luascript_1.out3": 44.0,
+    "luascript_1.out4": 0.0,
+    "luascript_1.out5": 0.0,
+    "luascript_1.out6": 0.0,
+    "luascript_1.out7": 0.0,
+    "luascript_1.out8": 0.0,
+    "luascript_1.out9": 0.0,
+    "merger_1.i1": 44.0,
+    "merger_1.i2": 0.0,
+    "merger_1.o": 0.0,
     "multiply_1.A": 28.49115753173828,
     "multiply_1.B": 0.00022197561338543892,
     "multiply_1.o": 0.006324341986328363,
@@ -710,6 +766,9 @@
     "rotaryswitch1ton_1.wiper": 28.499431610107422,
     "slider_1.control": 0.0,
     "slider_1.out": 0.0,
+    "splitter_1.i": 48.0,
+    "splitter_1.o1": 48.0,
+    "splitter_1.o2": 48.0,
     "val_controlledvoltagesource_2_gain.o": 1.0,
     "val_controlledvoltagesource_2_max_v.o": 30.0,
     "val_controlledvoltagesource_2_min_v.o": 0.0,
@@ -719,7 +778,9 @@
     "val_relay_1_hold_threshold.o": 0.5,
     "val_variableconductance_1_g_max.o": 10.0,
     "val_variableconductance_1_g_min.o": 0.0,
+    "value_1.o": 12.0,
     "value_2.o": 6.0,
+    "value_3.o": 1.0,
     "value_9.o": 1.0,
     "variableconductance_1.cmd": 1.0,
     "variableconductance_1.g_max": 10.0,

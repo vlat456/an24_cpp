@@ -62,6 +62,11 @@ Pt Wire::worldMax() const {
     return cached_max_;
 }
 
+void Wire::invalidateGeometry() const {
+    dirty_ = true;
+    if (scene()) scene()->mark_crossings_dirty();
+}
+
 void Wire::rebuildGeometry() const {
     // Resolve current endpoint positions
     auto opt_start = resolveEndpoint(start_);

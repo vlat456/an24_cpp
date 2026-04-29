@@ -70,7 +70,7 @@ public:
                     ? ws.findDocumentById(*ws.pendingBakeIn.document_id)
                     : nullptr;
                 if (!bake_doc) {
-                    ws.pendingBakeIn.reset();
+                    ws.pendingBakeIn.close();
                     ImGui::CloseCurrentPopup();
                     ImGui::EndPopup();
                     return;
@@ -81,7 +81,7 @@ public:
                 if (!host) {
                     spdlog::warn("[bake-in] rejected for unavailable or read-only scope '{}'",
                                  editor::instance_path_to_scope_string(bake_doc->interner(), ws.pendingBakeIn.scope_id.path()));
-                    ws.pendingBakeIn.reset();
+                    ws.pendingBakeIn.close();
                     ImGui::CloseCurrentPopup();
                     ImGui::EndPopup();
                     return;
@@ -102,14 +102,14 @@ public:
                     bake_doc->rebuildAllWindows();
                 }
 
-                ws.pendingBakeIn.reset();
+                ws.pendingBakeIn.close();
                 ImGui::CloseCurrentPopup();
             }
 
             ImGui::SameLine();
 
             if (ImGui::Button("Cancel")) {
-                ws.pendingBakeIn.reset();
+                ws.pendingBakeIn.close();
                 ImGui::CloseCurrentPopup();
             }
 

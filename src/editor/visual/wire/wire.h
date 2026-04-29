@@ -60,7 +60,7 @@ public:
 
     /// Mark cached geometry (polyline + bounding box) as stale.
     /// External callers (e.g. node drag) should call this when wire endpoints move.
-    void invalidateGeometry() const { dirty_ = true; }
+    void invalidateGeometry() const;
 
     void render(IDrawList* dl, const RenderContext& ctx) const override;
 

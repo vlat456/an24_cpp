@@ -34,6 +34,10 @@ struct RenderContext : public ui::RenderContext {
     bool show_debug_bounds = false;
     bool show_debug_paint_bounds = false;
 
+    /// Pre-rendered port circle texture (editor builds only, null in tests).
+    /// When non-null, use AddImage instead of AddCircleFilled for port circles.
+    void* port_circle_texture = nullptr;
+
     /// Set of visual wire IDs that are energized (voltage > threshold).
     /// Populated per frame from simulation state. nullptr when simulation is off.
     /// string_view keys reference the StringInterner's stable deque storage.

@@ -5,19 +5,25 @@
 #include "editor/window/blueprint_window.h"
 #include "editor/window_system.h"
 #include "editor/visual/canvas_constants.h"
+#include "editor/visual/port/port_circle_atlas.h"
+
+#ifdef AN24_PROFILE
+#include "editor/app/frame_profiler.h"
+#endif
 
 struct ImDrawList;
 
 
-/// Renders a single canvas (blueprint window) - handles grid, nodes, wires, input
-/// Uses dependency injection for testability
 class CanvasRenderer {
 public:
     CanvasRenderer() {}
-    
-    /// Render canvas content and handle input
+
     void render(BlueprintWindow& win, Document& doc, WindowSystem& ws,
                 Pt cmin, Pt cmax, ImDrawList* draw_list, bool hovered);
+
+#ifdef AN24_PROFILE
+    static an24::FrameProfiler& profiler();
+#endif
 
 private:
     void renderGrid(BlueprintWindow& win, Pt cmin, Pt cmax, ImDrawList* draw_list);
@@ -28,7 +34,19 @@ private:
     void renderMarquee(BlueprintWindow& win, Pt cmin, ImDrawList* draw_list);
     void handleInput(BlueprintWindow& win, Document& doc, WindowSystem& ws, Pt cmin);
 
-private:
-    // Reusable buffer for energized wire set (avoids static thread_local)
     std::unordered_set<std::string_view, visual::StringViewHash> energized_buf_;
+
+#ifdef AN24_EDITOR
+    visual::PortCircleAtlas port_circle_atlas_;
+#endif
+
+#ifdef AN24_PROFILE
+    int prof_grid_{};
+    int prof_energized_{};
+    int prof_crossings_{};
+    int prof_scene_render_{};
+    int prof_tooltips_{};
+    int prof_input_{};
+    bool profile_registered_{false};
+#endif
 };

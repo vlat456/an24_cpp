@@ -13,20 +13,23 @@
 #include "editor/visual/popups/set_name_dialog.h"
 #include "editor/visual/popups/extract_to_blueprint_dialog.h"
 #include "editor/visual/popups/inline_value_editor_dialog.h"
+#include "editor/visual/popups/zn_tune_result_dialog.h"
 #include <memory>
+
+#ifdef AN24_PROFILE
+#include "editor/app/frame_profiler.h"
+#endif
 
 struct SDL_Window;
 typedef void* SDL_GLContext;
 
-/// Editor application - encapsulates entire app lifecycle
 class EditorApp {
 public:
     EditorApp() = default;
     ~EditorApp();
-    
-    /// Run the editor - blocks until exit
+
     int run();
-    
+
 private:
     struct PendingOpenError {
         bool show = false;
@@ -36,24 +39,20 @@ private:
     bool initSDL();
     bool initImGui();
     void shutdown();
-    
+
     void handleEvents();
     void update();
     void render();
-    
-    // Platform
+
     SDL_Window* window_ = nullptr;
     SDL_GLContext gl_context_ = nullptr;
     bool running_ = false;
     bool shutdown_done_ = false;
-    
-    // Business logic
+
     ::WindowSystem ws_;
-    
-    // Icon font for node badges (loaded in initImGui)
+
     editor::IconFont icon_font_;
-    
-    // UI components (using global namespace classes)
+
     MainMenu main_menu_;
     InspectorPanel inspector_panel_;
     DocumentArea document_area_;
@@ -65,4 +64,23 @@ private:
     SetNameDialog set_name_dialog_;
     ExtractToBlueprintDialog extract_to_blueprint_dialog_;
     InlineValueEditorDialog inline_value_editor_dialog_;
+    ZnTuneResultDialog zn_tune_result_dialog_;
+
+#ifdef AN24_PROFILE
+    an24::FrameProfiler profiler_;
+
+    int prof_events_{};
+    int prof_imgui_newframe_{};
+    int prof_sim_step_{};
+    int prof_node_content_{};
+    int prof_osc_blueprint_{};
+    int prof_osc_sample_{};
+    int prof_render_menu_{};
+    int prof_render_inspector_{};
+    int prof_render_doc_area_{};
+    int prof_render_sub_windows_{};
+    int prof_render_osc_{};
+    int prof_render_dialogs_{};
+    int prof_render_present_{};
+#endif
 };

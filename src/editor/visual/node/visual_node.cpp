@@ -6,6 +6,7 @@
 #include "editor/layout_constants.h"
 #include "visual/node/bounds.h"
 #include "visual/snap.h"
+#include "visual/port/port_arrow.h"
 #include "data/node_content.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/interface/node_port_projection.h"
@@ -13,6 +14,9 @@
 #include "editor/visual/presentation/semantic_scene_snapshot.h"
 #include "editor/visual/presentation/node_badge.h"
 #include <spdlog/spdlog.h>
+#ifdef AN24_EDITOR
+#include <imgui.h>
+#endif
 #include <algorithm>
 #include <cmath>
 #include <variant>
@@ -610,84 +614,276 @@ void NodeWidget::onLocalPosChanged() {
 // Rendering
 // ============================================================================
 
-void NodeWidget::render(IDrawList* dl, const RenderContext& ctx) const {
-    if (!dl) return;
+// ============================================================================
+// Fat single-pass render — zero child recursion
+// ============================================================================
 
-    Pt pos = worldPos();
-    Pt sz = size();
-    float zoom = ctx.zoom;
+/// Header strip constants (matches former HeaderStrip widget).
+static constexpr float kHeaderHeight       = 24.0f;
+static constexpr float kHeaderVisualHeight = 20.0f;
+static constexpr float kHeaderFontSize     = 12.0f;
+static constexpr float kHeaderPadding      = 5.0f;
+static constexpr float kHeaderIconPadLeft  = 6.0f;
+static constexpr float kHeaderIconGap      = 3.0f;
 
-    Pt screen_min = ctx.world_to_screen(pos);
-    Pt screen_max = ctx.world_to_screen(Pt(pos.x + sz.x, pos.y + sz.y));
-    float rounding = editor_constants::NODE_ROUNDING * zoom;
+/// Footer constants (matches former FooterTypeLabel widget).
+static constexpr float kFooterHeight       = 16.0f;
+static constexpr float kFooterFontSize     = 9.0f;
+static constexpr float kFooterRightPadding = 5.0f;
 
-    // Body fill
-    uint32_t fill = custom_fill_.value_or(render_theme::COLOR_BODY_FILL);
+void NodeWidget::renderTree(IDrawList* dl, const RenderContext& ctx) const {
+    if (!paint_enabled_ || !dl) return;
+
+#ifdef AN24_PROFILE
+    static double t_body = 0, t_header = 0, t_content = 0, t_ports = 0, t_labels = 0, t_footer = 0, t_post = 0;
+    static int n_count = 0, n_report = 0;
+    auto tick = [] { return std::chrono::steady_clock::now(); };
+    auto us = [](auto a, auto b) { return std::chrono::duration<double, std::micro>(b - a).count(); };
+    auto t0 = tick();
+#endif
+
+    const Pt node_pos = worldPos();
+    const Pt node_sz  = size();
+    const float zoom  = ctx.zoom;
+    const Pt screen_min = ctx.world_to_screen(node_pos);
+    const Pt screen_max = ctx.world_to_screen(node_pos + node_sz);
+    const float rounding = editor_constants::NODE_ROUNDING * zoom;
+
+    // == 1. Body fill ==
+    const uint32_t fill = custom_fill_.value_or(render_theme::COLOR_BODY_FILL);
     dl->add_rect_filled_with_rounding(screen_min, screen_max, fill, rounding);
 
+#ifdef AN24_PROFILE
+    auto t1 = tick(); t_body += us(t0, t1); t0 = t1;
+#endif
+
+    // == 2. Header strip ==
+    if (header_) {
+        const Pt h_origin = ctx.world_to_screen(node_pos + header_->localPos());
+        const Pt h_size   = header_->size();
+        const Pt h_max(h_origin.x + h_size.x * zoom, h_origin.y + kHeaderVisualHeight * zoom);
+
+        dl->add_rect_filled_with_rounding_corners(
+            h_origin, h_max, render_theme::COLOR_HEADER_FILL, rounding, 0x30);
+
+        const float font = kHeaderFontSize * zoom;
+        float text_w = 0.0f;
+
+        if (!name_.empty()) {
+            const Pt text_pos(h_origin.x + kHeaderPadding * zoom,
+                              h_origin.y + (kHeaderVisualHeight - kHeaderFontSize) * zoom * 0.5f);
+            dl->add_text(text_pos, name_.c_str(), render_theme::COLOR_TEXT, font);
+            text_w = dl->calc_text_size(name_.c_str(), font).x;
+        }
+
+        if (!badges_.empty() && icon_font_ && icon_font_->available()) {
+            float bx = h_origin.x + kHeaderPadding * zoom + text_w + kHeaderIconPadLeft * zoom;
+            const float by = h_origin.y + (kHeaderVisualHeight - kHeaderFontSize) * zoom * 0.5f;
+            badges_.for_each([&](editor::NodeBadge badge) {
+                editor::BadgeVisuals vis = editor::get_badge_visuals(badge);
+                char utf8[5];
+                editor::IconFont::codepoint_to_utf8(vis.codepoint, utf8);
+                dl->add_text_with_font(Pt(bx, by), utf8, vis.color, font, icon_font_->handle);
+                Pt sz = dl->calc_text_size_with_font(utf8, font, icon_font_->handle);
+                bx += sz.x + kHeaderIconGap * zoom;
+            });
+        }
+    }
+
+#ifdef AN24_PROFILE
+    t1 = tick(); t_header += us(t0, t1); t0 = t1;
+#endif
+
+    // == 3. Content (semantic snapshot) ==
     if (render_content_from_semantic_snapshot_) {
         for (const auto& object : content_semantic_snapshot_.render_objects) {
-            if (object.kind != editor::presentation::SceneRenderObjectKind::ContentPaint) {
+            if (object.kind != editor::presentation::SceneRenderObjectKind::ContentPaint)
                 continue;
-            }
             if (object.primitive == editor::presentation::PaintPrimitiveKind::Text) {
-                const TextPaintGeometry text = resolve_text_paint_geometry(object, pos, *dl, ctx);
+                const TextPaintGeometry text = resolve_text_paint_geometry(object, node_pos, *dl, ctx);
                 dl->add_text(text.pos,
                              object.text.c_str(),
                              object.fill_color != 0 ? object.fill_color : render_theme::COLOR_TEXT_DIM,
                              text.font);
-                continue;
-            }
-            if (object.primitive == editor::presentation::PaintPrimitiveKind::Rectangle) {
-                const RectPaintGeometry rect = resolve_rect_paint_geometry(object, pos, ctx);
+            } else if (object.primitive == editor::presentation::PaintPrimitiveKind::Rectangle) {
+                const RectPaintGeometry rect = resolve_rect_paint_geometry(object, node_pos, ctx);
                 dl->add_rect_filled(rect.min, rect.max, object.fill_color);
-                if (object.stroke_width > 0.0f) {
-                    dl->add_rect(rect.min, rect.max, object.stroke_color, object.stroke_width * ctx.zoom);
-                }
-                continue;
-            }
-            if (object.primitive == editor::presentation::PaintPrimitiveKind::Circle) {
-                const auto* circle_geo = std::get_if<editor::presentation::CircleGeometry>(&object.geometry);
-                // Geometry origin (0,0) maps to center of element bounds
-                float cx = object.bounds.x + object.bounds.w * 0.5f + (circle_geo ? circle_geo->cx : 0.0f);
-                float cy = object.bounds.y + object.bounds.h * 0.5f + (circle_geo ? circle_geo->cy : 0.0f);
-                float radius = circle_geo ? circle_geo->radius : 0.0f;
-                Pt center = ctx.world_to_screen(Pt(pos.x + cx, pos.y + cy));
-                float r = radius * ctx.zoom;
+                if (object.stroke_width > 0.0f)
+                    dl->add_rect(rect.min, rect.max, object.stroke_color, object.stroke_width * zoom);
+            } else if (object.primitive == editor::presentation::PaintPrimitiveKind::Circle) {
+                const auto* cg = std::get_if<editor::presentation::CircleGeometry>(&object.geometry);
+                float cx = object.bounds.x + object.bounds.w * 0.5f + (cg ? cg->cx : 0.0f);
+                float cy = object.bounds.y + object.bounds.h * 0.5f + (cg ? cg->cy : 0.0f);
+                float r = (cg ? cg->radius : 0.0f) * zoom;
+                Pt center = ctx.world_to_screen(Pt(node_pos.x + cx, node_pos.y + cy));
                 dl->add_circle_filled(center, r, object.fill_color, 24);
-                if (object.stroke_width > 0.0f) {
+                if (object.stroke_width > 0.0f)
                     dl->add_circle(center, r, object.stroke_color, 24);
+            } else if (object.primitive == editor::presentation::PaintPrimitiveKind::Line) {
+                const LinePaintGeometry line = resolve_line_paint_geometry(object, node_pos, ctx);
+                dl->add_line(line.a, line.b, object.fill_color, object.stroke_width * zoom);
+            } else if (object.primitive == editor::presentation::PaintPrimitiveKind::Arc) {
+                const auto* ag = std::get_if<editor::presentation::ArcGeometry>(&object.geometry);
+                float cx = object.bounds.x + object.bounds.w * 0.5f + (ag ? ag->cx : 0.0f);
+                float cy = object.bounds.y + object.bounds.h * 0.5f + (ag ? ag->cy : 0.0f);
+                float radius = (ag ? ag->radius : 0.0f) * zoom;
+                float start = (ag ? ag->start_angle_deg : 0.0f) * DEG2RAD;
+                float sweep = (ag ? ag->sweep_angle_deg : 0.0f) * DEG2RAD;
+                Pt center = ctx.world_to_screen(Pt(node_pos.x + cx, node_pos.y + cy));
+                constexpr int seg = 32;
+                Pt pts[seg + 1];
+                for (int i = 0; i <= seg; ++i) {
+                    float t = static_cast<float>(i) / seg;
+                    float a = start + t * sweep;
+                    pts[i] = Pt(center.x + std::cos(a) * radius, center.y - std::sin(a) * radius);
                 }
-                continue;
-            }
-            if (object.primitive == editor::presentation::PaintPrimitiveKind::Line) {
-                const LinePaintGeometry line = resolve_line_paint_geometry(object, pos, ctx);
-                dl->add_line(line.a, line.b, object.fill_color, object.stroke_width * ctx.zoom);
-                continue;
-            }
-            if (object.primitive == editor::presentation::PaintPrimitiveKind::Arc) {
-                const auto* arc_geo = std::get_if<editor::presentation::ArcGeometry>(&object.geometry);
-                // Geometry origin (0,0) maps to center of element bounds
-                float cx = object.bounds.x + object.bounds.w * 0.5f + (arc_geo ? arc_geo->cx : 0.0f);
-                float cy = object.bounds.y + object.bounds.h * 0.5f + (arc_geo ? arc_geo->cy : 0.0f);
-                float radius = (arc_geo ? arc_geo->radius : 0.0f) * ctx.zoom;
-                float start_angle = (arc_geo ? arc_geo->start_angle_deg : 0.0f) * DEG2RAD;
-                float sweep_angle = (arc_geo ? arc_geo->sweep_angle_deg : 0.0f) * DEG2RAD;
-                Pt center = ctx.world_to_screen(Pt(pos.x + cx, pos.y + cy));
-                constexpr int segments = 32;
-                Pt points[segments + 1];
-                for (int i = 0; i <= segments; ++i) {
-                    float t = static_cast<float>(i) / segments;
-                    float angle = start_angle + t * sweep_angle;
-                    points[i] = Pt(center.x + std::cos(angle) * radius,
-                                   center.y - std::sin(angle) * radius);
-                }
-                dl->add_polyline(points, segments + 1, object.fill_color, object.stroke_width * ctx.zoom);
+                dl->add_polyline(pts, seg + 1, object.fill_color, object.stroke_width * zoom);
             }
         }
     }
 
-    // Children (header, footer, ports, labels) rendered by renderTree()
+#ifdef AN24_PROFILE
+    t1 = tick(); t_content += us(t0, t1); t0 = t1;
+#endif
+
+    // == 4. Ports (circles + direction arrows) ==
+#ifdef AN24_EDITOR
+    // Hot path: pre-rendered texture circle + direct ImDrawList
+    {
+        ImDrawList* idl = static_cast<ImDrawList*>(dl->native_draw_list());
+        ImTextureID circle_tex = reinterpret_cast<ImTextureID>(ctx.port_circle_texture);
+        for (const auto& entry : port_entries_) {
+            const Port* p = entry.port;
+            if (!p) continue;
+
+            const Pt p_pos = ctx.world_to_screen(node_pos + p->localPos());
+            const float r  = PortConstants::RADIUS * zoom;
+            const ImVec2 center(p_pos.x + r, p_pos.y + r);
+            const ImU32 pcolor = static_cast<ImU32>(p->color());
+
+            if (circle_tex) {
+                // Textured circle — 4 flat vertices, zero path work
+                idl->AddImage(circle_tex,
+                              ImVec2(center.x - r, center.y - r),
+                              ImVec2(center.x + r, center.y + r),
+                              ImVec2(0, 0), ImVec2(1, 1), pcolor);
+            } else {
+                idl->AddCircleFilled(center, r, pcolor, 6);
+            }
+
+            if (p->direction() != bp2::Direction::InOut) {
+                const float thickness = PortConstants::ARROW_THICKNESS * zoom;
+                const float arrow_offset = r * arrow_offset_for_side(p->layoutSide());
+                const float arrow_size = PortConstants::ARROW_SIZE * zoom;
+                const auto arrow = compute_port_arrow(
+                    p->layoutSide(), p->direction(), Pt(center.x, center.y), r,
+                    arrow_offset, arrow_size);
+                idl->AddLine(ImVec2(arrow.tip.x, arrow.tip.y),
+                             ImVec2(arrow.back1.x, arrow.back1.y), pcolor, thickness);
+                idl->AddLine(ImVec2(arrow.tip.x, arrow.tip.y),
+                             ImVec2(arrow.back2.x, arrow.back2.y), pcolor, thickness);
+            }
+        }
+    }
+#else
+    // Fallback: use IDrawList interface (test builds)
+    for (const auto& entry : port_entries_) {
+        const Port* p = entry.port;
+        if (!p) continue;
+
+        const Pt p_pos = ctx.world_to_screen(node_pos + p->localPos());
+        const float r  = PortConstants::RADIUS * zoom;
+        const Pt center(p_pos.x + r, p_pos.y + r);
+        const uint32_t pcolor = p->color();
+
+        dl->add_circle_filled(center, r, pcolor, 6);
+
+        if (p->direction() != bp2::Direction::InOut) {
+            const float thickness = PortConstants::ARROW_THICKNESS * zoom;
+            const float arrow_offset = r * arrow_offset_for_side(p->layoutSide());
+            const float arrow_size = PortConstants::ARROW_SIZE * zoom;
+            const auto arrow = compute_port_arrow(
+                p->layoutSide(), p->direction(), center, r,
+                arrow_offset, arrow_size);
+            dl->add_line(arrow.tip, arrow.back1, pcolor, thickness);
+            dl->add_line(arrow.tip, arrow.back2, pcolor, thickness);
+        }
+    }
+#endif
+
+#ifdef AN24_PROFILE
+    t1 = tick(); t_ports += us(t0, t1); t0 = t1;
+#endif
+
+    // == 5. Port labels ==
+    for (const auto& entry : port_entries_) {
+        const Label* lbl = entry.label;
+        if (!lbl) continue;
+
+        const Pt l_pos = ctx.world_to_screen(node_pos + lbl->localPos());
+        const Pt l_sz  = lbl->size();
+        const float font = PortConstants::LABEL_FONT_SIZE * zoom;
+        const float avail_w = l_sz.x * zoom;
+        float ty = l_pos.y + (l_sz.y * zoom - font) * 0.5f;
+        float tx = l_pos.x;
+
+        const std::string& text = lbl->text();
+        if (lbl->align() == TextAlign::Right) {
+            float text_w = dl->calc_text_size(text.c_str(), font).x;
+            tx = l_pos.x + avail_w - text_w;
+        }
+        dl->add_text(Pt(tx, ty), text.c_str(), PortConstants::LABEL_COLOR, font);
+    }
+
+#ifdef AN24_PROFILE
+    t1 = tick(); t_labels += us(t0, t1); t0 = t1;
+#endif
+
+    // == 6. Footer type label ==
+    if (footer_ && !type_name_.empty()) {
+        const Pt f_origin = ctx.world_to_screen(node_pos + footer_->localPos());
+        const Pt f_sz     = footer_->size();
+        const float font  = kFooterFontSize * zoom;
+        const float avail_w = f_sz.x * zoom;
+        const Pt text_size = dl->calc_text_size(type_name_.c_str(), font);
+        const float tx = std::max(f_origin.x,
+                                  f_origin.x + avail_w - text_size.x - kFooterRightPadding * zoom);
+        const float ty = f_origin.y + (kFooterHeight * zoom - font) * 0.5f;
+        dl->add_text(Pt(tx, ty), type_name_.c_str(), render_theme::COLOR_TEXT_DIM, font);
+    }
+
+#ifdef AN24_PROFILE
+    t1 = tick(); t_footer += us(t0, t1); t0 = t1;
+#endif
+
+    // == 7. Selection outline + resize handles ==
+    renderPost(dl, ctx);
+
+#ifdef AN24_PROFILE
+    t1 = tick(); t_post += us(t0, t1);
+    ++n_count;
+    if (++n_report >= 120) {
+        double total = t_body + t_header + t_content + t_ports + t_labels + t_footer + t_post;
+        std::printf("=== Node renderTree breakdown (per node, %d nodes avg) ===\n", n_count);
+        std::printf("  body:        %6.1f us  (%4.1f%%)\n", t_body/n_count,     total>0?t_body/total*100:0);
+        std::printf("  header:      %6.1f us  (%4.1f%%)\n", t_header/n_count,   total>0?t_header/total*100:0);
+        std::printf("  content:     %6.1f us  (%4.1f%%)\n", t_content/n_count,  total>0?t_content/total*100:0);
+        std::printf("  ports:       %6.1f us  (%4.1f%%)\n", t_ports/n_count,    total>0?t_ports/total*100:0);
+        std::printf("  labels:      %6.1f us  (%4.1f%%)\n", t_labels/n_count,   total>0?t_labels/total*100:0);
+        std::printf("  footer:      %6.1f us  (%4.1f%%)\n", t_footer/n_count,   total>0?t_footer/total*100:0);
+        std::printf("  post:        %6.1f us  (%4.1f%%)\n", t_post/n_count,     total>0?t_post/total*100:0);
+        std::printf("  TOTAL/node:  %6.1f us\n", total/n_count);
+        std::fflush(stdout);
+        t_body=t_header=t_content=t_ports=t_labels=t_footer=t_post=0;
+        n_count = 0; n_report = 0;
+    }
+#endif
+
+    // NO child recursion — we rendered everything above.
+}
+
+void NodeWidget::render(IDrawList* dl, const RenderContext& ctx) const {
+    // Intentionally empty — all rendering is in renderTree().
 }
 
 void NodeWidget::renderPost(IDrawList* dl, const RenderContext& ctx) const {

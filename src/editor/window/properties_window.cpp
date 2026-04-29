@@ -1,4 +1,5 @@
 #include "properties_window.h"
+#include "editor/window_system.h"
 #include "blueprint_v2/editor_model/editor_model.h"
 #include "editor/common/port_type_utils.h"
 #include "blueprint_v2/interface/node_port_projection.h"
@@ -191,6 +192,20 @@ const bp2::Blueprint::Node* PropertiesWindow::resolve_target() const {
 
 void PropertiesWindow::close() {
     cancel_and_close();
+}
+
+bool PropertiesWindow::owns_document(const editor::DocumentId& id) const {
+    return owner_document_id_.has_value() && *owner_document_id_ == id;
+}
+
+bool PropertiesWindow::still_valid(WindowSystem& ws) const {
+#ifndef EDITOR_TESTING
+    if (!owner_document_id_.has_value()) return true;
+    return ws.findDocumentById(*owner_document_id_) != nullptr;
+#else
+    (void)ws;
+    return true;
+#endif
 }
 
 void PropertiesWindow::render() {

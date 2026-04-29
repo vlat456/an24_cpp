@@ -3,6 +3,7 @@
 #include "document.h"
 #include "editor_settings.h"
 #include "editor/rendering_resources.h"
+#include "editor/transient_ui_manager.h"
 #include "focus_scope.h"
 #include "visual/inspector/inspector.h"
 #include "editor/input/editing_host.h"
@@ -41,13 +42,8 @@ public:
 
     // ── Tab focus (one-shot programmatic selection) ──
 
-    /// Returns the document that should receive tab focus this frame, or nullptr.
     Document* pendingTabFocus() const { return pending_tab_focus_; }
-
-    /// Clear the pending tab focus after it has been applied. Call once per frame.
     void consumeTabFocus() { pending_tab_focus_ = nullptr; }
-
-    /// Set pending tab focus (used when restoring active tab on startup)
     void setPendingTabFocus(Document* doc) { pending_tab_focus_ = doc; }
 
     // ── Document access ──
@@ -62,11 +58,7 @@ public:
 
     FocusScope focus_scope;
 
-    /// Reset focus to root of active document. Called on tab switch.
     void resetFocusToRoot();
-
-    /// Resolve focus_scope IDs to live pointers.
-    /// Returns {nullptr, nullptr} if document was closed or window removed.
     FocusScope::Resolved resolve_focus();
 
     // ── Global panels ──
@@ -78,13 +70,18 @@ public:
     const bp2::LibraryIndex& libraryIndex() const { return library_index_; }
     editor::RenderingResources& renderingResources() { return rendering_resources_; }
 
-    // ── Context menu state (with source document) ──
+    // ── Transient UI state (lifecycle managed by TransientUIManager) ──
 
     struct ContextMenuState {
         bool show = false;
         Pt position;
         WindowScopeId scope_id = WindowScopeId::root();
         std::optional<editor::DocumentId> source_document_id;
+
+        bool is_open() const;
+        void close();
+        bool owns_document(const editor::DocumentId& id) const;
+        bool still_valid(WindowSystem& ws) const;
     } contextMenu;
 
     struct NodeContextMenuState {
@@ -92,6 +89,11 @@ public:
         core::InternedId node_id;
         WindowScopeId scope_id = WindowScopeId::root();
         std::optional<editor::DocumentId> source_document_id;
+
+        bool is_open() const;
+        void close();
+        bool owns_document(const editor::DocumentId& id) const;
+        bool still_valid(WindowSystem& ws) const;
     } nodeContextMenu;
 
     struct ColorPickerState {
@@ -100,6 +102,11 @@ public:
         WindowScopeId scope_id = WindowScopeId::root();
         std::optional<editor::DocumentId> source_document_id;
         float rgba[4] = {0.5f, 0.5f, 0.5f, 1.0f};
+
+        bool is_open() const;
+        void close();
+        bool owns_document(const editor::DocumentId& id) const;
+        bool still_valid(WindowSystem& ws) const;
     } colorPicker;
 
     struct PendingBakeIn {
@@ -108,19 +115,23 @@ public:
         WindowScopeId scope_id = WindowScopeId::root();
         core::InternedId node_id;
 
-        void reset() {
-            show_confirmation = false;
-            document_id.reset();
-            scope_id = WindowScopeId::root();
-            node_id = {};
-        }
+        bool is_open() const;
+        void close();
+        bool owns_document(const editor::DocumentId& id) const;
+        bool still_valid(WindowSystem& ws) const;
+
     } pendingBakeIn;
 
     struct SetNameState {
         bool show = false;
         std::optional<editor::DocumentId> document_id;
-        bool save_after = false;       ///< If true, trigger save after name is confirmed
-        char buf[128] = {};            ///< ImGui input buffer
+        bool save_after = false;
+        char buf[128] = {};
+
+        bool is_open() const;
+        void close();
+        bool owns_document(const editor::DocumentId& id) const;
+        bool still_valid(WindowSystem& ws) const;
     } setName;
 
     struct PendingExtractToBlueprint {
@@ -136,19 +147,11 @@ public:
         bool allow_nonembedded_descendant_refs = false;
         bool preview_allow_nonembedded_descendant_refs = false;
 
-        void reset() {
-            show_dialog = false;
-            document_id.reset();
-            scope_id = WindowScopeId::root();
-            selected_node_ids.clear();
-            std::memset(name_buf, 0, sizeof(name_buf));
-            has_preview = false;
-            preview = {};
-            preview_error.clear();
-            preview_name.clear();
-            allow_nonembedded_descendant_refs = false;
-            preview_allow_nonembedded_descendant_refs = false;
-        }
+        bool is_open() const;
+        void close();
+        bool owns_document(const editor::DocumentId& id) const;
+        bool still_valid(WindowSystem& ws) const;
+
     } pendingExtract;
 
     struct ZNTuneState {
@@ -171,6 +174,11 @@ public:
         float Ki = 0.0f;
         char error[256] = {};
         ZNTuneConfig last_cfg{};
+
+        bool is_open() const;
+        void close();
+        bool owns_document(const editor::DocumentId& id) const;
+        bool still_valid(WindowSystem& ws) const;
     } znTune;
 
     bool showInspector = true;
@@ -190,50 +198,42 @@ public:
         Pt anchor_screen;
         bool has_anchor = false;
 
-        /// Cached EditingHost for embedded scopes — created once when the
-        /// dialog opens, reused every render frame. Null for root scope
-        /// (root uses doc->root().host directly).
         std::unique_ptr<EditingHost> cached_host;
 
-        void close() {
-            open = false;
-            document_id.reset();
-            cached_host.reset();
-        }
+        bool is_open() const;
+        void close();
+        bool owns_document(const editor::DocumentId& id) const;
+        bool still_valid(WindowSystem& ws) const;
     } inlineValueEditor;
 
     // ── Utility ──
 
-    /// Remove documents that were marked closed. Call at end of frame.
     void removeClosedDocuments();
 
-    /// Open properties for a node in the active document
     void openPropertiesForNode(core::InternedId node_id, const WindowScopeId& scope_id, Document& doc);
 
     void openScriptEditorForNode(core::InternedId node_id, const WindowScopeId& scope_id, Document& doc);
 
-    /// Open color picker for a node
     void openColorPickerForNode(core::InternedId node_id, const WindowScopeId& scope_id, Document& doc);
 
-    /// Open inline value editor for a Value node
     void openInlineValueEditorForNode(core::InternedId node_id, const WindowScopeId& scope_id, Document& doc,
                                       const ui::Pt* anchor_screen = nullptr);
 
-    /// Dispatch InputResultAction from a document to the window system
     void handleInputAction(const Document::InputResultAction& action, Document& doc);
 
-    /// Reconcile all owner-bound transient UI against the current model state.
-    /// Any UI whose owner document/node/scope no longer exists must self-close.
     void reconcile_owner_bound_ui();
 
 private:
+    void register_transient_ui();
+
     std::vector<std::unique_ptr<Document>> documents_;
     Document* active_document_ = nullptr;
-    Document* pending_tab_focus_ = nullptr;  ///< One-shot: set by create/open, consumed by tab bar
+    Document* pending_tab_focus_ = nullptr;
     ComponentRegistry type_registry_;
     bp2::LibraryIndex library_index_;
     Inspector inspector_;
     PropertiesWindow properties_window_;
     ScriptEditorWindow script_editor_window_;
     editor::RenderingResources rendering_resources_;
+    TransientUIManager transient_ui_;
 };

@@ -8,28 +8,38 @@ namespace visual {
 
 struct RenderContext;
 
-/// Editor scene inheriting generic ui::Scene behaviour.
-/// Overrides add() to sort by RenderLayer instead of numeric z-order,
-/// and provides a render() overload that passes RenderContext.
 class Scene : public ui::Scene {
 public:
     Scene() = default;
-    
-    /// Insert a widget sorted by RenderLayer (stable within same layer).
-    /// All widgets added to a visual::Scene must be visual::Widget subclasses.
+
     ui::Widget* add(std::unique_ptr<ui::Widget> w) override;
-    
-    /// Type-safe find that returns visual::Widget*.
+
+    void flushRemovals() override {
+        ui::Scene::flushRemovals();
+        crossings_dirty_ = true;
+    }
+
+    void clear() override {
+        ui::Scene::clear();
+        crossings_dirty_ = true;
+    }
+
     Widget* find(std::string_view id) const {
         return static_cast<Widget*>(ui::Scene::find(id));
     }
-    
-    /// Render all root widgets with domain-specific RenderContext.
+
     void render(IDrawList* dl, const RenderContext& ctx);
+
+    bool crossings_dirty() const { return crossings_dirty_; }
+    void mark_crossings_dirty() { crossings_dirty_ = true; }
+    void clear_crossings_dirty() { crossings_dirty_ = false; }
 
 protected:
     void propagateScene(ui::Widget* w) override;
     void detachScene(ui::Widget* w) override;
+
+private:
+    bool crossings_dirty_ = true;
 };
 
 } // namespace visual

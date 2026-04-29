@@ -20,6 +20,9 @@ public:
     void set_owner_document_id(editor::DocumentId id) { owner_document_id_ = std::move(id); }
     void clear_owner_document_id() { owner_document_id_.reset(); }
 
+    bool owns_document(const editor::DocumentId& id) const;
+    bool still_valid(class WindowSystem& ws) const;
+
     void apply();
     void render();
 
