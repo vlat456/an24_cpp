@@ -197,12 +197,10 @@ void OscilloscopeModel::on_blueprint_changed(Document& doc) {
         partition->probes.erase(key);
     }
 
-    // Invalidate hover InternedId — may be stale after sim rebuild.
-    // Will be re-resolved lazily on next sample() call.
-    auto hover_it = hover_states_.find(doc.id());
-    if (hover_it != hover_states_.end()) {
-        hover_it->second.signal_iid = core::InternedId{};
-    }
+    // NOTE: Hover state is NOT invalidated here. Hover is transient UI state
+    // managed exclusively by the render phase (clear → hit-test → set per frame).
+    // Invalidating it here caused samples to be cleared by sample() before
+    // renderTooltips() could re-set the signal_iid. See #375.
 }
 
 // =============================================================================

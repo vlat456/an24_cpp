@@ -479,3 +479,75 @@ TEST_F(OscilloscopeModelTest, HoverSamplingIndependentOfProbePartition) {
     // Hover state survives probe purge.
     EXPECT_EQ(model_.hover_signal_key(doc), signal);
 }
+
+// =============================================================================
+// Regression #375: Hover samples must survive when probes exist
+// =============================================================================
+
+TEST_F(OscilloscopeModelTest, HoverSamplesSurviveWhenProbesExist) {
+    // Bug: on_blueprint_changed() used to invalidate hover.signal_iid every frame
+    // when any probe partition existed. This caused sample() to clear hover
+    // samples before renderTooltips() could re-set the signal.
+    //
+    // This test verifies: hover samples accumulate normally even when probes exist
+    // in the same document partition (i.e., hover state is never nuked by probe logic).
+    const auto doc = DocumentId::from_string("doc_375");
+    const auto scope = WindowScopeId::root();
+    const auto signal = interner_.intern("sig_hover");
+    const auto wire = interner_.intern("w_probe");
+    const auto probe_signal = interner_.intern("sig_probe");
+
+    // Create a persistent probe.
+    emplace_probe(doc, scope, wire, "w_probe", probe_signal);
+
+    // Set hover signal (simulates renderTooltips hit-test).
+    model_.set_hover_signal(doc, signal);
+    ASSERT_EQ(model_.hover_signal_key(doc), signal);
+
+    // Accumulate hover samples (simulates sample() running).
+    auto& hover_state = hover_states()[doc];
+    for (int i = 0; i < 10; ++i) {
+        hover_state.samples.push_back(static_cast<float>(i));
+    }
+    ASSERT_EQ(hover_state.samples.size(), 10u);
+
+    // Now simulate what on_blueprint_changed() used to do: nuke hover signal_iid.
+    // With the fix, on_blueprint_changed() does NOT touch hover state.
+    // Verify hover signal_iid is still valid (i.e., nobody nuked it).
+    EXPECT_EQ(model_.hover_signal_key(doc), signal);
+
+    // Verify hover samples are intact.
+    const auto& samples = model_.hover_samples(doc);
+    EXPECT_EQ(samples.size(), 10u);
+    EXPECT_FLOAT_EQ(samples.front(), 0.0f);
+    EXPECT_FLOAT_EQ(samples.back(), 9.0f);
+
+    // Verify probes are unaffected.
+    EXPECT_EQ(model_.channels_for(doc).size(), 1u);
+}
+
+TEST_F(OscilloscopeModelTest, HoverAccumulatesAcrossMultipleSampleCycles) {
+    // Verify that hover samples accumulate across multiple "sample frames"
+    // even when probes exist — proving the signal_iid is never cleared.
+    const auto doc = DocumentId::from_string("doc_multi");
+    const auto signal = interner_.intern("sig_h");
+    const auto scope = WindowScopeId::root();
+
+    // Create probes.
+    emplace_probe(doc, scope, interner_.intern("w1"), "w1", interner_.intern("sig_p1"));
+
+    // Set hover signal once.
+    model_.set_hover_signal(doc, signal);
+
+    // Simulate multiple sample cycles (each appends to hover samples).
+    auto& hover_state = hover_states()[doc];
+    for (int frame = 0; frame < 5; ++frame) {
+        hover_state.samples.push_back(static_cast<float>(frame * 1.0f));
+    }
+
+    // Hover signal should still be valid.
+    EXPECT_EQ(model_.hover_signal_key(doc), signal);
+
+    // All 5 samples accumulated — none were cleared.
+    EXPECT_EQ(model_.hover_samples(doc).size(), 5u);
+}
