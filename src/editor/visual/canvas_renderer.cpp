@@ -225,7 +225,6 @@ void CanvasRenderer::renderBlueprint(BlueprintWindow& win, Document& doc, Window
     ctx.zoom = win.viewport.zoom;
     ctx.pan = win.viewport.pan;
     ctx.canvas_min = cmin;
-    ctx.canvas_max = cmax;
     ctx.selected_node_ids = &sel_nodes;
     ctx.selected_wire_id = win.input.selected_wire_id();
     ctx.hovered_wire_id = win.input.hovered_wire_id();
@@ -233,7 +232,6 @@ void CanvasRenderer::renderBlueprint(BlueprintWindow& win, Document& doc, Window
     ctx.energized_wires = energized_buf_.empty() ? nullptr : &energized_buf_;
     ctx.show_debug_bounds = ws.showDebugLayoutBounds;
     ctx.show_debug_paint_bounds = ws.showDebugPaintBounds;
-    ctx.compute_viewport();
 
 #ifdef AN24_EDITOR
     port_circle_atlas_.ensure();

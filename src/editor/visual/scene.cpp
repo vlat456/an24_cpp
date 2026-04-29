@@ -53,12 +53,6 @@ void Scene::render(IDrawList* dl, const RenderContext& ctx) {
 #endif
     for (const auto& r : roots_) {
         auto* vw = static_cast<Widget*>(r.get());
-
-        // AABB cull: skip off-screen clickable widgets (nodes)
-        if (vw->isClickable() && !ctx.is_visible(vw->worldMin(), vw->worldMax())) {
-            continue;
-        }
-
 #ifdef AN24_PROFILE
         auto t0 = std::chrono::steady_clock::now();
 #endif
