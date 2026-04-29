@@ -73,6 +73,7 @@ set(EDITOR_DOCUMENT_SOURCES
 set(EDITOR_IMGUI_SHELL_SOURCES
     ${CMAKE_SOURCE_DIR}/src/editor/icon_font.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/imgui_theme.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node_sprite_cache.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/canvas_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/oscilloscope_plot.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
