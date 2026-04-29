@@ -6,8 +6,10 @@
 #include "node_sprite_cache.h"
 #include "visual/node/visual_node.h"
 #include "visual/render_context.h"
+#include "editor/imgui_draw_list.h"
 
 #include <imgui.h>
+#include <backends/imgui_impl_opengl3.h>
 #include <algorithm>
 #include <cmath>
 
@@ -67,9 +69,6 @@ void NodeSpriteCache::clear() {
 }
 
 void NodeSpriteCache::bake(const NodeWidget& node, const RenderContext& ctx) {
-    // Save GL state up-front — ensure_fbo/ensure_texture mutate bindings.
-    const GLState gl = save_gl_state();
-
     const std::string_view nid = node.id();
 
     // Check if we need to re-bake based on zoom change.
@@ -77,13 +76,9 @@ void NodeSpriteCache::bake(const NodeWidget& node, const RenderContext& ctx) {
     if (it != cache_.end()) {
         Entry& entry = it->second;
         if (!entry.dirty) {
-            // Already clean — check if zoom drifted too far from baked zoom.
             float ratio = std::abs(ctx.zoom - entry.baked_zoom)
                         / std::max(entry.baked_zoom, 0.01f);
-            if (ratio < kZoomThreshold) {
-                restore_gl_state(gl);
-                return;
-            }
+            if (ratio < kZoomThreshold) return;
             entry.dirty = true;
         }
     }
@@ -93,38 +88,77 @@ void NodeSpriteCache::bake(const NodeWidget& node, const RenderContext& ctx) {
     const int tex_w = std::max(1, static_cast<int>(std::ceil(node_sz.x * kPixelScale)));
     const int tex_h = std::max(1, static_cast<int>(std::ceil(node_sz.y * kPixelScale)));
 
-    // Safety guard against degenerate sizes.
-    if (tex_w > 4096 || tex_h > 4096) {
-        restore_gl_state(gl);
-        return;
-    }
+    if (tex_w > 4096 || tex_h > 4096) return;
 
-    // Ensure shared FBO exists.
-    if (!ensure_fbo()) {
-        restore_gl_state(gl);
-        return;
-    }
+    // Save GL state for early-return paths (ensure_fbo/ensure_texture mutate bindings).
+    // On the success path, ImGui's RenderDrawData restores state internally.
+    const GLState gl = save_gl_state();
 
-    // Get or create cache entry.
+    if (!ensure_fbo()) { restore_gl_state(gl); return; }
+
     if (it == cache_.end()) {
         it = cache_.emplace(nid, Entry{}).first;
     }
     Entry& entry = it->second;
 
-    // Allocate or resize the texture.
-    if (!ensure_texture(entry, tex_w, tex_h)) {
-        restore_gl_state(gl);
-        return;
-    }
+    if (!ensure_texture(entry, tex_w, tex_h)) { restore_gl_state(gl); return; }
 
-    // -- Bake: render node primitives into FBO texture --
-    // Full implementation in #409 (bake pipeline).
-    // For now, just mark as baked so the infrastructure compiles.
+    // -- Step 1: Render node into a temp ImDrawList --
+
+    ImDrawList temp_dl(ImGui::GetDrawListSharedData());
+
+    // Wrap in our IDrawList adapter so renderTree() can call both
+    // IDrawList methods and native ImDrawList* directly (port circles).
+    ImGuiDrawList bake_dl;
+    bake_dl.dl = &temp_dl;
+
+    // Build a bake-time RenderContext that maps node-local coordinates
+    // to texture pixel coordinates:
+    //   world_to_screen(P) = (P - pan) * zoom + canvas_min
+    // With pan = node.worldPos(), zoom = kPixelScale, canvas_min = (0,0):
+    //   world_to_screen(nodePos + offset) = offset * kPixelScale ✓
+    RenderContext bake_ctx;
+    bake_ctx.zoom = static_cast<float>(kPixelScale);
+    bake_ctx.pan = node.worldPos();
+    bake_ctx.canvas_min = Pt(0, 0);
+    bake_ctx.port_circle_texture = ctx.port_circle_texture;
+    // Selection state is NOT baked — rendered live as overlay.
+    bake_ctx.selected_node_ids = nullptr;
+
+    node.renderTree(&bake_dl, bake_ctx);
+
+    // -- Step 2: Bake temp draw list to FBO texture via ImGui's GL backend --
+
+    ImDrawData draw_data;
+    draw_data.Valid = true;
+    draw_data.CmdListsCount = 1;
+    draw_data.TotalVtxCount = temp_dl.VtxBuffer.Size;
+    draw_data.TotalIdxCount = temp_dl.IdxBuffer.Size;
+    ImDrawList* cmd_lists_ptr = &temp_dl;
+    draw_data.CmdLists.Data = &cmd_lists_ptr;
+    draw_data.CmdLists.Size = 1;
+    draw_data.CmdLists.Capacity = 1;
+    draw_data.DisplayPos = ImVec2(0.0f, 0.0f);
+    draw_data.DisplaySize = ImVec2(static_cast<float>(tex_w),
+                                    static_cast<float>(tex_h));
+    draw_data.FramebufferScale = ImVec2(1.0f, 1.0f);
+
+    // Bind FBO + attach texture, clear to transparent.
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                           GL_TEXTURE_2D, entry.texture, 0);
+    glViewport(0, 0, tex_w, tex_h);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    // ImGui's RenderDrawData saves/restores ALL GL state internally.
+    ImGui_ImplOpenGL3_RenderDrawData(&draw_data);
+
+    // Unbind FBO.
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     entry.dirty = false;
     entry.baked_zoom = ctx.zoom;
-
-    restore_gl_state(gl);
 }
 
 bool NodeSpriteCache::blit(const NodeWidget& node, ImDrawList* dl,
