@@ -156,7 +156,9 @@ void NodeSpriteCache::bake(const Widget& widget, const RenderContext& ctx) {
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    // ImGui's RenderDrawData saves/restores ALL GL state internally.
+    // ImGui's RenderDrawData saves/restores GL state, but we changed
+    // the FBO binding before calling it, so ImGui restores to fbo_ —
+    // not the caller's original. Use our saved state to restore properly.
     ImGui_ImplOpenGL3_RenderDrawData(&draw_data);
 
     // Prevent ImDrawData destructor from freeing stack-allocated cmd_lists_ptr.
@@ -164,11 +166,11 @@ void NodeSpriteCache::bake(const Widget& widget, const RenderContext& ctx) {
     draw_data.CmdLists.Size = 0;
     draw_data.CmdLists.Capacity = 0;
 
-    // Unbind FBO.
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
     entry.dirty = false;
     entry.baked_zoom = ctx.zoom;
+
+    // Restore GL state to pre-bake values (FBO, viewport, texture, blend).
+    restore_gl_state(gl);
 }
 
 bool NodeSpriteCache::blit(const Widget& widget, ImDrawList* dl,
@@ -201,22 +203,19 @@ void NodeSpriteCache::bake_dirty_nodes(const Scene& scene, const RenderContext& 
         if (!vw->isClickable()) continue;
 
         // Bake all node types (Node, RefNode, BusNode, GroupNode, TextNode).
-        auto kind = vw->kind();
-        if (kind != ui::WidgetKind::Node && kind != ui::WidgetKind::RefNode &&
-            kind != ui::WidgetKind::BusNode && kind != ui::WidgetKind::GroupNode &&
-            kind != ui::WidgetKind::TextNode) continue;
+        if (!vw->is_node_kind()) continue;
 
-        auto* node = static_cast<Widget*>(vw);
-        const std::string_view nid = node->id();
+        const std::string_view id = vw->id();
+
+        // Single lookup for the cache entry (used by both branches below).
+        auto it = cache_.find(id);
 
         // Check if content changed since last bake.
-        if (node->consume_content_dirty()) {
+        if (vw->consume_content_dirty()) {
             // Content changed — force cache entry dirty.
-            auto it = cache_.find(nid);
             if (it != cache_.end()) it->second.dirty = true;
         } else {
             // Skip if cached and zoom hasn't drifted.
-            auto it = cache_.find(nid);
             if (it != cache_.end() && !it->second.dirty) {
                 float ratio = std::abs(ctx.zoom - it->second.baked_zoom)
                             / std::max(it->second.baked_zoom, 0.01f);
@@ -224,8 +223,10 @@ void NodeSpriteCache::bake_dirty_nodes(const Scene& scene, const RenderContext& 
             }
         }
 
-        bake(*node, ctx);
+        bake(*vw, ctx);
     }
+
+    gc_stale(scene);
 }
 
 // ============================================================================
@@ -264,6 +265,20 @@ bool NodeSpriteCache::ensure_texture(Entry& entry, int w, int h) {
     }
 
     return true;
+}
+
+void NodeSpriteCache::gc_stale(const Scene& scene) {
+    auto it = cache_.begin();
+    while (it != cache_.end()) {
+        if (!scene.find(it->first)) {
+            if (it->second.texture) {
+                glDeleteTextures(1, &it->second.texture);
+            }
+            it = cache_.erase(it);
+        } else {
+            ++it;
+        }
+    }
 }
 
 auto NodeSpriteCache::save_gl_state() const -> GLState {

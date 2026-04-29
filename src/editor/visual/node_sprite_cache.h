@@ -45,13 +45,11 @@ public:
     NodeSpriteCache(NodeSpriteCache&&) = delete;
     NodeSpriteCache& operator=(NodeSpriteCache&&) = delete;
 
-    /// Bake a dirty widget to its texture. No-op if not dirty.
-    void bake(const Widget& widget, const RenderContext& ctx);
-
     /// Blit a cached widget texture via AddImage. Returns false if not cached.
     bool blit(const Widget& widget, ImDrawList* dl, const RenderContext& ctx) const;
 
     /// Bake all dirty nodes in the scene. Call before Scene::render().
+    /// Also garbage-collects stale entries (nodes removed from the scene).
     void bake_dirty_nodes(const class Scene& scene, const RenderContext& ctx);
 
     /// Mark a specific node as needing re-bake.
@@ -82,12 +80,19 @@ private:
         float baked_zoom = 0.0f;
     };
 
+    /// Bake a dirty widget to its texture. No-op if not dirty.
+    void bake(const Widget& widget, const RenderContext& ctx);
+
     /// Ensure the shared FBO exists. Returns true on success.
     bool ensure_fbo();
 
     /// Allocate or resize a texture for the given dimensions.
     /// Returns true if texture is valid and matches (w, h).
     bool ensure_texture(Entry& entry, int w, int h);
+
+    /// Evict cache entries whose node IDs no longer exist in the scene.
+    /// Called from bake_dirty_nodes() to prevent texture leaks across rebuilds.
+    void gc_stale(const class Scene& scene);
 
     /// Save/restore OpenGL state around FBO rendering.
     struct GLState {

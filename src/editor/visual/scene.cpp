@@ -79,11 +79,7 @@ void Scene::render(IDrawList* dl, const RenderContext& ctx) {
 #ifdef AN24_EDITOR
         // Sprite cache path: blit cached node, then render selection overlay.
         if (cache && vw->isClickable() && raw_dl) {
-            // All node types inherit from NodeWidget (Node, BusNode, RefNode, GroupNode, TextNode).
-            auto kind = vw->kind();
-            if (kind == ui::WidgetKind::Node || kind == ui::WidgetKind::RefNode ||
-                kind == ui::WidgetKind::BusNode || kind == ui::WidgetKind::GroupNode ||
-                kind == ui::WidgetKind::TextNode) {
+            if (vw->is_node_kind()) {
                 auto* node = static_cast<Widget*>(vw);
                 if (cache->has(node->id())) {
                     cache->blit(*node, raw_dl, ctx);

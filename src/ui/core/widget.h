@@ -34,6 +34,22 @@ public:
 
     /// Concrete type tag — set by each subclass constructor.
     WidgetKind kind() const { return kind_; }
+
+    /// Returns true for all visual node types (Node, RefNode, BusNode,
+    /// GroupNode, TextNode). Useful for filtering scene roots without
+    /// listing every kind explicitly.
+    bool is_node_kind() const {
+        switch (kind_) {
+            case WidgetKind::Node:
+            case WidgetKind::RefNode:
+            case WidgetKind::BusNode:
+            case WidgetKind::GroupNode:
+            case WidgetKind::TextNode:
+                return true;
+            default:
+                return false;
+        }
+    }
     
     virtual std::string_view id() const { return {}; }
     
