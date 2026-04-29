@@ -2054,6 +2054,29 @@
       }
     },
     {
+      "component": "LuaScript",
+      "id": "luascript_1",
+      "kind": "component",
+      "label": "luascript_1",
+      "layout": {
+        "x": 208.0,
+        "y": 432.0
+      },
+      "params": {
+        "script": "function process(inputs, dt) \n\tval1 = inputs[1]*4\n\tval2 = inputs[2]*2\n\treturn {val1,val2, 44.0}\nend"
+      }
+    },
+    {
+      "component": "Merger",
+      "id": "merger_1",
+      "kind": "component",
+      "label": "merger_1",
+      "layout": {
+        "x": 496.0,
+        "y": 512.0
+      }
+    },
+    {
       "component": "Multiply",
       "id": "multiply_1",
       "kind": "component",
@@ -2183,6 +2206,16 @@
       }
     },
     {
+      "component": "Splitter",
+      "id": "splitter_1",
+      "kind": "component",
+      "label": "splitter_1",
+      "layout": {
+        "x": 512.0,
+        "y": 640.0
+      }
+    },
+    {
       "component": "Value",
       "id": "val_controlledvoltagesource_2_gain",
       "kind": "component",
@@ -2303,6 +2336,19 @@
     },
     {
       "component": "Value",
+      "id": "value_1",
+      "kind": "component",
+      "label": "value_1",
+      "layout": {
+        "x": 104.0,
+        "y": 648.0
+      },
+      "params": {
+        "value": 12.0
+      }
+    },
+    {
+      "component": "Value",
       "id": "value_2",
       "kind": "component",
       "label": "FieldRate",
@@ -2312,6 +2358,19 @@
       },
       "params": {
         "value": 6.0
+      }
+    },
+    {
+      "component": "Value",
+      "id": "value_3",
+      "kind": "component",
+      "label": "value_3",
+      "layout": {
+        "x": 32.0,
+        "y": 648.0
+      },
+      "params": {
+        "value": 1.0
       }
     },
     {
@@ -3096,6 +3155,50 @@
       "to": {
         "node": "variableconductance_1",
         "port": "g_min"
+      }
+    },
+    {
+      "from": {
+        "node": "luascript_1",
+        "port": "out1"
+      },
+      "id": "wire_166",
+      "to": {
+        "node": "splitter_1",
+        "port": "i"
+      }
+    },
+    {
+      "from": {
+        "node": "luascript_1",
+        "port": "out2"
+      },
+      "id": "wire_167",
+      "to": {
+        "node": "merger_1",
+        "port": "i2"
+      }
+    },
+    {
+      "from": {
+        "node": "value_1",
+        "port": "o"
+      },
+      "id": "wire_168",
+      "to": {
+        "node": "luascript_1",
+        "port": "in1"
+      }
+    },
+    {
+      "from": {
+        "node": "luascript_1",
+        "port": "out3"
+      },
+      "id": "wire_170",
+      "to": {
+        "node": "merger_1",
+        "port": "i1"
       }
     }
   ]

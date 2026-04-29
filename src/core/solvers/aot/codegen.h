@@ -70,6 +70,10 @@ ElectricalPlanCodegen extract_electrical_plan(
     const ElectricalExtractOptions& options = {}
 );
 
+/// Emit a loud warning for every LuaScript device in the list.
+/// Called from all AOT codegen entry points (write_files, flatten_and_generate).
+void warn_lua_script_devices(const std::vector<ResolvedDevice>& devices);
+
 /// Code generator - produces C++ source files from device configuration
 class CodeGen {
 public:

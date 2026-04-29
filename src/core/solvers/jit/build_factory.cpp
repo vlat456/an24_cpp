@@ -182,6 +182,10 @@ static void consume_params(LesserEq<JitProvider>& comp, ParamReader& param_reade
     (void)comp; (void)param_reader;  // no params
 }
 
+static void consume_params(LuaScript<JitProvider>& comp, ParamReader& param_reader) {
+    comp.script = param_reader.consume_string_optional("script", "function process(inputs, dt) return {inputs[1]} end");
+}
+
 static void consume_params(Max<JitProvider>& comp, ParamReader& param_reader) {
     (void)comp; (void)param_reader;  // no params
 }
@@ -473,6 +477,7 @@ static const BuildFn BUILD_TABLE[] = {
     build_generic<LerpNode<JitProvider>, SchedulerRoleKind::Consumer>,  // LerpNode
     build_generic<Lesser<JitProvider>, SchedulerRoleKind::Consumer>,  // Lesser
     build_generic<LesserEq<JitProvider>, SchedulerRoleKind::Consumer>,  // LesserEq
+    build_generic<LuaScript<JitProvider>, SchedulerRoleKind::Consumer>,  // LuaScript
     build_generic<Max<JitProvider>, SchedulerRoleKind::Consumer>,  // Max
     build_generic<Merger<JitProvider>, SchedulerRoleKind::Consumer>,  // Merger
     build_generic<Min<JitProvider>, SchedulerRoleKind::Consumer>,  // Min

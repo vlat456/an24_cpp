@@ -5,6 +5,9 @@
 #include "blueprint_v2/library/blueprint_library.h"
 #include "blueprint_v2/library/type_def_to_blueprint.h"
 
+// External free function from codegen_registry.cpp — shared LuaScript AOT warning.
+void warn_lua_script_devices(const std::vector<ResolvedDevice>& devices);
+
 namespace {
 
 /// Build a BlueprintLibrary from all composite types in the registry.
@@ -35,6 +38,7 @@ CompositeCodegenResult flatten_and_generate(
     auto netlist = flattener.flatten(bp, arena);
 
     auto input = bp2::elaboration::elaborate_for_codegen(netlist, arena, interner, registry);
+    warn_lua_script_devices(input.devices);
     ElectricalPlanCodegen electrical_plan = extract_electrical_plan(input.devices, input.port_to_signal);
 
     std::string class_name = codegen_detail::sanitize_name(td.classname) + "_Systems";

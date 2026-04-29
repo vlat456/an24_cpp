@@ -1,11 +1,29 @@
 #include "codegen_internal.h"
 
+#include <core/model/component_kind.h>
+
 #include <cstring>
 #include <fstream>
 #include <iostream>
 #include <set>
+#include <spdlog/spdlog.h>
 #include <unordered_set>
 #include <variant>
+
+void warn_lua_script_devices(const std::vector<ResolvedDevice>& devices) {
+    for (const auto& dev : devices) {
+        if (dev.kind == ComponentKind::LuaScript) {
+            spdlog::warn(
+                "=========================================================\n"
+                "[AOT WARNING] LuaScript node '{}' found in simulation.\n"
+                "  LuaScript relies on a Lua interpreter which is NOT available\n"
+                "  on AOT/embedded targets. Replace with native composite nodes\n"
+                "  before deploying to production.\n"
+                "=========================================================",
+                dev.name);
+        }
+    }
+}
 
 namespace {
 
@@ -626,6 +644,8 @@ void CodeGen::write_files(
     if (electrical_plan.islands.empty() && !devices.empty()) {
         electrical_plan = extract_electrical_plan(devices, port_to_signal);
     }
+
+    warn_lua_script_devices(devices);
 
     std::string base_name = source_file;
     size_t pos = base_name.find_last_of("/\\");

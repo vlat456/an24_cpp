@@ -7,6 +7,7 @@
 #include "visual/inspector/inspector.h"
 #include "editor/input/editing_host.h"
 #include "window/properties_window.h"
+#include "window/script_editor_window.h"
 #include "window/window_scope_id.h"
 #include "core/model/component_registry.h"
 #include "blueprint_v2/library/library_index.h"
@@ -72,6 +73,7 @@ public:
 
     Inspector& inspector() { return inspector_; }
     PropertiesWindow& propertiesWindow() { return properties_window_; }
+    ScriptEditorWindow& scriptEditorWindow() { return script_editor_window_; }
     ComponentRegistry& typeRegistry() { return type_registry_; }
     const bp2::LibraryIndex& libraryIndex() const { return library_index_; }
     editor::RenderingResources& renderingResources() { return rendering_resources_; }
@@ -208,6 +210,8 @@ public:
     /// Open properties for a node in the active document
     void openPropertiesForNode(core::InternedId node_id, const WindowScopeId& scope_id, Document& doc);
 
+    void openScriptEditorForNode(core::InternedId node_id, const WindowScopeId& scope_id, Document& doc);
+
     /// Open color picker for a node
     void openColorPickerForNode(core::InternedId node_id, const WindowScopeId& scope_id, Document& doc);
 
@@ -230,5 +234,6 @@ private:
     bp2::LibraryIndex library_index_;
     Inspector inspector_;
     PropertiesWindow properties_window_;
+    ScriptEditorWindow script_editor_window_;
     editor::RenderingResources rendering_resources_;
 };

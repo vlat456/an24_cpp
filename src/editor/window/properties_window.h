@@ -3,8 +3,7 @@
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "editor/identity.h"
 #include "input/editing_host.h"
-#include "core/strings/interned_id.h"
-#include <functional>
+#include "window/window_callback.h"
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -12,9 +11,6 @@
 
 struct ComponentRegistry;
 enum class PortType;
-
-/// Callback when properties are applied: receives the node InternedId
-using PropertyCallback = std::function<void(core::InternedId node_id)>;
 
 /// Modal properties window for editing bp2::Blueprint::Node params via ImGui.
 /// Lifecycle: open(node, callback) → render() each frame → OK or Cancel.
@@ -39,7 +35,7 @@ public:
     void open(const bp2::Blueprint::Node& node, core::InternedId node_id,
               std::unique_ptr<EditingHost> owned_host, core::StringInterner& interner,
               const ComponentRegistry* type_registry,
-              PropertyCallback on_apply);
+              WindowNodeCallback on_apply);
 
     void close();
     bool is_open() const { return open_; }
@@ -117,7 +113,7 @@ private:
                                core::InternedId node_id,
                                core::StringInterner& interner,
                                const ComponentRegistry* type_registry,
-                               PropertyCallback on_apply);
+                               WindowNodeCallback on_apply);
 
     bool open_ = false;
     std::unique_ptr<EditingHost> owned_host_;
@@ -125,7 +121,7 @@ private:
     const ComponentRegistry* type_registry_ = nullptr;
     core::InternedId target_node_id_;
     std::optional<editor::DocumentId> owner_document_id_;
-    PropertyCallback on_apply_;
+    WindowNodeCallback on_apply_;
 
     // Shadow copies: edited by the UI, never touching the live node until apply().
     std::string pending_name_;

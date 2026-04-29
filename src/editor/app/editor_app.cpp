@@ -409,6 +409,7 @@ void EditorApp::render() {
     set_name_dialog_.render(ws_);
     extract_to_blueprint_dialog_.render(ws_);
     inline_value_editor_dialog_.render(ws_);
+    ws_.scriptEditorWindow().render();
 
     ws_.propertiesWindow().render();
     

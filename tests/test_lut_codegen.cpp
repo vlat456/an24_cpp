@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 #include <optional>
+#include <filesystem>
+#include <unistd.h>
 
 #include "core/solvers/aot/codegen.h"
 #include "io/json/component_registry_json_loader.h"
@@ -454,4 +456,60 @@ TEST(AOTCodegen, Text_VisualOnly_FilteredFromSource) {
         << "visual_only Text device 'txt1' must NOT appear in generated source";
     EXPECT_EQ(source.find("note"), std::string::npos)
         << "Text param content must NOT appear in generated source";
+}
+
+// =============================================================================
+// LuaScript codegen: AOT path must not crash or refuse to generate
+// =============================================================================
+
+static auto make_lua_device(const std::string& name, const std::string& script) {
+    DeviceInstance dev;
+    dev.name = name;
+    dev.classname = "LuaScript";
+    for (int i = 1; i <= 16; ++i) {
+        std::string in = "in" + std::to_string(i);
+        std::string out = "out" + std::to_string(i);
+        dev.ports[in]  = {bp2::Direction::Input,  PortType::Signal, std::nullopt};
+        dev.ports[out] = {bp2::Direction::Output, PortType::Signal, std::nullopt};
+    }
+    dev.params["script"] = script;
+    return dev;
+}
+
+TEST(LUTCodegen, LuaScript_ProducesCodegenOutputWithoutError) {
+    auto setup = make_setup({make_lua_device("my_lua",
+        "function process(inputs, dt) return {inputs[1]} end")});
+
+    std::string header = CodeGen::generate_header(
+        "test.json", setup.devices,
+        setup.port_to_signal, setup.signal_count);
+
+    std::string source = CodeGen::generate_source(
+        "test.h", setup.devices,
+        setup.port_to_signal, setup.signal_count);
+
+    EXPECT_FALSE(header.empty()) << "Header must be generated for LuaScript device";
+    EXPECT_FALSE(source.empty()) << "Source must be generated for LuaScript device";
+    EXPECT_NE(header.find("my_lua"), std::string::npos)
+        << "Header must contain LuaScript device field declaration";
+    EXPECT_NE(source.find("my_lua"), std::string::npos)
+        << "Source must reference LuaScript device";
+}
+
+TEST(LUTCodegen, LuaScript_WriteFilesDoesNotCrash) {
+    // Verify write_files() path (which contains the warning) completes without error.
+    auto setup = make_setup({make_lua_device("lua_node",
+        "function process(inputs, dt) return {inputs[1]} end")});
+
+    // write_files writes to disk — use a temp dir
+    std::string tmp_dir = "/tmp/an24_lua_codegen_test_" + std::to_string(::getpid());
+    std::filesystem::create_directories(tmp_dir);
+
+    // Should NOT throw or abort
+    EXPECT_NO_THROW(
+        CodeGen::write_files(tmp_dir, "test_blueprint.json",
+            setup.devices, setup.port_to_signal, setup.signal_count));
+
+    // Clean up
+    std::filesystem::remove_all(tmp_dir);
 }

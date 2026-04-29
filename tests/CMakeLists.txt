@@ -583,6 +583,35 @@ target_link_libraries(properties_window_tests PRIVATE
 )
 gtest_discover_tests(properties_window_tests)
 
+# ==...== Script Editor Window Tests ==...==
+
+add_executable(script_editor_tests
+    test_script_editor_window.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/window/script_editor_window.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/input/editing_host.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/embedded_path_utils.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/commands/commands.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
+)
+target_compile_definitions(script_editor_tests PRIVATE EDITOR_TESTING)
+target_include_directories(script_editor_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/ui
+    ${CMAKE_SOURCE_DIR}/src/ui/core
+    ${CMAKE_SOURCE_DIR}/src/ui/math
+    ${CMAKE_SOURCE_DIR}/src/ui/layout
+    ${CMAKE_SOURCE_DIR}/src/ui/renderer
+)
+target_link_libraries(script_editor_tests PRIVATE
+    blueprint_v2
+    editor_semantic_canvas
+    jit_solver
+    spdlog::spdlog
+    GTest::gtest_main
+)
+gtest_discover_tests(script_editor_tests)
+
 # ==...== Codegen Accumulator Tests ==...==
 
 # Codegen accumulator regression tests — verify AOT emits accumulator-based domain scheduling
@@ -616,6 +645,12 @@ add_sim_test(integrator_tests SOURCES test_integrator.cpp LINKS jit_solver json_
 
 # Accumulator component tests
 add_sim_test(accumulator_tests SOURCES test_accumulator.cpp LINKS jit_solver json_io)
+
+# LuaScript component tests
+add_sim_test(lua_script_tests SOURCES test_lua_script.cpp LINKS jit_solver json_io lua_static)
+
+# Lua script validation tests
+add_sim_test(lua_validate_tests SOURCES test_lua_script_validate.cpp LINKS jit_solver lua_static)
 
 # 12SAM28 composite battery tests
 add_sim_test(sam28_tests SOURCES test_12sam28.cpp LINKS jit_solver json_io)

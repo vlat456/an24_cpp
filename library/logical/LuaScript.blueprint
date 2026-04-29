@@ -1,0 +1,52 @@
+{
+  "version": "3.0",
+  "id": "LuaScript",
+  "display_name": "Lua Script",
+  "scheduler_role": "Consumer",
+  "interface": [
+    {"name": "in1",  "domain": 2, "direction": 0, "type": "Signal", "source_writer": false},
+    {"name": "in2",  "domain": 2, "direction": 0, "type": "Signal", "source_writer": false},
+    {"name": "in3",  "domain": 2, "direction": 0, "type": "Signal", "source_writer": false},
+    {"name": "in4",  "domain": 2, "direction": 0, "type": "Signal", "source_writer": false},
+    {"name": "in5",  "domain": 2, "direction": 0, "type": "Signal", "source_writer": false},
+    {"name": "in6",  "domain": 2, "direction": 0, "type": "Signal", "source_writer": false},
+    {"name": "in7",  "domain": 2, "direction": 0, "type": "Signal", "source_writer": false},
+    {"name": "in8",  "domain": 2, "direction": 0, "type": "Signal", "source_writer": false},
+    {"name": "in9",  "domain": 2, "direction": 0, "type": "Signal", "source_writer": false},
+    {"name": "in10", "domain": 2, "direction": 0, "type": "Signal", "source_writer": false},
+    {"name": "in11", "domain": 2, "direction": 0, "type": "Signal", "source_writer": false},
+    {"name": "in12", "domain": 2, "direction": 0, "type": "Signal", "source_writer": false},
+    {"name": "in13", "domain": 2, "direction": 0, "type": "Signal", "source_writer": false},
+    {"name": "in14", "domain": 2, "direction": 0, "type": "Signal", "source_writer": false},
+    {"name": "in15", "domain": 2, "direction": 0, "type": "Signal", "source_writer": false},
+    {"name": "in16", "domain": 2, "direction": 0, "type": "Signal", "source_writer": false},
+    {"name": "out1",  "domain": 2, "direction": 1, "type": "Signal", "source_writer": false},
+    {"name": "out2",  "domain": 2, "direction": 1, "type": "Signal", "source_writer": false},
+    {"name": "out3",  "domain": 2, "direction": 1, "type": "Signal", "source_writer": false},
+    {"name": "out4",  "domain": 2, "direction": 1, "type": "Signal", "source_writer": false},
+    {"name": "out5",  "domain": 2, "direction": 1, "type": "Signal", "source_writer": false},
+    {"name": "out6",  "domain": 2, "direction": 1, "type": "Signal", "source_writer": false},
+    {"name": "out7",  "domain": 2, "direction": 1, "type": "Signal", "source_writer": false},
+    {"name": "out8",  "domain": 2, "direction": 1, "type": "Signal", "source_writer": false},
+    {"name": "out9",  "domain": 2, "direction": 1, "type": "Signal", "source_writer": false},
+    {"name": "out10", "domain": 2, "direction": 1, "type": "Signal", "source_writer": false},
+    {"name": "out11", "domain": 2, "direction": 1, "type": "Signal", "source_writer": false},
+    {"name": "out12", "domain": 2, "direction": 1, "type": "Signal", "source_writer": false},
+    {"name": "out13", "domain": 2, "direction": 1, "type": "Signal", "source_writer": false},
+    {"name": "out14", "domain": 2, "direction": 1, "type": "Signal", "source_writer": false},
+    {"name": "out15", "domain": 2, "direction": 1, "type": "Signal", "source_writer": false},
+    {"name": "out16", "domain": 2, "direction": 1, "type": "Signal", "source_writer": false}
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Lua-scriptable node for rapid prototyping. process(inputs, dt) → outputs table.",
+  "domains": ["Logical"],
+  "param_defaults": {
+    "script": "function process(inputs, dt) return {inputs[1]} end"
+  },
+  "param_schema": {
+    "script": {"type": "string"}
+  }
+}

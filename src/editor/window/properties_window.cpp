@@ -133,7 +133,7 @@ void PropertiesWindow::open(const bp2::Blueprint::Node& node,
                               std::unique_ptr<EditingHost> owned_host,
                               core::StringInterner& interner,
                               const ComponentRegistry* type_registry,
-                              PropertyCallback on_apply) {
+                              WindowNodeCallback on_apply) {
     if (!owned_host) {
         open_ = false;
         owned_host_.reset();
@@ -148,7 +148,7 @@ void PropertiesWindow::initialize_from_node(const bp2::Blueprint::Node& node,
                                              core::InternedId node_id,
                                              core::StringInterner& interner,
                                              const ComponentRegistry* type_registry,
-                                             PropertyCallback on_apply) {
+                                             WindowNodeCallback on_apply) {
     target_node_id_ = node_id;
     owner_document_id_.reset();
     interner_ = &interner;

@@ -54,6 +54,7 @@ enum class ComponentKind : uint8_t {
     LerpNode,
     Lesser,
     LesserEq,
+    LuaScript,
     Max,
     Merger,
     Min,
@@ -135,6 +136,7 @@ inline std::optional<ComponentKind> parse_component_kind(std::string_view name) 
     if (name == "LerpNode") return ComponentKind::LerpNode;
     if (name == "Lesser") return ComponentKind::Lesser;
     if (name == "LesserEq") return ComponentKind::LesserEq;
+    if (name == "LuaScript") return ComponentKind::LuaScript;
     if (name == "Max") return ComponentKind::Max;
     if (name == "Merger") return ComponentKind::Merger;
     if (name == "Min") return ComponentKind::Min;
@@ -216,6 +218,7 @@ inline constexpr std::string_view component_kind_classname(ComponentKind kind) {
         case ComponentKind::LerpNode: return "LerpNode";
         case ComponentKind::Lesser: return "Lesser";
         case ComponentKind::LesserEq: return "LesserEq";
+        case ComponentKind::LuaScript: return "LuaScript";
         case ComponentKind::Max: return "Max";
         case ComponentKind::Merger: return "Merger";
         case ComponentKind::Min: return "Min";
