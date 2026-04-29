@@ -161,6 +161,10 @@ void MainMenu::renderViewMenu(WindowSystem& ws) {
     Document* active_doc = ws.activeDocument();
     if (active_doc) {
         ImGui::Separator();
+        if (ImGui::MenuItem("Auto Layout", nullptr, false, active_doc != nullptr)) {
+            active_doc->autoLayout();
+            active_doc->root().pending_auto_fit = true;
+        }
         if (ImGui::MenuItem("Shrink Nodes To Fit", nullptr, false, active_doc != nullptr)) {
             active_doc->normalizeNodeSizesToFit(false);
         }
@@ -193,6 +197,12 @@ void MainMenu::renderBlueprintMenu(WindowSystem& ws) {
         ImGui::TextDisabled("Name: (not set)");
     }
     ImGui::Separator();
+
+    if (ImGui::MenuItem("Fit View", nullptr, false, active_doc != nullptr)) {
+        if (active_doc) {
+            active_doc->root().pending_auto_fit = true;
+        }
+    }
 
     if (ImGui::MenuItem("Set Name...", nullptr, false, active_doc != nullptr)) {
         if (active_doc) {

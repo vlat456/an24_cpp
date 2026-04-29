@@ -71,15 +71,15 @@ TEST(AutoLayoutTest, SingleNodePlacedAtMargin) {
     auto bp = build_bp({n1}, {});
 
     LayoutOptions opts;
-    opts.margin_x = 50.0f;
-    opts.margin_y = 50.0f;
+    opts.margin_x = 48.0f;  // Multiple of snap_grid (16)
+    opts.margin_y = 48.0f;
     auto result = compute_layout(bp, opts);
 
     ASSERT_EQ(result.positions.size(), 1u);
     auto it = result.positions.find(interner.intern("node_1"));
     ASSERT_NE(it, result.positions.end());
-    EXPECT_FLOAT_EQ(it->second.x, 50.0f);
-    EXPECT_FLOAT_EQ(it->second.y, 50.0f);
+    EXPECT_FLOAT_EQ(it->second.x, 48.0f);
+    EXPECT_FLOAT_EQ(it->second.y, 48.0f);
 }
 
 // =============================================================================
@@ -250,12 +250,15 @@ TEST(AutoLayoutTest, SelfLoopIgnored) {
     // Self-loop wire.
     auto w1 = make_wire(interner, interner.intern("a"), "out", interner.intern("a"), "in");
 
+    LayoutOptions opts;
+    opts.margin_x = 48.0f;
+    opts.margin_y = 48.0f;
     auto bp = build_bp({a}, {w1});
-    auto result = compute_layout(bp);
+    auto result = compute_layout(bp, opts);
 
     // Node still gets placed (as isolated, since self-loop is filtered).
     ASSERT_EQ(result.positions.size(), 1u);
-    EXPECT_FLOAT_EQ(result.positions[interner.intern("a")].x, 50.0f);
+    EXPECT_FLOAT_EQ(result.positions[interner.intern("a")].x, 48.0f);
 }
 
 // =============================================================================

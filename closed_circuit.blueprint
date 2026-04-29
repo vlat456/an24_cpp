@@ -147,8 +147,8 @@
               "kind": "bridge_port",
               "label": "feedback",
               "layout": {
-                "x": 0.0,
-                "y": 32.0
+                "x": 48.0,
+                "y": 496.0
               },
               "port_type": "Signal"
             },
@@ -159,8 +159,8 @@
               "kind": "bridge_port",
               "label": "output",
               "layout": {
-                "x": 660.0,
-                "y": 32.0
+                "x": 800.0,
+                "y": 500.0
               },
               "port_type": "Signal"
             },
@@ -170,8 +170,8 @@
               "kind": "component",
               "label": "RN180_excitation",
               "layout": {
-                "x": 400.0,
-                "y": 0.0
+                "x": 472.0,
+                "y": 496.0
               },
               "params": {
                 "table": "0.0:0.6; 1.0:28.5"
@@ -183,8 +183,8 @@
               "kind": "component",
               "label": "RN180",
               "layout": {
-                "x": 240.0,
-                "y": 0.0
+                "x": 304.0,
+                "y": 496.0
               }
             },
             {
@@ -193,8 +193,8 @@
               "kind": "component",
               "label": "pi_1_Ki",
               "layout": {
-                "x": 160.0,
-                "y": 120.0
+                "x": 208.0,
+                "y": 552.0
               },
               "params": {
                 "value": 1.0
@@ -206,8 +206,8 @@
               "kind": "component",
               "label": "pi_1_Kp",
               "layout": {
-                "x": 160.0,
-                "y": 160.0
+                "x": 208.0,
+                "y": 568.0
               },
               "params": {
                 "value": 0.10000000149011612
@@ -219,8 +219,8 @@
               "kind": "component",
               "label": "pi_1_output_max",
               "layout": {
-                "x": 160.0,
-                "y": 200.0
+                "x": 208.0,
+                "y": 584.0
               },
               "params": {
                 "value": 1.0
@@ -232,8 +232,8 @@
               "kind": "component",
               "label": "pi_1_output_min",
               "layout": {
-                "x": 160.0,
-                "y": 240.0
+                "x": 208.0,
+                "y": 536.0
               },
               "params": {
                 "value": 0.0
@@ -245,8 +245,8 @@
               "kind": "component",
               "label": "IdealVoltage",
               "layout": {
-                "x": 160.0,
-                "y": 80.0
+                "x": 208.0,
+                "y": 624.0
               },
               "params": {
                 "value": 28.5
@@ -283,6 +283,12 @@
                 "port": "o"
               },
               "id": "wire_42",
+              "routing": [
+                [
+                  272.0,
+                  608.0
+                ]
+              ],
               "to": {
                 "node": "pi_1",
                 "port": "setpoint"

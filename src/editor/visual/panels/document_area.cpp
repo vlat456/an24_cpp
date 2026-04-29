@@ -69,17 +69,6 @@ void DocumentArea::renderCanvas(::WindowSystem& ws, float, float,
     Document* active_doc = ws.activeDocument();
     if (!active_doc) return;
 
-    // -- Root canvas toolbar --
-    if (ImGui::Button("Auto Layout")) {
-        active_doc->autoLayout();
-        active_doc->root().pending_auto_fit = true;
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Fit View")) {
-        fit_viewport_to_blueprint(active_doc->root(), active_doc->blueprint());
-    }
-
-    // -- Canvas --
     auto canvas_min = ImGui::GetWindowContentRegionMin();
     auto canvas_max = ImGui::GetWindowContentRegionMax();
     Pt cmin(canvas_min.x + ImGui::GetWindowPos().x,

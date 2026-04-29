@@ -4,8 +4,19 @@
 #include "sugiyama/crossing.h"
 #include "sugiyama/coordinates.h"
 #include "blueprint_v2/blueprint/blueprint_replace.h"
+#include <cmath>
 
 namespace bp2::layout {
+
+namespace {
+
+/// Snap a coordinate to the layout grid.
+float snap_to_grid(float v, float grid) {
+    if (grid < 1e-6f) return v;
+    return std::round(v / grid) * grid;
+}
+
+} // namespace
 
 LayoutResult compute_layout(const Blueprint& bp, const LayoutOptions& options) {
     LayoutResult result;
@@ -28,9 +39,12 @@ LayoutResult compute_layout(const Blueprint& bp, const LayoutOptions& options) {
         options.margin_y};
     auto coords = sugiyama::assign_coordinates(graph, layering, spacing);
 
-    // Convert to LayoutResult.
+    // Phase 5: Snap positions to layout grid.
     for (const auto& [id, pos] : coords) {
-        result.positions[id] = {pos.x, pos.y};
+        result.positions[id] = {
+            snap_to_grid(pos.x, options.snap_grid),
+            snap_to_grid(pos.y, options.snap_grid)
+        };
     }
 
     return result;

@@ -13,6 +13,7 @@ struct LayoutOptions {
     float margin_y = 50.0f;             ///< Top margin.
     float default_node_width = 120.0f;   ///< Fallback node width.
     float default_node_height = 80.0f;   ///< Fallback node height.
+    float snap_grid = 16.0f;            ///< Snap output positions to this grid (0 = no snap).
     int crossing_minimization_sweeps = 4; ///< Number of barycenter sweeps.
 };
 
