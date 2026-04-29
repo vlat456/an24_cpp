@@ -1,5 +1,6 @@
 #include "main_menu.h"
 #include "editor/visual/dialogs/file_dialogs.h"
+#include "editor/window/blueprint_window.h"
 #include "editor/pi_zn_tuner.h"
 #include <imgui.h>
 #include <filesystem>
@@ -8,28 +9,43 @@
 
 MainMenu::Result MainMenu::render(WindowSystem& ws) {
     Result result;
-    
+
     if (!ImGui::BeginMainMenuBar()) {
         return result;
     }
 
-    Document* active_doc = ws.activeDocument();
+    const FocusScope& focus = ws.focus_scope;
 
-    // Simulation indicator
-    if (active_doc && active_doc->isSimulationRunning()) {
+    // Simulation indicator — always visible when running.
+    if (focus.document && focus.document->isSimulationRunning()) {
         ImGui::SameLine();
         ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), ">> SIM");
     }
 
-    renderFileMenu(ws, result);
-    renderBlueprintMenu(ws);
-    renderToolsMenu(ws);
-    renderEditMenu(ws);
-    renderViewMenu(ws);
+    // Root-only menus.
+    if (focus.is_root()) {
+        renderFileMenu(ws, result);
+    }
+
+    // Scope-aware menus — require valid focus.
+    if (focus.is_valid()) {
+        renderBlueprintMenu(ws, focus);
+        renderEditMenu(ws, focus);
+        renderViewMenu(ws, focus);
+    }
+
+    // Root-only menus.
+    if (focus.is_root()) {
+        renderToolsMenu(ws);
+    }
 
     ImGui::EndMainMenuBar();
     return result;
 }
+
+// =============================================================================
+// Root-only menus
+// =============================================================================
 
 void MainMenu::renderFileMenu(WindowSystem& ws, Result& result) {
     if (!ImGui::BeginMenu("File")) return;
@@ -50,7 +66,6 @@ void MainMenu::renderFileMenu(WindowSystem& ws, Result& result) {
 
     if (ImGui::MenuItem("Save", "Ctrl+S", false, active_doc != nullptr)) {
         if (active_doc) {
-            // If blueprint has no name yet, prompt for one before saving
             if (active_doc->blueprint().name().empty()) {
                 ws.setName.show = true;
                 ws.setName.document_id = active_doc->id();
@@ -85,14 +100,13 @@ void MainMenu::renderFileMenu(WindowSystem& ws, Result& result) {
 void MainMenu::renderRecentFilesMenu(WindowSystem& ws) {
     if (!ImGui::BeginMenu("Recent Files", !ws.settings.recentFiles().empty())) return;
 
-    // Snapshot: openDocument() mutates recentFiles() via addRecentFile (erase+insert).
     const auto recent_snapshot = ws.settings.recentFiles();
     std::string deferred_open;
 
     for (size_t i = 0; i < recent_snapshot.size(); i++) {
         const std::string& recent_path = recent_snapshot[i];
         std::string name = std::filesystem::path(recent_path).filename().string();
-        
+
         if (ImGui::MenuItem(name.c_str())) {
             deferred_open = recent_path;
         }
@@ -108,118 +122,9 @@ void MainMenu::renderRecentFilesMenu(WindowSystem& ws) {
 
     ImGui::EndMenu();
 
-    // Open after menu rendering is complete to avoid mutating during iteration
     if (!deferred_open.empty()) {
         ws.openDocument(deferred_open);
     }
-}
-
-void MainMenu::renderEditMenu(WindowSystem& ws) {
-    if (!ImGui::BeginMenu("Edit")) return;
-
-    Document* active_doc = ws.activeDocument();
-    bool props_open = ws.propertiesWindow().is_open();
-    bool can_undo = active_doc && active_doc->canUndo() && !props_open;
-    bool can_redo = active_doc && active_doc->canRedo() && !props_open;
-    bool has_sel = active_doc && !active_doc->input().selected_node_ids().empty();
-
-    if (ImGui::MenuItem("Undo", "Ctrl+Z", false, can_undo)) {
-        if (active_doc) active_doc->performUndo();
-    }
-    if (ImGui::MenuItem("Redo", "Ctrl+Y", false, can_redo)) {
-        if (active_doc) active_doc->performRedo();
-    }
-
-    ImGui::Separator();
-
-    if (ImGui::MenuItem("Delete", "Del", false, has_sel)) {
-        if (active_doc) {
-            auto action = active_doc->applyInputResult(active_doc->input().on_key(Key::Delete), WindowScopeId::root());
-            ws.handleInputAction(action, *active_doc);
-        }
-    }
-
-    ImGui::EndMenu();
-}
-
-void MainMenu::renderViewMenu(WindowSystem& ws) {
-    if (!ImGui::BeginMenu("View")) return;
-
-    if (ImGui::MenuItem("Inspector", nullptr, ws.showInspector)) {
-        ws.showInspector = !ws.showInspector;
-    }
-    if (ImGui::MenuItem("Oscilloscope", nullptr, ws.showOscilloscope)) {
-        ws.showOscilloscope = !ws.showOscilloscope;
-    }
-    if (ImGui::MenuItem("Debug Layout Bounds", nullptr, ws.showDebugLayoutBounds)) {
-        ws.showDebugLayoutBounds = !ws.showDebugLayoutBounds;
-    }
-    if (ImGui::MenuItem("Debug Paint Bounds", nullptr, ws.showDebugPaintBounds)) {
-        ws.showDebugPaintBounds = !ws.showDebugPaintBounds;
-    }
-
-    Document* active_doc = ws.activeDocument();
-    if (active_doc) {
-        ImGui::Separator();
-        if (ImGui::MenuItem("Auto Layout", nullptr, false, active_doc != nullptr)) {
-            active_doc->autoLayout();
-            active_doc->root().pending_auto_fit = true;
-        }
-        if (ImGui::MenuItem("Shrink Nodes To Fit", nullptr, false, active_doc != nullptr)) {
-            active_doc->normalizeNodeSizesToFit(false);
-        }
-        ImGui::Separator();
-        if (ImGui::MenuItem("Zoom In", "Ctrl++")) {
-            active_doc->viewport().zoom *= 1.1f;
-            active_doc->viewport().clamp_zoom();
-        }
-        if (ImGui::MenuItem("Zoom Out", "Ctrl+-")) {
-            active_doc->viewport().zoom /= 1.1f;
-            active_doc->viewport().clamp_zoom();
-        }
-        if (ImGui::MenuItem("Reset Zoom", "Ctrl+0")) {
-            active_doc->viewport().zoom = 1.0f;
-        }
-    }
-
-    ImGui::EndMenu();
-}
-
-void MainMenu::renderBlueprintMenu(WindowSystem& ws) {
-    if (!ImGui::BeginMenu("Blueprint")) return;
-
-    Document* active_doc = ws.activeDocument();
-
-    // Show current name (or "not set")
-    if (active_doc && !active_doc->blueprint().name().empty()) {
-        ImGui::TextDisabled("Name: %s", active_doc->blueprint().name().c_str());
-    } else {
-        ImGui::TextDisabled("Name: (not set)");
-    }
-    ImGui::Separator();
-
-    if (ImGui::MenuItem("Fit View", nullptr, false, active_doc != nullptr)) {
-        if (active_doc) {
-            active_doc->root().pending_auto_fit = true;
-        }
-    }
-
-    if (ImGui::MenuItem("Set Name...", nullptr, false, active_doc != nullptr)) {
-        if (active_doc) {
-            ws.setName.show = true;
-            ws.setName.document_id = active_doc->id();
-            ws.setName.save_after = false;
-            std::memset(ws.setName.buf, 0, sizeof(ws.setName.buf));
-            // Pre-fill with current name
-            const auto& current = active_doc->blueprint().name();
-            if (!current.empty()) {
-                std::strncpy(ws.setName.buf, current.c_str(),
-                             sizeof(ws.setName.buf) - 1);
-            }
-        }
-    }
-
-    ImGui::EndMenu();
 }
 
 void MainMenu::renderToolsMenu(WindowSystem& ws) {
@@ -288,6 +193,142 @@ void MainMenu::renderToolsMenu(WindowSystem& ws) {
     ws.znTune.cfg_max_expand = std::max(0, ws.znTune.cfg_max_expand);
     ws.znTune.cfg_binary_iters = std::max(1, ws.znTune.cfg_binary_iters);
     ws.znTune.cfg_min_peaks = std::max(2, ws.znTune.cfg_min_peaks);
+
+    ImGui::EndMenu();
+}
+
+// =============================================================================
+// Scope-aware menus
+// =============================================================================
+
+void MainMenu::renderBlueprintMenu(WindowSystem& ws, const FocusScope& focus) {
+    if (!ImGui::BeginMenu("Blueprint")) return;
+
+    Document* doc = focus.document;
+    BlueprintWindow* win = focus.window;
+
+    // Show context: subwindow scope name or root blueprint name.
+    if (focus.is_subwindow()) {
+        ImGui::TextDisabled("Scope: %s", win->title.c_str());
+        if (win->read_only) {
+            ImGui::SameLine();
+            ImGui::TextDisabled("[Read Only]");
+        }
+    } else {
+        if (!doc->blueprint().name().empty()) {
+            ImGui::TextDisabled("Name: %s", doc->blueprint().name().c_str());
+        } else {
+            ImGui::TextDisabled("Name: (not set)");
+        }
+    }
+    ImGui::Separator();
+
+    // Fit View — scope-aware viewport.
+    if (ImGui::MenuItem("Fit View", nullptr, false, focus.is_valid())) {
+        win->pending_auto_fit = true;
+    }
+
+    // Auto Layout — scope-aware.
+    if (ImGui::MenuItem("Auto Layout", nullptr, false, !focus.is_read_only())) {
+        win->input.cancel_gesture();
+        if (focus.is_root()) {
+            doc->autoLayout();
+        } else {
+            doc->autoLayoutEmbedded(win->resolved_scope_id());
+        }
+        win->pending_auto_fit = true;
+    }
+
+    // Set Name — root only.
+    if (focus.is_root()) {
+        ImGui::Separator();
+        if (ImGui::MenuItem("Set Name...", nullptr, false, doc != nullptr)) {
+            ws.setName.show = true;
+            ws.setName.document_id = doc->id();
+            ws.setName.save_after = false;
+            std::memset(ws.setName.buf, 0, sizeof(ws.setName.buf));
+            const auto& current = doc->blueprint().name();
+            if (!current.empty()) {
+                std::strncpy(ws.setName.buf, current.c_str(),
+                             sizeof(ws.setName.buf) - 1);
+            }
+        }
+    }
+
+    ImGui::EndMenu();
+}
+
+void MainMenu::renderEditMenu(WindowSystem& ws, const FocusScope& focus) {
+    if (!ImGui::BeginMenu("Edit")) return;
+
+    Document* doc = focus.document;
+    BlueprintWindow* win = focus.window;
+
+    bool props_open = ws.propertiesWindow().is_open();
+    bool can_undo = doc->canUndo() && !props_open;
+    bool can_redo = doc->canRedo() && !props_open;
+    bool has_sel = win && !win->input.selected_node_ids().empty();
+    bool writable = !focus.is_read_only();
+
+    if (ImGui::MenuItem("Undo", "Ctrl+Z", false, can_undo && writable)) {
+        doc->performUndo();
+    }
+    if (ImGui::MenuItem("Redo", "Ctrl+Y", false, can_redo && writable)) {
+        doc->performRedo();
+    }
+
+    ImGui::Separator();
+
+    if (ImGui::MenuItem("Delete", "Del", false, has_sel && writable)) {
+        auto action = doc->applyInputResult(
+            win->input.on_key(Key::Delete), win->resolved_scope_id());
+        ws.handleInputAction(action, *doc);
+    }
+
+    ImGui::EndMenu();
+}
+
+void MainMenu::renderViewMenu(WindowSystem& ws, const FocusScope& focus) {
+    if (!ImGui::BeginMenu("View")) return;
+
+    // Global toggles — always visible.
+    if (ImGui::MenuItem("Inspector", nullptr, ws.showInspector)) {
+        ws.showInspector = !ws.showInspector;
+    }
+    if (ImGui::MenuItem("Oscilloscope", nullptr, ws.showOscilloscope)) {
+        ws.showOscilloscope = !ws.showOscilloscope;
+    }
+    if (ImGui::MenuItem("Debug Layout Bounds", nullptr, ws.showDebugLayoutBounds)) {
+        ws.showDebugLayoutBounds = !ws.showDebugLayoutBounds;
+    }
+    if (ImGui::MenuItem("Debug Paint Bounds", nullptr, ws.showDebugPaintBounds)) {
+        ws.showDebugPaintBounds = !ws.showDebugPaintBounds;
+    }
+
+    // Scope-dependent operations.
+    if (focus.is_valid()) {
+        BlueprintWindow* win = focus.window;
+        Document* doc = focus.document;
+        bool writable = !focus.is_read_only();
+
+        ImGui::Separator();
+        if (ImGui::MenuItem("Shrink Nodes To Fit", nullptr, false, writable)) {
+            doc->normalizeNodeSizesToFit(false);
+        }
+
+        ImGui::Separator();
+        if (ImGui::MenuItem("Zoom In", "Ctrl++")) {
+            win->viewport.zoom *= 1.1f;
+            win->viewport.clamp_zoom();
+        }
+        if (ImGui::MenuItem("Zoom Out", "Ctrl+-")) {
+            win->viewport.zoom /= 1.1f;
+            win->viewport.clamp_zoom();
+        }
+        if (ImGui::MenuItem("Reset Zoom", "Ctrl+0")) {
+            win->viewport.zoom = 1.0f;
+        }
+    }
 
     ImGui::EndMenu();
 }

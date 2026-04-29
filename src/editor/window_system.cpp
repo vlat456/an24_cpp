@@ -236,12 +236,50 @@ bool WindowSystem::closeAllDocuments() {
 void WindowSystem::setActiveDocument(Document* doc) {
     if (active_document_ != doc) {
         active_document_ = doc;
+        resetFocusToRoot();
         if (doc) {
             inspector_.setBlueprint(doc->blueprint(), doc->arena(), doc->interner(),
                                     WindowScopeId::root(), doc->type_registry());
             inspector_.markDirty();
             spdlog::debug("[WindowSystem] Active document: {}", doc->displayName());
         }
+    }
+}
+
+void WindowSystem::validateFocusScope() {
+    if (!focus_scope.document) {
+        return;
+    }
+
+    // Document still alive?
+    Document* doc = findDocumentById(focus_scope.document->id());
+    if (!doc) {
+        focus_scope.clear();
+        return;
+    }
+    focus_scope.document = doc;
+
+    // Window still alive and open?
+    if (!focus_scope.window) {
+        resetFocusToRoot();
+        return;
+    }
+
+    WindowManager& wm = doc->windowManager();
+    BlueprintWindow* found = wm.find(focus_scope.window->resolved_scope_id());
+    if (!found || !found->open) {
+        focus_scope.window = &doc->root();
+    } else {
+        focus_scope.window = found;
+    }
+}
+
+void WindowSystem::resetFocusToRoot() {
+    if (active_document_) {
+        focus_scope.document = active_document_;
+        focus_scope.window = &active_document_->root();
+    } else {
+        focus_scope.clear();
     }
 }
 

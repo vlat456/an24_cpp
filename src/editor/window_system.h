@@ -3,6 +3,7 @@
 #include "document.h"
 #include "editor_settings.h"
 #include "editor/rendering_resources.h"
+#include "focus_scope.h"
 #include "visual/inspector/inspector.h"
 #include "editor/input/editing_host.h"
 #include "window/properties_window.h"
@@ -54,6 +55,18 @@ public:
     size_t documentCount() const { return documents_.size(); }
     Document* findDocumentByPath(const std::string& path);
     Document* findDocumentById(const editor::DocumentId& id);
+
+    // ── Focus scope (menu context) ──
+
+    FocusScope focus_scope;
+
+    /// Validate focus_scope: if the focused window was closed/removed,
+    /// revert to root of the same document. If the document was removed,
+    /// clear entirely. Call once per frame before menu rendering.
+    void validateFocusScope();
+
+    /// Reset focus to root of active document. Called on tab switch.
+    void resetFocusToRoot();
 
     // ── Global panels ──
 

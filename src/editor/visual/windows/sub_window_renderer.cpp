@@ -7,7 +7,6 @@
 namespace {
 
 /// Compute bounding box of all nodes in a blueprint and fit the viewport.
-/// Shared between root canvas and sub-window renderers.
 void fit_viewport_to_blueprint(BlueprintWindow& win, const bp2::Blueprint& bp) {
     Pt bmin(1e9f, 1e9f), bmax(-1e9f, -1e9f);
     for (const bp2::Blueprint::Node& node : bp.nodes()) {
@@ -23,6 +22,10 @@ void fit_viewport_to_blueprint(BlueprintWindow& win, const bp2::Blueprint& bp) {
         win.viewport.fit_content(bmin, bmax, avail.x, avail.y);
     }
 }
+
+/// Gold border for focused subwindow.
+constexpr ImU32 kFocusedBorderColor = IM_COL32(255, 200, 50, 255);
+constexpr float kFocusedBorderSize = 2.0f;
 
 } // namespace
 
@@ -43,48 +46,69 @@ void SubWindowRenderer::renderAll(::WindowSystem& ws) {
 
 void SubWindowRenderer::renderWindow(Document& doc, BlueprintWindow& win, ::WindowSystem& ws) {
     ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
-    
+
     std::string win_title = win.title;
     if (win.read_only) win_title += " [Read Only]";
-    // Include mode prefix in ImGui hash to prevent ID collision between
-    // embedded and external windows that share the same scope key string.
     const char* mode_prefix = win.is_external_ref() ? "ext:" : "emb:";
     const std::string win_hash_key = editor::instance_path_to_scope_string(doc.interner(), win.resolved_scope_id().path());
     win_title += " [" + doc.displayName() + "]###" + doc.id().str() + ":" + mode_prefix + win_hash_key;
-    
+
+    // Highlight border if this subwindow holds menu focus.
+    bool has_menu_focus = ws.focus_scope.is_subwindow()
+                          && ws.focus_scope.window == &win;
+    if (has_menu_focus) {
+        ImGui::PushStyleColor(ImGuiCol_Border,
+                              ImGui::ColorConvertU32ToFloat4(kFocusedBorderColor));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, kFocusedBorderSize);
+    }
+
     if (!ImGui::Begin(win_title.c_str(), &win.open,
             ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
         ImGui::End();
+        if (has_menu_focus) {
+            ImGui::PopStyleVar();
+            ImGui::PopStyleColor();
+        }
         return;
     }
-    
+
+    // Track focus for next frame's menu context.
+    if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
+        ws.focus_scope.document = &doc;
+        ws.focus_scope.window = &win;
+    }
+
     renderToolbar(doc, win, ws);
     if (win.pending_auto_fit) {
         fitViewToContent(doc, win);
         win.pending_auto_fit = false;
     }
     renderCanvas(doc, win, ws);
-    
+
     ImGui::End();
+    if (has_menu_focus) {
+        ImGui::PopStyleVar();
+        ImGui::PopStyleColor();
+    }
 }
 
 void SubWindowRenderer::renderToolbar(Document& doc, BlueprintWindow& win, ::WindowSystem& ws) {
     if (ImGui::Button("Fit View")) {
         fitViewToContent(doc, win);
     }
-    
+
     ImGui::SameLine();
-    
+
     if (win.read_only) ImGui::BeginDisabled();
-    
+
     if (ImGui::Button("Auto Layout")) {
         win.input.cancel_gesture();
         doc.autoLayoutEmbedded(win.resolved_scope_id());
         win.pending_auto_fit = true;
     }
-    
+
     ImGui::SameLine();
-    
+
     bool has_sel = !win.input.selected_node_ids().empty();
     if (!has_sel) ImGui::BeginDisabled();
     if (ImGui::Button("Delete")) {
@@ -92,7 +116,7 @@ void SubWindowRenderer::renderToolbar(Document& doc, BlueprintWindow& win, ::Win
         ws.handleInputAction(action, doc);
     }
     if (!has_sel) ImGui::EndDisabled();
-    
+
     if (win.read_only) ImGui::EndDisabled();
 }
 
@@ -102,12 +126,12 @@ void SubWindowRenderer::renderCanvas(Document& doc, BlueprintWindow& win, ::Wind
     const std::string canvas_key = editor::instance_path_to_scope_string(doc.interner(), win.resolved_scope_id().path());
     ImGui::InvisibleButton(("##canvas_" + doc.id().str() + "_" + mode_prefix + canvas_key).c_str(), content_size);
     bool hovered = ImGui::IsItemHovered();
-    
+
     auto cmin_region = ImGui::GetWindowContentRegionMin();
     auto cmax_region = ImGui::GetWindowContentRegionMax();
     Pt cmin(cmin_region.x + ImGui::GetWindowPos().x, cmin_region.y + ImGui::GetWindowPos().y);
     Pt cmax(cmax_region.x + ImGui::GetWindowPos().x, cmax_region.y + ImGui::GetWindowPos().y);
-    
+
     canvas_renderer_.render(win, doc, ws, cmin, cmax, ImGui::GetWindowDrawList(), hovered);
 }
 

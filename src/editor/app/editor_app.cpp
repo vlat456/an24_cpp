@@ -283,7 +283,10 @@ void EditorApp::update() {
 
 void EditorApp::render() {
     auto& io = ImGui::GetIO();
-    
+
+    // Validate focus scope before menu rendering (closed windows/documents).
+    ws_.validateFocusScope();
+
     auto menu_result = main_menu_.render(ws_);
     if (menu_result.exit_requested) {
         running_ = false;
