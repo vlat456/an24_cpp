@@ -1,0 +1,23 @@
+{
+  "blueprint_id": "luatest",
+  "format": "blueprint",
+  "interface": [],
+  "name": "LUA",
+  "nodes": [
+    {
+      "component": "LuaScript",
+      "id": "luascript_1",
+      "kind": "component",
+      "label": "luascript_1",
+      "layout": {
+        "x": 256.0,
+        "y": 192.0
+      },
+      "params": {
+        "script": "function process(inputs, dt) return {inputs[1]} end"
+      }
+    }
+  ],
+  "version": 1,
+  "wires": []
+}
