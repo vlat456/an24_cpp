@@ -21,11 +21,12 @@ public:
 
     std::string script;
 
+    static constexpr uint32_t UNMAPPED = UINT32_MAX;
+
     // Pre-resolved signal indices — populated at build time.
-    uint32_t input_indices[MAX_PORTS] = {};
-    uint32_t output_indices[MAX_PORTS] = {};
-    uint8_t active_inputs = 0;
-    uint8_t active_outputs = 0;
+    // Unmapped ports hold UNMAPPED sentinel; execute() skips them.
+    uint32_t input_indices[MAX_PORTS];
+    uint32_t output_indices[MAX_PORTS];
 
     LuaScript();
     ~LuaScript();
@@ -38,9 +39,6 @@ public:
     void pre_load();
     void execute(SimulationState& st, double dt);
     void commit(SimulationState& st, double /*dt*/) {}
-
-    /// Hot-reload script between frames. Returns true on success.
-    bool reload_script(const std::string& new_source);
 
 private:
     lua_State* L_ = nullptr;

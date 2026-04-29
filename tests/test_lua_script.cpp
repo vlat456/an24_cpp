@@ -99,6 +99,31 @@ TEST(LuaScriptTest, UsesDt) {
 }
 
 // =============================================================================
+// Port mapping safety — unmapped ports must not corrupt other signals
+// =============================================================================
+
+TEST(LuaScriptTest, UnmappedOutputPortsDoNotCorruptSignals) {
+    auto comp = make_lua("function process(inputs, dt) return {inputs[1]} end", 1, 1);
+    auto st = make_state(4);
+    st.values[0] = 10.0f;
+    st.values[2] = 999.0f;
+    step(comp, st, DT);
+    EXPECT_FLOAT_EQ(st.values[1], 10.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 999.0f);
+    EXPECT_FLOAT_EQ(st.values[3], 0.0f);
+}
+
+TEST(LuaScriptTest, UnmappedInputPortsFeedZeroNotGarbage) {
+    auto comp = make_lua(
+        "function process(inputs, dt) return {inputs[1]+inputs[2]+inputs[3]} end", 3, 1);
+    auto st = make_state(5);
+    st.values[0] = 5.0f;
+    st.values[1] = 0.0f;
+    step(comp, st, DT);
+    EXPECT_FLOAT_EQ(st.values[3], 5.0f);
+}
+
+// =============================================================================
 // Multiple ports
 // =============================================================================
 
@@ -130,36 +155,6 @@ TEST(LuaScriptTest, InfiniteLoopKilledByHook) {
     st.values[0] = 1.0f;
     step(comp, st, DT);
     EXPECT_FLOAT_EQ(st.values[1], 0.0f);
-}
-
-// =============================================================================
-// Hot reload
-// =============================================================================
-
-TEST(LuaScriptTest, HotReloadSucceeds) {
-    auto comp = make_lua("function process(inputs, dt) return {1} end");
-    auto st = make_state(2);
-    step(comp, st, DT);
-    EXPECT_FLOAT_EQ(st.values[1], 1.0f);
-
-    bool ok = comp.reload_script("function process(inputs, dt) return {2} end");
-    EXPECT_TRUE(ok);
-
-    step(comp, st, DT);
-    EXPECT_FLOAT_EQ(st.values[1], 2.0f);
-}
-
-TEST(LuaScriptTest, HotReloadBadScriptKeepsOld) {
-    auto comp = make_lua("function process(inputs, dt) return {42} end");
-    auto st = make_state(2);
-    step(comp, st, DT);
-    EXPECT_FLOAT_EQ(st.values[1], 42.0f);
-
-    bool ok = comp.reload_script("this is broken!!!");
-    EXPECT_FALSE(ok);
-
-    step(comp, st, DT);
-    EXPECT_FLOAT_EQ(st.values[1], 42.0f);
 }
 
 // =============================================================================

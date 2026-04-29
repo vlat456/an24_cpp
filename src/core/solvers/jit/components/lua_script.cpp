@@ -4,6 +4,7 @@
 #include <lua.hpp>
 #include <cassert>
 #include <cstring>
+#include <utility>
 
 // =====================================================================
 // Custom allocator — memory-bounded per LuaScript instance
@@ -58,8 +59,6 @@ template <typename Provider>
 LuaScript<Provider>::LuaScript(LuaScript&& other) noexcept
     : provider(std::move(other.provider))
     , script(std::move(other.script))
-    , active_inputs(other.active_inputs)
-    , active_outputs(other.active_outputs)
     , L_(other.L_)
     , process_ref_(other.process_ref_)
     , alloc_state_(other.alloc_state_)
@@ -76,8 +75,6 @@ LuaScript<Provider>& LuaScript<Provider>::operator=(LuaScript&& other) noexcept 
         if (L_) lua_close(L_);
         provider = std::move(other.provider);
         script = std::move(other.script);
-        active_inputs = other.active_inputs;
-        active_outputs = other.active_outputs;
         std::memcpy(input_indices, other.input_indices, sizeof(input_indices));
         std::memcpy(output_indices, other.output_indices, sizeof(output_indices));
         L_ = other.L_;
@@ -135,9 +132,9 @@ bool LuaScript<Provider>::compile_script() {
 
 template <typename Provider>
 void LuaScript<Provider>::pre_load() {
-    // Resolve signal indices from provider — skip unmapped ports.
-    active_inputs = 0;
-    active_outputs = 0;
+    // Reset all indices to sentinel — only mapped ports get resolved.
+    std::memset(input_indices, 0xFF, sizeof(input_indices));
+    std::memset(output_indices, 0xFF, sizeof(output_indices));
 
     constexpr PortNames input_ports[MAX_PORTS] = {
         PortNames::in1,  PortNames::in2,  PortNames::in3,  PortNames::in4,
@@ -183,7 +180,7 @@ void LuaScript<Provider>::execute(SimulationState& st, double dt) {
     // Build inputs table (array part, 1-indexed)
     lua_createtable(L_, static_cast<int>(MAX_PORTS), 0);
     for (uint8_t i = 0; i < MAX_PORTS; ++i) {
-        float val = st.signal(input_indices[i]);
+        float val = (input_indices[i] != UNMAPPED) ? st.signal(input_indices[i]) : 0.0f;
         lua_pushnumber(L_, static_cast<lua_Number>(val));
         lua_rawseti(L_, -2, static_cast<int>(i + 1));
     }
@@ -203,7 +200,9 @@ void LuaScript<Provider>::execute(SimulationState& st, double dt) {
     if (status != LUA_OK) {
         lua_pop(L_, 1); // pop error message
         for (uint8_t i = 0; i < MAX_PORTS; ++i) {
-            st.signal(output_indices[i]) = 0.0f;
+            if (output_indices[i] != UNMAPPED) {
+                st.signal(output_indices[i]) = 0.0f;
+            }
         }
         return;
     }
@@ -211,49 +210,14 @@ void LuaScript<Provider>::execute(SimulationState& st, double dt) {
     // Read outputs from returned table
     if (lua_istable(L_, -1)) {
         for (uint8_t i = 0; i < MAX_PORTS; ++i) {
-            lua_rawgeti(L_, -1, static_cast<int>(i + 1));
-            st.signal(output_indices[i]) = static_cast<float>(lua_tonumber(L_, -1));
-            lua_pop(L_, 1);
+            if (output_indices[i] != UNMAPPED) {
+                lua_rawgeti(L_, -1, static_cast<int>(i + 1));
+                st.signal(output_indices[i]) = static_cast<float>(lua_tonumber(L_, -1));
+                lua_pop(L_, 1);
+            }
         }
     }
     lua_pop(L_, 1); // pop result table
-}
-
-// =====================================================================
-// Hot reload
-// =====================================================================
-
-template <typename Provider>
-bool LuaScript<Provider>::reload_script(const std::string& new_source) {
-    // Close old state first (while alloc_state_ still matches)
-    if (L_) {
-        lua_close(L_);
-        L_ = nullptr;
-    }
-
-    alloc_state_ = AllocState{};
-    lua_State* new_L = create_state();
-    if (!new_L) return false;
-
-    // Try compiling new script
-    if (luaL_dostring(new_L, new_source.c_str()) != LUA_OK) {
-        lua_close(new_L);
-        return false;
-    }
-
-    lua_getglobal(new_L, "process");
-    if (!lua_isfunction(new_L, -1)) {
-        lua_pop(new_L, 1);
-        lua_close(new_L);
-        return false;
-    }
-    int new_ref = luaL_ref(new_L, LUA_REGISTRYINDEX);
-
-    // Swap
-    L_ = new_L;
-    process_ref_ = new_ref;
-    script = new_source;
-    return true;
 }
 
 // =====================================================================
