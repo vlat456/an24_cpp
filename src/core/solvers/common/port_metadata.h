@@ -317,6 +317,10 @@ constexpr PortMeta PORT_META[] = {
     {"in", bp2::Direction::Input, 2, false},
     {"out", bp2::Direction::Output, 2, false},
     {"trigger", bp2::Direction::Input, 2, false},
+    // SimVarInput
+    {"out", bp2::Direction::Output, 2, true},
+    // SimVarOutput
+    {"in", bp2::Direction::Input, 2, false},
     // SlewRate
     {"in", bp2::Direction::Input, 2, false},
     {"out", bp2::Direction::Output, 2, false},
@@ -438,27 +442,29 @@ constexpr ComponentPortInfo COMPONENT_PORT_INFO[] = {
     {203, 8, SchedulerRoleKind::None, true},  // RotarySwitch1ToN
     {211, 8, SchedulerRoleKind::None, true},  // RotarySwitchNTo1
     {219, 3, SchedulerRoleKind::Consumer, false},  // SampleHold
-    {222, 2, SchedulerRoleKind::Consumer, false},  // SlewRate
-    {224, 2, SchedulerRoleKind::Consumer, false},  // Slider
-    {226, 4, SchedulerRoleKind::None, true},  // SolenoidValve
-    {230, 3, SchedulerRoleKind::Consumer, false},  // Splitter
-    {233, 3, SchedulerRoleKind::Consumer, false},  // Spring
-    {236, 3, SchedulerRoleKind::Consumer, false},  // Subtract
-    {239, 4, SchedulerRoleKind::Consumer, false},  // Switch
-    {243, 2, SchedulerRoleKind::Consumer, false},  // TempSensor
-    {245, 2, SchedulerRoleKind::Consumer, false},  // TimeDelay
-    {247, 2, SchedulerRoleKind::Consumer, false},  // Transformer
-    {249, 1, SchedulerRoleKind::Source, false},  // Value
-    {250, 5, SchedulerRoleKind::None, true},  // VariableConductance
-    {255, 5, SchedulerRoleKind::Consumer, false},  // VoltageSense
-    {260, 1, SchedulerRoleKind::Consumer, false},  // Voltmeter
-    {261, 3, SchedulerRoleKind::Consumer, false},  // XOR
+    {222, 1, SchedulerRoleKind::Source, false},  // SimVarInput
+    {223, 1, SchedulerRoleKind::Consumer, false},  // SimVarOutput
+    {224, 2, SchedulerRoleKind::Consumer, false},  // SlewRate
+    {226, 2, SchedulerRoleKind::Consumer, false},  // Slider
+    {228, 4, SchedulerRoleKind::None, true},  // SolenoidValve
+    {232, 3, SchedulerRoleKind::Consumer, false},  // Splitter
+    {235, 3, SchedulerRoleKind::Consumer, false},  // Spring
+    {238, 3, SchedulerRoleKind::Consumer, false},  // Subtract
+    {241, 4, SchedulerRoleKind::Consumer, false},  // Switch
+    {245, 2, SchedulerRoleKind::Consumer, false},  // TempSensor
+    {247, 2, SchedulerRoleKind::Consumer, false},  // TimeDelay
+    {249, 2, SchedulerRoleKind::Consumer, false},  // Transformer
+    {251, 1, SchedulerRoleKind::Source, false},  // Value
+    {252, 5, SchedulerRoleKind::None, true},  // VariableConductance
+    {257, 5, SchedulerRoleKind::Consumer, false},  // VoltageSense
+    {262, 1, SchedulerRoleKind::Consumer, false},  // Voltmeter
+    {263, 3, SchedulerRoleKind::Consumer, false},  // XOR
     {0, 0, SchedulerRoleKind::Consumer, false},  // Unknown (sentinel)
 };
 
 static_assert(sizeof(COMPONENT_PORT_INFO) / sizeof(COMPONENT_PORT_INFO[0]) == static_cast<size_t>(ComponentKind::_COUNT),
     "COMPONENT_PORT_INFO size must match ComponentKind count");
-static_assert(264 == sizeof(PORT_META) / sizeof(PORT_META[0]),
+static_assert(266 == sizeof(PORT_META) / sizeof(PORT_META[0]),
     "PORT_META total entries must match sum of all component port counts");
 
 /// Number of ports for a given ComponentKind. Returns 0 for Unknown.

@@ -86,3 +86,12 @@ target_link_libraries(benchmark_push_scheduler PRIVATE
     jit_solver
     json_io
 )
+
+# SimConnect host — minimal example of simulator + bridge main loop
+add_executable(an24_simconnect_host an24_simconnect_host/main.cpp)
+target_include_directories(an24_simconnect_host PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(an24_simconnect_host PRIVATE
+    simconnect_bridge
+    spdlog::spdlog
+    json_io
+)

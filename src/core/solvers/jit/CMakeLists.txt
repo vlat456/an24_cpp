@@ -92,11 +92,15 @@ add_library(jit_solver
     # Lua-scriptable component
     components/lua_script.cpp
     components/lua_script_validate.cpp
+    # SimVar I/O components (MSFS 2024 integration)
+    components/sim_var_input.cpp
+    components/sim_var_output.cpp
 )
 
 target_include_directories(jit_solver PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/core/solvers/common/simvar/stub
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 

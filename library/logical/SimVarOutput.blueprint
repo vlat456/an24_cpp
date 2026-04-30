@@ -1,0 +1,55 @@
+{
+  "version": "3.0",
+  "id": "SimVarOutput",
+  "display_name": "SimVar Output",
+  "scheduler_role": "Consumer",
+  "interface": [
+    {
+      "name": "in",
+      "domain": 2,
+      "direction": 0,
+      "type": "Signal",
+      "source_writer": false
+    }
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Writes a signal value to an MSFS 2024 simulation variable. Supports all MSFS 2024 Vars API categories: AVar (aircraft), LVar (local/shared), HEvent (cockpit events), BVar (input events), EVar (environment), IVar (instrument), OVar (component), ZVar (SimObject). In data mode uses fsVars*Set. In event mode triggers via fsEventsHEventCall. Variable resolution happens at init time (pre_load), not per-frame. In JIT/Editor mode the backend is inactive (no-op). In WASM/AOT mode uses direct Vars API.",
+  "domains": [
+    "Logical"
+  ],
+  "param_defaults": {
+    "var_name": "",
+    "var_type": "AVar",
+    "unit": "number",
+    "index": "0",
+    "mode": "data",
+    "event_name": "",
+    "event_id": "0"
+  },
+  "param_schema": {
+    "var_name": {
+      "type": "string"
+    },
+    "var_type": {
+      "type": "string"
+    },
+    "unit": {
+      "type": "string"
+    },
+    "index": {
+      "type": "int"
+    },
+    "mode": {
+      "type": "string"
+    },
+    "event_name": {
+      "type": "string"
+    },
+    "event_id": {
+      "type": "int"
+    }
+  }
+}

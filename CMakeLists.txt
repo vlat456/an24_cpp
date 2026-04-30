@@ -149,6 +149,7 @@ configure_file(
 add_subdirectory(src)
 add_subdirectory(examples)
 add_subdirectory(tools)
+add_subdirectory(wasm)
 
 if(BUILD_TESTS)
     add_subdirectory(tests)

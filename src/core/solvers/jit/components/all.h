@@ -81,4 +81,8 @@
 #include "pneumatic_valve.h"
 #include "lua_script.h"
 
+// SimVar I/O components (MSFS 2024 integration)
+#include "sim_var_input.h"
+#include "sim_var_output.h"
+
 // No class declarations here - all are in their respective headers

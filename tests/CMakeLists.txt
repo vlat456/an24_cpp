@@ -840,3 +840,19 @@ add_sim_test(elaborate_jit_parity_tests SOURCES test_elaborate_jit_parity.cpp LI
 # Cross-path signal allocation equivalence tests (Issue #227)
 add_sim_test(cross_path_signal_equivalence_tests SOURCES test_cross_path_signal_equivalence.cpp LINKS blueprint_v2 jit_solver json_io signal_allocation LABELS "production_path")
 add_sim_test(pneumatic_integration_tests SOURCES test_pneumatic_integration.cpp LINKS jit_solver)
+
+# ==...== SimVar Backend Trait Tests ==...==
+
+# SimVar backend trait tests (Issue #425: compile-time backend selection)
+add_sim_test(simvar_backend_tests SOURCES test_simvar_backend.cpp LINKS jit_solver)
+
+# ==...== SimConnect Stub Client Tests ==...==
+
+# SimConnect stub client tests (Issue #429: platform-agnostic interface + stub)
+add_sim_test(simconnect_stub_tests SOURCES test_simconnect_stub.cpp LINKS simconnect_bridge)
+
+# SimConnectBridge integration tests (Issue #432: bridge mapping + inject/extract)
+add_sim_test(simconnect_bridge_tests SOURCES test_simconnect_bridge.cpp LINKS simconnect_bridge)
+
+# Wire protocol binary packet tests (Issue #438/#439/#440: binary CommBus protocol)
+add_sim_test(wire_protocol_tests SOURCES test_wire_protocol.cpp)

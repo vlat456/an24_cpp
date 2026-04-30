@@ -80,6 +80,8 @@ enum class ComponentKind : uint8_t {
     RotarySwitch1ToN,
     RotarySwitchNTo1,
     SampleHold,
+    SimVarInput,
+    SimVarOutput,
     SlewRate,
     Slider,
     SolenoidValve,
@@ -162,6 +164,8 @@ inline std::optional<ComponentKind> parse_component_kind(std::string_view name) 
     if (name == "RotarySwitch1ToN") return ComponentKind::RotarySwitch1ToN;
     if (name == "RotarySwitchNTo1") return ComponentKind::RotarySwitchNTo1;
     if (name == "SampleHold") return ComponentKind::SampleHold;
+    if (name == "SimVarInput") return ComponentKind::SimVarInput;
+    if (name == "SimVarOutput") return ComponentKind::SimVarOutput;
     if (name == "SlewRate") return ComponentKind::SlewRate;
     if (name == "Slider") return ComponentKind::Slider;
     if (name == "SolenoidValve") return ComponentKind::SolenoidValve;
@@ -244,6 +248,8 @@ inline constexpr std::string_view component_kind_classname(ComponentKind kind) {
         case ComponentKind::RotarySwitch1ToN: return "RotarySwitch1ToN";
         case ComponentKind::RotarySwitchNTo1: return "RotarySwitchNTo1";
         case ComponentKind::SampleHold: return "SampleHold";
+        case ComponentKind::SimVarInput: return "SimVarInput";
+        case ComponentKind::SimVarOutput: return "SimVarOutput";
         case ComponentKind::SlewRate: return "SlewRate";
         case ComponentKind::Slider: return "Slider";
         case ComponentKind::SolenoidValve: return "SolenoidValve";

@@ -3,6 +3,7 @@ add_subdirectory(core/solvers/common)
 add_subdirectory(core/registry)
 add_subdirectory(io/json)
 add_subdirectory(blueprint_v2)
+add_subdirectory(simconnect)
 
 add_library(editor_semantic_canvas STATIC
     ${CMAKE_SOURCE_DIR}/src/editor/visual/presentation/semantic_input_machine.cpp

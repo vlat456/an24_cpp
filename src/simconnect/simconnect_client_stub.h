@@ -1,0 +1,63 @@
+#pragma once
+
+#include "simconnect/simconnect_client.h"
+
+#include <map>
+#include <optional>
+#include <string>
+#include <utility>
+#include <vector>
+
+/// Stub SimConnectClient — test harness for macOS/editor.
+///
+/// All operations succeed but do nothing real.
+/// Test-only API: set_sim_value(), written(), events_sent() for assertions.
+class StubSimConnectClient final : public SimConnectClient {
+public:
+    bool connect() override;
+    void disconnect() override;
+    void poll(double elapsed_time) override;
+    bool is_connected() const override;
+
+    // CommBus
+    bool send_request(const std::string& json_payload) override;
+    void set_response_callback(std::function<void(const std::string&)> cb) override;
+
+    // Direct SimVar Access
+    SimVarValue read(const std::string& sim_var, int index) const override;
+    void write(const std::string& sim_var, int index, float value) override;
+    void send_event(const std::string& event_name, uint32_t data) override;
+
+    // ==...== Test-Only API ==...==
+
+    /// Set a simulated value for read() to return.
+    void set_sim_value(const std::string& sim_var, int index, float value);
+
+    /// Get the last written value for a variable.
+    std::optional<float> written(const std::string& sim_var, int index) const;
+
+    /// Get all written values (for test assertions).
+    const std::map<std::string, float>& written_values() const;
+
+    /// Get all sent events (for test assertions).
+    const std::vector<std::pair<std::string, uint32_t>>& events_sent() const;
+
+    /// Get the last CommBus request payload.
+    const std::string& last_request() const;
+
+    /// Trigger a mock response (simulates WASM bridge reply).
+    void trigger_mock_response(const std::string& json_payload);
+
+    /// Clear all recorded state (for test isolation).
+    void reset();
+
+private:
+    static std::string make_key(const std::string& sim_var, int index);
+
+    bool connected_ = false;
+    std::map<std::string, float> sim_values_;
+    std::map<std::string, float> written_;
+    std::vector<std::pair<std::string, uint32_t>> events_sent_;
+    std::string last_request_;
+    std::function<void(const std::string&)> response_cb_;
+};
