@@ -1,4 +1,5 @@
 #include "core/solvers/common/simvar_backend.h"
+#include "simconnect/wire_protocol.h"
 #include "core/solvers/common/provider.h"
 #include <gtest/gtest.h>
 #include <limits>
@@ -21,33 +22,40 @@ TEST(SimVarHandleTest, DefaultConstructedIsInvalid) {
 }
 
 TEST(SimVarHandleTest, AllTypesAreConstructible) {
-    // Verify every Type value compiles and has correct numeric value
+    // Verify every Type value compiles and has correct 1-based numeric value
     SimVarHandle h;
 
-    h.type = SimVarHandle::AVar;   EXPECT_EQ(static_cast<uint8_t>(h.type), 0u);
-    h.type = SimVarHandle::LVar;   EXPECT_EQ(static_cast<uint8_t>(h.type), 1u);
-    h.type = SimVarHandle::HEvent; EXPECT_EQ(static_cast<uint8_t>(h.type), 2u);
-    h.type = SimVarHandle::BVar;   EXPECT_EQ(static_cast<uint8_t>(h.type), 3u);
-    h.type = SimVarHandle::EVar;   EXPECT_EQ(static_cast<uint8_t>(h.type), 4u);
-    h.type = SimVarHandle::IVar;   EXPECT_EQ(static_cast<uint8_t>(h.type), 5u);
-    h.type = SimVarHandle::OVar;   EXPECT_EQ(static_cast<uint8_t>(h.type), 6u);
-    h.type = SimVarHandle::ZVar;   EXPECT_EQ(static_cast<uint8_t>(h.type), 7u);
+    h.type = SimVarHandle::AVar;   EXPECT_EQ(static_cast<uint8_t>(h.type), 0x01u);
+    h.type = SimVarHandle::LVar;   EXPECT_EQ(static_cast<uint8_t>(h.type), 0x02u);
+    h.type = SimVarHandle::HEvent; EXPECT_EQ(static_cast<uint8_t>(h.type), 0x03u);
+    h.type = SimVarHandle::BVar;   EXPECT_EQ(static_cast<uint8_t>(h.type), 0x04u);
+    h.type = SimVarHandle::EVar;   EXPECT_EQ(static_cast<uint8_t>(h.type), 0x05u);
+    h.type = SimVarHandle::IVar;   EXPECT_EQ(static_cast<uint8_t>(h.type), 0x06u);
+    h.type = SimVarHandle::OVar;   EXPECT_EQ(static_cast<uint8_t>(h.type), 0x07u);
+    h.type = SimVarHandle::ZVar;   EXPECT_EQ(static_cast<uint8_t>(h.type), 0x08u);
 }
 
+// Compile-time parity: SimVarHandle::Type and VarType MUST have identical values.
+// No offset, no mapping function — they are the same thing.
+static_assert(static_cast<uint8_t>(SimVarHandle::AVar)   == static_cast<uint8_t>(VarType::AVar));
+static_assert(static_cast<uint8_t>(SimVarHandle::LVar)   == static_cast<uint8_t>(VarType::LVar));
+static_assert(static_cast<uint8_t>(SimVarHandle::HEvent) == static_cast<uint8_t>(VarType::HEvent));
+static_assert(static_cast<uint8_t>(SimVarHandle::BVar)   == static_cast<uint8_t>(VarType::BVar));
+static_assert(static_cast<uint8_t>(SimVarHandle::EVar)   == static_cast<uint8_t>(VarType::EVar));
+static_assert(static_cast<uint8_t>(SimVarHandle::IVar)   == static_cast<uint8_t>(VarType::IVar));
+static_assert(static_cast<uint8_t>(SimVarHandle::OVar)   == static_cast<uint8_t>(VarType::OVar));
+static_assert(static_cast<uint8_t>(SimVarHandle::ZVar)   == static_cast<uint8_t>(VarType::ZVar));
+
 TEST(SimVarHandleTest, TypeEnumMatchesWireProtocolVarType) {
-    // SimVarHandle::Type and VarType (wire_protocol.h) must use the same numeric values.
-    // This ensures the AOT backend and the bridge binary protocol agree on type codes.
-    // Note: wire_protocol.h uses 1-based (AVar=0x01), SimVarHandle uses 0-based (AVar=0).
-    // The mapping is: SimVarHandle::X = VarType::X - 1.
-    // This is intentional — the wire protocol reserves 0x00 as "unspecified".
-    EXPECT_EQ(static_cast<uint8_t>(SimVarHandle::AVar) + 1, 0x01);
-    EXPECT_EQ(static_cast<uint8_t>(SimVarHandle::LVar) + 1, 0x02);
-    EXPECT_EQ(static_cast<uint8_t>(SimVarHandle::HEvent) + 1, 0x03);
-    EXPECT_EQ(static_cast<uint8_t>(SimVarHandle::BVar) + 1, 0x04);
-    EXPECT_EQ(static_cast<uint8_t>(SimVarHandle::EVar) + 1, 0x05);
-    EXPECT_EQ(static_cast<uint8_t>(SimVarHandle::IVar) + 1, 0x06);
-    EXPECT_EQ(static_cast<uint8_t>(SimVarHandle::OVar) + 1, 0x07);
-    EXPECT_EQ(static_cast<uint8_t>(SimVarHandle::ZVar) + 1, 0x08);
+    // Runtime mirror of the static_asserts above — verifies at test time too.
+    EXPECT_EQ(static_cast<uint8_t>(SimVarHandle::AVar),   static_cast<uint8_t>(VarType::AVar));
+    EXPECT_EQ(static_cast<uint8_t>(SimVarHandle::LVar),   static_cast<uint8_t>(VarType::LVar));
+    EXPECT_EQ(static_cast<uint8_t>(SimVarHandle::HEvent), static_cast<uint8_t>(VarType::HEvent));
+    EXPECT_EQ(static_cast<uint8_t>(SimVarHandle::BVar),   static_cast<uint8_t>(VarType::BVar));
+    EXPECT_EQ(static_cast<uint8_t>(SimVarHandle::EVar),   static_cast<uint8_t>(VarType::EVar));
+    EXPECT_EQ(static_cast<uint8_t>(SimVarHandle::IVar),   static_cast<uint8_t>(VarType::IVar));
+    EXPECT_EQ(static_cast<uint8_t>(SimVarHandle::OVar),   static_cast<uint8_t>(VarType::OVar));
+    EXPECT_EQ(static_cast<uint8_t>(SimVarHandle::ZVar),   static_cast<uint8_t>(VarType::ZVar));
 }
 
 // ==...== Bridge Backend Tests (JitProvider → inactive) ==...==

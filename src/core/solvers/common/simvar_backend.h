@@ -27,17 +27,17 @@
 /// Execute() no-ops safely when handle is invalid.
 struct SimVarHandle {
     uint32_t id = std::numeric_limits<uint32_t>::max();
-    /// Variable type discriminator — matches MSFS 2024 Vars API categories.
-    /// Wire protocol uses the same values via VarType enum in wire_protocol.h.
+    /// Variable type discriminator — identical numeric values to VarType in wire_protocol.h.
+    /// This eliminates any offset mapping between component-side and wire-side type codes.
     enum Type : uint8_t {
-        AVar  = 0,   ///< Aircraft simulation variables (fsVarsAVarGet/Set)
-        LVar  = 1,   ///< Local variables (fsVarsLVarGet/Set, FLOAT64 only)
-        HEvent = 2,  ///< H events (fsEventsHEventCall)
-        BVar  = 3,   ///< Input event variables (fsVarsBVarGet/Set)
-        EVar  = 4,   ///< Environment variables (fsVarsEVarGet/Set)
-        IVar  = 5,   ///< Instrument variables (fsVarsIVarGet/Set)
-        OVar  = 6,   ///< Component variables (fsVarsOVarGet/Set)
-        ZVar  = 7,   ///< SimObject variables (fsVarsZVarGet/Set)
+        AVar  = 0x01,  ///< Aircraft simulation variables (fsVarsAVarGet/Set)
+        LVar  = 0x02,  ///< Local variables (fsVarsLVarGet/Set, FLOAT64 only)
+        HEvent = 0x03, ///< H events (fsEventsHEventCall)
+        BVar  = 0x04,  ///< Input event variables (fsVarsBVarGet/Set)
+        EVar  = 0x05,  ///< Environment variables (fsVarsEVarGet/Set)
+        IVar  = 0x06,  ///< Instrument variables (fsVarsIVarGet/Set)
+        OVar  = 0x07,  ///< Component variables (fsVarsOVarGet/Set)
+        ZVar  = 0x08,  ///< SimObject variables (fsVarsZVarGet/Set)
     } type = AVar;
     int unit_id = 0;   // For AVars: MSFS unit ID (0 = none)
     int index = 0;     // For indexed variables (0-based in blueprint, +1 for MSFS)
