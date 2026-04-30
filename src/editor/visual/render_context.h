@@ -28,7 +28,9 @@ struct HoveredRoutingPointId {
 /// Passed through the widget tree so every render() can transform
 /// world coordinates to screen coordinates and query selection/hover.
 struct RenderContext : public ui::RenderContext {
-    const std::vector<std::string_view>* selected_node_ids = nullptr;
+    /// Selected node IDs — O(1) lookup via unordered_set.
+    /// nullptr when no nodes are selected.
+    const std::unordered_set<std::string_view, StringViewHash>* selected_node_ids = nullptr;
     std::string_view selected_wire_id;
     std::string_view hovered_wire_id;
     HoveredRoutingPointId hovered_routing_point;
@@ -48,13 +50,10 @@ struct RenderContext : public ui::RenderContext {
     /// instead of calling renderTree(). Null in test builds.
     ISpriteCache* sprite_cache = nullptr;
 
-    /// Check whether a node id is selected. O(N) scan — N is typically <10 selected nodes.
+    /// Check whether a node id is selected. O(1) via unordered_set.
     bool isNodeSelected(std::string_view node_id) const {
         if (!selected_node_ids || node_id.empty()) return false;
-        for (const auto& id : *selected_node_ids) {
-            if (id == node_id) return true;
-        }
-        return false;
+        return selected_node_ids->count(node_id) > 0;
     }
 };
 

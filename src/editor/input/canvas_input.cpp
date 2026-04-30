@@ -96,11 +96,11 @@ bool CanvasInput::is_node_selected(core::InternedId node_id) const {
     return std::find(selected_node_ids_.begin(), selected_node_ids_.end(), node_id) != selected_node_ids_.end();
 }
 
-std::vector<std::string_view> CanvasInput::selected_node_id_views() const {
-    std::vector<std::string_view> result;
+std::unordered_set<std::string_view, visual::StringViewHash> CanvasInput::selected_node_id_views() const {
+    std::unordered_set<std::string_view, visual::StringViewHash> result;
     result.reserve(selected_node_ids_.size());
     for (const auto& nid : selected_node_ids_) {
-        result.push_back(interner_->resolve(nid));
+        result.insert(interner_->resolve(nid));
     }
     return result;
 }

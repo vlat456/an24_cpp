@@ -14,6 +14,7 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <unordered_set>
 #include <vector>
 
 using ui::Pt;
@@ -85,8 +86,8 @@ public:
     /// Selected node IDs (interned handles — O(1) comparison).
     const std::vector<core::InternedId>& selected_node_ids() const { return selected_node_ids_; }
 
-    /// Selected node ids resolved to stable string_views for rendering.
-    std::vector<std::string_view> selected_node_id_views() const;
+    /// Selected node ids resolved to stable string_views for O(1) lookup.
+    std::unordered_set<std::string_view, visual::StringViewHash> selected_node_id_views() const;
 
     /// Selected wire id for rendering (empty = none).
     std::string_view selected_wire_id() const;
