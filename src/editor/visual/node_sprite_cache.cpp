@@ -8,6 +8,7 @@
 #include "visual/render_context.h"
 #include "visual/scene.h"
 #include "editor/imgui_draw_list.h"
+#include "editor/imgui_compat.h"
 
 #include <imgui.h>
 #include <backends/imgui_impl_opengl3.h>
@@ -108,7 +109,7 @@ void NodeSpriteCache::bake(const Widget& widget, const RenderContext& ctx) {
 
     ImDrawList temp_dl(ImGui::GetDrawListSharedData());
     // Initialize the draw list — pushes a seed command into CmdBuffer.
-    temp_dl._ResetForNewFrame();
+    an24::imgui_draw_list_reset(temp_dl);
     temp_dl.PushClipRectFullScreen();
     temp_dl.PushTextureID(ImGui::GetFont()->ContainerAtlas->TexID);
 
