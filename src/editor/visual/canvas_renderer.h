@@ -8,6 +8,9 @@
 #include "editor/visual/port/port_circle_atlas.h"
 #include "editor/visual/node_sprite_cache.h"
 
+#include <memory>
+#include <unordered_map>
+
 #ifdef AN24_PROFILE
 #include "editor/app/frame_profiler.h"
 #endif
@@ -21,6 +24,13 @@ public:
 
     void render(BlueprintWindow& win, Document& doc, WindowSystem& ws,
                 Pt cmin, Pt cmax, ImDrawList* draw_list, bool hovered);
+
+    /// Evict all cached textures for a closing window.
+    void evict_window(const WindowScopeId& scope);
+
+    /// Evict caches for scopes no longer present in any document's window manager.
+    /// Call once per frame after all windows have been rendered.
+    void gc_stale_caches(const std::vector<std::unique_ptr<BlueprintWindow>>& live_windows);
 
 #ifdef AN24_PROFILE
     static an24::FrameProfiler& profiler();
@@ -37,10 +47,12 @@ private:
 
     std::unordered_set<std::string_view, visual::StringViewHash> energized_buf_;
 
-#ifdef AN24_EDITOR
     visual::PortCircleAtlas port_circle_atlas_;
-    visual::NodeSpriteCache sprite_cache_;
-#endif
+    /// Per-window sprite caches, keyed by window scope identity.
+    /// Prevents cross-document texture contamination.
+    std::unordered_map<WindowScopeId,
+                       std::unique_ptr<visual::NodeSpriteCache>,
+                       WindowScopeId::Hash> window_caches_;
 
 #ifdef AN24_PROFILE
     int prof_grid_{};

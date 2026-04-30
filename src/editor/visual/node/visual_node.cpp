@@ -14,9 +14,6 @@
 #include "editor/visual/presentation/semantic_scene_snapshot.h"
 #include "editor/visual/presentation/node_badge.h"
 #include <spdlog/spdlog.h>
-#ifdef AN24_EDITOR
-#include <imgui.h>
-#endif
 #include <algorithm>
 #include <cmath>
 #include <variant>
@@ -748,28 +745,25 @@ void NodeWidget::renderTree(IDrawList* dl, const RenderContext& ctx) const {
 #endif
 
     // == 4. Ports (circles + direction arrows) ==
-#ifdef AN24_EDITOR
-    // Hot path: pre-rendered texture circle + direct ImDrawList
     {
-        ImDrawList* idl = static_cast<ImDrawList*>(dl->native_draw_list());
-        ImTextureID circle_tex = reinterpret_cast<ImTextureID>(ctx.port_circle_texture);
         for (const auto& entry : port_entries_) {
             const Port* p = entry.port;
             if (!p) continue;
 
             const Pt p_pos = ctx.world_to_screen(node_pos + p->localPos());
             const float r  = PortConstants::RADIUS * zoom;
-            const ImVec2 center(p_pos.x + r, p_pos.y + r);
-            const ImU32 pcolor = static_cast<ImU32>(p->color());
+            const Pt center(p_pos.x + r, p_pos.y + r);
+            const uint32_t pcolor = p->color();
 
-            if (circle_tex) {
-                // Textured circle — 4 flat vertices, zero path work
-                idl->AddImage(circle_tex,
-                              ImVec2(center.x - r, center.y - r),
-                              ImVec2(center.x + r, center.y + r),
-                              ImVec2(0, 0), ImVec2(1, 1), pcolor);
+            if (ctx.port_circle_texture) {
+                // Textured circle — single add_image call (4 vertices).
+                dl->add_image(ctx.port_circle_texture,
+                              Pt(center.x - r, center.y - r),
+                              Pt(center.x + r, center.y + r),
+                              Pt(0, 0), Pt(1, 1), pcolor);
             } else {
-                idl->AddCircleFilled(center, r, pcolor, 6);
+                // Fallback for test builds — vector circle.
+                dl->add_circle_filled(center, r, pcolor, 6);
             }
 
             if (p->direction() != bp2::Direction::InOut) {
@@ -777,40 +771,13 @@ void NodeWidget::renderTree(IDrawList* dl, const RenderContext& ctx) const {
                 const float arrow_offset = r * arrow_offset_for_side(p->layoutSide());
                 const float arrow_size = PortConstants::ARROW_SIZE * zoom;
                 const auto arrow = compute_port_arrow(
-                    p->layoutSide(), p->direction(), Pt(center.x, center.y), r,
+                    p->layoutSide(), p->direction(), center, r,
                     arrow_offset, arrow_size);
-                idl->AddLine(ImVec2(arrow.tip.x, arrow.tip.y),
-                             ImVec2(arrow.back1.x, arrow.back1.y), pcolor, thickness);
-                idl->AddLine(ImVec2(arrow.tip.x, arrow.tip.y),
-                             ImVec2(arrow.back2.x, arrow.back2.y), pcolor, thickness);
+                dl->add_line(arrow.tip, arrow.back1, pcolor, thickness);
+                dl->add_line(arrow.tip, arrow.back2, pcolor, thickness);
             }
         }
     }
-#else
-    // Fallback: use IDrawList interface (test builds)
-    for (const auto& entry : port_entries_) {
-        const Port* p = entry.port;
-        if (!p) continue;
-
-        const Pt p_pos = ctx.world_to_screen(node_pos + p->localPos());
-        const float r  = PortConstants::RADIUS * zoom;
-        const Pt center(p_pos.x + r, p_pos.y + r);
-        const uint32_t pcolor = p->color();
-
-        dl->add_circle_filled(center, r, pcolor, 6);
-
-        if (p->direction() != bp2::Direction::InOut) {
-            const float thickness = PortConstants::ARROW_THICKNESS * zoom;
-            const float arrow_offset = r * arrow_offset_for_side(p->layoutSide());
-            const float arrow_size = PortConstants::ARROW_SIZE * zoom;
-            const auto arrow = compute_port_arrow(
-                p->layoutSide(), p->direction(), center, r,
-                arrow_offset, arrow_size);
-            dl->add_line(arrow.tip, arrow.back1, pcolor, thickness);
-            dl->add_line(arrow.tip, arrow.back2, pcolor, thickness);
-        }
-    }
-#endif
 
 #ifdef AN24_PROFILE
     t1 = tick(); t_ports += us(t0, t1); t0 = t1;

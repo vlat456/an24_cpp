@@ -1,7 +1,5 @@
 /// Node sprite cache implementation.
-/// Editor-only — the header is guarded by AN24_EDITOR.
-
-#ifdef AN24_EDITOR
+/// Editor-only — compiled in EDITOR_IMGUI_SHELL_SOURCES.
 
 #include "node_sprite_cache.h"
 #include "visual/widget.h"
@@ -174,7 +172,7 @@ void NodeSpriteCache::bake(const Widget& widget, const RenderContext& ctx) {
     restore_gl_state(gl);
 }
 
-bool NodeSpriteCache::blit(const Widget& widget, ImDrawList* dl,
+bool NodeSpriteCache::blit(const Widget& widget, ui::IDrawList* dl,
                            const RenderContext& ctx) const {
     auto it = cache_.find(widget.id());
     if (it == cache_.end() || !it->second.texture) return false;
@@ -186,14 +184,13 @@ bool NodeSpriteCache::blit(const Widget& widget, ImDrawList* dl,
     const Pt screen_min = ctx.world_to_screen(w_pos);
     const Pt screen_max = ctx.world_to_screen(w_pos + widget.size());
 
-    const ImTextureID tex_id = reinterpret_cast<ImTextureID>(
-        static_cast<intptr_t>(entry.texture));
+    // Pass GL texture as opaque NativeTexture. UV Y-flip compensates
+    // OpenGL FBO origin (bottom-left) vs ImGui (top-left).
+    ui::IDrawList::NativeTexture tex_handle =
+        static_cast<ui::IDrawList::NativeTexture>(entry.texture);
 
-    dl->AddImage(tex_id,
-                 ImVec2(screen_min.x, screen_min.y),
-                 ImVec2(screen_max.x, screen_max.y),
-                 ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f),
-                 IM_COL32_WHITE);
+    dl->add_image(tex_handle, screen_min, screen_max,
+                  Pt(0.0f, 1.0f), Pt(1.0f, 0.0f));
     return true;
 }
 
@@ -299,5 +296,3 @@ void NodeSpriteCache::restore_gl_state(const GLState& s) const {
 }
 
 } // namespace visual
-
-#endif // AN24_EDITOR

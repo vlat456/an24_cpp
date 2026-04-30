@@ -28,6 +28,25 @@ struct IDrawList {
     virtual void add_triangle_filled(Pt a, Pt b, Pt c, uint32_t color) = 0;
     virtual Pt calc_text_size(const char* text, float font_size) const = 0;
 
+    /// Opaque native texture handle. Zero = no texture.
+    /// Backends store their platform-specific texture ID here (GL GLuint,
+    /// Vulkan VkImage, etc). Value is just an integer — never dereferenced.
+    using NativeTexture = uintptr_t;
+
+    /// Blit a pre-rendered texture quad (for sprite cache / port circles).
+    /// `tex` is an opaque native texture handle. Zero = no texture.
+    /// UV coordinates default to (0,0)→(1,1). FBO textures need Y-flip:
+    /// pass uv_min=(0,1), uv_max=(1,0).
+    /// Default falls back to a filled rect (sufficient for test builds).
+    virtual void add_image(NativeTexture tex, Pt min, Pt max,
+                           Pt uv_min = Pt(0, 0), Pt uv_max = Pt(1, 1),
+                           uint32_t color = 0xFFFFFFFF) {
+        (void)tex;
+        (void)uv_min;
+        (void)uv_max;
+        add_rect_filled(min, max, color);
+    }
+
     /// Access the underlying platform draw list for hot-path bypass.
     /// Returns nullptr if no native draw list is available.
     virtual void* native_draw_list() const { return nullptr; }

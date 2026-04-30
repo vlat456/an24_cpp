@@ -2,11 +2,9 @@
 
 /// Pre-rendered white circle texture for port rendering.
 /// Eliminates AddCircleFilled path overhead — uses AddImage (4 flat vertices) instead.
-/// Only compiled in editor builds (requires OpenGL + ImGui).
+/// Editor-only — compiled in EDITOR_IMGUI_SHELL_SOURCES.
 
-#ifdef AN24_EDITOR
-
-#include <imgui.h>
+#include "ui/renderer/idraw_list.h"
 #include <cmath>
 #include <cstring>
 
@@ -45,8 +43,9 @@ public:
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
-    ImTextureID texture_id() const {
-        return reinterpret_cast<ImTextureID>(static_cast<intptr_t>(texture_));
+    /// Opaque native texture handle, safe to store in RenderContext.
+    ui::IDrawList::NativeTexture texture_id() const {
+        return static_cast<ui::IDrawList::NativeTexture>(texture_);
     }
 
 private:
@@ -80,5 +79,3 @@ private:
 };
 
 } // namespace visual
-
-#endif // AN24_EDITOR

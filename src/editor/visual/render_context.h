@@ -13,7 +13,7 @@ using ui::Pt;
 
 class Widget;
 class Wire;
-class NodeSpriteCache;
+class ISpriteCache;
 
 /// Semantic identifier for a hovered routing point.
 /// Decouples the render context from widget pointers — the renderer
@@ -35,9 +35,9 @@ struct RenderContext : public ui::RenderContext {
     bool show_debug_bounds = false;
     bool show_debug_paint_bounds = false;
 
-    /// Pre-rendered port circle texture (editor builds only, null in tests).
-    /// When non-null, use AddImage instead of AddCircleFilled for port circles.
-    void* port_circle_texture = nullptr;
+    /// Pre-rendered port circle texture (editor builds only, 0 in tests).
+    /// When non-zero, use add_image instead of add_circle_filled for port circles.
+    ui::IDrawList::NativeTexture port_circle_texture = 0;
 
     /// Set of visual wire IDs that are energized (voltage > threshold).
     /// Populated per frame from simulation state. nullptr when simulation is off.
@@ -45,8 +45,8 @@ struct RenderContext : public ui::RenderContext {
     const std::unordered_set<std::string_view, StringViewHash>* energized_wires = nullptr;
 
     /// Node sprite cache — when non-null, Scene::render will blit cached nodes
-    /// instead of calling renderTree(). Editor builds only.
-    NodeSpriteCache* sprite_cache = nullptr;
+    /// instead of calling renderTree(). Null in test builds.
+    ISpriteCache* sprite_cache = nullptr;
 
     /// Check whether a node id is selected.
     bool isNodeSelected(std::string_view node_id) const {

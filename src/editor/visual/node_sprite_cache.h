@@ -4,9 +4,10 @@
 /// steady-state rendering. Each cached node is blitted with a single
 /// AddImage call (4 vertices, ~1us) instead of ~45 ImGui draw calls.
 ///
-/// Editor-only (requires OpenGL + ImGui). Guarded by AN24_EDITOR.
+/// Implements ISpriteCache — only compiled into the editor binary
+/// (requires OpenGL + ImGui).
 
-#ifdef AN24_EDITOR
+#include "editor/visual/sprite_cache.h"
 
 #include "ui/math/pt.h"
 #include <unordered_map>
@@ -34,10 +35,10 @@ struct RenderContext;
 /// - Allocates one GL_TEXTURE_2D per node, resized as needed.
 /// - Textures freed via evict() (node deletion) or destructor.
 /// - Caller marks nodes dirty; bake() re-renders dirty entries.
-class NodeSpriteCache {
+class NodeSpriteCache : public ISpriteCache {
 public:
     NodeSpriteCache() = default;
-    ~NodeSpriteCache();
+    ~NodeSpriteCache() override;
 
     // Non-copyable, non-movable (owns GL resources).
     NodeSpriteCache(const NodeSpriteCache&) = delete;
@@ -45,27 +46,29 @@ public:
     NodeSpriteCache(NodeSpriteCache&&) = delete;
     NodeSpriteCache& operator=(NodeSpriteCache&&) = delete;
 
-    /// Blit a cached widget texture via AddImage. Returns false if not cached.
-    bool blit(const Widget& widget, ImDrawList* dl, const RenderContext& ctx) const;
+    /// Blit a cached widget texture via IDrawList::add_image(). Returns false if not cached.
+    bool blit(const Widget& widget, ui::IDrawList* dl,
+              const RenderContext& ctx) const override;
 
     /// Bake all dirty nodes in the scene. Call before Scene::render().
     /// Also garbage-collects stale entries (nodes removed from the scene).
-    void bake_dirty_nodes(const class Scene& scene, const RenderContext& ctx);
+    void bake_dirty_nodes(const class Scene& scene,
+                          const RenderContext& ctx) override;
 
     /// Mark a specific node as needing re-bake.
-    void mark_dirty(std::string_view node_id);
+    void mark_dirty(std::string_view node_id) override;
 
     /// Mark all cached nodes dirty (e.g. zoom changed).
-    void mark_all_dirty();
+    void mark_all_dirty() override;
 
     /// Check if a node has a valid cached texture.
-    bool has(std::string_view node_id) const;
+    bool has(std::string_view node_id) const override;
 
     /// Free a node's texture (call on node deletion).
-    void evict(std::string_view node_id);
+    void evict(std::string_view node_id) override;
 
     /// Free all textures and reset.
-    void clear();
+    void clear() override;
 
 private:
     /// One cached texture per node, keyed by node id (string_view into
@@ -115,5 +118,3 @@ private:
 };
 
 } // namespace visual
-
-#endif // AN24_EDITOR

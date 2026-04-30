@@ -16,6 +16,12 @@ constexpr float kFocusedBorderSize = 2.0f;
 
 void SubWindowRenderer::renderAll(::WindowSystem& ws) {
     for (auto& doc : ws.documents()) {
+        // Evict sprite caches for user-closed windows before destroying them.
+        for (const auto& win : doc->windowManager().windows()) {
+            if (!win->open && !win->resolved_scope_id().is_root()) {
+                canvas_renderer_.evict_window(win->resolved_scope_id());
+            }
+        }
         doc->windowManager().remove_closed_windows();
         for (auto& win_ptr : doc->windowManager().windows()) {
             auto& win = *win_ptr;
@@ -25,6 +31,9 @@ void SubWindowRenderer::renderAll(::WindowSystem& ws) {
             if (!win.open) continue;
             renderWindow(*doc, win, ws);
         }
+        // Evict caches for windows removed by other paths
+        // (remove_orphaned_windows, undo/redo, simulation state changes).
+        canvas_renderer_.gc_stale_caches(doc->windowManager().windows());
     }
 }
 

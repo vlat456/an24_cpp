@@ -233,16 +233,14 @@ void CanvasRenderer::renderBlueprint(BlueprintWindow& win, Document& doc, Window
     ctx.show_debug_bounds = ws.showDebugLayoutBounds;
     ctx.show_debug_paint_bounds = ws.showDebugPaintBounds;
 
-#ifdef AN24_EDITOR
     port_circle_atlas_.ensure();
     ctx.port_circle_texture = port_circle_atlas_.texture_id();
-#endif
 
-#ifdef AN24_EDITOR
-    // Bake dirty nodes to sprite cache before rendering.
-    sprite_cache_.bake_dirty_nodes(win.scene, ctx);
-    ctx.sprite_cache = &sprite_cache_;
-#endif
+    // Per-window sprite cache — each window scope gets its own GL textures.
+    auto& cache_ptr = window_caches_[win.scope];
+    if (!cache_ptr) cache_ptr = std::make_unique<visual::NodeSpriteCache>();
+    cache_ptr->bake_dirty_nodes(win.scene, ctx);
+    ctx.sprite_cache = cache_ptr.get();
 
     win.scene.render(&dl, ctx);
 #ifdef AN24_PROFILE
@@ -392,4 +390,24 @@ void CanvasRenderer::handleInput(BlueprintWindow& win, Document& doc, WindowSyst
 
     key_handler::process_keys(io.WantCaptureKeyboard, win.read_only,
         [&](Key k) { dispatch(win.input.on_key(k)); });
+}
+
+void CanvasRenderer::evict_window(const WindowScopeId& scope) {
+    window_caches_.erase(scope);
+}
+
+void CanvasRenderer::gc_stale_caches(const std::vector<std::unique_ptr<BlueprintWindow>>& live_windows) {
+    auto it = window_caches_.begin();
+    while (it != window_caches_.end()) {
+        const WindowScopeId& scope = it->first;
+        bool found = false;
+        for (const auto& win : live_windows) {
+            if (win->resolved_scope_id() == scope) { found = true; break; }
+        }
+        if (!found) {
+            it = window_caches_.erase(it);
+        } else {
+            ++it;
+        }
+    }
 }

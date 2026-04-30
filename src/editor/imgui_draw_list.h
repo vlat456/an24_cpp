@@ -115,4 +115,15 @@ public:
                              (color >> 16) & 0xFF, (color >> 24) & 0xFF);
         dl->AddTriangleFilled(ImVec2(a.x, a.y), ImVec2(b.x, b.y), ImVec2(c.x, c.y), col);
     }
+
+    void add_image(ui::IDrawList::NativeTexture tex, ui::Pt min, ui::Pt max,
+                   ui::Pt uv_min = ui::Pt(0, 0), ui::Pt uv_max = ui::Pt(1, 1),
+                   uint32_t color = 0xFFFFFFFF) override {
+        ImU32 c = IM_COL32((color >> 0) & 0xFF, (color >> 8) & 0xFF,
+                            (color >> 16) & 0xFF, (color >> 24) & 0xFF);
+        auto tex_id = reinterpret_cast<ImTextureID>(static_cast<intptr_t>(tex));
+        dl->AddImage(tex_id,
+                     ImVec2(min.x, min.y), ImVec2(max.x, max.y),
+                     ImVec2(uv_min.x, uv_min.y), ImVec2(uv_max.x, uv_max.y), c);
+    }
 };

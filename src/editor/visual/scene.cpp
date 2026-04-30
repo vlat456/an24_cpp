@@ -1,11 +1,7 @@
 #include "scene.h"
 #include "render_context.h"
+#include "visual/sprite_cache.h"
 #include <algorithm>
-
-#ifdef AN24_EDITOR
-#include "visual/node_sprite_cache.h"
-#include <imgui.h>
-#endif
 
 #ifdef AN24_PROFILE
 #include <chrono>
@@ -64,10 +60,7 @@ void Scene::render(IDrawList* dl, const RenderContext& ctx) {
     int frame_hits = 0, frame_misses = 0;
 #endif
 
-#ifdef AN24_EDITOR
-    ImDrawList* raw_dl = static_cast<ImDrawList*>(dl->native_draw_list());
-    NodeSpriteCache* cache = ctx.sprite_cache;
-#endif
+    ISpriteCache* cache = ctx.sprite_cache;
 
     for (const auto& r : roots_) {
         auto* vw = static_cast<Widget*>(r.get());
@@ -76,28 +69,23 @@ void Scene::render(IDrawList* dl, const RenderContext& ctx) {
         auto t0 = std::chrono::steady_clock::now();
 #endif
 
-#ifdef AN24_EDITOR
         // Sprite cache path: blit cached node, then render selection overlay.
-        if (cache && vw->isClickable() && raw_dl) {
-            if (vw->is_node_kind()) {
-                auto* node = static_cast<Widget*>(vw);
-                if (cache->has(node->id())) {
-                    cache->blit(*node, raw_dl, ctx);
-                    node->renderPost(dl, ctx);
+        if (cache && vw->isClickable() && vw->is_node_kind()) {
+            if (cache->has(vw->id())) {
+                cache->blit(*vw, dl, ctx);
+                vw->renderPost(dl, ctx);
 #ifdef AN24_PROFILE
-                    auto t1 = std::chrono::steady_clock::now();
-                    int li = static_cast<int>(vw->renderLayer());
-                    if (li >= 0 && li < 4) layer_us[li] += std::chrono::duration<double, std::micro>(t1 - t0).count();
-                    ++frame_hits;
+                auto t1 = std::chrono::steady_clock::now();
+                int li = static_cast<int>(vw->renderLayer());
+                if (li >= 0 && li < 4) layer_us[li] += std::chrono::duration<double, std::micro>(t1 - t0).count();
+                ++frame_hits;
 #endif
-                    continue;
-                }
-#ifdef AN24_PROFILE
-                ++frame_misses;
-#endif
+                continue;
             }
-        }
+#ifdef AN24_PROFILE
+            ++frame_misses;
 #endif
+        }
 
         vw->renderTree(dl, ctx);
 

@@ -41,6 +41,16 @@ public:
         return !(*this == other);
     }
 
+    struct Hash {
+        size_t operator()(const WindowScopeId& id) const noexcept {
+            size_t h = static_cast<size_t>(id.mode_);
+            for (const auto& seg : id.path_segments_) {
+                h ^= seg.raw() + 0x9e3779b9 + (h << 6) + (h >> 2);
+            }
+            return h;
+        }
+    };
+
     bool is_root() const { return mode_ == BlueprintWindowMode::RootDocument; }
     bool is_embedded() const { return mode_ == BlueprintWindowMode::EmbeddedScope; }
     bool is_external() const { return mode_ == BlueprintWindowMode::ExternalReference; }

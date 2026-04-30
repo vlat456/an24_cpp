@@ -29,7 +29,6 @@ add_executable(an24_editor
     ${EDITOR_IMGUI_SHELL_SOURCES}
     ${IMGUI_SOURCES}
 )
-target_compile_definitions(an24_editor PRIVATE AN24_EDITOR=1)
 target_include_directories(an24_editor PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/editor
