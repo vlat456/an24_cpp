@@ -23,7 +23,9 @@ bool Document::apply_normalized_node_sizes(bool preserve_manual,
             continue;
         }
 
-        auto* widget = dynamic_cast<visual::NodeWidget*>(probe_scene.find(std::string(interner_.resolve(node.semantic.id))));
+        auto* found = probe_scene.find(std::string(interner_.resolve(node.semantic.id)));
+        auto* widget = (found && found->kind() == ui::WidgetKind::Node)
+                       ? static_cast<visual::NodeWidget*>(found) : nullptr;
         if (!widget) {
             continue;
         }

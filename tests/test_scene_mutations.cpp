@@ -1095,7 +1095,7 @@ TEST(BadgeIntegration, NonNullIconFontPropagatedToNodeWidget) {
 
     // Simulate non-null icon font
     editor::IconFont fake_font;
-    fake_font.handle = reinterpret_cast<void*>(0xDEADBEEF);
+    fake_font.handle = static_cast<ui::IDrawList::NativeFont>(0xDEADBEEF);
 
     visual::mutations::rebuild(scene, bp, I, arena, std::span<const core::InternedId>{}, scene_reg(),
                                nullptr, &fake_font);
@@ -1119,7 +1119,7 @@ struct MockDrawList : public ui::IDrawList {
         std::string text;
         uint32_t color;
         float font_size;
-        const void* font_handle;
+        ui::IDrawList::NativeFont font_handle;
     };
 
     std::vector<TextCall> text_with_font_calls;
@@ -1146,12 +1146,12 @@ struct MockDrawList : public ui::IDrawList {
     }
 
     void add_text_with_font(ui::Pt pos, const char* text, uint32_t color,
-                            float font_size, const void* font_handle) override {
+                            float font_size, ui::IDrawList::NativeFont font_handle) override {
         text_with_font_calls.push_back({pos, text, color, font_size, font_handle});
     }
 
     ui::Pt calc_text_size_with_font(const char* text, float font_size,
-                                const void* font_handle) const override {
+                                    ui::IDrawList::NativeFont font_handle) const override {
         (void)font_handle;
         return calc_text_size(text, font_size);
     }
@@ -1167,7 +1167,7 @@ TEST(HeaderStripRendering, BadgesWithIconFontProduceTextWithFontCalls) {
 
     // Non-null icon font
     editor::IconFont fake_font;
-    fake_font.handle = reinterpret_cast<void*>(0xDEADBEEF);
+    fake_font.handle = static_cast<ui::IDrawList::NativeFont>(0xDEADBEEF);
 
     visual::Scene scene;
     visual::mutations::rebuild(scene, bp, I, arena, std::span<const core::InternedId>{}, scene_reg(),
@@ -1269,7 +1269,7 @@ TEST(HeaderStripRendering, NullDrawListDoesNotCrash) {
     auto bp = make_composite_bp(I);
 
     editor::IconFont fake_font;
-    fake_font.handle = reinterpret_cast<void*>(0xDEADBEEF);
+    fake_font.handle = static_cast<ui::IDrawList::NativeFont>(0xDEADBEEF);
 
     visual::Scene scene;
     visual::mutations::rebuild(scene, bp, I, arena, std::span<const core::InternedId>{}, scene_reg(),

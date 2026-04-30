@@ -111,8 +111,8 @@ ImFont* LoadFontAwesome(ImFontAtlas* atlas, float size_pixels) {
         return nullptr;
     }
 
-    void* handle = editor::IconFontLoader::load(atlas, font_path.c_str(), size_pixels);
-    return static_cast<ImFont*>(handle);
+    auto handle = editor::IconFontLoader::load(atlas, font_path.c_str(), size_pixels);
+    return reinterpret_cast<ImFont*>(handle);
 }
 
 void ApplyModernDarkTheme() {

@@ -48,7 +48,7 @@ struct RenderContext : public ui::RenderContext {
     /// instead of calling renderTree(). Null in test builds.
     ISpriteCache* sprite_cache = nullptr;
 
-    /// Check whether a node id is selected.
+    /// Check whether a node id is selected. O(N) scan — N is typically <10 selected nodes.
     bool isNodeSelected(std::string_view node_id) const {
         if (!selected_node_ids || node_id.empty()) return false;
         for (const auto& id : *selected_node_ids) {

@@ -132,7 +132,7 @@ bool EditorApp::initImGui() {
     ImGuiTheme::LoadRobotoWithCyrillic(18.0f);
     ImFont* fa_font = ImGuiTheme::LoadFontAwesome(io.Fonts, 14.0f);
     if (fa_font) {
-        icon_font_.handle = fa_font;
+        icon_font_.handle = reinterpret_cast<ui::IDrawList::NativeFont>(fa_font);
         ws_.renderingResources().icon_font = &icon_font_;
     }
     ImGuiTheme::ApplyModernDarkTheme();

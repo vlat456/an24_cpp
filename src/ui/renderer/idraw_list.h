@@ -51,20 +51,25 @@ struct IDrawList {
     /// Returns nullptr if no native draw list is available.
     virtual void* native_draw_list() const { return nullptr; }
 
+    /// Opaque native font handle. Nullptr = default font.
+    /// Backends store their platform-specific font handle here.
+    /// Value is an opaque integer — never dereferenced by consumers.
+    using NativeFont = uintptr_t;
+
     /// Render text with an explicit font handle (opaque, platform-specific).
-    /// Default falls through to add_text (ignores font_handle).
+    /// Default falls through to add_text (ignores font).
     /// Used for icon font rendering where per-icon color control is needed.
     virtual void add_text_with_font(Pt pos, const char* text, uint32_t color,
-                                     float font_size, const void* font_handle) {
-        (void)font_handle;
+                                     float font_size, NativeFont font) {
+        (void)font;
         add_text(pos, text, color, font_size);
     }
 
     /// Measure text with an explicit font handle.
-    /// Default falls through to calc_text_size (ignores font_handle).
+    /// Default falls through to calc_text_size (ignores font).
     virtual Pt calc_text_size_with_font(const char* text, float font_size,
-                                          const void* font_handle) const {
-        (void)font_handle;
+                                          NativeFont font) const {
+        (void)font;
         return calc_text_size(text, font_size);
     }
 };

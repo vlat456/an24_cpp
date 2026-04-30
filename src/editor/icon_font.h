@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ui/renderer/idraw_list.h"
 #include <cstdint>
 #include <spdlog/spdlog.h>
 
@@ -26,10 +27,10 @@ struct IconFontLoader {
     };
 
     /// Load FontAwesome from TTF path, adding only the glyphs we need.
-    /// Returns an opaque handle (ImFont* cast to void*) for use with IDrawList.
-    /// Returns nullptr if loading failed.
+    /// Returns an opaque NativeFont handle (ImFont* cast to uintptr_t).
+    /// Returns 0 if loading failed.
     /// Must be called BEFORE ImFontAtlas::Build (before first ImGui::NewFrame).
-    static void* load(ImFontAtlas* atlas, const char* ttf_path, float size_pixels);
+    static ui::IDrawList::NativeFont load(ImFontAtlas* atlas, const char* ttf_path, float size_pixels);
 };
 
 } // namespace editor

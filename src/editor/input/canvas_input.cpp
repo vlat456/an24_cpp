@@ -65,7 +65,9 @@ void CanvasInput::snapshot_and_execute(Command cmd) {
 
 visual::Wire* CanvasInput::resolve_wire(core::InternedId id) const {
     if (id.empty()) return nullptr;
-    return dynamic_cast<visual::Wire*>(scene_.find(interner_->resolve(id)));
+    auto* found = scene_.find(interner_->resolve(id));
+    return (found && found->kind() == ui::WidgetKind::Wire)
+           ? static_cast<visual::Wire*>(found) : nullptr;
 }
 
 visual::Widget* CanvasInput::resolve_node(core::InternedId id) const {

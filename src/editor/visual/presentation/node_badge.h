@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ui/renderer/idraw_list.h"
 #include <cstdint>
 
 namespace editor {
@@ -77,14 +78,14 @@ inline BadgeVisuals get_badge_visuals(NodeBadge badge) {
 
 /// FontAwesome icon font handle.
 ///
-/// Stores an opaque font handle (ImFont* cast to void*) so that
+/// Stores an opaque font handle (ImFont* cast to NativeFont) so that
 /// headers without ImGui dependency can pass it around.
 /// Actual loading is done in imgui_theme.cpp.
 struct IconFont {
     /// Opaque font handle. Cast from ImFont* in imgui_theme.cpp.
-    void* handle = nullptr;
+    ui::IDrawList::NativeFont handle = 0;
 
-    bool available() const { return handle != nullptr; }
+    bool available() const { return handle != 0; }
 
     /// Convert a Unicode codepoint to UTF-8 bytes.
     /// Returns number of bytes written (1-4). Buffer must be >= 5 bytes.

@@ -396,12 +396,12 @@ TEST(CodepointToUtf8, AllFontAwesomeCodepointsAreThreeBytes) {
 
 TEST(IconFont, NullHandleNotAvailable) {
     IconFont font;
-    EXPECT_EQ(font.handle, nullptr);
+    EXPECT_EQ(font.handle, 0u);
     EXPECT_FALSE(font.available());
 }
 
 TEST(IconFont, NonNullHandleIsAvailable) {
     IconFont font;
-    font.handle = reinterpret_cast<void*>(0xDEADBEEF);  // non-null sentinel
+    font.handle = static_cast<ui::IDrawList::NativeFont>(0xDEADBEEF);  // non-null sentinel
     EXPECT_TRUE(font.available());
 }

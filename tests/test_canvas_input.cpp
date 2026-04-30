@@ -4189,7 +4189,7 @@ TEST(CanvasInputIconFont, IconFontPreservedThroughConstruction) {
 
     // Simulate a non-null IconFont (as BlueprintWindow would pass from ctx.icon_font)
     editor::IconFont fake_font;
-    fake_font.handle = reinterpret_cast<void*>(0xDEADBEEF);  // non-null sentinel
+    fake_font.handle = static_cast<ui::IDrawList::NativeFont>(0xDEADBEEF);  // non-null sentinel
 
     CanvasInput input(scene, vp, host.get(), I, arena,
                       WindowScopeId::root(), &fake_font);

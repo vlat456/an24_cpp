@@ -113,7 +113,9 @@ bool CanvasInput::orient_ref_node_port_impl(core::InternedId ref_id, core::Inter
     auto side = editor_math::side_from_relative_position(ref_center, other_center);
 
     // Push the layout side to the widget for live preview.
-    auto* ref_widget = dynamic_cast<visual::RefNodeWidget*>(resolve_node(ref_id));
+    auto* found = resolve_node(ref_id);
+    auto* ref_widget = (found && found->kind() == ui::WidgetKind::RefNode)
+                       ? static_cast<visual::RefNodeWidget*>(found) : nullptr;
     if (ref_widget) {
         ref_widget->setPortLayoutSide(side);
     }

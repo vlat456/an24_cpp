@@ -136,7 +136,8 @@ static void orient_ref_node_ports(Scene& scene,
         Widget* other_widget = scene.find(interner.resolve(other_id));
         if (!ref_widget || !other_widget) continue;
 
-        auto* ref_node = dynamic_cast<RefNodeWidget*>(ref_widget);
+        auto* ref_node = (ref_widget->kind() == ui::WidgetKind::RefNode)
+                         ? static_cast<RefNodeWidget*>(ref_widget) : nullptr;
         if (!ref_node) continue;
 
         const Pt ref_pos = ref_widget->worldPos();

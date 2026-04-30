@@ -44,8 +44,9 @@ void CanvasInput::handle_drag_node(Pt world_delta) {
     }
 
     for (auto wid : connected_wire_ids) {
-        auto* wire = dynamic_cast<visual::Wire*>(
-            scene_.find(interner_->resolve(wid)));
+        auto* found = scene_.find(interner_->resolve(wid));
+        auto* wire = (found && found->kind() == ui::WidgetKind::Wire)
+                     ? static_cast<visual::Wire*>(found) : nullptr;
         if (wire) {
             wire->invalidateGeometry();
             if (wire->isClickable()) {
@@ -87,7 +88,8 @@ void CanvasInput::handle_resize_node(Pt world_delta) {
 
     float min_w = editor_constants::PORT_LAYOUT_GRID;
     float min_h = editor_constants::PORT_LAYOUT_GRID;
-    if (auto* node_widget = dynamic_cast<visual::NodeWidget*>(resize_widget)) {
+    if (resize_widget->kind() == ui::WidgetKind::Node) {
+        auto* node_widget = static_cast<visual::NodeWidget*>(resize_widget);
         Pt minimum = node_widget->minimumNodeSize();
         min_w = minimum.x;
         min_h = minimum.y;
@@ -157,7 +159,10 @@ InputResult CanvasInput::on_mouse_drag(MouseButton btn, Pt screen_delta, Pt canv
                 auto* rp_wire = resolve_wire(rp_wire_id_);
                 visual::RoutingPoint* rp_point = nullptr;
                 if (rp_wire && rp_index_ < rp_wire->children().size()) {
-                    rp_point = dynamic_cast<visual::RoutingPoint*>(rp_wire->children()[rp_index_].get());
+                    auto* rp_child = rp_wire->children()[rp_index_].get();
+                    visual::RoutingPoint* rp_point =
+                        (rp_child->kind() == ui::WidgetKind::RoutingPoint)
+                        ? static_cast<visual::RoutingPoint*>(rp_child) : nullptr;
                 }
 
                 if (rp_point) {

@@ -291,7 +291,9 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
         maybe_log_hover_signal_resolution(std::string(wire_id), "src", signal_iid, current_value);
            
         // Project mouse onto wire segment for tooltip anchor
-        auto* wire = dynamic_cast<visual::Wire*>(win.scene.find(wire_id));
+        auto* found = win.scene.find(wire_id);
+        auto* wire = (found && found->kind() == ui::WidgetKind::Wire)
+                     ? static_cast<visual::Wire*>(found) : nullptr;
         if (!wire) return;
         const auto& poly = wire->polyline();
         size_t seg = hw->segment;

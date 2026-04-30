@@ -42,7 +42,9 @@ bool resolve_probe_anchor(Document& doc,
         }
     }
     if (!win) return false;
-    auto* vw = dynamic_cast<visual::Wire*>(win->scene.find(wire_sv));
+    auto* found = win->scene.find(wire_sv);
+    auto* vw = (found && found->kind() == ui::WidgetKind::Wire)
+               ? static_cast<visual::Wire*>(found) : nullptr;
     if (!vw) return false;
     const auto& poly = vw->polyline();
     if (poly.size() < 2) return false;

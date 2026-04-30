@@ -10,16 +10,8 @@
 #include "editor/visual/sprite_cache.h"
 
 #include "ui/math/pt.h"
+#include "editor/gl_includes.h"
 #include <unordered_map>
-#include <string_view>
-#include <cstdint>
-
-#ifdef __APPLE__
-#define GL_SILENCE_DEPRECATION
-#include <OpenGL/gl3.h>
-#else
-#include <GL/glew.h>
-#endif
 
 struct ImDrawList;
 

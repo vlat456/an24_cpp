@@ -51,15 +51,6 @@ public:
         return result;
     }
     
-    template<typename T>
-    std::vector<T*> queryAs(Pt world_pos, float margin) const {
-        std::vector<T*> result;
-        for (auto* w : query(world_pos, margin)) {
-            if (auto* t = dynamic_cast<T*>(w)) result.push_back(t);
-        }
-        return result;
-    }
-
     /// Iterate all non-empty cells, calling fn(const std::vector<Widget*>&)
     /// for each cell's widget list. Useful for broadphase pair detection:
     /// widgets sharing a cell are spatial neighbors.
@@ -70,6 +61,17 @@ public:
                 fn(cell.widgets);
             }
         }
+    }
+
+    /// Query widgets and filter by dynamic_cast to subtype T.
+    /// Prefer kind()-based checks in production code — this is for tests only.
+    template<typename T>
+    std::vector<T*> queryAs(Pt world_pos, float margin) const {
+        std::vector<T*> result;
+        for (auto* w : query(world_pos, margin)) {
+            if (auto* t = dynamic_cast<T*>(w)) result.push_back(t);
+        }
+        return result;
     }
 
 private:

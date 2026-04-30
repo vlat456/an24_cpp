@@ -5,15 +5,8 @@
 /// Editor-only — compiled in EDITOR_IMGUI_SHELL_SOURCES.
 
 #include "ui/renderer/idraw_list.h"
+#include "editor/gl_includes.h"
 #include <cmath>
-#include <cstring>
-
-#ifdef __APPLE__
-#define GL_SILENCE_DEPRECATION
-#include <OpenGL/gl3.h>
-#else
-#include <GL/glew.h>
-#endif
 
 namespace visual {
 

@@ -3,8 +3,8 @@
 
 namespace editor {
 
-void* IconFontLoader::load(ImFontAtlas* atlas, const char* ttf_path, float size_pixels) {
-    if (!atlas || !ttf_path) return nullptr;
+ui::IDrawList::NativeFont IconFontLoader::load(ImFontAtlas* atlas, const char* ttf_path, float size_pixels) {
+    if (!atlas || !ttf_path) return 0;
 
     // Minimal glyph range: only the codepoints we actually use.
     static const ImWchar icon_ranges[] = {
@@ -28,7 +28,7 @@ void* IconFontLoader::load(ImFontAtlas* atlas, const char* ttf_path, float size_
     } else {
         spdlog::warn("Failed to load FontAwesome icon font from: {}", ttf_path);
     }
-    return font;
+    return reinterpret_cast<ui::IDrawList::NativeFont>(font);
 }
 
 } // namespace editor

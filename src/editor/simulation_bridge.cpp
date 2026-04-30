@@ -197,7 +197,8 @@ void dispatch_content_to_widget(WindowManager& window_manager,
     std::string_view node_sv = interner.resolve(node_iid);
     auto* widget = win->scene.find(node_sv);
     if (!widget) return;
-    auto* nw = dynamic_cast<visual::NodeWidget*>(widget);
+    auto* nw = (widget && widget->kind() == ui::WidgetKind::Node)
+               ? static_cast<visual::NodeWidget*>(widget) : nullptr;
     if (nw) nw->updateContent(content);
 }
 

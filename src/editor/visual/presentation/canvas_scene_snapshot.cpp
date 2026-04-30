@@ -322,9 +322,9 @@ void project_widget_recursive(const visual::Widget& widget,
     }
 
     for (const auto& child : widget.children()) {
-        if (auto* visual_child = dynamic_cast<const visual::Widget*>(child.get())) {
-            project_widget_recursive(*visual_child, snapshot, interner, next_id);
-        }
+        // visual::Widget children are all visual::Widget — the scene graph is homogeneous.
+        auto* visual_child = static_cast<const visual::Widget*>(child.get());
+        project_widget_recursive(*visual_child, snapshot, interner, next_id);
     }
 }
 
@@ -339,8 +339,8 @@ CanvasSceneSnapshot build_canvas_scene_snapshot(const visual::Scene& scene, core
     uint32_t next_id = 1;
 
     for (const auto& root_ptr : scene.roots()) {
-        auto* widget = dynamic_cast<visual::Widget*>(root_ptr.get());
-        if (!widget) continue;
+        // visual::Scene guarantees all roots are visual::Widget (enforced by Scene::add).
+        auto* widget = static_cast<visual::Widget*>(root_ptr.get());
         project_widget_recursive(*widget, snapshot, interner, next_id);
     }
 
