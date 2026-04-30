@@ -43,7 +43,6 @@ static DeltaEntry delta_entries[MAX_VARS];
 static uint16_t delta_count = 0;
 static uint16_t frames_since_sync = 0;
 static uint16_t last_host_epoch = 0;
-static double last_ping_time = 0.0;
 
 // =============================================================================
 // Module State (static — zero heap allocation on hot path)
@@ -56,7 +55,134 @@ static InternTable intern_table;
 static WireCodec codec;
 
 // =============================================================================
-// Frame Handler — V2 delta protocol
+// Helpers — send response via CommBus
+// =============================================================================
+
+/// Send a binary response packet back to the host via CommBus.
+static void send_response(size_t packet_size) {
+    if (packet_size == 0) return;
+    // TODO: fsCommBusCall(BridgeChannels::Frame, send_buffer, packet_size, 0);
+    (void)packet_size;
+}
+
+// =============================================================================
+// DeltaRead handlers — full sync + delta update
+// =============================================================================
+
+/// FullSync: read all tracked variables and send every value to the host.
+/// Used periodically (every FULL_SYNC_INTERVAL frames) or forced on epoch gap.
+static void handle_full_sync(const PacketHeader& hdr) {
+    frames_since_sync = 0;
+
+    uint16_t count = (delta_count > MAX_VARS) ? MAX_VARS : delta_count;
+    for (uint16_t i = 0; i < count; ++i) {
+        response_records[i].var_type = delta_entries[i].var_type;
+        response_records[i].val_type = delta_entries[i].val_type;
+        response_records[i].name_id  = 0;  // TODO: store intern_id
+        // TODO: Read from Vars API based on var_type
+        response_records[i].value = WireValue(0.0f);
+        delta_entries[i].last_sent = response_records[i].value;
+        delta_entries[i].valid = true;
+    }
+
+    send_response(codec.build_full_sync(
+        send_buffer, MAX_PACKET_SIZE,
+        {response_records, count}, hdr.seq_id));
+}
+
+/// DeltaUpdate: read only variables in the requested tiers and send changed records.
+static void handle_delta_update(const PacketHeader& hdr, uint16_t tier_mask) {
+    uint16_t changed_count = 0;
+
+    for (uint16_t i = 0; i < delta_count; ++i) {
+        // Check tier filter
+        uint8_t tier_bit = 1u << delta_entries[i].tier;
+        if ((tier_mask & tier_bit) == 0) continue;
+
+        // Read current value from Vars API
+        WireValue current;
+        // TODO: Read from Vars API based on var_type
+        current = WireValue(0.0f);
+
+        // Change detection
+        if (delta_entries[i].valid &&
+            !value_changed(current, delta_entries[i].last_sent,
+                           delta_entries[i].epsilon, delta_entries[i].val_type)) {
+            continue;  // No significant change
+        }
+
+        response_records[changed_count].var_type = delta_entries[i].var_type;
+        response_records[changed_count].val_type = delta_entries[i].val_type;
+        response_records[changed_count].name_id  = 0;  // TODO: store intern_id
+        response_records[changed_count].value    = current;
+        delta_entries[i].last_sent = current;
+        delta_entries[i].valid = true;
+        changed_count++;
+    }
+
+    if (changed_count > 0) {
+        send_response(codec.build_delta_update(
+            send_buffer, MAX_PACKET_SIZE,
+            {response_records, changed_count}, hdr.seq_id));
+    }
+}
+
+/// Handle a DeltaRead request — decide between FullSync and DeltaUpdate.
+static void handle_delta_read(const PacketHeader& hdr) {
+    uint16_t tier_mask = hdr.count;  // count field = tier mask for DeltaRead
+
+    // Epoch gap detection: if gap > 1, force full sync
+    bool force_full = (tier_mask == TIER_MASK_FORCE_FULL_SYNC);
+    if (hdr.seq_id > 0 && last_host_epoch > 0) {
+        uint16_t gap = hdr.seq_id - last_host_epoch;
+        if (gap > 1) force_full = true;
+    }
+    last_host_epoch = hdr.seq_id;
+
+    frames_since_sync++;
+
+    if (force_full || frames_since_sync >= FULL_SYNC_INTERVAL) {
+        handle_full_sync(hdr);
+    } else {
+        handle_delta_update(hdr, tier_mask);
+    }
+}
+
+// =============================================================================
+// DeltaWrite handler — write changed values to MSFS
+// =============================================================================
+
+/// Handle a DeltaWrite request — write each record to the appropriate Vars API.
+static void handle_delta_write(const WireCodec::ParseResult& result,
+                                const PacketHeader& hdr) {
+    for (const auto& rec : result.records) {
+        // TODO: Write to MSFS Vars API based on var_type:
+        //   switch (rec.var_type) {
+        //       case VarType::AVar:  fsVarsAVarSet(lookup_id, rec.value.f32); break;
+        //       case VarType::LVar:  fsVarsLVarSet(lookup_id, rec.value.f32); break;
+        //       case VarType::HEvent: fsEventsHEventCall(name, rec.value.f32); break;
+        //       case VarType::BVar:  fsVarsBVarSet(lookup_id, rec.value.f32); break;
+        //       ...
+        //   }
+        (void)rec;
+    }
+
+    send_response(codec.build_write_ack(
+        send_buffer, MAX_PACKET_SIZE, hdr.seq_id));
+}
+
+// =============================================================================
+// Ping handler — heartbeat keepalive
+// =============================================================================
+
+/// Respond to Ping with Pong, echoing the ping's seq_id.
+static void handle_ping(const PacketHeader& hdr) {
+    send_response(codec.build_pong(
+        send_buffer, MAX_PACKET_SIZE, hdr.seq_id));
+}
+
+// =============================================================================
+// Frame Dispatcher — thin router, no business logic
 // =============================================================================
 
 static void on_frame_request(const char* payload, size_t size) {
@@ -69,120 +195,10 @@ static void on_frame_request(const char* payload, size_t size) {
     PacketHeader hdr = *result.header;
 
     switch (header_cmd(hdr)) {
-        case Cmd::DeltaRead: {
-            uint16_t tier_mask = hdr.count;  // count field = tier mask for DeltaRead
-
-            // Epoch gap detection: if gap > 1, force full sync
-            bool force_full = (tier_mask == TIER_MASK_FORCE_FULL_SYNC);
-            if (hdr.seq_id > 0 && last_host_epoch > 0) {
-                uint16_t gap = hdr.seq_id - last_host_epoch;
-                if (gap > 1) force_full = true;
-            }
-            last_host_epoch = hdr.seq_id;
-
-            frames_since_sync++;
-
-            // Full sync: every FULL_SYNC_INTERVAL frames or on forced full sync
-            if (force_full || frames_since_sync >= FULL_SYNC_INTERVAL) {
-                frames_since_sync = 0;
-
-                // Read all variables and send FullSync
-                uint16_t count = (delta_count > MAX_VARS) ? MAX_VARS : delta_count;
-                for (uint16_t i = 0; i < count; ++i) {
-                    response_records[i].var_type = delta_entries[i].var_type;
-                    response_records[i].val_type = delta_entries[i].val_type;
-                    response_records[i].name_id  = 0;  // TODO: store intern_id
-                    // TODO: Read from Vars API based on var_type
-                    response_records[i].value = WireValue(0.0f);
-                    delta_entries[i].last_sent = response_records[i].value;
-                    delta_entries[i].valid = true;
-                }
-
-                size_t resp_size = codec.build_full_sync(
-                    send_buffer, MAX_PACKET_SIZE,
-                    {response_records, count}, hdr.seq_id);
-                if (resp_size > 0) {
-                    // TODO: fsCommBusCall(BridgeChannels::Frame, send_buffer, resp_size, 0);
-                    (void)resp_size;
-                }
-            } else {
-                // Delta update: only send changed records for requested tiers
-                uint16_t changed_count = 0;
-                for (uint16_t i = 0; i < delta_count; ++i) {
-                    // Check tier filter
-                    uint8_t tier_bit = 1u << delta_entries[i].tier;
-                    if ((tier_mask & tier_bit) == 0) continue;
-
-                    // Read current value from Vars API
-                    WireValue current;
-                    // TODO: Read from Vars API based on var_type
-                    current = WireValue(0.0f);
-
-                    // Change detection
-                    if (delta_entries[i].valid &&
-                        !value_changed(current, delta_entries[i].last_sent,
-                                       delta_entries[i].epsilon, delta_entries[i].val_type)) {
-                        continue;  // No change
-                    }
-
-                    response_records[changed_count].var_type = delta_entries[i].var_type;
-                    response_records[changed_count].val_type = delta_entries[i].val_type;
-                    response_records[changed_count].name_id  = 0;  // TODO: store intern_id
-                    response_records[changed_count].value    = current;
-                    delta_entries[i].last_sent = current;
-                    delta_entries[i].valid = true;
-                    changed_count++;
-                }
-
-                if (changed_count > 0) {
-                    size_t resp_size = codec.build_delta_update(
-                        send_buffer, MAX_PACKET_SIZE,
-                        {response_records, changed_count}, hdr.seq_id);
-                    if (resp_size > 0) {
-                        // TODO: fsCommBusCall(BridgeChannels::Frame, send_buffer, resp_size, 0);
-                        (void)resp_size;
-                    }
-                }
-            }
-            break;
-        }
-
-        case Cmd::Ping: {
-            // Respond immediately with Pong, echoing the ping's seq_id
-            size_t resp_size = codec.build_pong(
-                send_buffer, MAX_PACKET_SIZE, hdr.seq_id);
-            if (resp_size > 0) {
-                // TODO: fsCommBusCall(BridgeChannels::Frame, send_buffer, resp_size, 0);
-                (void)resp_size;
-            }
-            break;
-        }
-
-        case Cmd::DeltaWrite: {
-            for (const auto& rec : result.records) {
-                // TODO: Write to MSFS Vars API based on var_type:
-                //   switch (rec.var_type) {
-                //       case VarType::AVar:  fsVarsAVarSet(lookup_id, rec.value.f32); break;
-                //       case VarType::LVar:  fsVarsLVarSet(lookup_id, rec.value.f32); break;
-                //       case VarType::HEvent: fsEventsHEventCall(name, rec.value.f32); break;
-                //       case VarType::BVar:  fsVarsBVarSet(lookup_id, rec.value.f32); break;
-                //       ...
-                //   }
-                (void)rec;
-            }
-
-            // Send write ack
-            size_t resp_size = codec.build_write_ack(
-                send_buffer, MAX_PACKET_SIZE, hdr.seq_id);
-            if (resp_size > 0) {
-                // TODO: fsCommBusCall(BridgeChannels::Frame, send_buffer, resp_size, 0);
-                (void)resp_size;
-            }
-            break;
-        }
-
-        default:
-            break;
+        case Cmd::DeltaRead:  handle_delta_read(hdr); break;
+        case Cmd::DeltaWrite: handle_delta_write(result, hdr); break;
+        case Cmd::Ping:       handle_ping(hdr); break;
+        default: break;
     }
 }
 
