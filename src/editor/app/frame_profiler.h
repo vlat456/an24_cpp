@@ -1,19 +1,34 @@
+/// Frame profiler — RAII scoped sections with zero-cost stubs.
+///
+/// Usage in headers (no #ifdef needed):
+///   an24::FrameProfiler profiler_;
+///   int prof_events_{};
+///   int prof_render_{};
+///
+/// Usage in implementation:
+///   prof_events_ = profiler_.register_section("handleEvents");
+///
+///   {
+///       SCOPED_PROFILE(profiler_, prof_events_);
+///       handleEvents();
+///   }
+///
+///   profiler_.maybe_report();
+///
+/// When AN24_PROFILE is not defined, everything compiles to nothing.
+
 #pragma once
-
-#ifdef AN24_PROFILE
-
-#include <array>
-#include <chrono>
-#include <cstdio>
 
 namespace an24 {
 
+#ifdef AN24_PROFILE
+
 struct FrameProfiler {
-    static constexpr int MAX_SECTIONS = 16;
+    static constexpr int MAX_SECTIONS = 32;
     static constexpr int REPORT_INTERVAL = 120;
 
-    std::array<const char*, MAX_SECTIONS> names{};
-    std::array<double, MAX_SECTIONS> accum_us{};
+    const char* names[MAX_SECTIONS]{};
+    double accum_us[MAX_SECTIONS]{};
     double total_frame_us = 0.0;
     int frame_count = 0;
     int next_section = 0;
@@ -25,7 +40,7 @@ struct FrameProfiler {
     }
 
     void reset() {
-        accum_us.fill(0.0);
+        for (int i = 0; i < MAX_SECTIONS; ++i) accum_us[i] = 0.0;
         total_frame_us = 0.0;
         frame_count = 0;
     }
@@ -55,23 +70,61 @@ struct FrameProfiler {
     }
 };
 
+#else
+
+/// Stub — all methods are no-ops. Zero cost when AN24_PROFILE is off.
+struct FrameProfiler {
+    int register_section(const char*) { return 0; }
+    void add(int, double) {}
+    void add_frame(double) {}
+    void maybe_report() {}
+};
+
+#endif
+
+/// RAII scoped section. Measures time from construction to destruction.
+/// When AN24_PROFILE is off, constructor/destructor are trivial.
 struct ScopedSection {
+#ifdef AN24_PROFILE
     FrameProfiler& profiler;
     int idx;
-    std::chrono::steady_clock::time_point t0;
+    // Separate declaration to avoid including <chrono> in this header.
+    // Uses std::chrono::steady_clock internally.
+    long long t0_ns;  // epoch nanoseconds, for diff calculation
 
-    ScopedSection(FrameProfiler& p, int idx)
-        : profiler(p), idx(idx), t0(std::chrono::steady_clock::now()) {}
-
-    ~ScopedSection() {
-        auto t1 = std::chrono::steady_clock::now();
-        profiler.add(idx, std::chrono::duration<double, std::micro>(t1 - t0).count());
-    }
+    ScopedSection(FrameProfiler& p, int i);
+    ~ScopedSection();
+#else
+    ScopedSection(FrameProfiler&, int) {}
+#endif
 };
 
 } // namespace an24
 
-#define AN24_PROFILE_SECTION(profiler, idx) \
-    an24::ScopedSection _prof_sec_##idx(profiler, idx)
+// === Macro for inline scoped profiling ===
 
-#endif // AN24_PROFILE
+#define AN24_PROF_CONCAT_(a, b) a##b
+#define AN24_PROF_CONCAT(a, b) AN24_PROF_CONCAT_(a, b)
+
+/// Place at the start of a scope to profile until scope exit.
+/// SCOPED_PROFILE(profiler_, prof_events_)
+#define SCOPED_PROFILE(profiler, idx) \
+    an24::ScopedSection AN24_PROF_CONCAT(_prof_sec_, __LINE__)(profiler, idx)
+
+
+// === Inline implementation for ScopedSection (only when profiling) ===
+
+#ifdef AN24_PROFILE
+#include <chrono>
+
+inline an24::ScopedSection::ScopedSection(FrameProfiler& p, int i)
+    : profiler(p), idx(i),
+      t0_ns(std::chrono::steady_clock::now().time_since_epoch().count()) {}
+
+inline an24::ScopedSection::~ScopedSection() {
+    auto t1 = std::chrono::steady_clock::now().time_since_epoch();
+    auto t0 = std::chrono::steady_clock::duration{t0_ns};
+    profiler.add(idx, std::chrono::duration<double, std::micro>(t1 - t0).count());
+}
+
+#endif

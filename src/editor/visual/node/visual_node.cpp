@@ -13,12 +13,30 @@
 #include "editor/visual/presentation/node_presentation.h"
 #include "editor/visual/presentation/semantic_scene_snapshot.h"
 #include "editor/visual/presentation/node_badge.h"
+#include "editor/app/frame_profiler.h"
 #include <spdlog/spdlog.h>
 #include <algorithm>
 #include <cmath>
 #include <variant>
 
 namespace visual {
+
+/// Static profiler for node renderTree breakdown.
+static an24::FrameProfiler& node_profiler() {
+    static an24::FrameProfiler p;
+    static bool init = false;
+    if (!init) {
+        init = true;
+        (void)p.register_section("  node: body");
+        (void)p.register_section("  node: header");
+        (void)p.register_section("  node: content");
+        (void)p.register_section("  node: ports");
+        (void)p.register_section("  node: labels");
+        (void)p.register_section("  node: footer");
+        (void)p.register_section("  node: post");
+    }
+    return p;
+}
 
 // ============================================================================
 // Header / Footer primitives (private to this TU)
@@ -632,13 +650,7 @@ static constexpr float kFooterRightPadding = 5.0f;
 void NodeWidget::renderTree(IDrawList* dl, const RenderContext& ctx) const {
     if (!paint_enabled_ || !dl) return;
 
-#ifdef AN24_PROFILE
-    static double t_body = 0, t_header = 0, t_content = 0, t_ports = 0, t_labels = 0, t_footer = 0, t_post = 0;
-    static int n_count = 0, n_report = 0;
-    auto tick = [] { return std::chrono::steady_clock::now(); };
-    auto us = [](auto a, auto b) { return std::chrono::duration<double, std::micro>(b - a).count(); };
-    auto t0 = tick();
-#endif
+    auto& prof = node_profiler();
 
     const Pt node_pos = worldPos();
     const Pt node_sz  = size();
@@ -648,14 +660,13 @@ void NodeWidget::renderTree(IDrawList* dl, const RenderContext& ctx) const {
     const float rounding = editor_constants::NODE_ROUNDING * zoom;
 
     // == 1. Body fill ==
+    { SCOPED_PROFILE(prof, 0);  // body
     const uint32_t fill = custom_fill_.value_or(render_theme::COLOR_BODY_FILL);
     dl->add_rect_filled_with_rounding(screen_min, screen_max, fill, rounding);
-
-#ifdef AN24_PROFILE
-    auto t1 = tick(); t_body += us(t0, t1); t0 = t1;
-#endif
+    }
 
     // == 2. Header strip ==
+    { SCOPED_PROFILE(prof, 1);  // header
     if (header_) {
         const Pt h_origin = ctx.world_to_screen(node_pos + header_->localPos());
         const Pt h_size   = header_->size();
@@ -687,12 +698,10 @@ void NodeWidget::renderTree(IDrawList* dl, const RenderContext& ctx) const {
             });
         }
     }
-
-#ifdef AN24_PROFILE
-    t1 = tick(); t_header += us(t0, t1); t0 = t1;
-#endif
+    }
 
     // == 3. Content (semantic snapshot) ==
+    { SCOPED_PROFILE(prof, 2);  // content
     if (render_content_from_semantic_snapshot_) {
         for (const auto& object : content_semantic_snapshot_.render_objects) {
             if (object.kind != editor::presentation::SceneRenderObjectKind::ContentPaint)
@@ -739,13 +748,10 @@ void NodeWidget::renderTree(IDrawList* dl, const RenderContext& ctx) const {
             }
         }
     }
-
-#ifdef AN24_PROFILE
-    t1 = tick(); t_content += us(t0, t1); t0 = t1;
-#endif
+    }
 
     // == 4. Ports (circles + direction arrows) ==
-    {
+    { SCOPED_PROFILE(prof, 3);  // ports
         for (const auto& entry : port_entries_) {
             const Port* p = entry.port;
             if (!p) continue;
@@ -779,11 +785,8 @@ void NodeWidget::renderTree(IDrawList* dl, const RenderContext& ctx) const {
         }
     }
 
-#ifdef AN24_PROFILE
-    t1 = tick(); t_ports += us(t0, t1); t0 = t1;
-#endif
-
     // == 5. Port labels ==
+    { SCOPED_PROFILE(prof, 4);  // labels
     for (const auto& entry : port_entries_) {
         const Label* lbl = entry.label;
         if (!lbl) continue;
@@ -802,12 +805,10 @@ void NodeWidget::renderTree(IDrawList* dl, const RenderContext& ctx) const {
         }
         dl->add_text(Pt(tx, ty), text.c_str(), PortConstants::LABEL_COLOR, font);
     }
-
-#ifdef AN24_PROFILE
-    t1 = tick(); t_labels += us(t0, t1); t0 = t1;
-#endif
+    }
 
     // == 6. Footer type label ==
+    { SCOPED_PROFILE(prof, 5);  // footer
     if (footer_ && !type_name_.empty()) {
         const Pt f_origin = ctx.world_to_screen(node_pos + footer_->localPos());
         const Pt f_sz     = footer_->size();
@@ -819,33 +820,15 @@ void NodeWidget::renderTree(IDrawList* dl, const RenderContext& ctx) const {
         const float ty = f_origin.y + (kFooterHeight * zoom - font) * 0.5f;
         dl->add_text(Pt(tx, ty), type_name_.c_str(), render_theme::COLOR_TEXT_DIM, font);
     }
-
-#ifdef AN24_PROFILE
-    t1 = tick(); t_footer += us(t0, t1); t0 = t1;
-#endif
+    }
 
     // == 7. Selection outline + resize handles ==
+    { SCOPED_PROFILE(prof, 6);  // post
     renderPost(dl, ctx);
-
-#ifdef AN24_PROFILE
-    t1 = tick(); t_post += us(t0, t1);
-    ++n_count;
-    if (++n_report >= 120) {
-        double total = t_body + t_header + t_content + t_ports + t_labels + t_footer + t_post;
-        std::printf("=== Node renderTree breakdown (per node, %d nodes avg) ===\n", n_count);
-        std::printf("  body:        %6.1f us  (%4.1f%%)\n", t_body/n_count,     total>0?t_body/total*100:0);
-        std::printf("  header:      %6.1f us  (%4.1f%%)\n", t_header/n_count,   total>0?t_header/total*100:0);
-        std::printf("  content:     %6.1f us  (%4.1f%%)\n", t_content/n_count,  total>0?t_content/total*100:0);
-        std::printf("  ports:       %6.1f us  (%4.1f%%)\n", t_ports/n_count,    total>0?t_ports/total*100:0);
-        std::printf("  labels:      %6.1f us  (%4.1f%%)\n", t_labels/n_count,   total>0?t_labels/total*100:0);
-        std::printf("  footer:      %6.1f us  (%4.1f%%)\n", t_footer/n_count,   total>0?t_footer/total*100:0);
-        std::printf("  post:        %6.1f us  (%4.1f%%)\n", t_post/n_count,     total>0?t_post/total*100:0);
-        std::printf("  TOTAL/node:  %6.1f us\n", total/n_count);
-        std::fflush(stdout);
-        t_body=t_header=t_content=t_ports=t_labels=t_footer=t_post=0;
-        n_count = 0; n_report = 0;
     }
-#endif
+
+    prof.add_frame(0.0);
+    prof.maybe_report();
 
     // NO child recursion — we rendered everything above.
 }

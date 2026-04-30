@@ -18,12 +18,9 @@
 #endif
 
 #include <cstdio>
+#include <chrono>
 #include <filesystem>
 #include <cstring>
-
-#ifdef AN24_PROFILE
-#include <chrono>
-#endif
 
 namespace {
 
@@ -193,7 +190,6 @@ int EditorApp::run() {
         }
     }
 
-#ifdef AN24_PROFILE
     prof_events_ = profiler_.register_section("handleEvents");
     prof_imgui_newframe_ = profiler_.register_section("ImGui NewFrame");
     prof_sim_step_ = profiler_.register_section("sim_step");
@@ -207,28 +203,21 @@ int EditorApp::run() {
     prof_render_osc_ = profiler_.register_section("  oscilloscope");
     prof_render_dialogs_ = profiler_.register_section("  dialogs/properties");
     prof_render_present_ = profiler_.register_section("render_present(gl+swap)");
-#endif
 
     running_ = true;
     while (running_) {
-#ifdef AN24_PROFILE
         auto frame_t0 = std::chrono::steady_clock::now();
-        auto t0 = std::chrono::steady_clock::now();
-#endif
+
+        { SCOPED_PROFILE(profiler_, prof_events_);
         handleEvents();
-#ifdef AN24_PROFILE
-        auto t1 = std::chrono::steady_clock::now();
-        profiler_.add(prof_events_, std::chrono::duration<double, std::micro>(t1 - t0).count());
-#endif
+        }
 
         update();
         render();
 
-#ifdef AN24_PROFILE
         profiler_.add_frame(std::chrono::duration<double, std::micro>(
             std::chrono::steady_clock::now() - frame_t0).count());
         profiler_.maybe_report();
-#endif
 
         if (Document* doc = ws_.activeDocument()) {
             if (!doc->filepath().empty()) {
@@ -260,16 +249,11 @@ void EditorApp::handleEvents() {
 void EditorApp::update() {
     auto& io = ImGui::GetIO();
 
-#ifdef AN24_PROFILE
-    auto t0 = std::chrono::steady_clock::now();
-#endif
+    { SCOPED_PROFILE(profiler_, prof_imgui_newframe_);
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
-#ifdef AN24_PROFILE
-    auto t1 = std::chrono::steady_clock::now();
-    profiler_.add(prof_imgui_newframe_, std::chrono::duration<double, std::micro>(t1 - t0).count());
-#endif
+    }
 
     if (Document* doc = ws_.activeDocument()) {
         if (ImGui::IsKeyChordPressed(ImGuiMod_Shortcut | ImGuiKey_S)) {
@@ -294,50 +278,28 @@ void EditorApp::update() {
     }
 
     if (Document* doc = ws_.activeDocument()) {
-#ifdef AN24_PROFILE
-        t0 = std::chrono::steady_clock::now();
-#endif
+        { SCOPED_PROFILE(profiler_, prof_sim_step_);
         doc->updateSimulationStep(io.DeltaTime);
-#ifdef AN24_PROFILE
-        t1 = std::chrono::steady_clock::now();
-        profiler_.add(prof_sim_step_, std::chrono::duration<double, std::micro>(t1 - t0).count());
-#endif
+        }
 
-#ifdef AN24_PROFILE
-        t0 = std::chrono::steady_clock::now();
-#endif
+        { SCOPED_PROFILE(profiler_, prof_node_content_);
         doc->updateNodeContentFromSimulation();
-#ifdef AN24_PROFILE
-        t1 = std::chrono::steady_clock::now();
-        profiler_.add(prof_node_content_, std::chrono::duration<double, std::micro>(t1 - t0).count());
-#endif
+        }
 
-#ifdef AN24_PROFILE
-        t0 = std::chrono::steady_clock::now();
-#endif
+        { SCOPED_PROFILE(profiler_, prof_osc_blueprint_);
         ws_.oscilloscope.on_blueprint_changed(*doc);
-#ifdef AN24_PROFILE
-        t1 = std::chrono::steady_clock::now();
-        profiler_.add(prof_osc_blueprint_, std::chrono::duration<double, std::micro>(t1 - t0).count());
-#endif
+        }
 
-#ifdef AN24_PROFILE
-        t0 = std::chrono::steady_clock::now();
-#endif
+        { SCOPED_PROFILE(profiler_, prof_osc_sample_);
         ws_.oscilloscope.sample(*doc, doc->isSimulationRunning(), io.DeltaTime);
-#ifdef AN24_PROFILE
-        t1 = std::chrono::steady_clock::now();
-        profiler_.add(prof_osc_sample_, std::chrono::duration<double, std::micro>(t1 - t0).count());
-#endif
+        }
     }
 }
 
 void EditorApp::render() {
     auto& io = ImGui::GetIO();
 
-#ifdef AN24_PROFILE
-    auto t0 = std::chrono::steady_clock::now();
-#endif
+    { SCOPED_PROFILE(profiler_, prof_render_menu_);
     auto menu_result = main_menu_.render(ws_);
     if (menu_result.exit_requested) {
         running_ = false;
@@ -358,18 +320,13 @@ void EditorApp::render() {
         }
         ImGui::EndPopup();
     }
-#ifdef AN24_PROFILE
-    auto t1 = std::chrono::steady_clock::now();
-    profiler_.add(prof_render_menu_, std::chrono::duration<double, std::micro>(t1 - t0).count());
-#endif
+    }
 
     float menu_height = ImGui::GetFrameHeight();
     float available_h = io.DisplaySize.y - menu_height;
     float available_w = io.DisplaySize.x;
 
-#ifdef AN24_PROFILE
-    t0 = std::chrono::steady_clock::now();
-#endif
+    { SCOPED_PROFILE(profiler_, prof_render_inspector_);
     inspector_panel_.setVisible(ws_.showInspector);
 
     if (inspector_panel_.visible()) {
@@ -379,48 +336,28 @@ void EditorApp::render() {
         }
         ws_.showInspector = inspector_panel_.visible();
     }
-#ifdef AN24_PROFILE
-    t1 = std::chrono::steady_clock::now();
-    profiler_.add(prof_render_inspector_, std::chrono::duration<double, std::micro>(t1 - t0).count());
-#endif
+    }
 
     float canvas_x = inspector_panel_.totalWidth();
 
     ws_.reconcile_owner_bound_ui();
 
-#ifdef AN24_PROFILE
-    t0 = std::chrono::steady_clock::now();
-#endif
+    { SCOPED_PROFILE(profiler_, prof_render_doc_area_);
     auto doc_result = document_area_.render(ws_, canvas_x, menu_height, available_w - canvas_x, available_h);
     if (doc_result.close_requested) {
         ws_.closeDocument(*doc_result.close_requested);
     }
-#ifdef AN24_PROFILE
-    t1 = std::chrono::steady_clock::now();
-    profiler_.add(prof_render_doc_area_, std::chrono::duration<double, std::micro>(t1 - t0).count());
-#endif
+    }
 
-#ifdef AN24_PROFILE
-    t0 = std::chrono::steady_clock::now();
-#endif
+    { SCOPED_PROFILE(profiler_, prof_render_sub_windows_);
     sub_window_renderer_.renderAll(ws_);
-#ifdef AN24_PROFILE
-    t1 = std::chrono::steady_clock::now();
-    profiler_.add(prof_render_sub_windows_, std::chrono::duration<double, std::micro>(t1 - t0).count());
-#endif
+    }
 
-#ifdef AN24_PROFILE
-    t0 = std::chrono::steady_clock::now();
-#endif
+    { SCOPED_PROFILE(profiler_, prof_render_osc_);
     oscilloscope_window_.render(ws_);
-#ifdef AN24_PROFILE
-    t1 = std::chrono::steady_clock::now();
-    profiler_.add(prof_render_osc_, std::chrono::duration<double, std::micro>(t1 - t0).count());
-#endif
+    }
 
-#ifdef AN24_PROFILE
-    t0 = std::chrono::steady_clock::now();
-#endif
+    { SCOPED_PROFILE(profiler_, prof_render_dialogs_);
     context_menus_.renderAddComponent(ws_);
     context_menus_.renderNodeContext(ws_);
 
@@ -432,22 +369,14 @@ void EditorApp::render() {
     ws_.scriptEditorWindow().render();
 
     ws_.propertiesWindow().render();
-#ifdef AN24_PROFILE
-    t1 = std::chrono::steady_clock::now();
-    profiler_.add(prof_render_dialogs_, std::chrono::duration<double, std::micro>(t1 - t0).count());
-#endif
+    }
 
-#ifdef AN24_PROFILE
-    t0 = std::chrono::steady_clock::now();
-#endif
+    { SCOPED_PROFILE(profiler_, prof_render_present_);
     ImGui::Render();
     glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
     glClearColor(0.078f, 0.082f, 0.102f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     SDL_GL_SwapWindow(window_);
-#ifdef AN24_PROFILE
-    t1 = std::chrono::steady_clock::now();
-    profiler_.add(prof_render_present_, std::chrono::duration<double, std::micro>(t1 - t0).count());
-#endif
+    }
 }

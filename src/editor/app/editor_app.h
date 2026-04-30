@@ -16,9 +16,7 @@
 #include "editor/visual/popups/zn_tune_result_dialog.h"
 #include <memory>
 
-#ifdef AN24_PROFILE
 #include "editor/app/frame_profiler.h"
-#endif
 
 struct SDL_Window;
 typedef void* SDL_GLContext;
@@ -66,7 +64,6 @@ private:
     InlineValueEditorDialog inline_value_editor_dialog_;
     ZnTuneResultDialog zn_tune_result_dialog_;
 
-#ifdef AN24_PROFILE
     an24::FrameProfiler profiler_;
 
     int prof_events_{};
@@ -82,5 +79,4 @@ private:
     int prof_render_osc_{};
     int prof_render_dialogs_{};
     int prof_render_present_{};
-#endif
 };
