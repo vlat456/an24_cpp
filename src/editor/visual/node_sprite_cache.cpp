@@ -195,9 +195,7 @@ bool NodeSpriteCache::blit(const Widget& widget, ui::IDrawList* dl,
 }
 
 void NodeSpriteCache::bake_dirty_nodes(const Scene& scene, const RenderContext& ctx) {
-    for (const auto& root : scene.roots()) {
-        auto* vw = static_cast<Widget*>(root.get());
-
+    for (auto* vw : scene.visual_roots()) {
         if (!vw->isClickable()) continue;
 
         // Bake all node types (Node, RefNode, BusNode, GroupNode, TextNode).

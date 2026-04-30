@@ -40,8 +40,7 @@ void Scene::render(IDrawList* dl, const RenderContext& ctx) {
     auto& prof = scene_profiler();
     ISpriteCache* cache = ctx.sprite_cache;
 
-    for (const auto& r : roots_) {
-        auto* vw = static_cast<Widget*>(r.get());
+    for (auto* vw : visual_roots()) {
         int li = static_cast<int>(vw->renderLayer());
 
         an24::ScopedSection sec(prof, li);

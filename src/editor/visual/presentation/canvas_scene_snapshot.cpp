@@ -338,9 +338,7 @@ CanvasSceneSnapshot build_canvas_scene_snapshot(const visual::Scene& scene, core
     CanvasSceneSnapshot snapshot;
     uint32_t next_id = 1;
 
-    for (const auto& root_ptr : scene.roots()) {
-        // visual::Scene guarantees all roots are visual::Widget (enforced by Scene::add).
-        auto* widget = static_cast<visual::Widget*>(root_ptr.get());
+    for (auto* widget : scene.visual_roots()) {
         project_widget_recursive(*widget, snapshot, interner, next_id);
     }
 

@@ -412,8 +412,7 @@ void Wire::render(IDrawList* dl, const RenderContext& ctx) const {
 void compute_wire_crossings(Scene& scene) {
     // Collect all wires and clear their crossings for this frame.
     ui::SmallVector<Wire*, 64> wires;
-    for (const auto& r : scene.roots()) {
-        auto* vw = static_cast<Widget*>(r.get());
+    for (auto* vw : scene.visual_roots()) {
         if (vw->renderLayer() == RenderLayer::Wire) {
             // Only Wire returns RenderLayer::Wire, so static_cast is safe.
             auto* w = static_cast<Wire*>(vw);
