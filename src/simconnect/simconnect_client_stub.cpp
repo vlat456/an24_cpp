@@ -89,6 +89,7 @@ void StubSimConnectClient::reset() {
     written_.clear();
     events_sent_.clear();
     last_request_.clear();
+    response_cb_ = nullptr;
     // Note: connected_ is NOT reset — connection state is orthogonal to data state.
     // Call disconnect() explicitly to reset connection state.
 }

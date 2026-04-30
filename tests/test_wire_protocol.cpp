@@ -50,7 +50,7 @@ TEST(WireProtocolTest, WireValueConstructors) {
     EXPECT_EQ(vu.u32, 100u);
 
     WireValue vb = WireValue(true);
-    EXPECT_EQ(vb.b, true);
+    EXPECT_EQ(vb.u32, 1u);
 }
 
 TEST(WireProtocolTest, WireValueBoolIsDeterministicOnWire) {
@@ -250,6 +250,29 @@ TEST(WireProtocolTest, ValueChangedDetectsNaN) {
     EXPECT_NE(nan_val.u32, normal.u32);
     // With zero epsilon, value_changed uses exact u32 comparison
     EXPECT_TRUE(value_changed(nan_val, normal, 0.0f, ValType::Float32));
+}
+
+TEST(WireProtocolTest, ValueChangedDetectsNaNWithPositiveEpsilon) {
+    // Regression: NaN transitions must be detected even with epsilon > 0.
+    // Before the fix, std::abs(NaN - X) = NaN, and NaN > threshold = false,
+    // so NaN→non-NaN and non-NaN→NaN transitions were silently missed.
+    WireValue normal(0.0f);
+    WireValue nan_val;
+    nan_val.f32 = std::nanf("");
+
+    // NaN → non-NaN with typical AVar epsilon
+    EXPECT_TRUE(value_changed(nan_val, normal, 0.01f, ValType::Float32));
+    // non-NaN → NaN
+    EXPECT_TRUE(value_changed(normal, nan_val, 0.01f, ValType::Float32));
+    // Same NaN bit pattern → no change
+    EXPECT_FALSE(value_changed(nan_val, nan_val, 0.01f, ValType::Float32));
+    // Different NaN payloads → change detected via u32
+    WireValue nan_val2;
+    nan_val2.f32 = std::nanf("0x7FC00000");  // quiet NaN, different payload
+    // Both NaN but potentially different bit patterns
+    if (nan_val.u32 != nan_val2.u32) {
+        EXPECT_TRUE(value_changed(nan_val, nan_val2, 0.01f, ValType::Float32));
+    }
 }
 
 TEST(WireProtocolTest, ValueChangedZeroEpsilonUsesExactMatch) {
@@ -611,6 +634,18 @@ TEST(WireCodecTest, BuildReturnsZeroOnOverflow) {
     EXPECT_EQ(codec.build_delta_read(tiny_buf, 4, TIER_MASK_FAST, 0), 0u);
 }
 
+TEST(WireCodecTest, BuildReturnsZeroWhenRecordCountExceedsMaxDeltaVars) {
+    // Regression: build_with_records must reject spans exceeding MAX_DELTA_VARS,
+    // not silently truncate the count to uint16_t.
+    WireCodec codec;
+    std::vector<uint8_t> buf(MAX_PACKET_SIZE * 2);  // Oversized buffer
+
+    std::vector<VarRecord> too_many(MAX_DELTA_VARS + 1);
+    EXPECT_EQ(codec.build_delta_update(buf.data(), buf.size(), too_many, 0), 0u);
+    EXPECT_EQ(codec.build_full_sync(buf.data(), buf.size(), too_many, 0), 0u);
+    EXPECT_EQ(codec.build_delta_write(buf.data(), buf.size(), too_many, 0), 0u);
+}
+
 TEST(WireCodecTest, ParseRejectsBadMagic) {
     WireCodec codec;
     uint8_t bad_data[16] = {0xFF, 0xFF, 0x02, 0x01, 0, 0, 0, 0};
@@ -659,7 +694,7 @@ TEST(WireCodecTest, ParseDeltaUpdateRoundTrip) {
 
     EXPECT_FLOAT_EQ(result.records[0].value.f32, 1.5f);
     EXPECT_EQ(result.records[1].value.i32, -42);
-    EXPECT_EQ(result.records[2].value.b, true);
+    EXPECT_EQ(result.records[2].value.u32, 1u);
 }
 
 TEST(WireCodecTest, ParseFullSyncRoundTrip) {

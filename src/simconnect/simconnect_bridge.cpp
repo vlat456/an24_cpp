@@ -1,5 +1,4 @@
 #include "simconnect_bridge.h"
-#include "wasm/bridge_protocol.h"
 #include "core/solvers/jit/components/all.h"
 #include "core/strings/interned_id.h"
 
@@ -262,16 +261,18 @@ void SimConnectBridge::extract_outputs(const JIT_Simulator& sim) {
 // ==...== Private ==...==
 
 void SimConnectBridge::on_response(const std::string& payload) {
-    // Detect binary packet by checking for valid header magic
-    if (payload.size() >= sizeof(PacketHeader)) {
-        const auto* data = reinterpret_cast<const uint8_t*>(payload.data());
-        if (is_valid_header(data, payload.size())) {
-            PacketHeader hdr;
-            std::memcpy(&hdr, data, sizeof(PacketHeader));
+    const auto* data = reinterpret_cast<const uint8_t*>(payload.data());
+    size_t len = payload.size();
+
+    // Try binary protocol first
+    if (len >= sizeof(PacketHeader)) {
+        auto result = codec_.parse(data, len);
+        if (result.header) {
+            PacketHeader hdr = *result.header;
+            auto cmd = header_cmd(hdr);
 
             // Ping/Pong bypass the epoch check — they use independent seq_id
             // for ping/pong correlation, not frame-epoch ordering.
-            auto cmd = header_cmd(hdr);
             if (cmd != Cmd::Pong) {
                 uint16_t epoch_gap = host_epoch_ - hdr.seq_id;
                 if (epoch_gap > 100) {
@@ -284,7 +285,15 @@ void SimConnectBridge::on_response(const std::string& payload) {
             switch (cmd) {
                 case Cmd::DeltaUpdate:
                 case Cmd::FullSync:
-                    handle_read_response(data, payload.size());
+                    // Both apply records the same way:
+                    //   DeltaUpdate: only changed records (sparse)
+                    //   FullSync:    all records (complete — host keeps last known for any missing)
+                    for (const auto& rec : result.records) {
+                        auto it = id_to_signal_.find(rec.name_id);
+                        if (it != id_to_signal_.end()) {
+                            input_buffer_[it->second] = rec.value.f32;
+                        }
+                    }
                     break;
                 case Cmd::WriteAck:
                     spdlog::debug("[SimConnectBridge] Write ack: epoch={}", hdr.seq_id);
@@ -301,6 +310,10 @@ void SimConnectBridge::on_response(const std::string& payload) {
     }
 
     // Fallback: JSON response (control channel)
+    handle_json_response(payload);
+}
+
+void SimConnectBridge::handle_json_response(const std::string& payload) {
     try {
         auto resp = nlohmann::json::parse(payload);
         if (resp.contains("cmd") && resp["cmd"].is_string()) {
@@ -311,31 +324,10 @@ void SimConnectBridge::on_response(const std::string& payload) {
     }
 }
 
-void SimConnectBridge::handle_read_response(const uint8_t* data, size_t len) {
-    auto result = codec_.parse(data, len);
-    if (!result.header || result.records.empty()) return;
-
-    // Both DeltaUpdate and FullSync apply records the same way:
-    //   DeltaUpdate: only changed records (sparse)
-    //   FullSync:    all records (complete — host keeps last known for any missing)
-    // This avoids value blips during sync and is safe because FullSync is periodic.
-    for (const auto& rec : result.records) {
-        auto it = id_to_signal_.find(rec.name_id);
-        if (it != id_to_signal_.end()) {
-            input_buffer_[it->second] = rec.value.f32;
-        }
-    }
-}
-
 void SimConnectBridge::send_bytes(const uint8_t* data, size_t len) {
     if (!client_ || !client_->is_connected()) return;
     // Wrap binary data as string — CommBus is a raw byte pipe
     client_->send_request(std::string(reinterpret_cast<const char*>(data), len));
-}
-
-void SimConnectBridge::send_json(const std::string& json_payload) {
-    if (!client_ || !client_->is_connected()) return;
-    client_->send_request(json_payload);
 }
 
 // ==...== Heartbeat ==...==

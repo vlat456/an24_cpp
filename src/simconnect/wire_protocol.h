@@ -190,7 +190,6 @@ union WireValue {
     float    f32;
     int32_t  i32;
     uint32_t u32;
-    bool     b;
 
     /// Default construct to zero — avoids uninitialized reads.
     constexpr WireValue() : u32(0) {}
@@ -265,9 +264,14 @@ inline bool value_changed(WireValue current, WireValue previous,
             return current.u32 != previous.u32;
 
         case ValType::Float32: {
-            // NaN detection: if the bit patterns differ, one or both are NaN.
-            // NaN ≠ NaN in float, but u32 comparison catches the bit difference.
+            // Exact match when epsilon is zero — bit-level comparison
             if (epsilon <= 0.0f) return current.u32 != previous.u32;
+
+            // NaN transitions: epsilon comparison is unreliable (NaN - X = NaN,
+            // NaN > threshold = false). Detect via bit-level comparison instead.
+            if (std::isnan(current.f32) || std::isnan(previous.f32)) {
+                return current.u32 != previous.u32;
+            }
 
             float diff = std::abs(current.f32 - previous.f32);
             // Relative threshold: scale epsilon by magnitude of previous value,

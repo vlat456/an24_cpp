@@ -174,6 +174,9 @@ private:
     size_t build_with_records(uint8_t* buf, size_t buf_size, Cmd cmd,
                                std::span<const VarRecord> records,
                                uint16_t epoch) const {
+        // Guard: record count must fit in uint16_t and stay within protocol limits
+        if (records.size() > MAX_DELTA_VARS) return 0;
+
         size_t needed = packet_size(static_cast<uint16_t>(records.size()));
         if (needed > buf_size || needed > MAX_PACKET_SIZE) return 0;
 

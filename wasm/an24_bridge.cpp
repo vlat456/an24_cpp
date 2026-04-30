@@ -13,8 +13,6 @@
 // Build: wasm32-unknown-emscripten toolchain with MSFS 2024 WASM SDK.
 // Entry: MSFS_CALLBACK module_init / module_deinit
 
-#include "bridge_protocol.h"
-
 // Host-side headers — available via CMake include paths in WASM build
 #include "simconnect/wire_protocol.h"
 #include "simconnect/wire_codec.h"
@@ -51,7 +49,6 @@ static double last_ping_time = 0.0;
 // Module State (static — zero heap allocation on hot path)
 // =============================================================================
 
-static constexpr size_t MAX_PACKET_SIZE = 8 + MAX_DELTA_VARS * 8;  // Must match wire_protocol.h
 static uint8_t send_buffer[MAX_PACKET_SIZE];
 static VarRecord response_records[MAX_VARS];
 
@@ -161,7 +158,8 @@ static void on_frame_request(const char* payload, size_t size) {
             break;
         }
 
-        case Cmd::DeltaWrite: {            for (const auto& rec : result.records) {
+        case Cmd::DeltaWrite: {
+            for (const auto& rec : result.records) {
                 // TODO: Write to MSFS Vars API based on var_type:
                 //   switch (rec.var_type) {
                 //       case VarType::AVar:  fsVarsAVarSet(lookup_id, rec.value.f32); break;

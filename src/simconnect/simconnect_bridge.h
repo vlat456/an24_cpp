@@ -98,14 +98,11 @@ private:
     /// Handle a CommBus response — detects binary vs JSON and dispatches.
     void on_response(const std::string& payload);
 
-    /// Handle a binary ReadResponse — updates input_buffer_ with received values.
-    void handle_read_response(const uint8_t* data, size_t len);
+    /// Handle a JSON control-channel response.
+    void handle_json_response(const std::string& payload);
 
     /// Send raw bytes through CommBus (wraps as string for client interface).
     void send_bytes(const uint8_t* data, size_t len);
-
-    /// Send a JSON payload through CommBus (for control channel).
-    void send_json(const std::string& json_payload);
 
     std::unique_ptr<SimConnectClient> client_;
     std::vector<SimVarMapping> input_mappings_;
