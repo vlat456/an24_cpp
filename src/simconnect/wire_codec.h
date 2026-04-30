@@ -32,16 +32,7 @@ public:
     /// Returns bytes written (always 8), or 0 if buffer too small.
     size_t build_delta_read(uint8_t* buf, size_t buf_size,
                              uint16_t tier_mask, uint16_t epoch) const {
-        if (sizeof(PacketHeader) > buf_size) return 0;
-
-        auto* hdr = reinterpret_cast<PacketHeader*>(buf);
-        hdr->magic    = PACKET_MAGIC;
-        hdr->version  = PROTOCOL_VERSION;
-        hdr->cmd      = static_cast<uint8_t>(Cmd::DeltaRead);
-        hdr->count    = tier_mask;  // Tier bitmask, not record count
-        hdr->seq_id   = epoch;
-
-        return sizeof(PacketHeader);
+        return build_header_only(buf, buf_size, Cmd::DeltaRead, tier_mask, epoch);
     }
 
     /// Build a DeltaWrite request: header + only changed output records.
@@ -80,16 +71,22 @@ public:
     /// WASM side: confirms DeltaWrite was processed.
     size_t build_write_ack(uint8_t* buf, size_t buf_size,
                             uint16_t epoch) const {
-        if (sizeof(PacketHeader) > buf_size) return 0;
+        return build_header_only(buf, buf_size, Cmd::WriteAck, 0, epoch);
+    }
 
-        auto* hdr = reinterpret_cast<PacketHeader*>(buf);
-        hdr->magic    = PACKET_MAGIC;
-        hdr->version  = PROTOCOL_VERSION;
-        hdr->cmd      = static_cast<uint8_t>(Cmd::WriteAck);
-        hdr->count    = 0;
-        hdr->seq_id   = epoch;
+    // ========================================================================
+    // Building — both sides (diagnostics / heartbeat)
+    // ========================================================================
 
-        return sizeof(PacketHeader);
+    /// Build a Ping packet: 8-byte header, seq_id used as ping_id.
+    /// Returns bytes written (always 8), or 0 if buffer too small.
+    size_t build_ping(uint8_t* buf, size_t buf_size, uint16_t ping_id) const {
+        return build_header_only(buf, buf_size, Cmd::Ping, 0, ping_id);
+    }
+
+    /// Build a Pong response: 8-byte header, echoes the ping's seq_id.
+    size_t build_pong(uint8_t* buf, size_t buf_size, uint16_t echo_ping_id) const {
+        return build_header_only(buf, buf_size, Cmd::Pong, 0, echo_ping_id);
     }
 
     // ========================================================================
@@ -108,13 +105,14 @@ public:
             return nullptr;
         }
 
-        // DeltaRead is header-only (count = tier mask, not record count)
-        if (static_cast<Cmd>(hdr.cmd) == Cmd::DeltaRead ||
-            static_cast<Cmd>(hdr.cmd) == Cmd::WriteAck) {
+        // Header-only packets: count field is not a record count
+        auto cmd = static_cast<Cmd>(hdr.cmd);
+        if (cmd == Cmd::DeltaRead || cmd == Cmd::WriteAck ||
+            cmd == Cmd::Ping || cmd == Cmd::Pong) {
             return reinterpret_cast<const PacketHeader*>(data);
         }
 
-        // All other packets: validate total packet size fits in the data
+        // Record-bearing packets: validate total packet size fits in the data
         if (len < packet_size(hdr.count)) {
             return nullptr;
         }
@@ -123,13 +121,13 @@ public:
     }
 
     /// Get a span of VarRecords from parsed data. Call after parse_header succeeds.
-    /// Returns empty span for header-only packets (DeltaRead, WriteAck)
-    /// or if data is invalid.
+    /// Returns empty span for header-only packets or if data is invalid.
     std::span<const VarRecord> parse_records(const uint8_t* data, size_t len,
-                                               const PacketHeader& hdr) const {
+                                                const PacketHeader& hdr) const {
         // Header-only packets have no records
         auto cmd = static_cast<Cmd>(hdr.cmd);
-        if (cmd == Cmd::DeltaRead || cmd == Cmd::WriteAck) {
+        if (cmd == Cmd::DeltaRead || cmd == Cmd::WriteAck ||
+            cmd == Cmd::Ping || cmd == Cmd::Pong) {
             return {};
         }
 
@@ -156,6 +154,21 @@ public:
     }
 
 private:
+    /// Common builder for header-only packets (DeltaRead, WriteAck, Ping, Pong).
+    size_t build_header_only(uint8_t* buf, size_t buf_size, Cmd cmd,
+                              uint16_t count, uint16_t seq_id) const {
+        if (sizeof(PacketHeader) > buf_size) return 0;
+
+        auto* hdr = reinterpret_cast<PacketHeader*>(buf);
+        hdr->magic    = PACKET_MAGIC;
+        hdr->version  = PROTOCOL_VERSION;
+        hdr->cmd      = static_cast<uint8_t>(cmd);
+        hdr->count    = count;
+        hdr->seq_id   = seq_id;
+
+        return sizeof(PacketHeader);
+    }
+
     /// Common builder: header + memcpy records. All record-bearing packets
     /// (DeltaUpdate, FullSync, DeltaWrite) share this structure.
     size_t build_with_records(uint8_t* buf, size_t buf_size, Cmd cmd,

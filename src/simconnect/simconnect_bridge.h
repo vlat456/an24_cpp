@@ -60,7 +60,11 @@ public:
     void disconnect();
     bool is_connected() const;
 
+    /// Returns true if WASM bridge is responding to pings (alive within timeout).
+    bool is_alive() const { return connection_healthy_; }
+
     /// Process pending SimConnect messages (call every frame before inject_inputs).
+    /// Also handles periodic heartbeat ping.
     void poll(double elapsed_time);
 
     // ==...== Simulation Integration ==...==
@@ -134,4 +138,21 @@ private:
     /// V2 delta protocol frame tracking.
     uint16_t host_epoch_ = 0;      ///< Monotonically increasing per-frame epoch
     uint32_t frame_counter_ = 0;   ///< Frame counter for tier scheduling
+
+    // ==...== Heartbeat / keepalive ==...==
+
+    /// Send a Ping if enough time has elapsed since last ping.
+    void maybe_send_ping(double current_time);
+
+    /// Handle a received Pong — resets connection health timer.
+    void handle_pong(const PacketHeader& pong_hdr);
+
+    static constexpr double PING_INTERVAL_SEC  = 5.0;   ///< Send ping every 5 seconds
+    static constexpr double PONG_TIMEOUT_SEC   = 10.0;  ///< No pong for 10s = unhealthy
+
+    double last_ping_sent_time_   = 0.0;  ///< When we last sent a Ping
+    double last_pong_recv_time_   = 0.0;  ///< When we last received a Pong
+    double current_time_          = 0.0;  ///< Last elapsed_time from poll()
+    bool   connection_healthy_    = true; ///< False if WASM bridge stopped responding
+    uint16_t next_ping_id_        = 1;    ///< Monotonically increasing ping ID
 };

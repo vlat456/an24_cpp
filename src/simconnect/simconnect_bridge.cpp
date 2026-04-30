@@ -166,7 +166,21 @@ bool SimConnectBridge::is_connected() const {
 
 void SimConnectBridge::poll(double elapsed_time) {
     if (!client_ || !client_->is_connected()) return;
+
+    current_time_ = elapsed_time;
     client_->poll(elapsed_time);
+
+    // Heartbeat: send Ping if interval elapsed
+    maybe_send_ping(current_time_);
+
+    // Health check: no Pong for too long → mark unhealthy
+    if (connection_healthy_ &&
+        current_time_ - last_pong_recv_time_ > PONG_TIMEOUT_SEC &&
+        last_pong_recv_time_ > 0.0) {
+        connection_healthy_ = false;
+        spdlog::warn("[SimConnectBridge] WASM bridge unhealthy — no Pong for {:.1f}s",
+                     current_time_ - last_pong_recv_time_);
+    }
 }
 
 // ==...== Simulation Integration ==...==
@@ -255,24 +269,28 @@ void SimConnectBridge::on_response(const std::string& payload) {
             PacketHeader hdr;
             std::memcpy(&hdr, data, sizeof(PacketHeader));
 
-            // Epoch check: ignore stale responses.
-            // Unsigned subtraction handles uint16_t wraparound correctly:
-            //   host_epoch_=10, seq_id=65000 → gap=546 (stale ✓)
-            //   host_epoch_=10, seq_id=65530 → gap=16  (recent ✓)
-            uint16_t epoch_gap = host_epoch_ - hdr.seq_id;
-            if (epoch_gap > 100) {
-                spdlog::debug("[SimConnectBridge] Stale response epoch={} (current={}, gap={}), ignoring",
-                              hdr.seq_id, host_epoch_, epoch_gap);
-                return;
+            // Ping/Pong bypass the epoch check — they use independent seq_id
+            // for ping/pong correlation, not frame-epoch ordering.
+            auto cmd = header_cmd(hdr);
+            if (cmd != Cmd::Pong) {
+                uint16_t epoch_gap = host_epoch_ - hdr.seq_id;
+                if (epoch_gap > 100) {
+                    spdlog::debug("[SimConnectBridge] Stale response epoch={} (current={}, gap={}), ignoring",
+                                  hdr.seq_id, host_epoch_, epoch_gap);
+                    return;
+                }
             }
 
-            switch (header_cmd(hdr)) {
+            switch (cmd) {
                 case Cmd::DeltaUpdate:
                 case Cmd::FullSync:
                     handle_read_response(data, payload.size());
                     break;
                 case Cmd::WriteAck:
                     spdlog::debug("[SimConnectBridge] Write ack: epoch={}", hdr.seq_id);
+                    break;
+                case Cmd::Pong:
+                    handle_pong(hdr);
                     break;
                 default:
                     spdlog::debug("[SimConnectBridge] Unexpected binary cmd: 0x{:02x}", hdr.cmd);
@@ -318,4 +336,31 @@ void SimConnectBridge::send_bytes(const uint8_t* data, size_t len) {
 void SimConnectBridge::send_json(const std::string& json_payload) {
     if (!client_ || !client_->is_connected()) return;
     client_->send_request(json_payload);
+}
+
+// ==...== Heartbeat ==...==
+
+void SimConnectBridge::maybe_send_ping(double current_time) {
+    if (current_time - last_ping_sent_time_ < PING_INTERVAL_SEC) return;
+
+    size_t written = codec_.build_ping(
+        send_buffer_.data(), send_buffer_.size(), next_ping_id_++);
+
+    if (written > 0) {
+        send_bytes(send_buffer_.data(), written);
+        last_ping_sent_time_ = current_time;
+        spdlog::trace("[SimConnectBridge] Ping sent (id={})", next_ping_id_ - 1);
+    }
+}
+
+void SimConnectBridge::handle_pong(const PacketHeader& pong_hdr) {
+    last_pong_recv_time_ = current_time_;
+
+    if (!connection_healthy_) {
+        connection_healthy_ = true;
+        spdlog::info("[SimConnectBridge] WASM bridge healthy — Pong received (id={})",
+                     pong_hdr.seq_id);
+    } else {
+        spdlog::trace("[SimConnectBridge] Pong received (id={})", pong_hdr.seq_id);
+    }
 }

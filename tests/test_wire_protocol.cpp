@@ -695,3 +695,79 @@ TEST(WireCodecTest, ParseEmptyRecordsReturnsEmptySpan) {
     ASSERT_NE(result.header, nullptr);
     EXPECT_EQ(result.records.size(), 0u);
 }
+
+// =============================================================================
+// WireCodec — Ping/Pong heartbeat
+// =============================================================================
+
+TEST(WireCodecTest, BuildPingIs8Bytes) {
+    WireCodec codec;
+    std::vector<uint8_t> buf(MAX_PACKET_SIZE);
+
+    size_t written = codec.build_ping(buf.data(), buf.size(), 42);
+    EXPECT_EQ(written, 8u);
+
+    auto* hdr = reinterpret_cast<const PacketHeader*>(buf.data());
+    EXPECT_EQ(hdr->magic, PACKET_MAGIC);
+    EXPECT_EQ(hdr->version, PROTOCOL_VERSION);
+    EXPECT_EQ(hdr->cmd, static_cast<uint8_t>(Cmd::Ping));
+    EXPECT_EQ(hdr->count, 0u);
+    EXPECT_EQ(hdr->seq_id, 42u);
+
+    // Parse: Ping is header-only — records should be empty
+    auto result = codec.parse(buf.data(), written);
+    ASSERT_NE(result.header, nullptr);
+    EXPECT_EQ(result.records.size(), 0u);
+}
+
+TEST(WireCodecTest, BuildPongEchoesPingId) {
+    WireCodec codec;
+    std::vector<uint8_t> buf(MAX_PACKET_SIZE);
+
+    size_t written = codec.build_pong(buf.data(), buf.size(), 123);
+    EXPECT_EQ(written, 8u);
+
+    auto* hdr = reinterpret_cast<const PacketHeader*>(buf.data());
+    EXPECT_EQ(hdr->cmd, static_cast<uint8_t>(Cmd::Pong));
+    EXPECT_EQ(hdr->seq_id, 123u);  // Echoes the ping's seq_id
+    EXPECT_EQ(hdr->count, 0u);
+
+    auto result = codec.parse(buf.data(), written);
+    ASSERT_NE(result.header, nullptr);
+    EXPECT_EQ(result.records.size(), 0u);
+}
+
+TEST(WireCodecTest, PingPongRoundTrip) {
+    WireCodec codec;
+    std::vector<uint8_t> ping_buf(MAX_PACKET_SIZE);
+    std::vector<uint8_t> pong_buf(MAX_PACKET_SIZE);
+
+    // Build ping
+    const uint16_t ping_id = 555;
+    size_t ping_written = codec.build_ping(ping_buf.data(), ping_buf.size(), ping_id);
+    ASSERT_EQ(ping_written, 8u);
+
+    // Parse ping (WASM side would do this)
+    auto ping_parsed = codec.parse(ping_buf.data(), ping_written);
+    ASSERT_NE(ping_parsed.header, nullptr);
+    EXPECT_EQ(ping_parsed.header->cmd, static_cast<uint8_t>(Cmd::Ping));
+    EXPECT_EQ(ping_parsed.header->seq_id, ping_id);
+
+    // Build pong echoing the ping's seq_id
+    size_t pong_written = codec.build_pong(
+        pong_buf.data(), pong_buf.size(), ping_parsed.header->seq_id);
+    ASSERT_EQ(pong_written, 8u);
+
+    // Parse pong (host side)
+    auto pong_parsed = codec.parse(pong_buf.data(), pong_written);
+    ASSERT_NE(pong_parsed.header, nullptr);
+    EXPECT_EQ(pong_parsed.header->cmd, static_cast<uint8_t>(Cmd::Pong));
+    EXPECT_EQ(pong_parsed.header->seq_id, ping_id);  // Matches original ping
+}
+
+TEST(WireCodecTest, BuildPingReturnsZeroOnTinyBuffer) {
+    WireCodec codec;
+    uint8_t tiny[4];
+    EXPECT_EQ(codec.build_ping(tiny, 4, 1), 0u);
+    EXPECT_EQ(codec.build_pong(tiny, 4, 1), 0u);
+}

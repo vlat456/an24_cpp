@@ -45,6 +45,7 @@ static DeltaEntry delta_entries[MAX_VARS];
 static uint16_t delta_count = 0;
 static uint16_t frames_since_sync = 0;
 static uint16_t last_host_epoch = 0;
+static double last_ping_time = 0.0;
 
 // =============================================================================
 // Module State (static — zero heap allocation on hot path)
@@ -149,8 +150,18 @@ static void on_frame_request(const char* payload, size_t size) {
             break;
         }
 
-        case Cmd::DeltaWrite: {
-            for (const auto& rec : result.records) {
+        case Cmd::Ping: {
+            // Respond immediately with Pong, echoing the ping's seq_id
+            size_t resp_size = codec.build_pong(
+                send_buffer, MAX_PACKET_SIZE, hdr.seq_id);
+            if (resp_size > 0) {
+                // TODO: fsCommBusCall(BridgeChannels::Frame, send_buffer, resp_size, 0);
+                (void)resp_size;
+            }
+            break;
+        }
+
+        case Cmd::DeltaWrite: {            for (const auto& rec : result.records) {
                 // TODO: Write to MSFS Vars API based on var_type:
                 //   switch (rec.var_type) {
                 //       case VarType::AVar:  fsVarsAVarSet(lookup_id, rec.value.f32); break;

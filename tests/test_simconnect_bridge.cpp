@@ -803,3 +803,116 @@ TEST(SimConnectBridgeTest, EpochWraparoundRejectsStaleResponse) {
     bridge.inject_inputs(sim);
     EXPECT_FLOAT_EQ(sim.get_signal_value(key), 42.0f) << "Recent response should be accepted";
 }
+
+// ==...== Heartbeat Ping/Pong ==...==
+
+// Helper: build a binary Pong packet as std::string
+static std::string build_pong_response(const WireCodec& codec, uint16_t ping_id) {
+    std::vector<uint8_t> buf(MAX_PACKET_SIZE);
+    size_t written = codec.build_pong(buf.data(), buf.size(), ping_id);
+    EXPECT_GT(written, 0u);
+    return std::string(reinterpret_cast<const char*>(buf.data()), written);
+}
+
+TEST(SimConnectBridgeTest, PollSendsPingAfter5Seconds) {
+    SimConnectBridge bridge;
+    bridge.connect();
+
+    auto* stub = static_cast<StubSimConnectClient*>(bridge.client());
+    WireCodec codec;
+
+    // Poll at t=0 — no ping yet (just connected)
+    bridge.poll(0.0);
+    // Reset the last request tracking
+    stub->reset();
+    stub->set_response_callback([&](const std::string& p) {
+        // Re-register callback after reset
+        const_cast<SimConnectBridge&>(bridge).client()->send_request(p);
+    });
+    // Re-connect after reset
+    bridge.connect();
+
+    // Poll at t=3 — still no ping (interval is 5s)
+    bridge.poll(3.0);
+    // Check last request — should NOT be a Ping
+    if (stub->last_request().size() >= sizeof(PacketHeader)) {
+        auto result = codec.parse(
+            reinterpret_cast<const uint8_t*>(stub->last_request().data()),
+            stub->last_request().size());
+        if (result.header) {
+            EXPECT_NE(result.header->cmd, static_cast<uint8_t>(Cmd::Ping));
+        }
+    }
+
+    // Poll at t=5.1 — should send Ping
+    bridge.poll(5.1);
+    const auto& req = stub->last_request();
+    ASSERT_GE(req.size(), sizeof(PacketHeader));
+    auto result = codec.parse(
+        reinterpret_cast<const uint8_t*>(req.data()), req.size());
+    ASSERT_NE(result.header, nullptr);
+    EXPECT_EQ(result.header->cmd, static_cast<uint8_t>(Cmd::Ping));
+}
+
+TEST(SimConnectBridgeTest, PongReceivedResetsHealth) {
+    SimConnectBridge bridge;
+    bridge.connect();
+
+    auto* stub = static_cast<StubSimConnectClient*>(bridge.client());
+    WireCodec codec;
+
+    // Initially healthy
+    EXPECT_TRUE(bridge.is_alive());
+
+    // Simulate first pong at t=5 to establish baseline
+    bridge.poll(5.0);
+    std::string pong = build_pong_response(codec, 1);
+    stub->trigger_mock_response(pong);
+    bridge.poll(5.0);
+    EXPECT_TRUE(bridge.is_alive());
+
+    // Advance past timeout (no new pong)
+    // poll() sets current_time_ and checks: current_time_ - last_pong_recv_time_ > 10.0
+    bridge.poll(16.0);  // 16.0 - 5.0 = 11.0 > 10.0 → unhealthy
+    EXPECT_FALSE(bridge.is_alive());
+
+    // Send pong — should recover
+    std::string pong2 = build_pong_response(codec, 2);
+    stub->trigger_mock_response(pong2);
+    bridge.poll(16.0);  // Processes pong → sets last_pong_recv to 16.0 → healthy
+    EXPECT_TRUE(bridge.is_alive());
+}
+
+TEST(SimConnectBridgeTest, PongEchoesPingSeqId) {
+    SimConnectBridge bridge;
+    bridge.connect();
+
+    auto* stub = static_cast<StubSimConnectClient*>(bridge.client());
+    WireCodec codec;
+
+    // Advance time to trigger a ping
+    bridge.poll(0.0);
+    bridge.poll(6.0);  // > PING_INTERVAL_SEC
+
+    const auto& ping_req = stub->last_request();
+    ASSERT_GE(ping_req.size(), sizeof(PacketHeader));
+
+    auto ping_parsed = codec.parse(
+        reinterpret_cast<const uint8_t*>(ping_req.data()), ping_req.size());
+    ASSERT_NE(ping_parsed.header, nullptr);
+    EXPECT_EQ(ping_parsed.header->cmd, static_cast<uint8_t>(Cmd::Ping));
+    uint16_t ping_id = ping_parsed.header->seq_id;
+
+    // Send a pong with matching ping_id
+    std::string pong = build_pong_response(codec, ping_id);
+    stub->trigger_mock_response(pong);
+    bridge.poll(6.0);  // Process pong
+
+    EXPECT_TRUE(bridge.is_alive());
+}
+
+TEST(SimConnectBridgeTest, IsAliveInitiallyTrue) {
+    SimConnectBridge bridge;
+    // Not connected, but is_alive reflects heartbeat state, not connection
+    EXPECT_TRUE(bridge.is_alive());
+}
