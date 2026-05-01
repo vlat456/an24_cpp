@@ -113,6 +113,12 @@ std::string_view CanvasInput::hovered_wire_id() const {
     return interner_->resolve(hovered_wire_id_);
 }
 
+std::string_view CanvasInput::resize_node_id() const {
+    return resize_widget_id_.empty()
+        ? std::string_view{}
+        : interner_->resolve(resize_widget_id_);
+}
+
 bool CanvasInput::select_node_by_id(std::string_view node_id) {
     core::InternedId iid = interner_->intern(node_id);
     const bp2::Blueprint::Node* node = host_->find_node(iid);

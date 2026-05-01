@@ -2,6 +2,7 @@
 #include "core/strings/interned_id.h"
 #include "ui/renderer/render_context.h"
 #include "visual/string_view_hash.h"
+#include <functional>
 #include <vector>
 #include <unordered_set>
 #include <string_view>
@@ -49,6 +50,14 @@ struct RenderContext : public ui::RenderContext {
     /// Node sprite cache — when non-null, Scene::render will blit cached nodes
     /// instead of calling renderTree(). Null in test builds.
     ISpriteCache* sprite_cache = nullptr;
+
+    /// Predicate: returns true if a node should bypass the sprite cache this frame.
+    /// When set, bake_dirty_nodes() skips the node (no wasted GPU bake) and
+    /// Scene::render() calls renderTree() live for crisp interactive feedback.
+    /// Built from transient input state — captures by value (16-byte string_view
+    /// fits in SBO, zero heap allocation). No lifecycle management needed.
+    /// nullptr (default) = no bypass.
+    std::function<bool(std::string_view node_id)> cache_bypass;
 
     /// Check whether a node id is selected. O(1) via unordered_set.
     bool isNodeSelected(std::string_view node_id) const {

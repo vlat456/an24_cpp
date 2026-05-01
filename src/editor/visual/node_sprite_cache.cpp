@@ -195,6 +195,8 @@ bool NodeSpriteCache::blit(const Widget& widget, ui::IDrawList* dl,
 }
 
 void NodeSpriteCache::bake_dirty_nodes(const Scene& scene, const RenderContext& ctx) {
+    const bool has_bypass = static_cast<bool>(ctx.cache_bypass);
+
     for (auto* vw : scene.visual_roots()) {
         if (!vw->isClickable()) continue;
 
@@ -202,6 +204,11 @@ void NodeSpriteCache::bake_dirty_nodes(const Scene& scene, const RenderContext& 
         if (!vw->is_node_kind()) continue;
 
         const std::string_view id = vw->id();
+
+        // Skip nodes that are bypassing the cache this frame — they're being
+        // interactively modified (e.g. drag-resize); baking would waste GPU
+        // time on a texture that's immediately discarded.
+        if (has_bypass && ctx.cache_bypass(id)) continue;
 
         // Single lookup for the cache entry (used by both branches below).
         auto it = cache_.find(id);

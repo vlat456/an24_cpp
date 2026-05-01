@@ -39,6 +39,7 @@ ui::Widget* Scene::add(std::unique_ptr<ui::Widget> w) {
 void Scene::render(IDrawList* dl, const RenderContext& ctx) {
     auto& prof = scene_profiler();
     ISpriteCache* cache = ctx.sprite_cache;
+    const bool has_bypass = static_cast<bool>(ctx.cache_bypass);
 
     for (auto* vw : visual_roots()) {
         int li = static_cast<int>(vw->renderLayer());
@@ -47,7 +48,14 @@ void Scene::render(IDrawList* dl, const RenderContext& ctx) {
 
         // Sprite cache path: blit cached node, then render selection overlay.
         if (cache && vw->isClickable() && vw->is_node_kind()) {
-            if (cache->has(vw->id())) {
+            const bool bypass = has_bypass && ctx.cache_bypass(vw->id());
+
+            // Mark bypassed nodes dirty so they re-bake when interaction ends.
+            if (bypass && cache->has(vw->id())) {
+                cache->mark_dirty(vw->id());
+            }
+
+            if (!bypass && cache->has(vw->id())) {
                 cache->blit(*vw, dl, ctx);
                 vw->renderPost(dl, ctx);
                 continue;

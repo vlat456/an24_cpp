@@ -9,6 +9,7 @@
 #include "editor/visual/oscilloscope_plot.h"
 #include "editor/input/input_types.h"
 #include "editor/input/key_handler.h"
+#include "input/canvas_input.h"
 #include "blueprint_v2/path/path.h"
 #include <imgui.h>
 #include <unordered_set>
@@ -197,6 +198,16 @@ void CanvasRenderer::renderBlueprint(BlueprintWindow& win, Document& doc, Window
     ctx.energized_wires = energized_buf_.empty() ? nullptr : &energized_buf_;
     ctx.show_debug_bounds = ws.showDebugLayoutBounds;
     ctx.show_debug_paint_bounds = ws.showDebugPaintBounds;
+
+    // Build cache bypass predicate from transient input state.
+    // Each InputState that modifies node geometry in-place during drag
+    // maps to a bypass so the cache is skipped for the affected node.
+    if (win.input.state() == InputState::ResizingNode) {
+        std::string_view resize_id = win.input.resize_node_id();
+        ctx.cache_bypass = [resize_id](std::string_view id) {
+            return id == resize_id;
+        };
+    }
 
     port_circle_atlas_.ensure();
     ctx.port_circle_texture = port_circle_atlas_.texture_id();

@@ -109,6 +109,9 @@ public:
     Pt temp_wire_end_world() const;
     bool is_reconnecting() const { return state_ == InputState::ReconnectingWire; }
 
+    /// ID of the node being resized (valid only when state() == ResizingNode).
+    std::string_view resize_node_id() const;
+
     // ---- Selection helpers ----
 
     void clear_selection();
