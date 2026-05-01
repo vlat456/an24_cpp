@@ -47,17 +47,17 @@ void save_active_document_with_existing_flow(WindowSystem& ws, Document* doc) {
 
 static std::string getConfigPath() {
 #ifdef _WIN32
-    const char* appdata = getenv("APPDATA");
+    const char* appdata = std::getenv("APPDATA");
     return appdata ? std::string(appdata) + "/an24/settings.cfg"
         : "C:/an24/settings.cfg";
 #elif defined(__APPLE__)
-    const char* home = getenv("HOME");
+    const char* home = std::getenv("HOME");
     return home ? std::string(home) + "/Library/Application Support/an24/settings.cfg"
         : "/tmp/an24/settings.cfg";
 #else
-    const char* xdg = getenv("XDG_CONFIG_HOME");
+    const char* xdg = std::getenv("XDG_CONFIG_HOME");
     if (xdg) return std::string(xdg) + "/an24/settings.cfg";
-    const char* home = getenv("HOME");
+    const char* home = std::getenv("HOME");
     return home ? std::string(home) + "/.config/an24/settings.cfg"
         : "/tmp/an24/settings.cfg";
 #endif

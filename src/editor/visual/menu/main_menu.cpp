@@ -5,6 +5,7 @@
 #include "core/solvers/jit/bridge/simvar_provider_host.h"
 #include <build_info.h>
 #include <imgui.h>
+#include <algorithm>
 #include <filesystem>
 #include <cstring>
 

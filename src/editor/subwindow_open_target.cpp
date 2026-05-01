@@ -1,6 +1,7 @@
 #include "subwindow_open_target.h"
 
 #include "blueprint_v2/library/library_path.h"
+#include <cassert>
 
 namespace editor {
 
@@ -49,7 +50,9 @@ SubWindowOpenTargetResult resolve_subwindow_open_target(const bp2::Blueprint& bp
     }
 
     // BlueprintSource is a variant<Embedded, Reference> — exhaustive above.
-    __builtin_unreachable();
+    // Unreachable: all cases handled by the variant structure.
+    assert(false);
+    return {{}, SubWindowOpenTargetFailure::UnknownNodeId};
 }
 
 } // namespace editor

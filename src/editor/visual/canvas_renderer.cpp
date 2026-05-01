@@ -12,6 +12,7 @@
 #include "input/canvas_input.h"
 #include "blueprint_v2/path/path.h"
 #include <imgui.h>
+#include <algorithm>
 #include <unordered_set>
 #include <cstdio>
 #include <cstdlib>
@@ -51,10 +52,10 @@ static bool maybe_log_hover_signal_resolution(
 
     if (enabled) {
         std::string_view key_sv = resolved_key.empty() ? std::string_view{} : std::string_view{"(resolved)"};
-        fprintf(stdout, "[DBG-HOVER] %s.%s => %.*s (%.2fV)\n",
+        std::fprintf(stdout, "[DBG-HOVER] %s.%s => %.*s (%.2fV)\n",
                 visual_node.c_str(), visual_port.c_str(),
                 static_cast<int>(key_sv.size()), key_sv.data(), value);
-        fflush(stdout);
+        std::fflush(stdout);
     }
 
     return enabled;

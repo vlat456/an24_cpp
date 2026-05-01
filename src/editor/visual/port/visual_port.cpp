@@ -3,6 +3,7 @@
 #include "visual/renderer/render_theme.h"
 #include "visual/render_context.h"
 #include "visual/port/port_arrow.h"
+#include <algorithm>
 
 namespace visual {
 

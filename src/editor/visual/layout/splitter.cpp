@@ -34,12 +34,12 @@ void PanelSplitter::render(float available_width, float available_height) {
     
     char window_id[32];
     snprintf(window_id, sizeof(window_id), "##splitter_%llu", (unsigned long long)id_);
-    
+
     ImGui::Begin(window_id, nullptr,
         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
         ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |
         ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus);
-    
+
     char btn_id[32];
     snprintf(btn_id, sizeof(btn_id), "##btn_%llu", (unsigned long long)id_);
     ImGui::InvisibleButton(btn_id, splitter_size);
