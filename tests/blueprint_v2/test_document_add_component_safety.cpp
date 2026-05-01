@@ -1988,3 +1988,53 @@ TEST(DocumentSafety, AddComponentElectricalSourceWriterMatchesRegistryInterface)
     EXPECT_EQ(node.component().iface, expected)
         << "addComponent produced an interface that desyncs from the registry definition";
 }
+
+// ============================================================================
+// Regression: addComponent to embedded scope must add inside inline blueprint
+// ============================================================================
+// Bug: addComponent() unconditionally used cmd_add_node() which only adds to
+// the root blueprint. When inserting in a sub-window, the component was added
+// to the parent blueprint at the given coordinates — invisible because the
+// sub-window renders the embedded blueprint, not the root.
+
+TEST(DocumentSafety, AddComponentToEmbeddedScopeAddsNodeInsideInlineBlueprint) {
+    ComponentRegistry registry = load_component_registry("library/");
+    Document doc(&registry);
+
+    core::StringInterner& I = doc.interner();
+
+    bp2::Blueprint inner;
+    inner = inner.with_id(I.intern("inner_bp"));
+    inner = inner.with_name("Inner");
+
+    bp2::Blueprint::Node host;
+    host.semantic.id = I.intern("group_1");
+    host.semantic.type = I.intern("Group");
+    host.view.name = "group_1";
+    host.content = bp2::Blueprint::Node::BlueprintInstanceData{
+        bp2::Blueprint::Node::BlueprintSource::make_embedded(
+            std::make_unique<bp2::Blueprint>(inner.with_id(I.intern("Group"))))
+    };
+
+    bp2::Blueprint root;
+    root = root.with_id(I.intern("root_bp"));
+    root = root.with_name("Root");
+    root = root.with_node(std::move(host));
+    doc.model().replace_current(std::move(root));
+
+    ASSERT_NO_THROW(doc.addComponent("Resistor", Pt{64.0f, 64.0f},
+        WindowScopeId::embedded({doc.interner().intern("group_1")}), registry));
+
+    // The resistor must NOT be in the root blueprint
+    const auto* root_added = doc.model().current().find_node(I.lookup("resistor_1"));
+    EXPECT_EQ(root_added, nullptr);
+
+    // The resistor MUST be inside the embedded inline blueprint
+    const auto* updated_host = doc.model().current().find_node(I.lookup("group_1"));
+    ASSERT_NE(updated_host, nullptr);
+    ASSERT_TRUE(updated_host->is_blueprint_instance());
+    ASSERT_TRUE(updated_host->blueprint_instance().source.is_embedded());
+    const auto* inline_bp = updated_host->blueprint_instance().source.inline_def();
+    ASSERT_NE(inline_bp, nullptr);
+    EXPECT_NE(inline_bp->find_node(I.lookup("resistor_1")), nullptr);
+}

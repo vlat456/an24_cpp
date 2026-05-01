@@ -187,7 +187,18 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
 #endif
     try {
         model_.mutate_atomically([&] {
-            execute(model_, interner_, cmd_add_node(std::move(node)));
+            if (scope_id.is_root()) {
+                execute(model_, interner_, cmd_add_node(std::move(node)));
+            } else {
+                const bp2::MutationResult mr = model_.mutate_embedded(scope_id.path(),
+                    [&](const bp2::Blueprint& inner) -> bp2::Blueprint {
+                        return inner.with_node(node);
+                    });
+                if (mr == bp2::MutationResult::NotFound) {
+                    throw std::runtime_error("embedded blueprint instance at '" +
+                        editor::instance_path_to_scope_string(interner_, scope_id.path()) + "' not found");
+                }
+            }
 
             if (bridge_in_group) {
                 add_bridge_port_to_composite(
