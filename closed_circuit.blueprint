@@ -2183,6 +2183,26 @@
       }
     },
     {
+      "component": "SimConnectInput",
+      "id": "simconnectinput_1",
+      "kind": "component",
+      "label": "simconnectinput_1",
+      "layout": {
+        "x": -16.0,
+        "y": 448.0
+      },
+      "params": {
+        "default_value": 0.0,
+        "epsilon": 0.009999999776482582,
+        "index": 0,
+        "tier": 1,
+        "unit": "number",
+        "val_type": "Float32",
+        "var_name": "",
+        "var_type": "AVar"
+      }
+    },
+    {
       "color": {
         "a": 1.0,
         "b": 0.4663677215576172,
@@ -3199,6 +3219,17 @@
       "to": {
         "node": "merger_1",
         "port": "i1"
+      }
+    },
+    {
+      "from": {
+        "node": "simconnectinput_1",
+        "port": "out"
+      },
+      "id": "wire_171",
+      "to": {
+        "node": "luascript_1",
+        "port": "in6"
       }
     }
   ]
