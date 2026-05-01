@@ -1,7 +1,7 @@
 {
   "version": "3.0",
-  "id": "SimVarInput",
-  "display_name": "SimVar Input",
+  "id": "SimConnectInput",
+  "display_name": "SimConnect Input",
   "scheduler_role": "Source",
   "interface": [
     {
@@ -16,7 +16,7 @@
   "wires": [],
   "nested": [],
   "cpp_class": true,
-  "description": "Reads an MSFS 2024 simulation variable and outputs it as a signal. Supports all MSFS 2024 Vars API categories: AVar (aircraft), LVar (local/shared), HEvent (cockpit events), BVar (input events), EVar (environment), IVar (instrument), OVar (component), ZVar (SimObject). Variable resolution happens at init time (pre_load), not per-frame. In JIT/Editor mode the backend is inactive (outputs default_value). In WASM/AOT mode uses direct Vars API.",
+  "description": "Reads an MSFS 2024 simulation variable via SimConnect and outputs it as a signal. Supports all MSFS 2024 Vars API categories: AVar, LVar, HEvent, BVar, EVar, IVar, OVar, ZVar. In JIT/Editor mode the SimConnectProvider injects values before each simulation step. In WASM/AOT mode uses direct Vars API.",
   "domains": [
     "Logical"
   ],
@@ -25,7 +25,10 @@
     "var_type": "AVar",
     "unit": "number",
     "index": "0",
-    "default_value": "0.0"
+    "default_value": "0.0",
+    "val_type": "Float32",
+    "tier": "1",
+    "epsilon": "0.01"
   },
   "param_schema": {
     "var_name": {
@@ -41,6 +44,15 @@
       "type": "int"
     },
     "default_value": {
+      "type": "float"
+    },
+    "val_type": {
+      "type": "string"
+    },
+    "tier": {
+      "type": "int"
+    },
+    "epsilon": {
       "type": "float"
     }
   }

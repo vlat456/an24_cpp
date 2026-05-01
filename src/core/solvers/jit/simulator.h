@@ -38,6 +38,15 @@ public:
 
     size_t get_signal_count() const { return state_.values.size(); }
 
+    // === Raw values array access (for provider I/O) ===
+
+    /// Mutable pointer to the signal values array.
+    /// Valid between start() and stop(). Size = get_signal_count().
+    float* values() { return state_.values.data(); }
+
+    /// Const pointer to the signal values array.
+    const float* values() const { return state_.values.data(); }
+
     // === Typed signal API (zero allocation at steady state) ===
 
     /// Look up signal value by interned key. O(1) integer hash lookup.

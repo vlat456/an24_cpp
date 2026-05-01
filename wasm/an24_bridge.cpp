@@ -15,7 +15,7 @@
 
 // Host-side headers — available via CMake include paths in WASM build
 #include "simconnect/wire_protocol.h"
-#include "simconnect/wire_codec.h"
+#include "simconnect/wire_WireCodec::h"
 #include "simconnect/intern_table.h"
 
 // MSFS 2024 WASM SDK headers (available only in WASM build)
@@ -52,7 +52,6 @@ static uint8_t send_buffer[MAX_PACKET_SIZE];
 static VarRecord response_records[MAX_VARS];
 
 static InternTable intern_table;
-static WireCodec codec;
 
 // =============================================================================
 // Helpers — send response via CommBus
@@ -85,7 +84,7 @@ static void handle_full_sync(const PacketHeader& hdr) {
         delta_entries[i].valid = true;
     }
 
-    send_response(codec.build_full_sync(
+    send_response(WireCodec::build_full_sync(
         send_buffer, MAX_PACKET_SIZE,
         {response_records, count}, hdr.seq_id));
 }
@@ -121,7 +120,7 @@ static void handle_delta_update(const PacketHeader& hdr, uint16_t tier_mask) {
     }
 
     if (changed_count > 0) {
-        send_response(codec.build_delta_update(
+        send_response(WireCodec::build_delta_update(
             send_buffer, MAX_PACKET_SIZE,
             {response_records, changed_count}, hdr.seq_id));
     }
@@ -167,7 +166,7 @@ static void handle_delta_write(const WireCodec::ParseResult& result,
         (void)rec;
     }
 
-    send_response(codec.build_write_ack(
+    send_response(WireCodec::build_write_ack(
         send_buffer, MAX_PACKET_SIZE, hdr.seq_id));
 }
 
@@ -177,7 +176,7 @@ static void handle_delta_write(const WireCodec::ParseResult& result,
 
 /// Respond to Ping with Pong, echoing the ping's seq_id.
 static void handle_ping(const PacketHeader& hdr) {
-    send_response(codec.build_pong(
+    send_response(WireCodec::build_pong(
         send_buffer, MAX_PACKET_SIZE, hdr.seq_id));
 }
 
@@ -189,7 +188,7 @@ static void on_frame_request(const char* payload, size_t size) {
     if (size < sizeof(PacketHeader)) return;
 
     const auto* data = reinterpret_cast<const uint8_t*>(payload);
-    auto result = codec.parse(data, size);
+    auto result = WireCodec::parse(data, size);
     if (!result.header) return;
 
     PacketHeader hdr = *result.header;

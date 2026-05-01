@@ -38,12 +38,16 @@ public:
 
     // ==...== CommBus Communication (WASM Bridge) ==...==
 
-    /// Send a JSON request to the WASM bridge via CommBus.
+    /// Send a JSON request to the WASM bridge via CommBus (control channel).
     /// Returns true if the message was queued successfully.
     virtual bool send_request(const std::string& json_payload) = 0;
 
+    /// Send raw binary data to the WASM bridge via CommBus (frame channel).
+    /// Returns true if the message was queued successfully.
+    virtual bool send_bytes(const uint8_t* data, size_t len) = 0;
+
     /// Register a callback for WASM bridge responses.
-    /// Callback receives the raw JSON payload from CommBus.
+    /// Callback receives the raw payload from CommBus (JSON or binary).
     virtual void set_response_callback(std::function<void(const std::string&)> cb) = 0;
 
     // ==...== Direct Sim Variable Access (A:Vars) ==...==

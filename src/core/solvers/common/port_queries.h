@@ -71,8 +71,8 @@ using ComponentVariant = std::variant<
     RotarySwitch1ToN<JitProvider>,
     RotarySwitchNTo1<JitProvider>,
     SampleHold<JitProvider>,
-    SimVarInput<JitProvider>,
-    SimVarOutput<JitProvider>,
+    SimConnectInput<JitProvider>,
+    SimConnectOutput<JitProvider>,
     SlewRate<JitProvider>,
     Slider<JitProvider>,
     SolenoidValve<JitProvider>,
@@ -156,8 +156,8 @@ static_assert(static_cast<size_t>(ComponentKind::Resistor) == 57ull, "Resistor e
 static_assert(static_cast<size_t>(ComponentKind::RotarySwitch1ToN) == 58ull, "RotarySwitch1ToN enum position mismatch — re-run update_port_registry");
 static_assert(static_cast<size_t>(ComponentKind::RotarySwitchNTo1) == 59ull, "RotarySwitchNTo1 enum position mismatch — re-run update_port_registry");
 static_assert(static_cast<size_t>(ComponentKind::SampleHold) == 60ull, "SampleHold enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::SimVarInput) == 61ull, "SimVarInput enum position mismatch — re-run update_port_registry");
-static_assert(static_cast<size_t>(ComponentKind::SimVarOutput) == 62ull, "SimVarOutput enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::SimConnectInput) == 61ull, "SimConnectInput enum position mismatch — re-run update_port_registry");
+static_assert(static_cast<size_t>(ComponentKind::SimConnectOutput) == 62ull, "SimConnectOutput enum position mismatch — re-run update_port_registry");
 static_assert(static_cast<size_t>(ComponentKind::SlewRate) == 63ull, "SlewRate enum position mismatch — re-run update_port_registry");
 static_assert(static_cast<size_t>(ComponentKind::Slider) == 64ull, "Slider enum position mismatch — re-run update_port_registry");
 static_assert(static_cast<size_t>(ComponentKind::SolenoidValve) == 65ull, "SolenoidValve enum position mismatch — re-run update_port_registry");

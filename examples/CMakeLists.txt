@@ -47,6 +47,7 @@ target_link_libraries(an24_editor PRIVATE
     "-framework UniformTypeIdentifiers"
     nfd
     jit_solver
+    simconnect_bridge
     editor_semantic_canvas
     nlohmann_json::nlohmann_json
 )

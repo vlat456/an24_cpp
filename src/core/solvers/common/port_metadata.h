@@ -317,9 +317,9 @@ constexpr PortMeta PORT_META[] = {
     {"in", bp2::Direction::Input, 2, false},
     {"out", bp2::Direction::Output, 2, false},
     {"trigger", bp2::Direction::Input, 2, false},
-    // SimVarInput
+    // SimConnectInput
     {"out", bp2::Direction::Output, 2, true},
-    // SimVarOutput
+    // SimConnectOutput
     {"in", bp2::Direction::Input, 2, false},
     // SlewRate
     {"in", bp2::Direction::Input, 2, false},
@@ -442,8 +442,8 @@ constexpr ComponentPortInfo COMPONENT_PORT_INFO[] = {
     {203, 8, SchedulerRoleKind::None, true},  // RotarySwitch1ToN
     {211, 8, SchedulerRoleKind::None, true},  // RotarySwitchNTo1
     {219, 3, SchedulerRoleKind::Consumer, false},  // SampleHold
-    {222, 1, SchedulerRoleKind::Source, false},  // SimVarInput
-    {223, 1, SchedulerRoleKind::Consumer, false},  // SimVarOutput
+    {222, 1, SchedulerRoleKind::Source, false},  // SimConnectInput
+    {223, 1, SchedulerRoleKind::Consumer, false},  // SimConnectOutput
     {224, 2, SchedulerRoleKind::Consumer, false},  // SlewRate
     {226, 2, SchedulerRoleKind::Consumer, false},  // Slider
     {228, 4, SchedulerRoleKind::None, true},  // SolenoidValve

@@ -309,20 +309,24 @@ static void consume_params(SampleHold<JitProvider>& comp, ParamReader& param_rea
     (void)comp; (void)param_reader;  // no params
 }
 
-static void consume_params(SimVarInput<JitProvider>& comp, ParamReader& param_reader) {
+static void consume_params(SimConnectInput<JitProvider>& comp, ParamReader& param_reader) {
     comp.default_value = param_reader.consume_float_optional("default_value", 0.0f);
+    comp.epsilon = param_reader.consume_float_optional("epsilon", 0.01f);
     comp.index = static_cast<int>(param_reader.consume_float_optional("index", 0.0f));
+    comp.tier = static_cast<int>(param_reader.consume_float_optional("tier", 1.0f));
     comp.unit = param_reader.consume_string_optional("unit", "number");
+    comp.val_type = param_reader.consume_string_optional("val_type", "Float32");
     comp.var_name = param_reader.consume_string_optional("var_name", "");
     comp.var_type = param_reader.consume_string_optional("var_type", "AVar");
 }
 
-static void consume_params(SimVarOutput<JitProvider>& comp, ParamReader& param_reader) {
+static void consume_params(SimConnectOutput<JitProvider>& comp, ParamReader& param_reader) {
     comp.event_id = static_cast<int>(param_reader.consume_float_optional("event_id", 0.0f));
     comp.event_name = param_reader.consume_string_optional("event_name", "");
     comp.index = static_cast<int>(param_reader.consume_float_optional("index", 0.0f));
     comp.mode = param_reader.consume_string_optional("mode", "data");
     comp.unit = param_reader.consume_string_optional("unit", "number");
+    comp.val_type = param_reader.consume_string_optional("val_type", "Float32");
     comp.var_name = param_reader.consume_string_optional("var_name", "");
     comp.var_type = param_reader.consume_string_optional("var_type", "AVar");
 }
@@ -521,8 +525,8 @@ static const BuildFn BUILD_TABLE[] = {
     build_generic<RotarySwitch1ToN<JitProvider>, SchedulerRoleKind::None>,  // RotarySwitch1ToN
     build_generic<RotarySwitchNTo1<JitProvider>, SchedulerRoleKind::None>,  // RotarySwitchNTo1
     build_generic<SampleHold<JitProvider>, SchedulerRoleKind::Consumer>,  // SampleHold
-    build_generic<SimVarInput<JitProvider>, SchedulerRoleKind::Source>,  // SimVarInput
-    build_generic<SimVarOutput<JitProvider>, SchedulerRoleKind::Consumer>,  // SimVarOutput
+    build_generic<SimConnectInput<JitProvider>, SchedulerRoleKind::Source>,  // SimConnectInput
+    build_generic<SimConnectOutput<JitProvider>, SchedulerRoleKind::Consumer>,  // SimConnectOutput
     build_generic<SlewRate<JitProvider>, SchedulerRoleKind::Consumer>,  // SlewRate
     build_generic<Slider<JitProvider>, SchedulerRoleKind::Consumer>,  // Slider
     build_generic<SolenoidValve<JitProvider>, SchedulerRoleKind::None>,  // SolenoidValve

@@ -2,6 +2,7 @@
 #include "editor/visual/dialogs/file_dialogs.h"
 #include "editor/window/blueprint_window.h"
 #include "editor/pi_zn_tuner.h"
+#include "core/solvers/jit/bridge/simvar_provider_host.h"
 #include <build_info.h>
 #include <imgui.h>
 #include <filesystem>
@@ -39,6 +40,12 @@ MainMenu::Result MainMenu::render(WindowSystem& ws) {
     // Root-only menus.
     if (focus.is_root()) {
         renderToolsMenu(ws);
+    }
+
+    // Adapters menu — always visible when a document is open.
+    // Connection is a persistent user preference, independent of sim state.
+    if (ws.activeDocument()) {
+        renderAdaptersMenu(ws);
     }
 
 #ifndef NDEBUG
@@ -209,6 +216,41 @@ void MainMenu::renderToolsMenu(WindowSystem& ws) {
     ws.znTune.cfg_max_expand = std::max(0, ws.znTune.cfg_max_expand);
     ws.znTune.cfg_binary_iters = std::max(1, ws.znTune.cfg_binary_iters);
     ws.znTune.cfg_min_peaks = std::max(2, ws.znTune.cfg_min_peaks);
+
+    ImGui::EndMenu();
+}
+
+void MainMenu::renderAdaptersMenu(WindowSystem& ws) {
+    if (!ImGui::BeginMenu("Adapters")) return;
+
+    Document* active_doc = ws.activeDocument();
+    if (!active_doc) {
+        ImGui::TextDisabled("No document open");
+        ImGui::EndMenu();
+        return;
+    }
+
+    SimvarProviderHost* host = active_doc->provider_host();
+    if (!host) {
+        ImGui::TextDisabled("Provider host unavailable");
+        ImGui::EndMenu();
+        return;
+    }
+
+    auto types = SimvarProviderHost::registered_types();
+    if (types.empty()) {
+        ImGui::MenuItem("No adapters installed", nullptr, false, false);
+        ImGui::EndMenu();
+        return;
+    }
+
+    for (const auto& type : types) {
+        bool enabled = host->is_enabled(type);
+        std::string label = type + (enabled ? "   [On]" : "   [Off]");
+        if (ImGui::MenuItem(label.c_str())) {
+            host->toggle_enabled(type);
+        }
+    }
 
     ImGui::EndMenu();
 }

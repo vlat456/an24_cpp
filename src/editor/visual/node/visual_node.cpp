@@ -828,7 +828,8 @@ void NodeWidget::renderTree(IDrawList* dl, const RenderContext& ctx) const {
     }
 
     prof.add_frame(0.0);
-    prof.maybe_report();
+    // prof.maybe_report() intentionally omitted — node render profiling data
+    // is collected but not printed to avoid console spam.
 
     // NO child recursion — we rendered everything above.
 }

@@ -31,6 +31,7 @@ struct JitBuildInput;
 namespace bp2 { class EditorModel; class PathArena; struct LibraryIndex; }
 class WindowManager;
 class ComponentRegistry;
+class SimvarProviderHost;
 
 class SimulationBridge {
 public:
@@ -85,6 +86,10 @@ public:
 
     /// Access the simulation's signal key interner for key lookup.
     [[nodiscard]] const core::StringInterner& signal_key_interner() const;
+
+    /// Access the provider host for adapter management (menu UI).
+    [[nodiscard]] SimvarProviderHost* provider_host();
+    [[nodiscard]] const SimvarProviderHost* provider_host() const;
 
     // ── Scope-based signal key resolution ──
 

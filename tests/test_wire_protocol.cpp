@@ -481,10 +481,10 @@ TEST(InternTableTest, InternIdsAreBelowIdSpace) {
 // =============================================================================
 
 TEST(WireCodecTest, BuildDeltaReadIs8Bytes) {
-    WireCodec codec;
+
     std::vector<uint8_t> buf(MAX_PACKET_SIZE);
 
-    size_t written = codec.build_delta_read(buf.data(), buf.size(),
+    size_t written = WireCodec::build_delta_read(buf.data(), buf.size(),
                                               TIER_MASK_FAST, 42);
     EXPECT_EQ(written, 8u);
 
@@ -496,16 +496,16 @@ TEST(WireCodecTest, BuildDeltaReadIs8Bytes) {
     EXPECT_EQ(hdr->seq_id, 42u);
 
     // Parse: DeltaRead is header-only — records should be empty
-    auto result = codec.parse(buf.data(), written);
+    auto result = WireCodec::parse(buf.data(), written);
     ASSERT_NE(result.header, nullptr);
     EXPECT_EQ(result.records.size(), 0u);
 }
 
 TEST(WireCodecTest, BuildDeltaReadWithAllTiers) {
-    WireCodec codec;
+
     std::vector<uint8_t> buf(MAX_PACKET_SIZE);
 
-    size_t written = codec.build_delta_read(buf.data(), buf.size(),
+    size_t written = WireCodec::build_delta_read(buf.data(), buf.size(),
                                               TIER_MASK_ALL, 100);
     EXPECT_EQ(written, 8u);
 
@@ -514,10 +514,10 @@ TEST(WireCodecTest, BuildDeltaReadWithAllTiers) {
 }
 
 TEST(WireCodecTest, BuildDeltaReadForceFullSync) {
-    WireCodec codec;
+
     std::vector<uint8_t> buf(MAX_PACKET_SIZE);
 
-    size_t written = codec.build_delta_read(buf.data(), buf.size(),
+    size_t written = WireCodec::build_delta_read(buf.data(), buf.size(),
                                               TIER_MASK_FORCE_FULL_SYNC, 1);
     EXPECT_EQ(written, 8u);
 
@@ -526,7 +526,7 @@ TEST(WireCodecTest, BuildDeltaReadForceFullSync) {
 }
 
 TEST(WireCodecTest, BuildDeltaUpdateWith3Records) {
-    WireCodec codec;
+
     std::vector<uint8_t> buf(MAX_PACKET_SIZE);
 
     VarRecord records[3];
@@ -540,10 +540,10 @@ TEST(WireCodecTest, BuildDeltaUpdateWith3Records) {
     records[2].name_id  = 300;
     records[2].value    = WireValue(15.0f);
 
-    size_t written = codec.build_delta_update(buf.data(), buf.size(), records, 7);
+    size_t written = WireCodec::build_delta_update(buf.data(), buf.size(), records, 7);
     EXPECT_EQ(written, 8u + 3u * 8u);
 
-    auto result = codec.parse(buf.data(), written);
+    auto result = WireCodec::parse(buf.data(), written);
     ASSERT_NE(result.header, nullptr);
     EXPECT_EQ(result.header->cmd, static_cast<uint8_t>(Cmd::DeltaUpdate));
     EXPECT_EQ(result.header->seq_id, 7u);
@@ -558,7 +558,7 @@ TEST(WireCodecTest, BuildDeltaUpdateWith3Records) {
 }
 
 TEST(WireCodecTest, BuildFullSyncWith500Records) {
-    WireCodec codec;
+
     std::vector<uint8_t> buf(MAX_PACKET_SIZE);
 
     std::vector<VarRecord> records(500);
@@ -568,10 +568,10 @@ TEST(WireCodecTest, BuildFullSyncWith500Records) {
         records[i].value    = WireValue(static_cast<float>(i));
     }
 
-    size_t written = codec.build_full_sync(buf.data(), buf.size(), records, 42);
+    size_t written = WireCodec::build_full_sync(buf.data(), buf.size(), records, 42);
     EXPECT_EQ(written, 8u + 500u * 8u);
 
-    auto result = codec.parse(buf.data(), written);
+    auto result = WireCodec::parse(buf.data(), written);
     ASSERT_NE(result.header, nullptr);
     EXPECT_EQ(result.header->cmd, static_cast<uint8_t>(Cmd::FullSync));
     EXPECT_EQ(result.header->seq_id, 42u);
@@ -584,7 +584,7 @@ TEST(WireCodecTest, BuildFullSyncWith500Records) {
 }
 
 TEST(WireCodecTest, BuildDeltaWriteWithChangedOutputs) {
-    WireCodec codec;
+
     std::vector<uint8_t> buf(MAX_PACKET_SIZE);
 
     VarRecord records[2];
@@ -595,10 +595,10 @@ TEST(WireCodecTest, BuildDeltaWriteWithChangedOutputs) {
     records[1].name_id  = 60;
     records[1].value    = WireValue(1.0f);
 
-    size_t written = codec.build_delta_write(buf.data(), buf.size(), records, 7);
+    size_t written = WireCodec::build_delta_write(buf.data(), buf.size(), records, 7);
     EXPECT_EQ(written, 8u + 2u * 8u);
 
-    auto result = codec.parse(buf.data(), written);
+    auto result = WireCodec::parse(buf.data(), written);
     ASSERT_NE(result.header, nullptr);
     EXPECT_EQ(result.header->cmd, static_cast<uint8_t>(Cmd::DeltaWrite));
     EXPECT_EQ(result.header->seq_id, 7u);
@@ -609,13 +609,13 @@ TEST(WireCodecTest, BuildDeltaWriteWithChangedOutputs) {
 }
 
 TEST(WireCodecTest, BuildWriteAckIs8Bytes) {
-    WireCodec codec;
+
     std::vector<uint8_t> buf(MAX_PACKET_SIZE);
 
-    size_t written = codec.build_write_ack(buf.data(), buf.size(), 77);
+    size_t written = WireCodec::build_write_ack(buf.data(), buf.size(), 77);
     EXPECT_EQ(written, sizeof(PacketHeader));
 
-    auto result = codec.parse(buf.data(), written);
+    auto result = WireCodec::parse(buf.data(), written);
     ASSERT_NE(result.header, nullptr);
     EXPECT_EQ(result.header->cmd, static_cast<uint8_t>(Cmd::WriteAck));
     EXPECT_EQ(result.header->seq_id, 77u);
@@ -624,57 +624,57 @@ TEST(WireCodecTest, BuildWriteAckIs8Bytes) {
 }
 
 TEST(WireCodecTest, BuildReturnsZeroOnOverflow) {
-    WireCodec codec;
+
     uint8_t tiny_buf[4];  // Too small even for header
 
     VarRecord rec;
-    EXPECT_EQ(codec.build_delta_update(tiny_buf, 4, {&rec, 1}, 0), 0u);
-    EXPECT_EQ(codec.build_full_sync(tiny_buf, 4, {&rec, 1}, 0), 0u);
-    EXPECT_EQ(codec.build_delta_write(tiny_buf, 4, {&rec, 1}, 0), 0u);
-    EXPECT_EQ(codec.build_delta_read(tiny_buf, 4, TIER_MASK_FAST, 0), 0u);
+    EXPECT_EQ(WireCodec::build_delta_update(tiny_buf, 4, {&rec, 1}, 0), 0u);
+    EXPECT_EQ(WireCodec::build_full_sync(tiny_buf, 4, {&rec, 1}, 0), 0u);
+    EXPECT_EQ(WireCodec::build_delta_write(tiny_buf, 4, {&rec, 1}, 0), 0u);
+    EXPECT_EQ(WireCodec::build_delta_read(tiny_buf, 4, TIER_MASK_FAST, 0), 0u);
 }
 
 TEST(WireCodecTest, BuildReturnsZeroWhenRecordCountExceedsMaxDeltaVars) {
     // Regression: build_with_records must reject spans exceeding MAX_DELTA_VARS,
     // not silently truncate the count to uint16_t.
-    WireCodec codec;
+
     std::vector<uint8_t> buf(MAX_PACKET_SIZE * 2);  // Oversized buffer
 
     std::vector<VarRecord> too_many(MAX_DELTA_VARS + 1);
-    EXPECT_EQ(codec.build_delta_update(buf.data(), buf.size(), too_many, 0), 0u);
-    EXPECT_EQ(codec.build_full_sync(buf.data(), buf.size(), too_many, 0), 0u);
-    EXPECT_EQ(codec.build_delta_write(buf.data(), buf.size(), too_many, 0), 0u);
+    EXPECT_EQ(WireCodec::build_delta_update(buf.data(), buf.size(), too_many, 0), 0u);
+    EXPECT_EQ(WireCodec::build_full_sync(buf.data(), buf.size(), too_many, 0), 0u);
+    EXPECT_EQ(WireCodec::build_delta_write(buf.data(), buf.size(), too_many, 0), 0u);
 }
 
 TEST(WireCodecTest, ParseRejectsBadMagic) {
-    WireCodec codec;
+
     uint8_t bad_data[16] = {0xFF, 0xFF, 0x02, 0x01, 0, 0, 0, 0};
-    EXPECT_EQ(codec.parse_header(bad_data, 16), nullptr);
+    EXPECT_EQ(WireCodec::parse_header(bad_data, 16), nullptr);
 }
 
 TEST(WireCodecTest, ParseRejectsBadVersion) {
-    WireCodec codec;
+
     PacketHeader hdr;
     hdr.version = 99;
     uint8_t buf[8];
     std::memcpy(buf, &hdr, 8);
-    EXPECT_EQ(codec.parse_header(buf, 8), nullptr);
+    EXPECT_EQ(WireCodec::parse_header(buf, 8), nullptr);
 }
 
 TEST(WireCodecTest, ParseRejectsTruncatedPacket) {
-    WireCodec codec;
+
     std::vector<uint8_t> buf(MAX_PACKET_SIZE);
 
     VarRecord rec;
-    size_t written = codec.build_delta_update(buf.data(), buf.size(), {&rec, 1}, 0);
+    size_t written = WireCodec::build_delta_update(buf.data(), buf.size(), {&rec, 1}, 0);
     ASSERT_GT(written, 8u);
 
     // Pass only 10 bytes — not enough for header + 1 record
-    EXPECT_EQ(codec.parse_header(buf.data(), 10), nullptr);
+    EXPECT_EQ(WireCodec::parse_header(buf.data(), 10), nullptr);
 }
 
 TEST(WireCodecTest, ParseDeltaUpdateRoundTrip) {
-    WireCodec codec;
+
     std::vector<uint8_t> buf(MAX_PACKET_SIZE);
 
     const uint16_t epoch = 12345;
@@ -683,10 +683,10 @@ TEST(WireCodecTest, ParseDeltaUpdateRoundTrip) {
     records[1] = {VarType::LVar, ValType::Int32, 200, WireValue(int32_t(-42))};
     records[2] = {VarType::BVar, ValType::Bool, 300, WireValue(true)};
 
-    size_t written = codec.build_delta_update(buf.data(), buf.size(), records, epoch);
+    size_t written = WireCodec::build_delta_update(buf.data(), buf.size(), records, epoch);
     ASSERT_GT(written, 0u);
 
-    auto result = codec.parse(buf.data(), written);
+    auto result = WireCodec::parse(buf.data(), written);
     ASSERT_NE(result.header, nullptr);
     EXPECT_EQ(result.header->cmd, static_cast<uint8_t>(Cmd::DeltaUpdate));
     EXPECT_EQ(result.header->seq_id, epoch);
@@ -698,7 +698,7 @@ TEST(WireCodecTest, ParseDeltaUpdateRoundTrip) {
 }
 
 TEST(WireCodecTest, ParseFullSyncRoundTrip) {
-    WireCodec codec;
+
     std::vector<uint8_t> buf(MAX_PACKET_SIZE);
 
     const uint16_t epoch = 9999;
@@ -706,10 +706,10 @@ TEST(WireCodecTest, ParseFullSyncRoundTrip) {
     records[0] = {VarType::AVar, ValType::Float32, 10, WireValue(100.0f)};
     records[1] = {VarType::EVar, ValType::Float32, 20, WireValue(20.0f)};
 
-    size_t written = codec.build_full_sync(buf.data(), buf.size(), records, epoch);
+    size_t written = WireCodec::build_full_sync(buf.data(), buf.size(), records, epoch);
     ASSERT_GT(written, 0u);
 
-    auto result = codec.parse(buf.data(), written);
+    auto result = WireCodec::parse(buf.data(), written);
     ASSERT_NE(result.header, nullptr);
     EXPECT_EQ(result.header->cmd, static_cast<uint8_t>(Cmd::FullSync));
     EXPECT_EQ(result.header->seq_id, epoch);
@@ -719,14 +719,14 @@ TEST(WireCodecTest, ParseFullSyncRoundTrip) {
 }
 
 TEST(WireCodecTest, ParseEmptyRecordsReturnsEmptySpan) {
-    WireCodec codec;
+
 
     // DeltaUpdate with 0 records — just header
     std::vector<uint8_t> buf(MAX_PACKET_SIZE);
-    size_t written = codec.build_delta_update(buf.data(), buf.size(), {}, 1);
+    size_t written = WireCodec::build_delta_update(buf.data(), buf.size(), {}, 1);
     EXPECT_EQ(written, 8u);
 
-    auto result = codec.parse(buf.data(), written);
+    auto result = WireCodec::parse(buf.data(), written);
     ASSERT_NE(result.header, nullptr);
     EXPECT_EQ(result.records.size(), 0u);
 }
@@ -736,10 +736,10 @@ TEST(WireCodecTest, ParseEmptyRecordsReturnsEmptySpan) {
 // =============================================================================
 
 TEST(WireCodecTest, BuildPingIs8Bytes) {
-    WireCodec codec;
+
     std::vector<uint8_t> buf(MAX_PACKET_SIZE);
 
-    size_t written = codec.build_ping(buf.data(), buf.size(), 42);
+    size_t written = WireCodec::build_ping(buf.data(), buf.size(), 42);
     EXPECT_EQ(written, 8u);
 
     auto* hdr = reinterpret_cast<const PacketHeader*>(buf.data());
@@ -750,16 +750,16 @@ TEST(WireCodecTest, BuildPingIs8Bytes) {
     EXPECT_EQ(hdr->seq_id, 42u);
 
     // Parse: Ping is header-only — records should be empty
-    auto result = codec.parse(buf.data(), written);
+    auto result = WireCodec::parse(buf.data(), written);
     ASSERT_NE(result.header, nullptr);
     EXPECT_EQ(result.records.size(), 0u);
 }
 
 TEST(WireCodecTest, BuildPongEchoesPingId) {
-    WireCodec codec;
+
     std::vector<uint8_t> buf(MAX_PACKET_SIZE);
 
-    size_t written = codec.build_pong(buf.data(), buf.size(), 123);
+    size_t written = WireCodec::build_pong(buf.data(), buf.size(), 123);
     EXPECT_EQ(written, 8u);
 
     auto* hdr = reinterpret_cast<const PacketHeader*>(buf.data());
@@ -767,42 +767,42 @@ TEST(WireCodecTest, BuildPongEchoesPingId) {
     EXPECT_EQ(hdr->seq_id, 123u);  // Echoes the ping's seq_id
     EXPECT_EQ(hdr->count, 0u);
 
-    auto result = codec.parse(buf.data(), written);
+    auto result = WireCodec::parse(buf.data(), written);
     ASSERT_NE(result.header, nullptr);
     EXPECT_EQ(result.records.size(), 0u);
 }
 
 TEST(WireCodecTest, PingPongRoundTrip) {
-    WireCodec codec;
+
     std::vector<uint8_t> ping_buf(MAX_PACKET_SIZE);
     std::vector<uint8_t> pong_buf(MAX_PACKET_SIZE);
 
     // Build ping
     const uint16_t ping_id = 555;
-    size_t ping_written = codec.build_ping(ping_buf.data(), ping_buf.size(), ping_id);
+    size_t ping_written = WireCodec::build_ping(ping_buf.data(), ping_buf.size(), ping_id);
     ASSERT_EQ(ping_written, 8u);
 
     // Parse ping (WASM side would do this)
-    auto ping_parsed = codec.parse(ping_buf.data(), ping_written);
+    auto ping_parsed = WireCodec::parse(ping_buf.data(), ping_written);
     ASSERT_NE(ping_parsed.header, nullptr);
     EXPECT_EQ(ping_parsed.header->cmd, static_cast<uint8_t>(Cmd::Ping));
     EXPECT_EQ(ping_parsed.header->seq_id, ping_id);
 
     // Build pong echoing the ping's seq_id
-    size_t pong_written = codec.build_pong(
+    size_t pong_written = WireCodec::build_pong(
         pong_buf.data(), pong_buf.size(), ping_parsed.header->seq_id);
     ASSERT_EQ(pong_written, 8u);
 
     // Parse pong (host side)
-    auto pong_parsed = codec.parse(pong_buf.data(), pong_written);
+    auto pong_parsed = WireCodec::parse(pong_buf.data(), pong_written);
     ASSERT_NE(pong_parsed.header, nullptr);
     EXPECT_EQ(pong_parsed.header->cmd, static_cast<uint8_t>(Cmd::Pong));
     EXPECT_EQ(pong_parsed.header->seq_id, ping_id);  // Matches original ping
 }
 
 TEST(WireCodecTest, BuildPingReturnsZeroOnTinyBuffer) {
-    WireCodec codec;
+
     uint8_t tiny[4];
-    EXPECT_EQ(codec.build_ping(tiny, 4, 1), 0u);
-    EXPECT_EQ(codec.build_pong(tiny, 4, 1), 0u);
+    EXPECT_EQ(WireCodec::build_ping(tiny, 4, 1), 0u);
+    EXPECT_EQ(WireCodec::build_pong(tiny, 4, 1), 0u);
 }

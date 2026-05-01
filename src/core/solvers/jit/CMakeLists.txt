@@ -92,9 +92,12 @@ add_library(jit_solver
     # Lua-scriptable component
     components/lua_script.cpp
     components/lua_script_validate.cpp
-    # SimVar I/O components (MSFS 2024 integration)
-    components/sim_var_input.cpp
-    components/sim_var_output.cpp
+    # SimConnect I/O components (connector-specific)
+    components/sim_connect_input.cpp
+    components/sim_connect_output.cpp
+    # SimVar provider interface + mock implementation
+    bridge/mock_provider.cpp
+    bridge/simvar_provider_host.cpp
 )
 
 target_include_directories(jit_solver PUBLIC

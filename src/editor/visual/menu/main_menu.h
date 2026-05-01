@@ -23,6 +23,7 @@ private:
     // Root-only menus.
     void renderFileMenu(WindowSystem& ws, Result& result);
     void renderToolsMenu(WindowSystem& ws);
+    void renderAdaptersMenu(WindowSystem& ws);
     void renderRecentFilesMenu(WindowSystem& ws);
     void renderAboutDialog();
 

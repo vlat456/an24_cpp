@@ -2,12 +2,12 @@
 # Platform-agnostic interface + stub (macOS) / Win32 (Windows) implementation.
 
 set(SIMCONNECT_SOURCES
-    simconnect_bridge.cpp
-    simconnect_bridge.h
     simconnect_client_stub.cpp
     simconnect_client_stub.h
     simconnect_client.h
     simconnect_mapping.h
+    simconnect_provider.cpp
+    simconnect_provider.h
 )
 
 add_library(simconnect_bridge STATIC ${SIMCONNECT_SOURCES})

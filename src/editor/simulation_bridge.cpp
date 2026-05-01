@@ -3,6 +3,7 @@
 #include "document_simulation_internal.h"
 
 #include "core/solvers/jit/simulator.h"
+#include "core/solvers/jit/bridge/simvar_provider_host.h"
 #include "core/solvers/common/signal_key.h"
 #include "visual/node/visual_node.h"
 #include "identity.h"
@@ -33,6 +34,9 @@ struct SimulationBridge::Impl {
 
     Simulator<JIT_Solver> simulation;
     bool running = false;
+
+    /// Provider host for external simulator I/O (SimConnect, etc.)
+    SimvarProviderHost provider_host;
 
     // Pre-resolved signal caches — built at simulation start, zero allocation per frame.
     editor::SignalCache signal_cache;
@@ -398,6 +402,10 @@ void SimulationBridge::start(const JitBuildInput& input) {
     if (!i.running) {
         try {
             i.simulation.start(input);
+            // Build providers from connector nodes. Auto-connects if the user
+            // has enabled the adapter type via the Adapters menu. Sim stop does
+            // NOT disconnect — the enabled preference is persistent.
+            i.provider_host.build(input, i.simulation);
             i.build_signal_cache();
             i.running = true;
             set_windows_simulation_mode(true);
@@ -410,6 +418,9 @@ void SimulationBridge::start(const JitBuildInput& input) {
 
 void SimulationBridge::stop() {
     auto& i = *impl_;
+    // Destroy providers — they belong to this sim instance.
+    // The user's enabled preference persists in the host for next start.
+    i.provider_host.teardown();
     i.simulation.stop();
     i.signal_cache.clear();
     i.wire_signal_cache.clear();
@@ -426,6 +437,8 @@ void SimulationBridge::rebuild(const JitBuildInput& input) {
         i.simulation.stop();
         try {
             i.simulation.start(input);
+            // Rebuild providers — auto-connects enabled types.
+            i.provider_host.build(input, i.simulation);
             i.build_signal_cache();
         } catch (const std::runtime_error& e) {
             spdlog::error("[sim] Failed to rebuild simulation: {}", e.what());
@@ -446,6 +459,11 @@ void SimulationBridge::step(double dt) {
     auto& i = *impl_;
     if (!i.running) return;
 
+    i.provider_host.poll(dt);
+
+    uint32_t count = static_cast<uint32_t>(i.simulation.get_signal_count());
+    i.provider_host.read_into(i.simulation.values(), count);
+
     i.override_buffer.clear();
     for (const auto& [key, control_iid] : i.held_buttons) {
         if (!control_iid.empty()) i.override_buffer.push_back({control_iid, BUTTON_HOLD_VALUE});
@@ -455,6 +473,8 @@ void SimulationBridge::step(double dt) {
     i.simulation.apply_typed_overrides(i.override_buffer);
     i.simulation.step(dt);
     i.typed_overrides.clear();
+
+    i.provider_host.write_from(i.simulation.values(), count);
 }
 
 void SimulationBridge::update_node_content() {
@@ -711,4 +731,12 @@ void SimulationBridge::set_windows_simulation_mode(bool running) {
     for (auto& win : impl_->window_manager.windows()) {
         win->set_simulation_mode(running);
     }
+}
+
+SimvarProviderHost* SimulationBridge::provider_host() {
+    return &impl_->provider_host;
+}
+
+const SimvarProviderHost* SimulationBridge::provider_host() const {
+    return &impl_->provider_host;
 }

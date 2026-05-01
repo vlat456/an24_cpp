@@ -23,8 +23,6 @@
 #include <unordered_map>
 #include <unordered_set>
 
-/// A single open document: owns EditorModel + WindowManager + SimulationBridge.
-///
 /// Document is a coordinator — it decides WHEN to start/stop simulation,
 /// WHEN to rebuild windows, WHEN to save/load. The HOW is delegated:
 /// - SimulationBridge — owns simulator, signal caches, interaction binding
@@ -105,6 +103,10 @@ public:
 
     /// Access the simulation's signal key interner for key lookup.
     const core::StringInterner& signal_key_interner() const { return sim_bridge_.signal_key_interner(); }
+
+    /// Access the provider host for adapter management.
+    SimvarProviderHost* provider_host() { return sim_bridge_.provider_host(); }
+    const SimvarProviderHost* provider_host() const { return sim_bridge_.provider_host(); }
 
     const ComponentRegistry* type_registry() const { return type_registry_; }
     const bp2::LibraryIndex* library_index() const { return library_index_; }

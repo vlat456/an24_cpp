@@ -9,6 +9,7 @@
 | Visual editor | `knowledge/05_editor.md` | Document, scene, widgets |
 | Component library | `knowledge/07_library.md` | Blueprint JSON format |
 | Testing | `knowledge/08_testing.md` | Test patterns, helpers |
+| Connectors / Providers | `knowledge/09_connectors.md` | SimVarProvider, connector nodes, type conversion |
 | Quick reference | `knowledge/10_quick_reference.md` | Build commands, paths, tuning |
 | Component authoring | `knowledge/component_authoring.md` | Rules for stable components, design philosophy (ports-over-params, minimize C++, avoid Divide) |
 | How to create electrical | `knowledge/how_to_create_electrical_components.md` | Electrical components, solver roles |
@@ -20,8 +21,9 @@
 
 ## Reading Order
 
-**General:** 01 → 10 → 03  
-**Solver:** 02 → 03 → component_authoring → how_to_create_electrical  
-**Editor:** 05 → 04  
-**Adding components:** 03 → how_to_create_electrical → component_authoring → 07 → 08  
+**General:** 01 → 10 → 03
+**Solver:** 02 → 03 → component_authoring → how_to_create_electrical
+**Editor:** 05 → 04
+**Adding components:** 03 → how_to_create_electrical → component_authoring → 07 → 08
 **Build pipeline:** 02 → knowledge_jit → knowledge_aot → build_algorithms.h → element_extraction.h
+**Connectors / External I/O:** 09_connectors → 02_simulation → simvar_provider.h

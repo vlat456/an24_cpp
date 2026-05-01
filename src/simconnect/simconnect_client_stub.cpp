@@ -28,6 +28,11 @@ bool StubSimConnectClient::send_request(const std::string& json_payload) {
     return true;
 }
 
+bool StubSimConnectClient::send_bytes(const uint8_t* data, size_t len) {
+    last_request_ = std::string(reinterpret_cast<const char*>(data), len);
+    return true;
+}
+
 void StubSimConnectClient::set_response_callback(std::function<void(const std::string&)> cb) {
     response_cb_ = std::move(cb);
 }

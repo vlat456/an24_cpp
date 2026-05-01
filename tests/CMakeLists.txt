@@ -851,8 +851,14 @@ add_sim_test(simvar_backend_tests SOURCES test_simvar_backend.cpp LINKS jit_solv
 # SimConnect stub client tests (Issue #429: platform-agnostic interface + stub)
 add_sim_test(simconnect_stub_tests SOURCES test_simconnect_stub.cpp LINKS simconnect_bridge)
 
-# SimConnectBridge integration tests (Issue #432: bridge mapping + inject/extract)
+# SimConnectProvider integration tests (Issue #432/#466: mapping + inject/extract + delta protocol)
 add_sim_test(simconnect_bridge_tests SOURCES test_simconnect_bridge.cpp LINKS simconnect_bridge)
+
+# MockProvider tests (Issue #460: SimVarProvider interface + mock)
+add_sim_test(mock_provider_tests SOURCES test_mock_provider.cpp LINKS jit_solver)
+
+# ProviderHost tests (Issue #461: ProviderHost + SimConnect adapter)
+add_sim_test(provider_host_tests SOURCES test_provider_host.cpp LINKS simconnect_bridge jit_solver)
 
 # Wire protocol binary packet tests (Issue #438/#439/#440: binary CommBus protocol)
 add_sim_test(wire_protocol_tests SOURCES test_wire_protocol.cpp)

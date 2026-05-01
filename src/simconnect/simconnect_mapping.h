@@ -8,8 +8,8 @@
 
 /// Direction of data flow for a sim variable mapping.
 enum class SimVarDirection : uint8_t {
-    Input,   // MSFS → simulator (SimVarInput)
-    Output,  // simulator → MSFS (SimVarOutput)
+    Input,   // MSFS → simulator (SimConnectInput)
+    Output,  // simulator → MSFS (SimConnectOutput)
 };
 
 /// Write mode for output variables.
@@ -19,7 +19,7 @@ enum class SimVarMode : uint8_t {
 };
 
 /// Mapping between a simulator signal and an MSFS variable.
-/// Populated by build_mappings() from SimVarInput/SimVarOutput node params.
+/// Populated by build_mappings() from SimConnectInput/SimConnectOutput node params.
 struct SimVarMapping {
     std::string var_name;
     VarType     var_type = VarType::AVar;  ///< Parsed from string param
@@ -35,4 +35,5 @@ struct SimVarMapping {
     // V2 delta protocol fields
     uint8_t     tier = TIER_MEDIUM;         ///< Polling tier: TIER_FAST/MEDIUM/SLOW
     float       epsilon = 0.01f;           ///< Change detection threshold
+    ValType     val_type = ValType::Float32; ///< Wire value type for this signal
 };

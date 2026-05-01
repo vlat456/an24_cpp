@@ -156,7 +156,8 @@ void CanvasRenderer::render(BlueprintWindow& win, Document& doc, WindowSystem& w
     }
 
     prof.add_frame(0.0);
-    prof.maybe_report();
+    // prof.maybe_report() intentionally omitted — canvas render profiling data
+    // is collected but not printed to avoid console spam.
 }
 
 void CanvasRenderer::renderGrid(BlueprintWindow& win, Pt cmin, Pt cmax, ImDrawList* draw_list) {

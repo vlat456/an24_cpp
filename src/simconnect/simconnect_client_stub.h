@@ -21,6 +21,7 @@ public:
 
     // CommBus
     bool send_request(const std::string& json_payload) override;
+    bool send_bytes(const uint8_t* data, size_t len) override;
     void set_response_callback(std::function<void(const std::string&)> cb) override;
 
     // Direct SimVar Access

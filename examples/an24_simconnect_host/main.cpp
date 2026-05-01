@@ -8,14 +8,15 @@
 //
 // Frame pipeline:
 //   1. poll()          — Process SimConnect messages (CommBus responses)
-//   2. inject_inputs() — Buffered MSFS values → simulator signals
+//   2. read_into()     — Buffered MSFS values → simulator signals
 //   3. step(dt)        — Run simulation
-//   4. extract_outputs() — Simulator signals → CommBus set_var requests
+//   4. write_from()    — Simulator signals → CommBus set_var requests
 
-#include "simconnect/simconnect_bridge.h"
+#include "core/solvers/jit/bridge/simvar_provider_host.h"
 #include "core/solvers/jit/simulator.h"
 #include "core/solvers/jit/jit_build_input.h"
 #include "io/json/parse_json_api.h"
+#include "simconnect/simconnect_provider.h"
 
 #include <spdlog/spdlog.h>
 #include <atomic>
@@ -35,17 +36,20 @@ int main() {
 
     spdlog::info("=== AN-24 SimConnect Host ===");
 
+    // Register provider types
+    SimConnectProvider::register_type();
+
     // 1. Load blueprint and start simulator
     // For this example, we create a minimal build input programmatically.
     // In production, load from JSON: auto input = parse_json("an24_systems.blueprint");
     JitBuildInput input;
 
-    // SimVarInput: reads ambient temperature from MSFS
+    // SimConnectInput: reads ambient temperature from MSFS
     {
         SolverDevice dev;
         dev.name = "msfs_ambient_temp";
-        dev.classname = "SimVarInput";
-        dev.kind = ComponentKind::SimVarInput;
+        dev.classname = "SimConnectInput";
+        dev.kind = ComponentKind::SimConnectInput;
         dev.scheduler_role_kind = SchedulerRoleKind::Source;
         dev.params["var_name"] = "AMBIENT TEMPERATURE";
         dev.params["var_type"] = "AVar";
@@ -55,12 +59,12 @@ int main() {
         input.devices.push_back(std::move(dev));
     }
 
-    // SimVarOutput: writes bus voltage to MSFS
+    // SimConnectOutput: writes bus voltage to MSFS
     {
         SolverDevice dev;
         dev.name = "msfs_bus_voltage";
-        dev.classname = "SimVarOutput";
-        dev.kind = ComponentKind::SimVarOutput;
+        dev.classname = "SimConnectOutput";
+        dev.kind = ComponentKind::SimConnectOutput;
         dev.scheduler_role_kind = SchedulerRoleKind::Consumer;
         dev.params["var_name"] = "ELECTRICAL MAIN BUS VOLTAGE";
         dev.params["var_type"] = "AVar";
@@ -84,14 +88,13 @@ int main() {
     sim.start(input);
     spdlog::info("Simulator started: {} signals", sim.get_signal_count());
 
-    // 2. Create and configure SimConnect bridge
-    SimConnectBridge bridge;
-    bridge.build_mappings(input, sim);
-    spdlog::info("Bridge mapped: {} inputs, {} outputs",
-                 bridge.input_count(), bridge.output_count());
+    // 2. Create and configure provider host
+    SimvarProviderHost host;
+    host.build(input, sim);
+    spdlog::info("Provider host built: {} provider(s)", host.provider_count());
 
     // 3. Connect to SimConnect (stub on macOS, real on Windows)
-    if (!bridge.connect()) {
+    if (!host.connect()) {
         spdlog::error("Failed to connect to SimConnect");
         return 1;
     }
@@ -103,6 +106,8 @@ int main() {
 
     spdlog::info("Running simulation loop (Ctrl+C to stop)...");
 
+    const uint32_t signal_count = static_cast<uint32_t>(sim.get_signal_count());
+
     while (g_running.load(std::memory_order_relaxed)) {
         auto now = std::chrono::steady_clock::now();
         double dt = std::chrono::duration<double>(now - last_time).count();
@@ -113,24 +118,22 @@ int main() {
 
         // Frame pipeline:
         // 1. Process SimConnect messages (CommBus responses from WASM bridge)
-        bridge.poll(dt);
+        host.poll(dt);
 
-        // 2. Inject buffered MSFS values into simulator signals
-        bridge.inject_inputs(sim);
+        // 2. Read external inputs directly into simulator's values array
+        host.read_into(sim.values(), signal_count);
 
         // 3. Run simulation step
         sim.step(dt);
 
-        // 4. Extract output signals → send set_var requests to WASM bridge
-        bridge.extract_outputs(sim);
+        // 4. Write simulator outputs directly from values array to external source
+        host.write_from(sim.values(), signal_count);
 
         frame_count++;
 
         // Print status every 60 frames (~1 second at 60 Hz)
         if (frame_count % 60 == 0) {
-            spdlog::info("Frame {} | time={:.2f}s | inputs={} | outputs={}",
-                         frame_count, sim.get_time(),
-                         bridge.input_count(), bridge.output_count());
+            spdlog::info("Frame {} | time={:.2f}s", frame_count, sim.get_time());
         }
 
         // Target ~60 Hz frame rate
@@ -138,7 +141,7 @@ int main() {
     }
 
     spdlog::info("Shutting down after {} frames", frame_count);
-    bridge.disconnect();
+    host.disconnect();
     sim.stop();
 
     return 0;

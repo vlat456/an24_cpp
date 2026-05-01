@@ -58,7 +58,9 @@ void Scene::render(IDrawList* dl, const RenderContext& ctx) {
     }
 
     prof.add_frame(0.0);
-    prof.maybe_report();
+    // prof.maybe_report() intentionally omitted — scene profiling data is
+    // collected but not printed to avoid console spam. Use AN24_PROFILE
+    // in editor_app.cpp for high-level frame breakdowns.
 }
 
 void Scene::propagateScene(ui::Widget* w) {

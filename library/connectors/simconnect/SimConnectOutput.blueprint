@@ -1,7 +1,7 @@
 {
   "version": "3.0",
-  "id": "SimVarOutput",
-  "display_name": "SimVar Output",
+  "id": "SimConnectOutput",
+  "display_name": "SimConnect Output",
   "scheduler_role": "Consumer",
   "interface": [
     {
@@ -16,7 +16,7 @@
   "wires": [],
   "nested": [],
   "cpp_class": true,
-  "description": "Writes a signal value to an MSFS 2024 simulation variable. Supports all MSFS 2024 Vars API categories: AVar (aircraft), LVar (local/shared), HEvent (cockpit events), BVar (input events), EVar (environment), IVar (instrument), OVar (component), ZVar (SimObject). In data mode uses fsVars*Set. In event mode triggers via fsEventsHEventCall. Variable resolution happens at init time (pre_load), not per-frame. In JIT/Editor mode the backend is inactive (no-op). In WASM/AOT mode uses direct Vars API.",
+  "description": "Writes a signal value to an MSFS 2024 simulation variable via SimConnect. Supports all MSFS 2024 Vars API categories: AVar, LVar, HEvent, BVar, EVar, IVar, OVar, ZVar. In data mode uses fsVars*Set. In event mode triggers via fsEventsHEventCall. In JIT/Editor mode the SimConnectProvider extracts values after each simulation step.",
   "domains": [
     "Logical"
   ],
@@ -27,7 +27,8 @@
     "index": "0",
     "mode": "data",
     "event_name": "",
-    "event_id": "0"
+    "event_id": "0",
+    "val_type": "Float32"
   },
   "param_schema": {
     "var_name": {
@@ -50,6 +51,9 @@
     },
     "event_id": {
       "type": "int"
+    },
+    "val_type": {
+      "type": "string"
     }
   }
 }

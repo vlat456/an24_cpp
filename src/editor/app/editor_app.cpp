@@ -4,6 +4,7 @@
 #include "editor/icon_font.h"
 #include "editor/imgui_theme.h"
 #include "editor/visual/dialogs/file_dialogs.h"
+#include "simconnect/simconnect_provider.h"
 
 #include <imgui.h>
 #include <backends/imgui_impl_sdl2.h>
@@ -166,6 +167,10 @@ int EditorApp::run() {
     ensureConfigDir(settings_path);
     ws_.settings.loadFrom(settings_path);
 
+    // Register external simulator provider types.
+    // This makes them available in the Adapters menu and for auto-connect.
+    SimConnectProvider::register_type();
+
     if (ws_.settings.hasOpenTabs()) {
         const auto saved_tabs = ws_.settings.openTabs();
         bool had_failures = false;
@@ -217,7 +222,9 @@ int EditorApp::run() {
 
         profiler_.add_frame(std::chrono::duration<double, std::micro>(
             std::chrono::steady_clock::now() - frame_t0).count());
-        profiler_.maybe_report();
+        // profiler_.maybe_report() intentionally disabled — output is noisy
+        // and not needed for day-to-day development. Re-enable locally with
+        // -DCMAKE_CXX_FLAGS="-DAN24_PROFILE" when profiling specific sections.
 
         if (Document* doc = ws_.activeDocument()) {
             if (!doc->filepath().empty()) {
