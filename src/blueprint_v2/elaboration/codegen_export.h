@@ -31,7 +31,7 @@ struct CodegenBuildInput {
 CodegenBuildInput elaborate_for_codegen(
     const FlatNetlist& netlist,
     PathArena& arena,
-    const core::StringInterner& interner,
+    core::StringInterner& interner,
     const ComponentRegistry& type_registry);
 
 } // namespace bp2::elaboration

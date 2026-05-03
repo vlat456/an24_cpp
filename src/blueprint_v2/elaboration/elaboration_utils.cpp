@@ -4,7 +4,7 @@
 
 namespace bp2::elaboration {
 
-std::string node_id_from_path(Path node_path, PathArena& arena, const core::StringInterner& interner) {
+std::string node_id_from_path(Path node_path, const PathArena& arena, const core::StringInterner& interner) {
     std::vector<std::string> segments;
     Path cur = node_path;
     while (cur.kind() != PathKind::Root) {

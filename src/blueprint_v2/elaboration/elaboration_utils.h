@@ -18,7 +18,7 @@ namespace bp2::elaboration {
 
 /// Convert a FlatNetlist component path (hierarchical Path) to a colon-separated
 /// node_id string. Used by elaborate_for_jit, elaborate_for_codegen, and test infrastructure.
-std::string node_id_from_path(Path node_path, PathArena& arena, const core::StringInterner& interner);
+std::string node_id_from_path(Path node_path, const PathArena& arena, const core::StringInterner& interner);
 
 /// Compute the parent-facing signal key for a bridge component.
 /// For a bridge node "parent:bridge_id" with exposed_port_name "port",

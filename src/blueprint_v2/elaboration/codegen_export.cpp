@@ -1,9 +1,6 @@
 #include "codegen_export.h"
 #include "elaboration_utils.h"   // node_id_from_path, exposed_key_for_bridge
 #include "elaboration_detail.h"  // build_resolved_device, collect_devices, collect_port_signals
-
-#include "core/solvers/common/signal_key.h"
-
 #include <set>
 #include <string>
 
@@ -19,7 +16,7 @@ namespace bp2::elaboration {
 CodegenBuildInput elaborate_for_codegen(
     const FlatNetlist& netlist,
     PathArena& arena,
-    const core::StringInterner& interner,
+    core::StringInterner& interner,
     const ComponentRegistry& type_registry)
 {
     CodegenBuildInput result;

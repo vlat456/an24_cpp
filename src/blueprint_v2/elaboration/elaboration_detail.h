@@ -5,6 +5,7 @@
 /// elaborate_for_codegen(). Internal — not a public API.
 
 #include "blueprint_v2/flattener/flat_netlist.h"
+#include "blueprint_v2/interface/bridge_port_interface.h"
 #include "blueprint_v2/path/path.h"
 #include "blueprint_v2/elaboration/elaboration_utils.h"
 #include "core/model/component_registry.h"
@@ -107,7 +108,7 @@ inline std::optional<ResolvedDevice> build_resolved_device(
     if (fill_defaults) {
         for (const auto& [param_name, param_spec] : spec_params_map) {
             if (param_spec.visual_only) continue;
-            if (!dev.params.count(param_name)) {
+            if (!dev.params.contains(param_name)) {
                 dev.params[param_name] = param_spec.default_value;
             }
         }
@@ -130,7 +131,7 @@ inline std::optional<ResolvedDevice> build_resolved_device(
         dev.scheduler_role_kind = prim->solver.scheduler_role_kind;
     }
 
-    return dev;
+    return std::make_optional(dev);
 }
 
 // =====================================================================
@@ -199,7 +200,7 @@ template <typename Fn>
 inline SignalMapResult collect_port_signals(
     const FlatNetlist& netlist,
     PathArena& arena,
-    const core::StringInterner& interner,
+    core::StringInterner& interner,
     Fn&& on_key_sig)
 {
     SignalMapResult result;
@@ -219,8 +220,9 @@ inline SignalMapResult collect_port_signals(
         if (!comp.exposed_port_name.empty()) {
             const std::string exposed_key = exposed_key_for_bridge(dev_id, comp.exposed_port_name, interner);
             if (!exposed_key.empty()) {
+                BridgePortNames ports(interner);
                 for (const auto& [port_iid, sig_idx] : comp.port_signals) {
-                    if (interner.resolve(port_iid) == "ext") {
+                    if (port_iid == ports.ext) {
                         if (sig_idx >= result.next_signal) result.next_signal = sig_idx + 1;
                         on_key_sig(exposed_key, sig_idx);
                         break;

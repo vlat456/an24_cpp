@@ -1,5 +1,6 @@
 #include "flattener.h"
 
+#include "blueprint_v2/interface/bridge_port_interface.h"
 #include "core/utils/union_find.h"
 
 #include <algorithm>
@@ -30,8 +31,8 @@ FlatNetlist Flattener::flatten(Blueprint const& root, PathArena& arena) {
 // throw_unresolved_blueprint_instance — fail loudly on missing bp definition
 // ==================================================================
 
-[[noreturn]] void Flattener::throw_unresolved_blueprint_instance(
-    Blueprint::Node const& node, Path prefix, PathArena& arena) const {
+void Flattener::throw_unresolved_blueprint_instance(
+    Blueprint::Node const& node, Path prefix, PathArena& arena) {
     const std::string instance_path = arena.to_string(arena.make_node(prefix, node.semantic.id));
     const auto bp_id = node.blueprint_instance().source.blueprint_id();
     const auto bp_name = arena.resolve_id(bp_id);
@@ -43,9 +44,9 @@ FlatNetlist Flattener::flatten(Blueprint const& root, PathArena& arena) {
         + "' (blueprint_id='" + blueprint_id + "')");
 }
 
-[[noreturn]] void Flattener::throw_invalid_endpoint(Blueprint const& scope_bp,
+ void Flattener::throw_invalid_endpoint(Blueprint const& scope_bp,
                                                     WireEndpoint const& ep,
-                                                    const char* reason, PathArena& arena) const {
+                                                    const char* reason, PathArena& arena) {
     const std::string scope_path = arena.to_string(scope_bp.id().empty()
         ? arena.root()
         : arena.make_node(arena.root(), scope_bp.id()));
@@ -66,7 +67,7 @@ FlatNetlist Flattener::flatten(Blueprint const& root, PathArena& arena) {
 
 Blueprint::Node const* Flattener::find_bridge_for_port(
     Blueprint const& inner_bp,
-    core::InternedId port_name) const {
+    core::InternedId port_name) {
     for (auto const& n : inner_bp.nodes()) {
         if (!n.is_bridge_port()) continue;
         if (n.bridge_port().exposed_port == port_name) {
@@ -91,7 +92,8 @@ Path Flattener::resolve_endpoint(
     Blueprint const& scope_bp,
     Path scope_prefix,
     WireEndpoint const& ep,
-    PathArena& arena) {
+    PathArena& arena) const
+{
 
     if (ep.node.empty()) {
         throw_invalid_endpoint(scope_bp, ep, "missing node id", arena);
@@ -104,16 +106,17 @@ Path Flattener::resolve_endpoint(
     if (!node) {
         throw_invalid_endpoint(scope_bp, ep, "node not found", arena);
     }
-    if (!node->is_blueprint_instance()) {
+    if (node && !node->is_blueprint_instance()) {
         // Leaf component — straightforward path
         Path node_path = arena.make_node(scope_prefix, ep.node);
         return arena.make_port(node_path, ep.port);
     }
 
     // Blueprint instance — resolve through to bridge's ext port
-    Path instance_path = arena.make_node(scope_prefix, ep.node);
+    const Path instance_path = arena.make_node(scope_prefix, ep.node);
 
     Blueprint const* inner = nullptr;
+    assert(node != nullptr);
     if (auto* def = node->blueprint_instance().source.inline_def()) {
         inner = def;
     } else {
@@ -122,23 +125,23 @@ Path Flattener::resolve_endpoint(
     if (!inner) {
         throw_unresolved_blueprint_instance(*node, scope_prefix, arena);
     }
-
+    assert(inner != nullptr);
     Blueprint::Node const* bridge = find_bridge_for_port(*inner, ep.port);
     if (!bridge) {
-        std::string inst_str(arena.resolve_id(ep.node));
-        std::string port_str(arena.resolve_id(ep.port));
+        const std::string inst_str(arena.resolve_id(ep.node));
+        const std::string port_str(arena.resolve_id(ep.port));
         throw std::logic_error(
             "Flattener: no bridge node found for interface port '" + port_str
             + "' in blueprint instance '" + inst_str + "'");
     }
 
-    Path bridge_path = arena.make_node(instance_path, bridge->semantic.id);
+    const Path bridge_path = arena.make_node(instance_path, bridge->semantic.id);
 
     // Find the "ext" port ID from the bridge node's interface
     core::InternedId ext_port_id{};
+    BridgePortNames ports(arena.interner());
     for (auto const& p : inner->resolve_node_iface(*bridge, Blueprint::NodeIfaceAuthority{arena.interner()})) {
-        std::string_view pname = arena.resolve_id(p.name);
-        if (pname == "ext") {
+        if (p.name == ports.ext) {
             ext_port_id = p.name;
             break;
         }
@@ -158,7 +161,7 @@ Path Flattener::resolve_endpoint(
 
 void Flattener::visit_blueprint(
     Blueprint const& bp,
-    Path prefix,
+    const Path prefix,
     std::unordered_map<Path, SignalIndex>& signals,
     core::utils::UnionFind& uf,
     FlatNetlist& out,
@@ -206,16 +209,16 @@ void Flattener::emit_component(
     SignalIndex ext_sig = UINT32_MAX;
     SignalIndex port_sig = UINT32_MAX;
 
+    BridgePortNames ports(arena.interner());
     for (auto const& port : bp.resolve_node_iface(node, Blueprint::NodeIfaceAuthority{arena.interner()})) {
-        Path port_path = arena.make_port(node_path, port.name);
+        const Path port_path = arena.make_port(node_path, port.name);
         SignalIndex sig = get_or_create_signal(
             port_path, port.domain, signals, uf, out);
         comp.ports.push_back(port);
-        comp.port_signals.push_back({port.name, sig});
+        comp.port_signals.emplace_back(std::make_pair(port.name, sig));
 
-        std::string_view pname = arena.resolve_id(port.name);
-        if (pname == "ext") ext_sig = sig;
-        else if (pname == "port") port_sig = sig;
+        if (port.name == ports.ext) ext_sig = sig;
+        else if (port.name == ports.port) port_sig = sig;
     }
 
     out.components.push_back(std::move(comp));
@@ -234,11 +237,12 @@ void Flattener::emit_component(
 
 void Flattener::process_wires(
     Blueprint const& bp,
-    Path prefix,
+    const Path prefix,
     std::unordered_map<Path, SignalIndex>& signals,
     core::utils::UnionFind& uf,
     FlatNetlist& out,
-    PathArena& arena) {
+    PathArena& arena) const
+{
 
     for (auto const& wire : bp.wires()) {
         SignalIndex src_sig = get_or_create_signal(
@@ -281,16 +285,17 @@ void Flattener::visit_blueprint_instance(
     // Seed boundary signals: for each interface port, find the bridge node
     // and seed its ext path with the parent signal (if wired from outside).
     std::unordered_map<Path, SignalIndex> nested_signals;
+    assert(inner != nullptr);
     for (auto const& port : inner->iface()) {
         Blueprint::Node const* bridge = find_bridge_for_port(*inner, port.name);
         if (!bridge) continue;
 
-        Path bridge_path = arena.make_node(node_path, bridge->semantic.id);
+        const Path bridge_path = arena.make_node(node_path, bridge->semantic.id);
 
         core::InternedId ext_id{};
+        BridgePortNames ports(arena.interner());
         for (auto const& p : inner->resolve_node_iface(*bridge, Blueprint::NodeIfaceAuthority{arena.interner()})) {
-            std::string_view pname = arena.resolve_id(p.name);
-            if (pname == "ext") {
+            if (p.name == ports.ext) {
                 ext_id = p.name;
                 break;
             }
@@ -298,20 +303,19 @@ void Flattener::visit_blueprint_instance(
         if (ext_id == core::InternedId{}) continue;
 
         Path ext_path = arena.make_port(bridge_path, ext_id);
-        auto it = signals.find(ext_path);
-        if (it != signals.end()) {
+        if (auto it = signals.find(ext_path); it != signals.end()) {
             nested_signals[ext_path] = it->second;
         }
     }
 
     // Process inner wires with paths resolved under node_path.
     for (auto const& wire : inner->wires()) {
-        Path src = resolve_endpoint(*inner, node_path, wire.source, arena);
-        Path tgt = resolve_endpoint(*inner, node_path, wire.target, arena);
+        const Path src = resolve_endpoint(*inner, node_path, wire.source, arena);
+        const Path tgt = resolve_endpoint(*inner, node_path, wire.target, arena);
 
-        SignalIndex src_sig = get_or_create_signal(
+        const SignalIndex src_sig = get_or_create_signal(
             src, wire.domain, nested_signals, uf, out);
-        SignalIndex tgt_sig = get_or_create_signal(
+        const SignalIndex tgt_sig = get_or_create_signal(
             tgt, wire.domain, nested_signals, uf, out);
 
         if (src_sig != tgt_sig) {
@@ -334,16 +338,14 @@ void Flattener::visit_blueprint_instance(
 // ==================================================================
 
 SignalIndex Flattener::get_or_create_signal(
-    Path port_path,
-    Domain domain,
+    const Path port_path,
+    const Domain domain,
     std::unordered_map<Path, SignalIndex>& signals,
     core::utils::UnionFind& uf,
     FlatNetlist& out) {
+    if (const auto it = signals.find(port_path); it != signals.end()) return it->second;
 
-    auto it = signals.find(port_path);
-    if (it != signals.end()) return it->second;
-
-    SignalIndex idx = out.signal_count++;
+    const SignalIndex idx = out.signal_count++;
     signals[port_path] = idx;
 
     // Grow UnionFind to cover the new provisional index
@@ -380,7 +382,7 @@ void Flattener::compact_signals(core::utils::UnionFind& uf, FlatNetlist& out) {
     for (auto& comp : out.components) {
         for (auto& [name, sig] : comp.port_signals) {
             uint32_t root = uf.find(sig);
-            auto [it, inserted] = root_to_compact.emplace(root, next_compact);
+            auto [it, inserted] = root_to_compact.emplace(std::make_pair(root, next_compact));
             if (inserted) next_compact++;
             sig = it->second;
         }
@@ -394,17 +396,17 @@ void Flattener::compact_signals(core::utils::UnionFind& uf, FlatNetlist& out) {
     // domain than the wire that first created the path (e.g. PortType::V →
     // Electrical vs wire.domain=Logical), so last-wins would be wrong.
     std::vector<FlatNetlist::Signal> compacted(next_compact);
-    for (auto& orig : out.signals) {
-        uint32_t root = uf.find(orig.index);
+    for (auto& [index, domain, connected_ports] : out.signals) {
+        uint32_t root = uf.find(index);
         auto it = root_to_compact.find(root);
         if (it == root_to_compact.end()) continue;  // orphaned — no component references it
-        uint32_t ci = it->second;
+        const uint32_t ci = it->second;
         if (compacted[ci].connected_ports.empty()) {
             compacted[ci].index = ci;
-            compacted[ci].domain = orig.domain;
+            compacted[ci].domain = domain;
         }
-        for (auto& p : orig.connected_ports) {
-            compacted[ci].connected_ports.push_back(std::move(p));
+        for (auto& p : connected_ports) {
+            compacted[ci].connected_ports.push_back(p);
         }
     }
 

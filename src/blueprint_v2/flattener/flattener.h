@@ -21,10 +21,10 @@ public:
 private:
     BlueprintLibrary const& library_;
 
-    [[noreturn]] void throw_unresolved_blueprint_instance(Blueprint::Node const& node, Path prefix, PathArena& arena) const;
-    [[noreturn]] void throw_invalid_endpoint(Blueprint const& scope_bp,
+    [[noreturn]] static void throw_unresolved_blueprint_instance(Blueprint::Node const& node, Path prefix, PathArena& arena);
+    [[noreturn]] static void throw_invalid_endpoint(Blueprint const& scope_bp,
                                             WireEndpoint const& ep,
-                                            const char* reason, PathArena& arena) const;
+                                            const char* reason, PathArena& arena);
 
     void visit_blueprint(
         Blueprint const& bp,
@@ -34,7 +34,7 @@ private:
         FlatNetlist& out,
         PathArena& arena);
 
-    void emit_component(
+    static void emit_component(
         Blueprint const& bp,
         Blueprint::Node const& node,
         Path prefix,
@@ -49,7 +49,7 @@ private:
         std::unordered_map<Path, SignalIndex>& signals,
         core::utils::UnionFind& uf,
         FlatNetlist& out,
-        PathArena& arena);
+        PathArena& arena) const;
 
     void visit_blueprint_instance(
         Blueprint::Node const& node,
@@ -64,16 +64,16 @@ private:
         Blueprint const& scope_bp,
         Path scope_prefix,
         WireEndpoint const& ep,
-        PathArena& arena);
+        PathArena& arena) const;
 
     /// Find the bridge node inside a blueprint's nodes that corresponds
     /// to an interface port name. Authoritative match on exposed_port only.
-    Blueprint::Node const* find_bridge_for_port(
+    static Blueprint::Node const* find_bridge_for_port(
         Blueprint const& inner_bp,
-        core::InternedId port_name) const;
+        core::InternedId port_name) ;
 
     /// Allocate a new provisional signal index, or return existing one.
-    SignalIndex get_or_create_signal(
+    static SignalIndex get_or_create_signal(
         Path port_path,
         Domain domain,
         std::unordered_map<Path, SignalIndex>& signals,
@@ -82,7 +82,7 @@ private:
 
     /// Post-expansion: remap provisional signal indices to compact dense range
     /// using UnionFind roots. Rebuilds out.signals with grouped connected_ports.
-    void compact_signals(core::utils::UnionFind& uf, FlatNetlist& out);
+    static void compact_signals(core::utils::UnionFind& uf, FlatNetlist& out);
 };
 
 } // namespace bp2

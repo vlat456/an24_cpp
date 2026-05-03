@@ -1,5 +1,6 @@
 #include "signal_typing.h"
 
+#include "blueprint_v2/interface/bridge_port_interface.h"
 #include "blueprint_v2/interface/type_definition_interface.h"
 #include "core/model/component_registry.h"
 #include "core/utils/union_find.h"
@@ -47,8 +48,8 @@ bool is_bridge_node(const Blueprint::Node& node,
 
 bool is_bridge_port_name(core::InternedId port_name,
                          core::StringInterner& interner) {
-    const std::string_view name = interner.resolve(port_name);
-    return name == "ext" || name == "port";
+    BridgePortNames ports(interner);
+    return port_name == ports.ext || port_name == ports.port;
 }
 
 std::optional<core::InternedId> bridge_exposed_port_name(const Blueprint::Node& node,

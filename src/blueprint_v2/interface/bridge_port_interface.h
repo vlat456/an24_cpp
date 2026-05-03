@@ -16,17 +16,18 @@ inline Interface interface_from_bridge_port(bp2::BridgeDirection direction,
                                             PortType port_type,
                                             core::StringInterner& interner) {
     const Domain domain = domain_for_port_type(port_type);
-    const BridgePortNames ports(interner);
+    const core::InternedId ext = interner.intern("ext");
+    const core::InternedId port = interner.intern("port");
     if (direction == bp2::BridgeDirection::Input) {
         return Interface({
-            {ports.ext, domain, Direction::Input, port_type},
-            {ports.port, domain, Direction::Output, port_type},
+            {ext, domain, Direction::Input, port_type},
+            {port, domain, Direction::Output, port_type},
         });
     }
 
     return Interface({
-        {ports.port, domain, Direction::Input, port_type},
-        {ports.ext, domain, Direction::Output, port_type},
+        {port, domain, Direction::Input, port_type},
+        {ext, domain, Direction::Output, port_type},
     });
 }
 
