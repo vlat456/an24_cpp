@@ -75,6 +75,7 @@
     "resistor_1": "Resistor",
     "resistor_2": "Resistor",
     "rotaryswitch1ton_1": "RotarySwitch1ToN",
+    "simconnectinput_1": "SimConnectInput",
     "slider_1": "Slider",
     "splitter_1": "Splitter",
     "val_controlledvoltagesource_2_gain": "Value",
@@ -453,6 +454,10 @@
       "variableconductance_1.v_out"
     ],
     [
+      "luascript_1.in6",
+      "simconnectinput_1.out"
+    ],
+    [
       "luascript_1.out3",
       "merger_1.i1"
     ],
@@ -764,6 +769,7 @@
     "rotaryswitch1ton_1.throw4": 0.014242593199014664,
     "rotaryswitch1ton_1.throw5": 28.499431610107422,
     "rotaryswitch1ton_1.wiper": 28.499431610107422,
+    "simconnectinput_1.out": 0.0,
     "slider_1.control": 0.0,
     "slider_1.out": 0.0,
     "splitter_1.i": 48.0,

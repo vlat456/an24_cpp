@@ -4,20 +4,29 @@
 
 namespace bp2 {
 
+struct BridgePortNames {
+    core::InternedId ext;
+    core::InternedId port;
+
+    BridgePortNames(core::StringInterner& interner)
+        : ext(interner.intern("ext")), port(interner.intern("port")) {}
+};
+
 inline Interface interface_from_bridge_port(bp2::BridgeDirection direction,
                                             PortType port_type,
                                             core::StringInterner& interner) {
     const Domain domain = domain_for_port_type(port_type);
+    const BridgePortNames ports(interner);
     if (direction == bp2::BridgeDirection::Input) {
         return Interface({
-            {interner.intern("ext"), domain, Direction::Input, port_type},
-            {interner.intern("port"), domain, Direction::Output, port_type},
+            {ports.ext, domain, Direction::Input, port_type},
+            {ports.port, domain, Direction::Output, port_type},
         });
     }
 
     return Interface({
-        {interner.intern("port"), domain, Direction::Input, port_type},
-        {interner.intern("ext"), domain, Direction::Output, port_type},
+        {ports.port, domain, Direction::Input, port_type},
+        {ports.ext, domain, Direction::Output, port_type},
     });
 }
 
