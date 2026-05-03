@@ -29,12 +29,12 @@ static void compute_signal_mapping(
     signal_alloc::UnionFind uf(all_ports.size());
     signal_alloc::apply_signal_allocation_rules(
         uf, devices, bridge_ports, connections, port_to_idx,
-        [](const std::string& from, const std::string& to, bool missing_from, bool missing_to) {
+        [](const std::string& from, const std::string& to, bool missing_from, const bool missing_to) {
             if (missing_from) {
-                spdlog::warn("[build] Connection references non-existent port '{}' (connected to '{}')", from, to);
+                spdlog::warn(static_cast<fmt::basic_runtime<char>>("[build] Connection references non-existent port '{}' (connected to '{}')"), from, to);
             }
             if (missing_to) {
-                spdlog::warn("[build] Connection references non-existent port '{}' (connected from '{}')", to, from);
+                spdlog::warn(static_cast<fmt::basic_runtime<char>>("[build] Connection references non-existent port '{}' (connected from '{}')"), to, from);
             }
         });
 

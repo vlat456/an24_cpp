@@ -54,41 +54,37 @@ std::optional<std::string> ComponentRegistry::validate_instance(const ResolvedDe
     return validate_device_against_registry(*this, instance);
 }
 
+template <typename F>
+struct Finally {
+    F f;
+    ~Finally() { f(); }
+};
 std::vector<std::string> ComponentRegistry::get_composites_topo_sorted() const {
     std::vector<std::string> result;
     std::set<std::string> visited;
     std::set<std::string> in_stack;
 
-    std::function<void(const std::string&)> visit = [&](const std::string& name) {
-        if (visited.count(name)) {
-            return;
-        }
-        if (in_stack.count(name)) {
+    auto visit = [&](const std::string& name, auto&& self_ref) -> void {
+        if (visited.contains(name)) return;
+
+        if (in_stack.contains(name)) {
             throw std::runtime_error("Cycle in composite hierarchy: " + name);
         }
 
-        auto it = types_.find(name);
+        const auto it = types_.find(name);
         if (it == types_.end()) {
             throw std::runtime_error("Missing composite dependency: " + name);
         }
-        if (is_primitive(it->second)) {
-            return;
-        }
+
+        if (is_primitive(it->second)) return;
 
         in_stack.insert(name);
-        struct StackGuard {
-            std::set<std::string>& in_stack;
-            const std::string& name;
 
-            ~StackGuard() {
-                in_stack.erase(name);
-            }
-        } guard{in_stack, name};
+        auto guard = Finally([&] { in_stack.erase(name); });
 
-        const auto* composite = as_composite(it->second);
-        if (composite) {
+        if (const auto* composite = as_composite(it->second)) {
             for (const auto& ref : composite->sub_blueprints) {
-                visit(ref.type_name);
+                self_ref(ref.type_name, self_ref);
             }
         }
 
@@ -98,7 +94,7 @@ std::vector<std::string> ComponentRegistry::get_composites_topo_sorted() const {
 
     for (const auto& [name, spec] : types_) {
         if (is_composite(spec)) {
-            visit(name);
+            visit(name, visit);
         }
     }
 

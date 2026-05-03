@@ -7,7 +7,6 @@
 #include "core/solvers/common/nodal_types.h"
 #include <array>
 #include <cstddef>
-#include <cstdint>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
@@ -41,26 +40,26 @@ public:
         return devices_[key];
     }
 
-    size_t size() const { return devices_.size(); }
-    size_t count(const std::string& key) const { return devices_.count(key); }
+    [[nodiscard]] size_t size() const { return devices_.size(); }
+    [[nodiscard]] size_t count(const std::string& key) const { return devices_.count(key); }
 
-    const_iterator begin() const { return devices_.begin(); }
-    const_iterator end() const { return devices_.end(); }
+    [[nodiscard]] const_iterator begin() const { return devices_.begin(); }
+    [[nodiscard]] const_iterator end() const { return devices_.end(); }
 
-    const_iterator find(const std::string& key) const {
+    [[nodiscard]] const_iterator find(const std::string& key) const {
         return devices_.find(key);
     }
 
-    const_iterator cbegin() const { return devices_.cbegin(); }
-    const_iterator cend() const { return devices_.cend(); }
+    [[nodiscard]] const_iterator cbegin() const { return devices_.cbegin(); }
+    [[nodiscard]] const_iterator cend() const { return devices_.cend(); }
 
-    const ComponentVariant& at(const std::string& key) const {
+    [[nodiscard]] const ComponentVariant& at(const std::string& key) const {
         return devices_.at(key);
     }
 
     ComponentVariant* find_mutable(const std::string& key) {
         ensure_mutable("find_mutable");
-        auto it = devices_.find(key);
+        const auto it = devices_.find(key);
         if (it == devices_.end()) {
             return nullptr;
         }
@@ -77,7 +76,7 @@ public:
 
     void reserve(size_t n) { devices_.reserve(n); }
     void seal() { sealed_ = true; }
-    bool sealed() const { return sealed_; }
+    [[nodiscard]] bool sealed() const { return sealed_; }
 
 private:
     void ensure_mutable(const char* op) const {
@@ -94,8 +93,8 @@ private:
 
 /// Get domain bitmask from component (reads static constexpr Domain field)
 inline Domain get_component_domain_mask(const ComponentVariant& variant) {
-    return std::visit([](auto& comp) -> Domain {
-        using CompType = std::decay_t<decltype(comp)>;
+    return std::visit([]<typename T0>(T0& comp) -> Domain {
+        using CompType = std::decay_t<T0>;
         return CompType::domain;
     }, variant);
 }
@@ -134,6 +133,7 @@ struct BuildResult {
     BuildResult() = default;
     ~BuildResult() = default;
     BuildResult(BuildResult&&) noexcept = default;
+
     BuildResult& operator=(BuildResult&&) noexcept = default;
     BuildResult(const BuildResult&) = delete;
     BuildResult& operator=(const BuildResult&) = delete;

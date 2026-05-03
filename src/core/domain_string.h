@@ -4,7 +4,7 @@
 
 #include <string>
 
-inline std::string domain_to_string(Domain d) {
+inline std::string domain_to_string(const Domain d) {
     switch (d) {
         case Domain::Electrical: return "Electrical";
         case Domain::Logical: return "Logical";

@@ -19,13 +19,13 @@ struct TypePresentation {
 struct PresentationRegistry {
     std::unordered_map<std::string, TypePresentation> specs;
 
-    const TypePresentation* get(const std::string& classname) const {
-        auto it = specs.find(classname);
+    [[nodiscard]] const TypePresentation* get(const std::string& classname) const {
+        const auto it = specs.find(classname);
         if (it != specs.end()) return &it->second;
         return nullptr;
     }
 
-    bool has(const std::string& classname) const {
-        return specs.count(classname) > 0;
+    [[nodiscard]] bool has(const std::string& classname) const {
+        return specs.contains(classname);
     }
 };

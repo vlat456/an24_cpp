@@ -43,7 +43,7 @@ enum class PortType {
 /// Blueprint port definitions MUST specify domain explicitly — the JSON
 /// parser enforces this. Pressure → Hydraulic is a default; pneumatic
 /// blueprints override with domain: 32 (Pneumatic).
-constexpr Domain domain_for_port_type(PortType t) {
+constexpr Domain domain_for_port_type(const PortType t) {
     switch (t) {
         case PortType::V:
         case PortType::I:
@@ -64,7 +64,7 @@ constexpr Domain domain_for_port_type(PortType t) {
     return Domain::Electrical;
 }
 
-constexpr PortType port_type_for_domain(Domain d) {
+constexpr PortType port_type_for_domain(const Domain d) {
     switch (d) {
         case Domain::Electrical: return PortType::V;
         case Domain::Logical:    return PortType::Bool;

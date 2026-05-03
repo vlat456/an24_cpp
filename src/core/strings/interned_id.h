@@ -29,8 +29,8 @@ public:
     constexpr InternedId() noexcept : value_(0) {}
     constexpr explicit InternedId(uint32_t v) noexcept : value_(v) {}
 
-    constexpr bool empty() const noexcept { return value_ == 0; }
-    constexpr uint32_t raw() const noexcept { return value_; }
+    [[nodiscard]] constexpr bool empty() const noexcept { return value_ == 0; }
+    [[nodiscard]] constexpr uint32_t raw() const noexcept { return value_; }
 
     constexpr bool operator==(InternedId o) const noexcept { return value_ == o.value_; }
     constexpr bool operator!=(InternedId o) const noexcept { return value_ != o.value_; }
@@ -112,27 +112,26 @@ public:
 
     /// Resolve an InternedId back to its string.
     /// Returns empty string_view for the empty ID.
-    std::string_view resolve(InternedId id) const {
+    [[nodiscard]] std::string_view resolve(InternedId id) const {
         if (id.empty()) return {};
-        uint32_t idx = id.raw() - 1;  // 1-based → 0-based
+        const uint32_t idx = id.raw() - 1;  // 1-based → 0-based
         if (idx >= reverse_.size()) return {};
         return reverse_[idx];
     }
 
     /// Number of unique strings currently interned.
-    size_t size() const noexcept { return strings_.size(); }
+    [[nodiscard]] size_t size() const noexcept { return strings_.size(); }
 
     /// Check if a string has already been interned.
-    bool contains(std::string_view str) const {
-        return index_.find(str) != index_.end();
+    [[nodiscard]] bool contains(const std::string_view str) const {
+        return index_.contains(str);
     }
 
     /// Look up an already-interned string. Returns empty InternedId if not found.
     /// Unlike intern(), this is const and never creates new entries.
-    InternedId lookup(std::string_view str) const {
+    [[nodiscard]] InternedId lookup(std::string_view str) const {
         if (str.empty()) return InternedId{};
-        auto it = index_.find(str);
-        if (it != index_.end()) return InternedId{it->second};
+        if (const auto it = index_.find(str); it != index_.end()) return InternedId{it->second};
         return InternedId{};
     }
 
