@@ -16,13 +16,13 @@ public:
     void clear() { cells_.clear(); bounds_.clear(); }
     
     void insert(Widget* w) {
-        auto b = calcBounds(w);
+        const auto b = calcBounds(w);
         bounds_[w] = b;
         insertIntoCells(w, b);
     }
     
     void remove(Widget* w) {
-        auto it = bounds_.find(w);
+        const auto it = bounds_.find(w);
         if (it == bounds_.end()) return;
         removeFromCells(w, it->second);
         bounds_.erase(it);
@@ -30,14 +30,14 @@ public:
     
     void update(Widget* w) { remove(w); insert(w); }
     
-    std::vector<Widget*> query(Pt world_pos, float margin) const {
+    std::vector<Widget*> query(const Pt world_pos, const float margin) const {
         std::vector<Widget*> result;
         std::unordered_set<Widget*> seen;
-        
-        int cx0 = coord(world_pos.x - margin);
-        int cy0 = coord(world_pos.y - margin);
-        int cx1 = coord(world_pos.x + margin);
-        int cy1 = coord(world_pos.y + margin);
+
+        const int cx0 = coord(world_pos.x - margin);
+        const int cy0 = coord(world_pos.y - margin);
+        const int cx1 = coord(world_pos.x + margin);
+        const int cy1 = coord(world_pos.y + margin);
         
         for (int cx = cx0; cx <= cx1; cx++) {
             for (int cy = cy0; cy <= cy1; cy++) {
@@ -66,7 +66,7 @@ public:
     /// Query widgets and filter by dynamic_cast to subtype T.
     /// Prefer kind()-based checks in production code — this is for tests only.
     template<typename T>
-    std::vector<T*> queryAs(Pt world_pos, float margin) const {
+    std::vector<T*> queryAs(const Pt world_pos, const float margin) const {
         std::vector<T*> result;
         for (auto* w : query(world_pos, margin)) {
             if (auto* t = dynamic_cast<T*>(w)) result.push_back(t);
@@ -83,12 +83,13 @@ private:
     struct Bounds { int cx0, cy0, cx1, cy1; };
     std::unordered_map<Widget*, Bounds> bounds_;
     
-    static int64_t key(int cx, int cy) { return (int64_t(uint32_t(cx)) << 32) | uint32_t(cy); }
-    static int coord(float v) { return int(std::floor(v / CELL_SIZE)); }
-    
-    Bounds calcBounds(Widget* w) const {
-        Pt mn = w->worldMin();
-        Pt mx = w->worldMax();
+    static int64_t key(const int cx, const int cy) { return (static_cast<int64_t>(static_cast<uint32_t>(cx)) << 32) | static_cast<uint32_t>(cy); }
+    static int coord(const float v) { return static_cast<int>(std::floor(v / CELL_SIZE)); }
+
+    static Bounds calcBounds(const Widget* w)
+    {
+        const Pt mn = w->worldMin();
+        const Pt mx = w->worldMax();
         return { coord(mn.x), coord(mn.y), coord(mx.x), coord(mx.y) };
     }
     
@@ -104,7 +105,7 @@ private:
                 auto it = cells_.find(key(cx, cy));
                 if (it == cells_.end()) continue;
                 auto& vec = it->second.widgets;
-                vec.erase(std::remove(vec.begin(), vec.end(), w), vec.end());
+                std::erase(vec, w);
                 if (vec.empty()) {
                     cells_.erase(it);
                 }

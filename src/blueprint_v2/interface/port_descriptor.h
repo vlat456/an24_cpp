@@ -15,6 +15,11 @@ struct PortDescriptor {
     PortType port_type = PortType::Any;
     std::optional<core::InternedId> alias;
     bool source_writer = false;
+    PortDescriptor() = default;
+    PortDescriptor(const core::InternedId n, const Domain d, const Direction dir)
+        : name(n), domain(d), direction(dir) {}
+    PortDescriptor(const core::InternedId n, const Domain d, const Direction dir, const PortType pt)
+        : name(n), domain(d), direction(dir), port_type(pt) {}
 
     bool operator==(PortDescriptor const& o) const {
         return name == o.name && domain == o.domain

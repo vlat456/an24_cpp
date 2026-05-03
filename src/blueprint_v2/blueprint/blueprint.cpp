@@ -256,19 +256,21 @@ bool Blueprint::Node::canonical_eq(Node const& o) const {
     return semantic == o.semantic && content_equal && layout == o.layout && view == o.view;
 }
 
-Blueprint Blueprint::with_node(Node node) const {
+Blueprint Blueprint::with_node(Node n) const {
     Blueprint copy = *this;
-    copy.nodes_.push_back(std::move(node));
+    copy.nodes_.push_back(std::move(n));
     copy.node_idx_valid_ = false;
     return copy;
 }
 
-Blueprint Blueprint::without_node(core::InternedId id) const {
+    Blueprint Blueprint::without_node(core::InternedId id) const {
     Blueprint copy = *this;
-    copy.nodes_.erase(
-        std::remove_if(copy.nodes_.begin(), copy.nodes_.end(),
-            [id](Node const& node) { return node.semantic.id == id; }),
-        copy.nodes_.end());
+
+    // Вместо erase + remove_if
+    std::erase_if(copy.nodes_, [id](const Node& node) {
+        return node.semantic.id == id;
+    });
+
     copy.node_idx_valid_ = false;
     return copy;
 }
@@ -285,7 +287,7 @@ void Blueprint::ensure_wire_index() const {
     wire_idx_valid_ = true;
 }
 
-Blueprint::Wire const* Blueprint::find_wire(core::InternedId id) const {
+Blueprint::Wire const* Blueprint::find_wire(const core::InternedId id) const {
     ensure_wire_index();
     auto it = wire_idx_.find(id);
     if (it == wire_idx_.end()) {
@@ -300,13 +302,14 @@ Blueprint Blueprint::with_wire(Wire wire) const {
     copy.wire_idx_valid_ = false;
     return copy;
 }
-
 Blueprint Blueprint::without_wire(core::InternedId id) const {
     Blueprint copy = *this;
-    copy.wires_.erase(
-        std::remove_if(copy.wires_.begin(), copy.wires_.end(),
-            [id](Wire const& wire) { return wire.id == id; }),
-        copy.wires_.end());
+
+    // C++20/23 способ: лаконично и эффективно
+    std::erase_if(copy.wires_, [id](const Wire& wire) {
+        return wire.id == id;
+    });
+
     copy.wire_idx_valid_ = false;
     return copy;
 }
@@ -318,7 +321,7 @@ Blueprint Blueprint::with_updated_positions(const std::vector<NodePositionUpdate
     std::unordered_map<core::InternedId, std::pair<float, float>> pos_map;
     pos_map.reserve(updates.size());
     for (const auto& u : updates) {
-        pos_map[u.id] = {u.x, u.y};
+        pos_map[u.id] = std::make_pair(u.x, u.y);
     }
 
     Blueprint copy = *this;
@@ -333,7 +336,7 @@ Blueprint Blueprint::with_updated_positions(const std::vector<NodePositionUpdate
 }
 
 Interface Blueprint::resolve_node_iface(Node const& node,
-                                        NodeIfaceAuthority authority) const {
+                                        const NodeIfaceAuthority authority) const {
     if (node.is_blueprint_instance()) {
         const Blueprint* embedded = node.blueprint_instance().source.inline_def();
         if (!embedded) {
@@ -439,13 +442,13 @@ void Blueprint::collect_ports_recursive(
     ::ComponentRegistry const& parser_registry,
     core::StringInterner& interner) const {
     for (auto const& port : iface_.ports()) {
-        result.push_back({arena.make_port(prefix, port.name), port});
+        result.push_back(std::make_pair(arena.make_port(prefix, port.name), PortDescriptor(port)));
     }
 
     for (auto const& node : nodes_) {
         Path node_path = arena.make_node(prefix, node.semantic.id);
         for (auto const& port : resolve_node_iface(node, NodeIfaceAuthority{interner, &parser_registry})) {
-            result.push_back({arena.make_port(node_path, port.name), port});
+            result.push_back(std::make_pair(arena.make_port(node_path, port.name), port));
         }
 
         if (!is_embedded_blueprint_instance(node)) {
