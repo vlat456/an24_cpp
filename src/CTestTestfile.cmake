@@ -4,6 +4,9 @@
 # 
 # This file includes the relevant testing commands required for 
 # testing this directory and lists subdirectories to be tested as well.
-subdirs("jit_solver")
-subdirs("json_parser")
+subdirs("core/solvers/jit")
+subdirs("core/solvers/common")
+subdirs("core/registry")
+subdirs("io/json")
 subdirs("blueprint_v2")
+subdirs("simconnect")
