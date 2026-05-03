@@ -158,7 +158,7 @@ void EditorModel::ensure_indices() const {
 
     indices_.wire_set.reserve(current_.wires().size());
     for (auto const& w : current_.wires()) {
-        indices_.wire_set.insert({w.source, w.target});
+        indices_.wire_set.insert(std::make_pair(w.source, w.target));
     }
 
     indices_.valid = true;
@@ -177,7 +177,7 @@ std::vector<core::InternedId> EditorModel::nodes_in_rect(Rect const& r) const {
 
 bool EditorModel::wire_exists(WireEndpoint const& source, WireEndpoint const& target) const {
     ensure_indices();
-    return indices_.wire_set.find({source, target}) != indices_.wire_set.end();
+    return indices_.wire_set.contains(std::make_pair(source, target));
 }
 
 std::string EditorModel::generate_unique_node_id(
@@ -209,7 +209,7 @@ MutationResult EditorModel::mutate_embedded(
         case EmbeddedMutationResultKind::Changed:
             if (result.blueprint.has_value()) {
                 push_checkpoint_if_enabled();
-                replace_current(std::move(*result.blueprint));
+                replace_current(*result.blueprint);
             }
             return MutationResult::Changed;
     }

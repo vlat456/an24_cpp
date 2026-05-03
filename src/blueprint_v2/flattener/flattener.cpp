@@ -9,6 +9,23 @@
 
 namespace bp2 {
 
+// ==================================================================
+// ARCHITECTURE: Иерархический Flattening
+//
+// Blueprint описывает схему иерархически: компоненты могут быть листьями
+// (реальные примитивы типа Resistor) или blueprint-инстансами
+// (подсхемы). Flattener раскрывает эту иерархию в плоский FlatNetlist.
+//
+// Ключевая проблема: wire в родительской схеме соединяет порт
+// blueprint-инстанса с чем-то снаружи. Чтобы понять, куда это wire
+// "идёт внутрь", мы используем bridge nodes.
+//
+// Bridge node — это мост между внешним и внутренним миром инстанса.
+// У него два порта: "ext" (смотрит наружу) и "port" (смотрит внутрь).
+// Когда wire извне приходит к инстансу, мы заменяем endpoint
+// на путь: instance / bridge_node / ext.
+// ==================================================================
+
 Flattener::Flattener(BlueprintLibrary const& library)
     : library_(library) {}
 
@@ -16,19 +33,31 @@ FlatNetlist Flattener::flatten(Blueprint const& root, PathArena& arena) {
     FlatNetlist out;
     std::unordered_map<Path, SignalIndex> signals;
 
-    // UnionFind is scoped to a single flatten() call — no stale state on reuse.
+    // UnionFind — временная структура для этого вызова flatten().
+    // Пока мы обходим схему, провижнальные (временные) индексы сигналов
+    // могут оказаться на самом деле одним и тем же сигналом (через wire).
+    // UnionFind отслеживает эквивалентность сигналов по портам.
     core::utils::UnionFind uf{0};
 
+    // Фаза 1: обработать все wire на верхнем уровне и рекурсивно внутри
+    // каждого инстанса. Для каждого wire две точки (source/target)
+    // получают провижнальные индексы сигналов, и эти индексы объединяются
+    // через uf.unite().
     process_wires(root, arena.root(), signals, uf, out, arena);
+
+    // Фаза 2: обойти все ноды, эмитировать листовые компоненты
+    // и рекурсивно раскрыть blueprint-инстансы.
     visit_blueprint(root, arena.root(), signals, uf, out, arena);
 
+    // Фаза 3: UnionFind знает, какие провижнальные индексы эквивалентны.
+    // Заменяем их на плотные компактные индексы (0, 1, 2, ...).
     compact_signals(uf, out);
 
     return out;
 }
 
 // ==================================================================
-// throw_unresolved_blueprint_instance — fail loudly on missing bp definition
+// Вспомогательные функции для понятных сообщений об ошибках
 // ==================================================================
 
 void Flattener::throw_unresolved_blueprint_instance(
@@ -44,9 +73,9 @@ void Flattener::throw_unresolved_blueprint_instance(
         + "' (blueprint_id='" + blueprint_id + "')");
 }
 
- void Flattener::throw_invalid_endpoint(Blueprint const& scope_bp,
-                                                    WireEndpoint const& ep,
-                                                    const char* reason, PathArena& arena) {
+void Flattener::throw_invalid_endpoint(Blueprint const& scope_bp,
+                                       WireEndpoint const& ep,
+                                       const char* reason, PathArena& arena) {
     const std::string scope_path = arena.to_string(scope_bp.id().empty()
         ? arena.root()
         : arena.make_node(arena.root(), scope_bp.id()));
@@ -62,7 +91,13 @@ void Flattener::throw_unresolved_blueprint_instance(
 }
 
 // ==================================================================
-// find_bridge_for_port — locate the bridge node matching an interface port
+// find_bridge_for_port — найти bridge ноду для интерфейсного порта
+//
+// У инстанса есть интерфейс (iface()) — список портов, которые он
+// экспонирует наружу. Для каждого такого порта во внутренней
+// схеме должна быть bridge нода с exposed_port == port_name.
+//
+// Bridge нода — единственный способ "увидеть" порт изнутри.
 // ==================================================================
 
 Blueprint::Node const* Flattener::find_bridge_for_port(
@@ -78,14 +113,22 @@ Blueprint::Node const* Flattener::find_bridge_for_port(
 }
 
 // ==================================================================
-// resolve_endpoint — scope-aware endpoint resolver
+// resolve_endpoint — разрешение endpoint в абсолютный путь
 //
-// If ep.node refers to a leaf component in scope_bp:
-//   returns scope_prefix / node / port
+// WireEndpoint — это пара (node, port) в некотором скоупе (scope_bp).
+// Эта функция превращает её в полный Path в PathArena.
 //
-// If ep.node refers to a blueprint_instance in scope_bp:
-//   resolves through to the bridge node's ext port:
-//   scope_prefix / instance / bridge_node / ext
+// Сценарий A — node является листовым компонентом:
+//   Просто возвращаем prefix / node / port.
+//
+// Сценарий B — node является blueprint-инстансом:
+//   Нужно "зайти" внутрь инстанса и найти bridge для порта port.
+//   Результат: prefix / instance / bridge_node / ext
+//   (ext — это порт bridge ноды, смотрящий наружу).
+//
+// Почему именно ext? Потому что wire извне к инстансу физически
+// подключается к внешнему порту bridge, а уже внутренняя сторона
+// bridge (port) соединена с внутренней логикой.
 // ==================================================================
 
 Path Flattener::resolve_endpoint(
@@ -106,13 +149,13 @@ Path Flattener::resolve_endpoint(
     if (!node) {
         throw_invalid_endpoint(scope_bp, ep, "node not found", arena);
     }
-    if (node && !node->is_blueprint_instance()) {
-        // Leaf component — straightforward path
-        Path node_path = arena.make_node(scope_prefix, ep.node);
+    if (!node->is_blueprint_instance()) {
+        // Листовой компонент — путь строится напрямую
+        const Path node_path = arena.make_node(scope_prefix, ep.node);
         return arena.make_port(node_path, ep.port);
     }
 
-    // Blueprint instance — resolve through to bridge's ext port
+    // Blueprint-инстанс — разрешаем через bridge
     const Path instance_path = arena.make_node(scope_prefix, ep.node);
 
     Blueprint const* inner = nullptr;
@@ -137,7 +180,7 @@ Path Flattener::resolve_endpoint(
 
     const Path bridge_path = arena.make_node(instance_path, bridge->semantic.id);
 
-    // Find the "ext" port ID from the bridge node's interface
+    // У bridge ноды ищем порт "ext" — это внешняя сторона моста
     core::InternedId ext_port_id{};
     BridgePortNames ports(arena.interner());
     for (auto const& p : inner->resolve_node_iface(*bridge, Blueprint::NodeIfaceAuthority{arena.interner()})) {
@@ -147,7 +190,7 @@ Path Flattener::resolve_endpoint(
         }
     }
     if (ext_port_id == core::InternedId{}) {
-        std::string bridge_str(arena.resolve_id(bridge->semantic.id));
+        const std::string bridge_str(arena.resolve_id(bridge->semantic.id));
         throw std::logic_error(
             "Flattener: bridge node '" + bridge_str + "' has no 'ext' port");
     }
@@ -156,7 +199,11 @@ Path Flattener::resolve_endpoint(
 }
 
 // ==================================================================
-// visit_blueprint — emit leaf nodes, recurse into blueprint instances
+// visit_blueprint — обход нод, рекурсия в инстансы
+//
+// Для каждой ноды в blueprint:
+//   - если это blueprint-инстанс → рекурсивно раскрываем
+//   - если это лист → эмитируем компонент
 // ==================================================================
 
 void Flattener::visit_blueprint(
@@ -177,23 +224,26 @@ void Flattener::visit_blueprint(
 }
 
 // ==================================================================
-// emit_component — create a FlatNetlist::Component for a leaf node
+// emit_component — эмитировать листовой компонент
 //
-// For structural bridge nodes, after emitting the component we
-// record a UnionFind union between ext and port signals, since they
-// represent the same electrical point (the bridge is a pass-through).
+// Для каждого порта компонента создаём сигнал (или используем
+// существующий, если путь уже встречался через wire).
+//
+// Для bridge нод: порты "ext" и "port" представляют одну и ту же
+// физическую точку (bridge — сквозной pass-through). Поэтому после
+// эмиссии компонента объединяем их сигналы через UnionFind.
 // ==================================================================
 
 void Flattener::emit_component(
     Blueprint const& bp,
     Blueprint::Node const& node,
-    Path prefix,
+    const Path prefix,
     std::unordered_map<Path, SignalIndex>& signals,
     core::utils::UnionFind& uf,
     FlatNetlist& out,
     PathArena& arena) {
 
-    Path node_path = arena.make_node(prefix, node.semantic.id);
+    const Path node_path = arena.make_node(prefix, node.semantic.id);
 
     FlatNetlist::Component comp;
     comp.path = node_path;
@@ -209,7 +259,7 @@ void Flattener::emit_component(
     SignalIndex ext_sig = UINT32_MAX;
     SignalIndex port_sig = UINT32_MAX;
 
-    BridgePortNames ports(arena.interner());
+    const BridgePortNames ports(arena.interner());
     for (auto const& port : bp.resolve_node_iface(node, Blueprint::NodeIfaceAuthority{arena.interner()})) {
         const Path port_path = arena.make_port(node_path, port.name);
         SignalIndex sig = get_or_create_signal(
@@ -223,7 +273,7 @@ void Flattener::emit_component(
 
     out.components.push_back(std::move(comp));
 
-    // Bridge ext/port unification: these two signals are the same electrical point
+    // Объединяем ext и port bridge: это один электрический потенциал
     if (node.is_bridge_port()
         && ext_sig != UINT32_MAX && port_sig != UINT32_MAX
         && ext_sig != port_sig) {
@@ -232,7 +282,12 @@ void Flattener::emit_component(
 }
 
 // ==================================================================
-// process_wires — record unions for wire endpoints
+// process_wires — обработка wire и объединение сигналов
+//
+// Для каждого wire разрешаем оба endpoint'a в абсолютные пути.
+// Каждый путь получает (или переиспользует) провижнальный сигнал.
+// Затем объединяем эти два сигнала через UnionFind — они
+// физически соединены проводом.
 // ==================================================================
 
 void Flattener::process_wires(
@@ -245,10 +300,10 @@ void Flattener::process_wires(
 {
 
     for (auto const& wire : bp.wires()) {
-        SignalIndex src_sig = get_or_create_signal(
+        const SignalIndex src_sig = get_or_create_signal(
             resolve_endpoint(bp, prefix, wire.source, arena),
             wire.domain, signals, uf, out);
-        SignalIndex tgt_sig = get_or_create_signal(
+        const SignalIndex tgt_sig = get_or_create_signal(
             resolve_endpoint(bp, prefix, wire.target, arena),
             wire.domain, signals, uf, out);
 
@@ -259,18 +314,33 @@ void Flattener::process_wires(
 }
 
 // ==================================================================
-// visit_blueprint_instance — expand a blueprint-instance node recursively
+// visit_blueprint_instance — рекурсивное раскрытие blueprint-инстанса
+//
+// Это самая сложная часть. Инстанс — это "окно" в другую схему.
+// Нужно:
+//   1. Найти сигналы, которые уже проведены к внешним портам
+//      инстанса из родительской схемы, и передать их внутрь
+//      (seed boundary signals).
+//   2. Обработать внутренние wire инстанса.
+//   3. Рекурсивно обойти внутренние ноды.
+//
+// Boundary seeding (шаг 1):
+//   Для каждого порта интерфейса inner схемы ищем bridge ноду.
+//   У bridge ищем ext порт. Если к этому ext пути уже есть сигнал
+//   в родительском signals (значит, снаружи подведён wire),
+//   копируем его в nested_signals. Это позволяет внутренним
+//   компонентам "видеть" внешние сигналы.
 // ==================================================================
 
 void Flattener::visit_blueprint_instance(
     Blueprint::Node const& node,
-    Path prefix,
+    const Path prefix,
     std::unordered_map<Path, SignalIndex>& signals,
     core::utils::UnionFind& uf,
     FlatNetlist& out,
     PathArena& arena) {
 
-    Path node_path = arena.make_node(prefix, node.semantic.id);
+    const Path node_path = arena.make_node(prefix, node.semantic.id);
 
     Blueprint const* inner = nullptr;
     if (auto* def = node.blueprint_instance().source.inline_def()) {
@@ -282,8 +352,9 @@ void Flattener::visit_blueprint_instance(
         throw_unresolved_blueprint_instance(node, prefix, arena);
     }
 
-    // Seed boundary signals: for each interface port, find the bridge node
-    // and seed its ext path with the parent signal (if wired from outside).
+    // Шаг 1: Seed boundary signals
+    // Для каждого интерфейсного порта inner найти bridge и его ext.
+    // Если ext уже имеет сигнал (подведён извне) — скопировать во внутренний скоуп.
     std::unordered_map<Path, SignalIndex> nested_signals;
     assert(inner != nullptr);
     for (auto const& port : inner->iface()) {
@@ -293,7 +364,7 @@ void Flattener::visit_blueprint_instance(
         const Path bridge_path = arena.make_node(node_path, bridge->semantic.id);
 
         core::InternedId ext_id{};
-        BridgePortNames ports(arena.interner());
+        const BridgePortNames ports(arena.interner());
         for (auto const& p : inner->resolve_node_iface(*bridge, Blueprint::NodeIfaceAuthority{arena.interner()})) {
             if (p.name == ports.ext) {
                 ext_id = p.name;
@@ -308,7 +379,9 @@ void Flattener::visit_blueprint_instance(
         }
     }
 
-    // Process inner wires with paths resolved under node_path.
+    // Шаг 2: Обработать внутренние wire инстанса.
+    // resolve_endpoint работает относительно node_path — то есть
+    // все пути внутри инстанса получают префикс node_path.
     for (auto const& wire : inner->wires()) {
         const Path src = resolve_endpoint(*inner, node_path, wire.source, arena);
         const Path tgt = resolve_endpoint(*inner, node_path, wire.target, arena);
@@ -323,18 +396,26 @@ void Flattener::visit_blueprint_instance(
         }
     }
 
-    // Merge nested signal map back into parent so that sibling components
-    // at the same scope level can reference inner paths.
+    // Шаг 3: Слить внутренние сигналы обратно в родительский скоуп.
+    // Это нужно, чтобы соседние компоненты на том же уровне могли
+    // ссылаться на внутренние пути инстанса (например, для мониторинга).
     for (auto const& [path, sig] : nested_signals) {
         signals[path] = sig;
     }
 
-    // Emit inner leaf nodes and recurse into inner blueprint instances
+    // Шаг 4: Рекурсивно эмитировать внутренние ноды
     visit_blueprint(*inner, node_path, nested_signals, uf, out, arena);
 }
 
 // ==================================================================
-// get_or_create_signal — find existing or allocate new provisional signal
+// get_or_create_signal — получить или создать провижнальный сигнал
+//
+// signals — мапа Path → провижнальный индекс. Если путь уже есть,
+// возвращаем существующий индекс (это тот же порт, к которому
+// уже обращались через wire или другой компонент).
+//
+// Если пути нет — создаём новый сигнал с индексом out.signal_count++.
+// UnionFind расширяется, чтобы покрыть новый индекс.
 // ==================================================================
 
 SignalIndex Flattener::get_or_create_signal(
@@ -348,7 +429,7 @@ SignalIndex Flattener::get_or_create_signal(
     const SignalIndex idx = out.signal_count++;
     signals[port_path] = idx;
 
-    // Grow UnionFind to cover the new provisional index
+    // Расширяем UnionFind, чтобы покрыть новый индекс
     if (idx >= static_cast<uint32_t>(uf.size())) {
         uf.grow(idx + 1);
     }
@@ -363,19 +444,24 @@ SignalIndex Flattener::get_or_create_signal(
 }
 
 // ==================================================================
-// compact_signals — remap provisional indices to dense compact range
+// compact_signals — компактификация провижнальных индексов
 //
-// After graph expansion, provisional signal indices may be unified
-// via UnionFind. This pass:
-//   1. Finds UF roots for each component port signal
-//   2. Assigns compact indices in first-encounter order
-//   3. Rebuilds the signals vector with grouped connected_ports
+// После обхода схемы у нас есть:
+//   - components с port_signals, содержащими провижнальные индексы
+//   - signals[] с теми же провижнальными индексами
+//   - UnionFind, знающий, какие индексы эквивалентны
+//
+// Эта функция:
+//   1. Пробегает по всем компонентам, для каждого сигнала находит
+//      корень UnionFind. Каждому новому корню назначает плотный
+//      compact-индекс (0, 1, 2, ...) в порядке первого встреченного.
+//   2. Переписывает signals[]: группирует connected_ports по compact-индексу.
+//      Domain берётся из первого встреченного (first-wins), потому что
+//      get_or_create_signal гарантирует, что первое создание определяет домен.
 // ==================================================================
 
 void Flattener::compact_signals(core::utils::UnionFind& uf, FlatNetlist& out) {
-    // Phase 1: Assign compact indices in first-encounter order.
-    // This matches the ordering that elaborate_for_jit expects,
-    // making its remap pass an identity mapping.
+    // Фаза 1: корень UnionFind → compact-индекс
     std::unordered_map<uint32_t, uint32_t> root_to_compact;
     uint32_t next_compact = 0;
 
@@ -388,18 +474,14 @@ void Flattener::compact_signals(core::utils::UnionFind& uf, FlatNetlist& out) {
         }
     }
 
-    // Phase 2: Rebuild signals vector from provisional data,
-    // grouping connected_ports by compact index.
-    // First domain wins: the path-based lookup in get_or_create_signal
-    // already ensures the first allocation determines the domain; subsequent
-    // lookups return the existing signal.  Bridges may resolve to a different
-    // domain than the wire that first created the path (e.g. PortType::V →
-    // Electrical vs wire.domain=Logical), so last-wins would be wrong.
+    // Фаза 2: перестроить signals[] по compact-индексам
+    // first-wins для domain: get_or_create_signal уже гарантирует,
+    // что первое обращение к пути определяет домен.
     std::vector<FlatNetlist::Signal> compacted(next_compact);
     for (auto& [index, domain, connected_ports] : out.signals) {
         uint32_t root = uf.find(index);
         auto it = root_to_compact.find(root);
-        if (it == root_to_compact.end()) continue;  // orphaned — no component references it
+        if (it == root_to_compact.end()) continue;  // orphaned — никто не ссылается
         const uint32_t ci = it->second;
         if (compacted[ci].connected_ports.empty()) {
             compacted[ci].index = ci;

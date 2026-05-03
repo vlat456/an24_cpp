@@ -22,7 +22,7 @@ struct Rect {
     float x_max = 0.0f;
     float y_max = 0.0f;
 
-    bool contains(float x, float y) const {
+    [[nodiscard]] bool contains(float x, float y) const {
         return x >= x_min && x <= x_max && y >= y_min && y <= y_max;
     }
 };
@@ -118,7 +118,7 @@ private:
         bool valid = false;
     };
 
-    void invalidate_indices() { indices_.valid = false; }
+    void invalidate_indices() const { indices_.valid = false; }
     void ensure_indices() const;
     void push_checkpoint_if_enabled();
 
