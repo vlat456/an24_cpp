@@ -1,5 +1,4 @@
 #include "editor_model.h"
-#include "blueprint_v2/library/blueprint_library.h"
 #include "blueprint_v2/blueprint/embedded_mutation.h"
 
 namespace bp2 {
@@ -30,6 +29,7 @@ bool EditorModel::mutate_atomically(const std::function<void()>& fn) {
     } catch (...) {
         --checkpoint_suppression_depth_;
         if (is_outermost) {
+            // TODO: Probably this code is unreachable
             current_ = before;
             undo_stack_.resize(undo_before);
             redo_stack_.resize(redo_before);
@@ -83,10 +83,9 @@ bool EditorModel::remove_wire(core::InternedId id) {
     return true;
 }
 
-bool EditorModel::update_node(core::InternedId id, std::function<void(Blueprint::Node&)> fn) {
+bool EditorModel::update_node(const core::InternedId id, const std::function<void(Blueprint::Node&)>& fn) {
     Blueprint next = current_;
-    const MutationResult result = try_update_node(next, id, fn);
-    if (result != MutationResult::Changed) {
+    if (const MutationResult result = try_update_node(next, id, fn); result != MutationResult::Changed) {
         return false;
     }
     push_checkpoint_if_enabled();
@@ -95,10 +94,9 @@ bool EditorModel::update_node(core::InternedId id, std::function<void(Blueprint:
     return true;
 }
 
-bool EditorModel::update_wire(core::InternedId id, std::function<void(Blueprint::Wire&)> fn) {
+bool EditorModel::update_wire(const core::InternedId id, const std::function<void(Blueprint::Wire&)>& fn) {
     Blueprint next = current_;
-    const MutationResult result = try_update_wire(next, id, fn);
-    if (result != MutationResult::Changed) {
+    if (const MutationResult result = try_update_wire(next, id, fn); result != MutationResult::Changed) {
         return false;
     }
     push_checkpoint_if_enabled();
@@ -107,7 +105,7 @@ bool EditorModel::update_wire(core::InternedId id, std::function<void(Blueprint:
     return true;
 }
 
-bool EditorModel::update_node_position(core::InternedId id, float x, float y) {
+bool EditorModel::update_node_position(const core::InternedId id, float x, float y) {
     return update_node(id, [x, y](Blueprint::Node& n) {
         n.layout.x = x;
         n.layout.y = y;
@@ -153,7 +151,7 @@ void EditorModel::ensure_indices() const {
 
     indices_.node_pos.reserve(current_.nodes().size());
     for (auto const& n : current_.nodes()) {
-        indices_.node_pos[n.semantic.id] = {n.layout.x, n.layout.y};
+        indices_.node_pos[n.semantic.id] = std::make_pair(n.layout.x, n.layout.y);
     }
 
     indices_.wire_set.reserve(current_.wires().size());
@@ -167,9 +165,9 @@ void EditorModel::ensure_indices() const {
 std::vector<core::InternedId> EditorModel::nodes_in_rect(Rect const& r) const {
     ensure_indices();
     std::vector<core::InternedId> out;
-    for (auto const& kv : indices_.node_pos) {
-        if (r.contains(kv.second.first, kv.second.second)) {
-            out.push_back(kv.first);
+    for (const auto& [fst, snd] : indices_.node_pos) {
+        if (r.contains(snd.first, snd.second)) {
+            out.push_back(fst);
         }
     }
     return out;
@@ -194,22 +192,20 @@ std::string EditorModel::generate_unique_node_id(
 }
 
 MutationResult EditorModel::mutate_embedded(
-    std::span<const core::InternedId> path,
+    const std::span<const core::InternedId> path,
     const std::function<Blueprint(const Blueprint&)>& mutation)
 {
     if (path.empty()) return MutationResult::NotFound;
 
-    const EmbeddedMutationResult result = mutate_embedded_blueprint(current_, path, mutation);
-
-    switch (result.kind) {
+    switch (const auto [kind, blueprint] = mutate_embedded_blueprint(current_, path, mutation); kind) {
         case EmbeddedMutationResultKind::PathNotFound:
             return MutationResult::NotFound;
         case EmbeddedMutationResultKind::NoChange:
             return MutationResult::NoChange;
         case EmbeddedMutationResultKind::Changed:
-            if (result.blueprint.has_value()) {
+            if (blueprint.has_value()) {
                 push_checkpoint_if_enabled();
-                replace_current(*result.blueprint);
+                replace_current(*blueprint);
             }
             return MutationResult::Changed;
     }
@@ -217,8 +213,8 @@ MutationResult EditorModel::mutate_embedded(
 }
 
 bool EditorModel::update_embedded_node(
-    std::span<const core::InternedId> path,
-    core::InternedId node_id,
+    const std::span<const core::InternedId> path,
+    const core::InternedId node_id,
     const std::function<void(Blueprint::Node&)>& fn)
 {
     const MutationResult result = mutate_embedded(path,

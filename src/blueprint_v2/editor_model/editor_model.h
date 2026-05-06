@@ -39,8 +39,8 @@ public:
     bool remove_node(core::InternedId id);
     bool add_wire(Blueprint::Wire wire);
     bool remove_wire(core::InternedId id);
-    bool update_node(core::InternedId id, std::function<void(Blueprint::Node&)> fn);
-    bool update_wire(core::InternedId id, std::function<void(Blueprint::Wire&)> fn);
+    bool update_node(core::InternedId id, const std::function<void(Blueprint::Node&)>& fn);
+    bool update_wire(core::InternedId id, const std::function<void(Blueprint::Wire&)>& fn);
     bool update_node_position(core::InternedId id, float x, float y);
 
     // === Embedded-scope commands (handle checkpoint + propagation) ===

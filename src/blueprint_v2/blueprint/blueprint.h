@@ -4,14 +4,12 @@
 #include "blueprint_v2/interface/interface.h"
 #include "blueprint_v2/blueprint/node_color.h"
 #include "blueprint_v2/path/path.h"
-#include "blueprint_v2/blueprint/node_content_type.h"
 #include <variant>
 #include <vector>
 #include <unordered_map>
 #include <optional>
 #include <string>
 #include <memory>
-#include <stdexcept>
 #include <utility>
 
 struct ComponentRegistry;
@@ -21,8 +19,8 @@ namespace bp2 {
 /// Position update for batch node position changes.
 struct NodePositionUpdate {
     core::InternedId id;
-    float x;
-    float y;
+    float x{};
+    float y{};
 };
 
 class Blueprint {
@@ -83,7 +81,7 @@ public:
             explicit BlueprintSource(Embedded embedded)
                 : value(std::move(embedded)) {}
             explicit BlueprintSource(Reference reference)
-                : value(std::move(reference)) {}
+                : value(reference) {}
 
             BlueprintSource(const BlueprintSource& other);
             BlueprintSource(BlueprintSource&&) noexcept = default;
@@ -93,14 +91,14 @@ public:
             static BlueprintSource make_embedded(std::unique_ptr<Blueprint> blueprint);
             static BlueprintSource make_reference(core::InternedId blueprint_id);
 
-            bool is_embedded() const;
-            bool is_reference() const;
-            core::InternedId blueprint_id() const;
-            Blueprint const* inline_def() const;
+            [[nodiscard]] bool is_embedded() const;
+            [[nodiscard]] bool is_reference() const;
+            [[nodiscard]] core::InternedId blueprint_id() const;
+            [[nodiscard]] Blueprint const* inline_def() const;
             Blueprint* inline_def_mut();
             void set_inline_def(std::unique_ptr<Blueprint> blueprint);
 
-            bool canonical_eq(const BlueprintSource& other) const;
+            [[nodiscard]] bool canonical_eq(const BlueprintSource& other) const;
             bool operator==(const BlueprintSource& other) const;
         };
 
@@ -165,23 +163,23 @@ public:
         LayoutData layout;
         ViewData view;
 
-        bool is_component() const { return std::holds_alternative<ComponentData>(content); }
-        bool is_blueprint_instance() const { return std::holds_alternative<BlueprintInstanceData>(content); }
-        bool is_bridge_port() const { return std::holds_alternative<BridgePortData>(content); }
-        ComponentData const& component() const { return std::get<ComponentData>(content); }
+        [[nodiscard]] bool is_component() const { return std::holds_alternative<ComponentData>(content); }
+        [[nodiscard]] bool is_blueprint_instance() const { return std::holds_alternative<BlueprintInstanceData>(content); }
+        [[nodiscard]] bool is_bridge_port() const { return std::holds_alternative<BridgePortData>(content); }
+        [[nodiscard]] ComponentData const& component() const { return std::get<ComponentData>(content); }
         ComponentData& component() { return std::get<ComponentData>(content); }
-        BlueprintInstanceData const& blueprint_instance() const { return std::get<BlueprintInstanceData>(content); }
+        [[nodiscard]] BlueprintInstanceData const& blueprint_instance() const { return std::get<BlueprintInstanceData>(content); }
         BlueprintInstanceData& blueprint_instance() { return std::get<BlueprintInstanceData>(content); }
-        BridgePortData const& bridge_port() const { return std::get<BridgePortData>(content); }
+        [[nodiscard]] BridgePortData const& bridge_port() const { return std::get<BridgePortData>(content); }
         BridgePortData& bridge_port() { return std::get<BridgePortData>(content); }
-        bool has_embedded_blueprint() const {
+        [[nodiscard]] bool has_embedded_blueprint() const {
             return is_blueprint_instance() && blueprint_instance().source.is_embedded();
         }
-        bool has_referenced_blueprint() const {
+        [[nodiscard]] bool has_referenced_blueprint() const {
             return is_blueprint_instance() && blueprint_instance().source.is_reference();
         }
 
-        bool canonical_eq(Node const& o) const;
+        [[nodiscard]] bool canonical_eq(Node const& o) const;
         bool operator==(Node const& o) const {
             return semantic == o.semantic && content == o.content && layout == o.layout && view == o.view;
         }
