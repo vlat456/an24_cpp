@@ -911,6 +911,22 @@ TEST(SimConnectProviderImplTest, PongEchoesPingSeqId) {
     EXPECT_TRUE(bridge.is_alive());
 }
 
+TEST(SimConnectProviderImplTest, StalePongIsIgnored) {
+    SimConnectProvider bridge;
+    bridge.connect();
+
+    auto* stub = static_cast<StubSimConnectClient*>(bridge.client());
+
+    bridge.poll(0.0);
+    bridge.poll(6.0);
+
+    std::string stale_pong = build_pong_response(999);
+    stub->trigger_mock_response(stale_pong);
+    bridge.poll(6.0);
+
+    EXPECT_FALSE(bridge.is_alive());
+}
+
 TEST(SimConnectProviderImplTest, IsAliveInitiallyFalse) {
     SimConnectProvider bridge;
     EXPECT_FALSE(bridge.is_alive());
