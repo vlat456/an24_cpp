@@ -390,6 +390,23 @@ TEST(MockProviderTest, SignalTypeQueryReturnsCorrectType) {
     ASSERT_TRUE(t1.has_value());
     EXPECT_EQ(*t1, SignalType::Bool);
 
-    auto t2 = provider.signal_type(999);
+     auto t2 = provider.signal_type(999);
     EXPECT_FALSE(t2.has_value());
+}
+
+TEST(MockProviderTest, Int32OutputRoundTrip) {
+    MockProvider provider;
+    JitBuildInput input = make_typed_build_input();
+    JIT_Simulator sim;
+    sim.start(input);
+    provider.build(input, sim);
+
+    // signal 0 is Int32 input, signal 1 is Bool output
+    // Write float values — values[0]=42.7f writes to input 0 (Int32), values[1]=99.7f writes to output 1 (Bool)
+    float values[2] = {42.7f, 99.7f};
+    provider.write_from(values, 2);
+
+    // Bool output (signal 1) from 99.7f → true
+    EXPECT_TRUE(provider.get_output_b(1));
+    EXPECT_EQ(provider.get_output_i(1), 1);
 }
