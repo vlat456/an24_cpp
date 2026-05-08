@@ -89,8 +89,8 @@ private:
 
     // ==...== CommBus ==...==
 
-    void on_response(const std::string& payload);
-    void handle_json_response(const std::string& payload);
+    void on_response(std::span<const uint8_t> payload);
+    void handle_json_response(std::span<const uint8_t> payload);
     void send_bytes(const uint8_t* data, size_t len);
 
     // ==...== Heartbeat ==...==

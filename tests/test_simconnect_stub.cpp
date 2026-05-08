@@ -81,16 +81,39 @@ TEST(SimConnectStubTest, SendRequestStoresPayload) {
     EXPECT_EQ(stub->last_request(), R"({"type":"read","vars":["AMBIENT TEMPERATURE"]})");
 }
 
-TEST(SimConnectStubTest, ResponseCallbackInvoked) {
+TEST(SimConnectStubTest, ResponseCallbackInvokedWithJson) {
     auto client = create_simconnect_client();
-    std::string received;
-    client->set_response_callback([&received](const std::string& payload) {
-        received = payload;
+    std::vector<uint8_t> received;
+    client->set_response_callback([&received](std::span<const uint8_t> payload) {
+        received.assign(payload.begin(), payload.end());
     });
 
     auto* stub = static_cast<StubSimConnectClient*>(client.get());
     stub->trigger_mock_response(R"({"type":"data","AMBIENT TEMPERATURE":15.0})");
-    EXPECT_EQ(received, R"({"type":"data","AMBIENT TEMPERATURE":15.0})");
+    std::string expected = R"({"type":"data","AMBIENT TEMPERATURE":15.0})";
+    EXPECT_EQ(std::string(received.begin(), received.end()), expected);
+}
+
+TEST(SimConnectStubTest, ResponseCallbackInvokedWithBinary) {
+    auto client = create_simconnect_client();
+    std::vector<uint8_t> received;
+    client->set_response_callback([&received](std::span<const uint8_t> payload) {
+        received.assign(payload.begin(), payload.end());
+    });
+
+    auto* stub = static_cast<StubSimConnectClient*>(client.get());
+    std::vector<uint8_t> binary_data = {0x41, 0x4E, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00};
+    stub->trigger_mock_response(binary_data);
+    EXPECT_EQ(received, binary_data);
+}
+
+TEST(SimConnectStubTest, SendBytesStoresBinaryPayload) {
+    auto client = create_simconnect_client();
+    std::vector<uint8_t> data = {0x41, 0x4E, 0x02, 0x01};
+    client->send_bytes(data.data(), data.size());
+
+    auto* stub = static_cast<StubSimConnectClient*>(client.get());
+    EXPECT_EQ(stub->last_request_bytes(), data);
 }
 
 // ==...== Reset ==...==

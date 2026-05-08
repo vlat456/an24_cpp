@@ -2,8 +2,11 @@
 
 #include "simconnect/simconnect_client.h"
 
+#include <cstdint>
+#include <functional>
 #include <map>
 #include <optional>
+#include <span>
 #include <string>
 #include <utility>
 #include <vector>
@@ -22,7 +25,7 @@ public:
     // CommBus
     bool send_request(const std::string& json_payload) override;
     bool send_bytes(const uint8_t* data, size_t len) override;
-    void set_response_callback(std::function<void(const std::string&)> cb) override;
+    void set_response_callback(std::function<void(std::span<const uint8_t>)> cb) override;
 
     // Direct SimVar Access
     SimVarValue read(const std::string& sim_var, int index) const override;
@@ -43,10 +46,16 @@ public:
     /// Get all sent events (for test assertions).
     const std::vector<std::pair<std::string, uint32_t>>& events_sent() const;
 
-    /// Get the last CommBus request payload.
+    /// Get the last JSON CommBus request payload (from send_request).
     const std::string& last_request() const;
 
-    /// Trigger a mock response (simulates WASM bridge reply).
+    /// Get the last binary CommBus request payload (from send_bytes).
+    const std::vector<uint8_t>& last_request_bytes() const;
+
+    /// Trigger a mock binary response (simulates WASM bridge reply on frame channel).
+    void trigger_mock_response(std::span<const uint8_t> data);
+
+    /// Trigger a mock JSON response (simulates WASM bridge reply on control channel).
     void trigger_mock_response(const std::string& json_payload);
 
     /// Clear all recorded state (for test isolation).
@@ -59,6 +68,7 @@ private:
     std::map<std::string, float> sim_values_;
     std::map<std::string, float> written_;
     std::vector<std::pair<std::string, uint32_t>> events_sent_;
-    std::string last_request_;
-    std::function<void(const std::string&)> response_cb_;
+    std::string last_request_json_;
+    std::vector<uint8_t> last_request_bytes_;
+    std::function<void(std::span<const uint8_t>)> response_cb_;
 };

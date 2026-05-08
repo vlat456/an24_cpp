@@ -1,14 +1,56 @@
-# An-24 Flight Simulation - Agent Guidelines
+# An-24 Flight Simulation — Agent Guidelines
+
+> **Agent system:** OhMyOpenCode (Sisyphus orchestrator)
+> **Project:** Real-time flight simulation with visual blueprint editor, multi-domain solver, and MSFS 2024 SimConnect integration.
 
 ## Knowledge Base
 
-Before recrawling the repository, check:
+Before recrawling the repository, **always** check the knowledge docs. They are the canonical reference for AI agents working on this codebase. If the docs are stale, incomplete, or contradict the code, **update them** — the knowledge base is a living document.
 
-- `knowledge/index.md` - entry point for project knowledge
-- `knowledge/10_quick_reference.md` - fast paths and tuning defaults
-- `knowledge/errors_TODO.md` - known issues and follow-up items
-- `knowledge/component_authoring.md` - how to write stable components
-- `knowledge/how_to_create_electrical_components.md` - electrical components and solver roles
+### Must-read files
+
+| File | When to read |
+|------|-------------|
+| `knowledge/index.md` | First — entry point and reading order |
+| `knowledge/10_quick_reference.md` | Fast paths, build commands, file locations |
+| `knowledge/errors_TODO.md` | Known issues, architectural debts, recent decisions |
+| `knowledge/component_authoring.md` | Before adding/modifying components |
+| `knowledge/how_to_create_electrical_components.md` | Before adding electrical/hydraulic/pneumatic components |
+
+### Domain-specific guides
+
+| Topic | File |
+|-------|------|
+| Architecture | `knowledge/01_architecture.md` |
+| Simulation engine | `knowledge/02_simulation.md` |
+| Component system | `knowledge/03_components.md` |
+| Blueprint model | `knowledge/04_blueprint_v2.md` |
+| Visual editor | `knowledge/05_editor.md` |
+| Component library | `knowledge/07_library.md` |
+| Testing | `knowledge/08_testing.md` |
+| Connectors / Providers | `knowledge/09_connectors.md` |
+| UI framework | `knowledge/11_ui_framework.md` |
+| SimConnect integration | `knowledge/12_simconnect.md` |
+| Multi-domain solver | `knowledge/13_multidomain_solver.md` |
+| JIT solver | `knowledge/knowledge_jit.md` |
+| AOT codegen | `knowledge/knowledge_aot.md` |
+| Persistence spec v1 | `knowledge/persistence_spec_v1.md` |
+| Persistence boundaries | `knowledge/persistence_boundaries.md` |
+
+### Keeping docs consistent
+
+When your work touches any of the following, **update the corresponding knowledge doc**:
+
+- New component added → `03_components.md`, `07_library.md`, `how_to_create_electrical_components.md`
+- New test file added → `08_testing.md`
+- New domain (electrical, hydraulic, pneumatic, etc.) → `02_simulation.md`, `03_components.md`, `13_multidomain_solver.md`
+- New editor feature → `05_editor.md`, `11_ui_framework.md`
+- New SimConnect / wire protocol change → `09_connectors.md`, `12_simconnect.md`
+- New file / moved file → `10_quick_reference.md`, `01_architecture.md`
+- Renamed class / API change → all docs referencing it
+- New build target or command → `10_quick_reference.md`
+
+**Rule of thumb:** If you spent more than 5 minutes understanding something that wasn't in the docs, add it.
 
 ## Build System
 

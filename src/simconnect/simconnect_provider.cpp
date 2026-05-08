@@ -34,7 +34,7 @@ bool SimConnectProvider::connect() {
     }
 
     client_->set_response_callback(
-        [this](const std::string& payload) { on_response(payload); });
+        [this](std::span<const uint8_t> payload) { on_response(payload); });
 
     spdlog::info("[SimConnectProvider] Connected to SimConnect");
     return true;
@@ -96,6 +96,8 @@ void SimConnectProvider::build_mappings(const JitBuildInput& input) {
     intern_table_.clear();
     output_shadow_.clear();
     signal_to_val_type_.clear();
+    frame_counter_ = 0;
+    host_epoch_ = 0;
 
     for (const auto& device : input.devices) {
         if (device.kind != ComponentKind::SimConnectInput &&
@@ -299,8 +301,8 @@ void SimConnectProvider::extract_outputs_raw(const float* values, uint32_t value
 
 // ==...== CommBus ==...==
 
-void SimConnectProvider::on_response(const std::string& payload) {
-    const auto* data = reinterpret_cast<const uint8_t*>(payload.data());
+void SimConnectProvider::on_response(std::span<const uint8_t> payload) {
+    const auto* data = payload.data();
     size_t len = payload.size();
 
     if (len >= sizeof(PacketHeader)) {
@@ -340,14 +342,19 @@ void SimConnectProvider::on_response(const std::string& payload) {
             }
             return;
         }
+        // Header-sized payload but invalid binary (bad magic/version) — don't try JSON.
+        spdlog::warn("[SimConnectProvider] Invalid binary packet ({} bytes, bad magic/version)", len);
+        return;
     }
 
+    // Short payloads are treated as JSON (control channel).
     handle_json_response(payload);
 }
 
-void SimConnectProvider::handle_json_response(const std::string& payload) {
+void SimConnectProvider::handle_json_response(std::span<const uint8_t> payload) {
     try {
-        auto resp = nlohmann::json::parse(payload);
+        std::string_view sv(reinterpret_cast<const char*>(payload.data()), payload.size());
+        auto resp = nlohmann::json::parse(sv);
         if (resp.contains("cmd") && resp["cmd"].is_string()) {
             spdlog::debug("[SimConnectProvider] JSON response: {}", resp["cmd"].get<std::string>());
         }

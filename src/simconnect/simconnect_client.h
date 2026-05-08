@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <span>
 #include <string>
 
 /// Read-only snapshot of a sim variable value.
@@ -47,8 +48,8 @@ public:
     virtual bool send_bytes(const uint8_t* data, size_t len) = 0;
 
     /// Register a callback for WASM bridge responses.
-    /// Callback receives the raw payload from CommBus (JSON or binary).
-    virtual void set_response_callback(std::function<void(const std::string&)> cb) = 0;
+    /// Callback receives the raw payload from CommBus (binary or JSON bytes).
+    virtual void set_response_callback(std::function<void(std::span<const uint8_t>)> cb) = 0;
 
     // ==...== Direct Sim Variable Access (A:Vars) ==...==
 

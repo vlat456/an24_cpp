@@ -275,12 +275,12 @@ TEST(SimConnectProviderImplTest, RequestInputsSends8ByteDeltaRead) {
     bridge.request_inputs();
 
     auto* stub = static_cast<StubSimConnectClient*>(bridge.client());
-    const auto& req = stub->last_request();
+    const auto& req = stub->last_request_bytes();
 
     // Should be exactly 8 bytes — DeltaRead is header-only
     ASSERT_GE(req.size(), sizeof(PacketHeader));
 
-    const auto* data = reinterpret_cast<const uint8_t*>(req.data());
+    const auto* data = req.data();
     auto result = WireCodec::parse(data, req.size());
 
     ASSERT_NE(result.header, nullptr);
@@ -305,16 +305,16 @@ TEST(SimConnectProviderImplTest, RequestInputsTierMaskVariesByFrame) {
     // Frame 0: 0%5==0, 0%30==0 → all tiers
     bridge.request_inputs();
     auto* stub = static_cast<StubSimConnectClient*>(bridge.client());
-    auto result0 = WireCodec::parse(reinterpret_cast<const uint8_t*>(stub->last_request().data()),
-                                stub->last_request().size());
+    auto result0 = WireCodec::parse(stub->last_request_bytes().data(),
+                                stub->last_request_bytes().size());
     ASSERT_NE(result0.header, nullptr);
     uint16_t mask0 = result0.header->count;
     EXPECT_EQ(mask0, TIER_MASK_FAST | TIER_MASK_MEDIUM | TIER_MASK_SLOW);  // frame 0: all tiers
 
     // Advance to frame 1: fast only
     bridge.request_inputs();
-    result0 = WireCodec::parse(reinterpret_cast<const uint8_t*>(stub->last_request().data()),
-                           stub->last_request().size());
+    result0 = WireCodec::parse(stub->last_request_bytes().data(),
+                           stub->last_request_bytes().size());
     ASSERT_NE(result0.header, nullptr);
     EXPECT_EQ(result0.header->count, TIER_MASK_FAST);
 
@@ -325,8 +325,8 @@ TEST(SimConnectProviderImplTest, RequestInputsTierMaskVariesByFrame) {
 
     // Frame 5: fast + medium
     bridge.request_inputs();  // frame 5
-    result0 = WireCodec::parse(reinterpret_cast<const uint8_t*>(stub->last_request().data()),
-                           stub->last_request().size());
+    result0 = WireCodec::parse(stub->last_request_bytes().data(),
+                           stub->last_request_bytes().size());
     ASSERT_NE(result0.header, nullptr);
     EXPECT_EQ(result0.header->count, TIER_MASK_FAST | TIER_MASK_MEDIUM);
 }
@@ -341,10 +341,10 @@ TEST(SimConnectProviderImplTest, RequestInputsDoesNothingWhenNotConnected) {
     // NOT connecting
 
     auto* stub = static_cast<StubSimConnectClient*>(bridge.client());
-    std::string before = stub->last_request();
+    std::vector<uint8_t> before = stub->last_request_bytes();
 
     bridge.request_inputs();
-    EXPECT_EQ(stub->last_request(), before);
+    EXPECT_EQ(stub->last_request_bytes(), before);
 }
 
 // ==...== Extract Outputs (V2 Delta Protocol) ==...==
@@ -364,11 +364,11 @@ TEST(SimConnectProviderImplTest, ExtractOutputsSendsDeltaWrite) {
     bridge.extract_outputs_raw(values.data(), values.size());
 
     auto* stub = static_cast<StubSimConnectClient*>(bridge.client());
-    const auto& req = stub->last_request();
+    const auto& req = stub->last_request_bytes();
 
     ASSERT_GE(req.size(), sizeof(PacketHeader));
 
-    const auto* data = reinterpret_cast<const uint8_t*>(req.data());
+    const auto* data = req.data();
     auto result = WireCodec::parse(data, req.size());
 
     ASSERT_NE(result.header, nullptr);
@@ -414,13 +414,13 @@ TEST(SimConnectProviderImplTest, DeltaWriteSkipsUnchangedDataOutputs) {
     bridge.extract_outputs_raw(values.data(), values.size());
 
     auto* stub = static_cast<StubSimConnectClient*>(bridge.client());
-    const auto& req = stub->last_request();
+    const auto& req = stub->last_request_bytes();
 
     // The output value hasn't changed from initial 0 → no DeltaWrite sent
     // (or if something was sent before, it's not a DeltaWrite)
     if (req.size() >= sizeof(PacketHeader)) {
 
-        auto result = WireCodec::parse(reinterpret_cast<const uint8_t*>(req.data()), req.size());
+        auto result = WireCodec::parse(req.data(), req.size());
         if (result.header) {
             EXPECT_NE(result.header->cmd, static_cast<uint8_t>(Cmd::DeltaWrite));
         }
@@ -481,10 +481,10 @@ TEST(SimConnectProviderImplTest, DeltaWriteOnlySendsChangedOutputs) {
 
     // Third extract: still no change (output stays at 0)
     auto* stub = static_cast<StubSimConnectClient*>(bridge.client());
-    const auto& req = stub->last_request();
+    const auto& req = stub->last_request_bytes();
     if (req.size() >= sizeof(PacketHeader)) {
 
-        auto result = WireCodec::parse(reinterpret_cast<const uint8_t*>(req.data()), req.size());
+        auto result = WireCodec::parse(req.data(), req.size());
         if (result.header) {
             // No DeltaWrite should have been sent since outputs haven't changed
             EXPECT_NE(result.header->cmd, static_cast<uint8_t>(Cmd::DeltaWrite));
@@ -670,11 +670,11 @@ TEST(SimConnectProviderImplTest, DeltaRoundTripReadRequestDeltaUpdate) {
     bridge.request_inputs();
 
     auto* stub = static_cast<StubSimConnectClient*>(bridge.client());
-    const auto& req = stub->last_request();
+    const auto& req = stub->last_request_bytes();
 
     // 2. Verify it's a DeltaRead
 
-    auto parsed_req = WireCodec::parse(reinterpret_cast<const uint8_t*>(req.data()), req.size());
+    auto parsed_req = WireCodec::parse(req.data(), req.size());
     ASSERT_NE(parsed_req.header, nullptr);
     EXPECT_EQ(parsed_req.header->cmd, static_cast<uint8_t>(Cmd::DeltaRead));
 
@@ -822,9 +822,10 @@ TEST(SimConnectProviderImplTest, PollSendsPingAfter5Seconds) {
     bridge.poll(0.0);
     // Reset the last request tracking
     stub->reset();
-    stub->set_response_callback([&](const std::string& p) {
+    stub->set_response_callback([&](std::span<const uint8_t> p) {
         // Re-register callback after reset
-        const_cast<SimConnectProvider&>(bridge).client()->send_request(p);
+        const_cast<SimConnectProvider&>(bridge).client()->send_request(
+            std::string(reinterpret_cast<const char*>(p.data()), p.size()));
     });
     // Re-connect after reset
     bridge.connect();
@@ -832,10 +833,10 @@ TEST(SimConnectProviderImplTest, PollSendsPingAfter5Seconds) {
     // Poll at t=3 — still no ping (interval is 5s)
     bridge.poll(3.0);
     // Check last request — should NOT be a Ping
-    if (stub->last_request().size() >= sizeof(PacketHeader)) {
+    if (stub->last_request_bytes().size() >= sizeof(PacketHeader)) {
         auto result = WireCodec::parse(
-            reinterpret_cast<const uint8_t*>(stub->last_request().data()),
-            stub->last_request().size());
+            stub->last_request_bytes().data(),
+            stub->last_request_bytes().size());
         if (result.header) {
             EXPECT_NE(result.header->cmd, static_cast<uint8_t>(Cmd::Ping));
         }
@@ -843,10 +844,10 @@ TEST(SimConnectProviderImplTest, PollSendsPingAfter5Seconds) {
 
     // Poll at t=5.1 — should send Ping
     bridge.poll(5.1);
-    const auto& req = stub->last_request();
+    const auto& req = stub->last_request_bytes();
     ASSERT_GE(req.size(), sizeof(PacketHeader));
     auto result = WireCodec::parse(
-        reinterpret_cast<const uint8_t*>(req.data()), req.size());
+        req.data(), req.size());
     ASSERT_NE(result.header, nullptr);
     EXPECT_EQ(result.header->cmd, static_cast<uint8_t>(Cmd::Ping));
 }
@@ -891,7 +892,7 @@ TEST(SimConnectProviderImplTest, PongEchoesPingSeqId) {
     bridge.poll(0.0);
     bridge.poll(6.0);  // > PING_INTERVAL_SEC
 
-    const auto& ping_req = stub->last_request();
+    const auto& ping_req = stub->last_request_bytes();
     ASSERT_GE(ping_req.size(), sizeof(PacketHeader));
 
     auto ping_parsed = WireCodec::parse(
@@ -912,4 +913,38 @@ TEST(SimConnectProviderImplTest, IsAliveInitiallyTrue) {
     SimConnectProvider bridge;
     // Not connected, but is_alive reflects heartbeat state, not connection
     EXPECT_TRUE(bridge.is_alive());
+}
+
+// ==...== Frame Counter Reset (issue #489) ==...==
+
+TEST(SimConnectProviderImplTest, BuildMappingsResetsFrameCounterAndEpoch) {
+    auto input = make_lvar_build_input("RESET_TEST_VAR", "0.0");
+    JIT_Simulator sim;
+    sim.start(input);
+
+    SimConnectProvider bridge;
+    bridge.build_mappings(input);
+    bridge.connect();
+
+    // Advance frame counter by requesting inputs several times
+    for (int i = 0; i < 7; ++i) {
+        bridge.request_inputs();
+    }
+
+    auto* stub = static_cast<StubSimConnectClient*>(bridge.client());
+    auto result = WireCodec::parse(stub->last_request_bytes().data(),
+                                   stub->last_request_bytes().size());
+    ASSERT_NE(result.header, nullptr);
+    // Frame 7: 7%5!=0, 7%30!=0 → only fast tier
+    EXPECT_EQ(result.header->count, TIER_MASK_FAST);
+
+    // Rebuild — frame counter should reset to 0
+    bridge.build_mappings(input);
+
+    bridge.request_inputs();
+    result = WireCodec::parse(stub->last_request_bytes().data(),
+                              stub->last_request_bytes().size());
+    ASSERT_NE(result.header, nullptr);
+    // Frame 0: 0%5==0, 0%30==0 → all tiers
+    EXPECT_EQ(result.header->count, TIER_MASK_FAST | TIER_MASK_MEDIUM | TIER_MASK_SLOW);
 }

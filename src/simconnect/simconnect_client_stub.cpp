@@ -24,23 +24,28 @@ bool StubSimConnectClient::is_connected() const {
 // ==...== CommBus ==...==
 
 bool StubSimConnectClient::send_request(const std::string& json_payload) {
-    last_request_ = json_payload;
+    last_request_json_ = json_payload;
     return true;
 }
 
 bool StubSimConnectClient::send_bytes(const uint8_t* data, size_t len) {
-    last_request_ = std::string(reinterpret_cast<const char*>(data), len);
+    last_request_bytes_.assign(data, data + len);
     return true;
 }
 
-void StubSimConnectClient::set_response_callback(std::function<void(const std::string&)> cb) {
+void StubSimConnectClient::set_response_callback(std::function<void(std::span<const uint8_t>)> cb) {
     response_cb_ = std::move(cb);
 }
 
-void StubSimConnectClient::trigger_mock_response(const std::string& json_payload) {
+void StubSimConnectClient::trigger_mock_response(std::span<const uint8_t> data) {
     if (response_cb_) {
-        response_cb_(json_payload);
+        response_cb_(data);
     }
+}
+
+void StubSimConnectClient::trigger_mock_response(const std::string& json_payload) {
+    trigger_mock_response(std::span<const uint8_t>(
+        reinterpret_cast<const uint8_t*>(json_payload.data()), json_payload.size()));
 }
 
 // ==...== Direct SimVar Access ==...==
@@ -86,14 +91,19 @@ const std::vector<std::pair<std::string, uint32_t>>& StubSimConnectClient::event
 }
 
 const std::string& StubSimConnectClient::last_request() const {
-    return last_request_;
+    return last_request_json_;
+}
+
+const std::vector<uint8_t>& StubSimConnectClient::last_request_bytes() const {
+    return last_request_bytes_;
 }
 
 void StubSimConnectClient::reset() {
     sim_values_.clear();
     written_.clear();
     events_sent_.clear();
-    last_request_.clear();
+    last_request_json_.clear();
+    last_request_bytes_.clear();
     response_cb_ = nullptr;
     // Note: connected_ is NOT reset — connection state is orthogonal to data state.
     // Call disconnect() explicitly to reset connection state.
