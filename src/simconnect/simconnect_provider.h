@@ -9,11 +9,12 @@
 #include "core/solvers/jit/simulator.h"
 
 #include <cstdint>
-#include <memory>
 #include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
+
+class SimConnectCoordinator;
 
 /// SimConnect adapter — implements SimVarProvider with direct MSFS 2024 integration.
 ///
@@ -37,6 +38,7 @@
 class SimConnectProvider final : public SimVarProvider {
 public:
     SimConnectProvider();
+    explicit SimConnectProvider(SimConnectCoordinator& coordinator);
     ~SimConnectProvider() override;
 
     SimConnectProvider(const SimConnectProvider&) = delete;
@@ -58,9 +60,9 @@ public:
     /// Returns true if WASM bridge is responding to pings (alive within timeout).
     bool is_alive() const { return connection_healthy_; }
 
-    /// Access the underlying SimConnect client (for tests that need StubClient access).
-    SimConnectClient* client() { return client_.get(); }
-    const SimConnectClient* client() const { return client_.get(); }
+    /// Access the underlying SimConnect client via coordinator (for tests).
+    std::optional<SimConnectClient*> client();
+    std::optional<const SimConnectClient*> client() const;
 
     /// Number of mapped input variables.
     size_t input_count() const { return input_mappings_.size(); }
@@ -75,6 +77,17 @@ public:
     /// Register "simconnect" provider type with the host registry.
     /// Must be called before SimvarProviderHost::build().
     static void register_type();
+
+    // ==...== Coordinator Integration ==...==
+
+    /// Called by SimConnectCoordinator to deliver a response.
+    void handle_response(std::span<const uint8_t> payload);
+
+    /// Expose input mappings for coordinator unified registration.
+    const std::vector<SimVarMapping>& input_mappings() const { return input_mappings_; }
+
+    /// Expose output mappings for coordinator unified registration.
+    const std::vector<SimVarMapping>& output_mappings() const { return output_mappings_; }
 
     // ==...== Test-accessible internals ==...==
 
@@ -100,11 +113,9 @@ private:
 
     // ==...== Members ==...==
 
-    std::unique_ptr<SimConnectClient> client_;
+    SimConnectCoordinator* coordinator_;
     std::vector<SimVarMapping> input_mappings_;
     std::vector<SimVarMapping> output_mappings_;
-
-    InternTable intern_table_;
 
     std::unordered_map<uint32_t, WireValue> input_buffer_;
     std::unordered_map<uint16_t, uint32_t> id_to_signal_;

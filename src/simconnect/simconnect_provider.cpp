@@ -1,4 +1,5 @@
 #include "simconnect_provider.h"
+#include "simconnect/simconnect_coordinator.h"
 #include "core/solvers/jit/bridge/simvar_provider_host.h"
 #include "core/solvers/jit/components/all.h"
 #include "core/strings/interned_id.h"
@@ -16,7 +17,11 @@ void SimConnectProvider::register_type() {
 }
 
 SimConnectProvider::SimConnectProvider()
-    : client_(create_simconnect_client()),
+    : SimConnectProvider(SimConnectCoordinator::instance()) {
+}
+
+SimConnectProvider::SimConnectProvider(SimConnectCoordinator& coordinator)
+    : coordinator_(&coordinator),
       send_buffer_(MAX_PACKET_SIZE) {
 }
 
@@ -28,34 +33,41 @@ void SimConnectProvider::build(const JitBuildInput& input, JIT_Simulator& /*sim*
     build_mappings(input);
 }
 
+std::optional<SimConnectClient*> SimConnectProvider::client() {
+    return coordinator_ ? coordinator_->client() : std::nullopt;
+}
+
+std::optional<const SimConnectClient*> SimConnectProvider::client() const {
+    return coordinator_ ? coordinator_->client() : std::nullopt;
+}
+
 bool SimConnectProvider::connect() {
-    if (!client_->connect()) {
+    if (!coordinator_) return false;
+    coordinator_->add_provider(this);
+    if (!coordinator_->connect(this)) {
         spdlog::error("[SimConnectProvider] Failed to connect to SimConnect");
         return false;
     }
-
-    client_->set_response_callback(
-        [this](std::span<const uint8_t> payload) { on_response(payload); });
-
     spdlog::info("[SimConnectProvider] Connected to SimConnect");
     return true;
 }
 
 void SimConnectProvider::disconnect() {
-    if (client_) {
-        client_->disconnect();
+    if (coordinator_) {
+        coordinator_->disconnect(this);
+        coordinator_->remove_provider(this);
     }
 }
 
 bool SimConnectProvider::is_connected() const {
-    return client_ && client_->is_connected();
+    return coordinator_ && coordinator_->is_connected();
 }
 
 void SimConnectProvider::poll(double elapsed_time) {
-    if (!client_ || !client_->is_connected()) return;
+    if (!coordinator_ || !coordinator_->is_connected()) return;
 
     current_time_ = elapsed_time;
-    client_->poll(elapsed_time);
+    coordinator_->poll(elapsed_time);
 
     maybe_send_ping(current_time_);
 
@@ -77,6 +89,10 @@ void SimConnectProvider::write_from(const float* values, uint32_t count) {
     extract_outputs_raw(values, count);
 }
 
+void SimConnectProvider::handle_response(std::span<const uint8_t> payload) {
+    on_response(payload);
+}
+
 std::optional<SignalType> SimConnectProvider::signal_type(uint32_t signal_index) const {
     ValType vt = val_type_for_signal(signal_index);
     switch (vt) {
@@ -94,7 +110,6 @@ void SimConnectProvider::build_mappings(const JitBuildInput& input) {
     output_mappings_.clear();
     input_buffer_.clear();
     id_to_signal_.clear();
-    intern_table_.clear();
     output_shadow_.clear();
     signal_to_val_type_.clear();
     frame_counter_ = 0;
@@ -109,7 +124,7 @@ void SimConnectProvider::build_mappings(const JitBuildInput& input) {
         auto mapping = parse_mapping(device, input);
         if (!mapping) continue;
 
-        mapping->intern_id = intern_table_.intern(mapping->var_type, mapping->var_name);
+        mapping->intern_id = coordinator_->intern_table().intern(mapping->var_type, mapping->var_name);
         id_to_signal_[mapping->intern_id] = mapping->signal_index;
         signal_to_val_type_[mapping->signal_index] = mapping->val_type;
 
@@ -371,8 +386,8 @@ void SimConnectProvider::handle_json_response(std::span<const uint8_t> payload) 
 }
 
 void SimConnectProvider::send_bytes(const uint8_t* data, size_t len) {
-    if (!client_ || !client_->is_connected()) return;
-    if (!client_->send_bytes(data, len)) {
+    if (!coordinator_ || !coordinator_->is_connected()) return;
+    if (!coordinator_->send_bytes(data, len)) {
         spdlog::warn("[SimConnectProvider] send_bytes failed ({} bytes), packet dropped", len);
     }
 }
