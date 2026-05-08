@@ -343,7 +343,7 @@ ComponentRegistry load_component_registry(const std::string& library_dir) {
 
     std::filesystem::path library_path(library_dir);
     if (!std::filesystem::exists(library_path) && library_path.is_relative()) {
-        std::vector<std::filesystem::path> try_paths = {
+        std::vector<std::filesystem::path> const try_paths = {
             library_path,
             "../" / library_path,
             "../../" / library_path,
@@ -370,7 +370,7 @@ ComponentRegistry load_component_registry(const std::string& library_dir) {
         }
         try {
             std::ifstream file(entry.path());
-            std::string content((std::istreambuf_iterator<char>(file)),
+            std::string const content((std::istreambuf_iterator<char>(file)),
                                  std::istreambuf_iterator<char>());
 
             json j = json::parse(content);

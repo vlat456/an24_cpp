@@ -11,9 +11,9 @@ int main(int argc, char** argv) {
     std::string library_dir = "library";
     if (argc >= 2) library_dir = argv[1];
 
-    std::string component_kind_path = "src/core/model/component_kind.h";
-    std::string port_registry_path = "src/core/solvers/common/port_registry.h";
-    std::string build_factory_path = "src/core/solvers/jit/build_factory.cpp";
+    std::string const component_kind_path = "src/core/model/component_kind.h";
+    std::string const port_registry_path = "src/core/solvers/common/port_registry.h";
+    std::string const build_factory_path = "src/core/solvers/jit/build_factory.cpp";
 
     auto registry = load_component_registry(library_dir);
     std::cout << "Loaded " << registry.all_types().size() << " types from " << library_dir << "/\n";

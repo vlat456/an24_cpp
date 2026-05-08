@@ -144,7 +144,7 @@ bool canonicalize_wire_orientation(nlohmann::json& root,
          return false;
      }
 
-     bp2::PathArena arena(interner);
+     bp2::PathArena const arena(interner);
      bp2::Blueprint partial;
      partial = partial.with_id(interner.intern(root.value("id", std::string{})));
      if (root.contains("name") && root["name"].is_string()) {
@@ -162,7 +162,7 @@ bool canonicalize_wire_orientation(nlohmann::json& root,
          partial = bp2::codec_detail::decode_wires(std::move(partial), root["wires"], interner);
      }
 
-     bp2::PathResolver resolver;
+     bp2::PathResolver const resolver;
      bool changed = false;
      for (auto& wire_json : root["wires"]) {
          const core::InternedId wire_id = interner.lookup(wire_json.at("id").get<std::string>());
@@ -207,9 +207,9 @@ int main(int argc, char** argv) {
 
     core::StringInterner interner;
     bp2::PathArena arena(interner);
-    ComponentRegistry reg = load_component_registry("library/");
+    ComponentRegistry const reg = load_component_registry("library/");
 
-    std::ifstream file(argv[1]);
+    std::ifstream const file(argv[1]);
     if (!file.is_open()) {
         std::cerr << "failed to open file\n";
         return 2;
@@ -260,7 +260,7 @@ int main(int argc, char** argv) {
 
          try {
              core::StringInterner diag_interner;
-             bp2::PathArena diag_arena(diag_interner);
+             bp2::PathArena const diag_arena(diag_interner);
              bp2::Blueprint partial;
              partial = partial.with_id(diag_interner.intern(j.value("id", std::string{})));
              if (j.contains("name") && j["name"].is_string()) {
@@ -278,7 +278,7 @@ int main(int argc, char** argv) {
                  partial = bp2::codec_detail::decode_wires(std::move(partial), j["wires"], diag_interner);
              }
 
-             bp2::PathResolver resolver;
+             bp2::PathResolver const resolver;
              for (const auto& wire : partial.wires()) {
                  auto src = resolver.resolve(wire.source, partial, reg, diag_interner);
                  auto tgt = resolver.resolve(wire.target, partial, reg, diag_interner);
@@ -366,7 +366,7 @@ int main(int argc, char** argv) {
              partial = bp2::codec_detail::decode_wires(std::move(partial), j["wires"], interner);
          }
 
-         bp2::PathResolver resolver;
+         bp2::PathResolver const resolver;
          for (const auto& wire : partial.wires()) {
              auto src = resolver.resolve(wire.source, partial, reg, interner);
              auto tgt = resolver.resolve(wire.target, partial, reg, interner);

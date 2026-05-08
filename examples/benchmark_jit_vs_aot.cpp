@@ -35,20 +35,20 @@ JitBuildInput build_input_from_blueprint_file(const std::string& blueprint_file)
         throw std::runtime_error("Cannot open blueprint file: " + blueprint_file);
     }
 
-    std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    std::string const content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
     core::StringInterner interner;
     bp2::PathArena arena(interner);
-    ComponentRegistry registry = load_component_registry("library/");
+    ComponentRegistry const registry = load_component_registry("library/");
     bp2::DecodeError err;
     auto bp = bp2::BlueprintCodec::decode(content, interner, arena, registry, &err);
     if (!bp) {
         throw std::runtime_error("Failed to decode blueprint: " + err.message);
     }
 
-    bp2::BlueprintLibrary library = build_library(registry, interner);
+    bp2::BlueprintLibrary const library = build_library(registry, interner);
     bp2::Flattener flattener(library);
-    bp2::FlatNetlist netlist = flattener.flatten(*bp, arena);
+    bp2::FlatNetlist const netlist = flattener.flatten(*bp, arena);
     return bp2::elaboration::elaborate_for_jit(netlist, arena, interner, registry);
 }
 
@@ -72,7 +72,7 @@ BenchmarkResult benchmark_jit(const std::string& blueprint_file, uint64_t iterat
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    JitBuildInput input = build_input_from_blueprint_file(blueprint_file);
+    JitBuildInput const input = build_input_from_blueprint_file(blueprint_file);
 
     JIT_Simulator sim;
     sim.start(input);
@@ -102,8 +102,8 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    std::string blueprint_file = argv[1];
-    uint64_t iterations = argc > 2 ? std::stoull(argv[2]) : 10000;
+    std::string const blueprint_file = argv[1];
+    uint64_t const iterations = argc > 2 ? std::stoull(argv[2]) : 10000;
 
     std::cout << "=============================================================================\n";
     std::cout << "AN-24 Simulation Benchmark: JIT vs AOT\n";

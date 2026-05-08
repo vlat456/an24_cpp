@@ -70,7 +70,7 @@ bool save_workspace_session(
     editor["open_windows"] = std::move(open_windows);
     j["editor"] = editor;
 
-    std::string ws_path = blueprint_path_to_workspace_path(blueprint_path);
+    std::string const ws_path = blueprint_path_to_workspace_path(blueprint_path);
     try {
         std::ofstream out(ws_path);
         if (!out.is_open()) {
@@ -90,7 +90,7 @@ bool save_workspace_session(
 std::optional<WorkspaceSession> load_workspace_session(
     const char* blueprint_path)
 {
-    std::string ws_path = blueprint_path_to_workspace_path(blueprint_path);
+    std::string const ws_path = blueprint_path_to_workspace_path(blueprint_path);
 
     if (!fs::exists(ws_path)) {
         return std::nullopt;

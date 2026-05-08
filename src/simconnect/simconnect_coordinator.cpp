@@ -195,7 +195,7 @@ void SimConnectCoordinator::send_register_names() {
     for (const auto* provider : providers_) {
         if (!provider) continue;
         for (const auto& m : provider->input_mappings()) {
-            VarKey key{m.var_name, m.index};
+            VarKey const key{m.var_name, m.index};
             if (seen.insert(key).second) {
                 vars.push_back({{"name", m.var_name},
                                 {"type", var_type_name(m.var_type)},
@@ -208,7 +208,7 @@ void SimConnectCoordinator::send_register_names() {
             }
         }
         for (const auto& m : provider->output_mappings()) {
-            VarKey key{m.var_name, m.index};
+            VarKey const key{m.var_name, m.index};
             if (seen.insert(key).second) {
                 vars.push_back({{"name", m.var_name},
                                 {"type", var_type_name(m.var_type)},
@@ -222,7 +222,7 @@ void SimConnectCoordinator::send_register_names() {
         }
     }
 
-    std::string payload = j.dump();
+    std::string const payload = j.dump();
     send_request(payload);
     spdlog::info("[SimConnectCoordinator] Sent unified RegisterNames ({} unique vars)", seen.size());
 }

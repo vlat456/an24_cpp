@@ -13,7 +13,7 @@
 namespace {
 
 std::string find_library_index_path() {
-    static const char* candidates[] = {
+    static const char const* candidates[] = {
         "library/library_index.json",
         "../library/library_index.json",
         "../../library/library_index.json",

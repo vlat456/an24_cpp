@@ -20,23 +20,23 @@ float Label::estimateWidth() const {
 }
 
 Pt Label::preferredSize(IDrawList* dl) const {
-    float w = dl ? dl->calc_text_size(text_.c_str(), font_size_).x : estimateWidth();
+    float const w = dl ? dl->calc_text_size(text_.c_str(), font_size_).x : estimateWidth();
     return Pt(w, font_size_);
 }
 
 void Label::render(IDrawList* dl, const RenderContext& ctx) const {
     if (!dl || text_.empty()) return;
     
-    Pt pos = ctx.world_to_screen(worldPos());
-    Pt sz = size();
-    float zoom = ctx.zoom;
+    Pt const pos = ctx.world_to_screen(worldPos());
+    Pt const sz = size();
+    float const zoom = ctx.zoom;
 
-    float font = font_size_ * zoom;
-    float ty = pos.y + (sz.y * zoom - font) / 2;
+    float const font = font_size_ * zoom;
+    float const ty = pos.y + (sz.y * zoom - font) / 2;
     float tx = pos.x;
     
     if (align_ == TextAlign::Right) {
-        float text_w = dl->calc_text_size(text_.c_str(), font).x;
+        float const text_w = dl->calc_text_size(text_.c_str(), font).x;
         tx = pos.x + sz.x * zoom - text_w;
     }
     dl->set_clip_rect(pos, Pt(pos.x + sz.x * zoom, pos.y + sz.y * zoom));
@@ -78,8 +78,8 @@ Pt Circle::preferredSize(IDrawList*) const {
 void Circle::render(IDrawList* dl, const RenderContext& ctx) const {
     if (!dl) return;
     
-    Pt pos = ctx.world_to_screen(worldPos());
-    float r = radius_ * ctx.zoom;
+    Pt const pos = ctx.world_to_screen(worldPos());
+    float const r = radius_ * ctx.zoom;
     
     dl->add_circle_filled(Pt(pos.x + r, pos.y + r), r, color_, 16);
 }

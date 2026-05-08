@@ -60,8 +60,8 @@ namespace json_io_detail {
 Connection parse_connection(const json& j) {
     Connection conn;
     if (j.is_string()) {
-        std::string s = j.get<std::string>();
-        size_t arrow = s.find("->");
+        std::string const s = j.get<std::string>();
+        size_t const arrow = s.find("->");
         if (arrow != std::string::npos) {
             conn.from = s.substr(0, arrow);
             conn.to = s.substr(arrow + 2);

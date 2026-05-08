@@ -47,7 +47,7 @@ void SubWindowRenderer::renderWindow(Document& doc, BlueprintWindow& win, ::Wind
     win_title += " [" + doc.displayName() + "]###" + doc.id().str() + ":" + mode_prefix + win_hash_key;
 
     // Highlight border if this subwindow holds menu focus.
-    bool has_menu_focus = ws.focus_scope.is_subwindow_scope()
+    bool const has_menu_focus = ws.focus_scope.is_subwindow_scope()
                           && ws.focus_scope.document_id == doc.id()
                           && ws.focus_scope.scope_id == win.resolved_scope_id();
     if (has_menu_focus) {
@@ -103,7 +103,7 @@ void SubWindowRenderer::renderToolbar(Document& doc, BlueprintWindow& win, ::Win
 
     ImGui::SameLine();
 
-    bool has_sel = !win.input.selected_node_ids().empty();
+    bool const has_sel = !win.input.selected_node_ids().empty();
     if (!has_sel) ImGui::BeginDisabled();
     if (ImGui::Button("Delete")) {
         auto action = doc.applyInputResult(win.input.on_key(Key::Delete), win.resolved_scope_id());
@@ -115,16 +115,16 @@ void SubWindowRenderer::renderToolbar(Document& doc, BlueprintWindow& win, ::Win
 }
 
 void SubWindowRenderer::renderCanvas(Document& doc, BlueprintWindow& win, ::WindowSystem& ws) {
-    ImVec2 content_size = ImGui::GetContentRegionAvail();
+    ImVec2 const content_size = ImGui::GetContentRegionAvail();
     const char* mode_prefix = win.is_external_ref() ? "ext:" : "emb:";
     const std::string canvas_key = editor::instance_path_to_scope_string(doc.interner(), win.resolved_scope_id().path());
     ImGui::InvisibleButton(("##canvas_" + doc.id().str() + "_" + mode_prefix + canvas_key).c_str(), content_size);
-    bool hovered = ImGui::IsItemHovered();
+    bool const hovered = ImGui::IsItemHovered();
 
     auto cmin_region = ImGui::GetWindowContentRegionMin();
     auto cmax_region = ImGui::GetWindowContentRegionMax();
-    Pt cmin(cmin_region.x + ImGui::GetWindowPos().x, cmin_region.y + ImGui::GetWindowPos().y);
-    Pt cmax(cmax_region.x + ImGui::GetWindowPos().x, cmax_region.y + ImGui::GetWindowPos().y);
+    Pt const cmin(cmin_region.x + ImGui::GetWindowPos().x, cmin_region.y + ImGui::GetWindowPos().y);
+    Pt const cmax(cmax_region.x + ImGui::GetWindowPos().x, cmax_region.y + ImGui::GetWindowPos().y);
 
     canvas_renderer_.render(win, doc, ws, cmin, cmax, ImGui::GetWindowDrawList(), hovered);
 }

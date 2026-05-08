@@ -65,11 +65,11 @@ static Port* resolve_port(const Scene& scene,
                            core::InternedId port_name,
                            core::InternedId wire_id,
                            const core::StringInterner& interner) {
-    std::string_view node_sv = interner.resolve(node_id);
-    Widget* widget = scene.find(node_sv);
+    std::string_view const node_sv = interner.resolve(node_id);
+    Widget const* widget = scene.find(node_sv);
     if (!widget) return nullptr;
-    std::string_view port_sv  = interner.resolve(port_name);
-    std::string_view wire_sv  = interner.resolve(wire_id);
+    std::string_view const port_sv  = interner.resolve(port_name);
+    std::string_view const wire_sv  = interner.resolve(wire_id);
     return widget->portByName(port_sv, wire_sv);
 }
 
@@ -83,15 +83,15 @@ std::unique_ptr<Wire> create_wire_widget(const bp2::Blueprint::Wire& w,
         return nullptr;
     }
 
-    Port* start_port = resolve_port(scene, src_node_id, src_port, w.id, interner);
-    Port* end_port   = resolve_port(scene, tgt_node_id, tgt_port, w.id, interner);
+    Port const* start_port = resolve_port(scene, src_node_id, src_port, w.id, interner);
+    Port const* end_port   = resolve_port(scene, tgt_node_id, tgt_port, w.id, interner);
     if (!start_port || !end_port) return nullptr;
 
-    std::string_view wire_id_sv    = interner.resolve(w.id);
-    std::string_view start_node_sv = interner.resolve(src_node_id);
-    std::string_view start_port_sv = interner.resolve(src_port);
-    std::string_view end_node_sv   = interner.resolve(tgt_node_id);
-    std::string_view end_port_sv   = interner.resolve(tgt_port);
+    std::string_view const wire_id_sv    = interner.resolve(w.id);
+    std::string_view const start_node_sv = interner.resolve(src_node_id);
+    std::string_view const start_port_sv = interner.resolve(src_port);
+    std::string_view const end_node_sv   = interner.resolve(tgt_node_id);
+    std::string_view const end_port_sv   = interner.resolve(tgt_port);
 
     auto wire_widget = std::make_unique<visual::Wire>(
         w.id,
@@ -145,7 +145,7 @@ void orient_ref_node_ports(Scene& scene,
 
     for (const auto& [ref_id, other_id] : ref_to_connected) {
         Widget* ref_widget = scene.find(interner.resolve(ref_id));
-        Widget* other_widget = scene.find(interner.resolve(other_id));
+        Widget const* other_widget = scene.find(interner.resolve(other_id));
         if (!ref_widget || !other_widget) continue;
 
         auto* ref_node = (ref_widget->kind() == ui::WidgetKind::RefNode)
@@ -193,12 +193,12 @@ std::unique_ptr<Widget> create_node_widget(const bp2::Blueprint::Node& n,
             runtime_state = &it->second;
         }
     }
-    NodeContent content = def ? create_runtime_node_content(n, *def, pres, interner, runtime_state) : NodeContent{};
+    NodeContent const content = def ? create_runtime_node_content(n, *def, pres, interner, runtime_state) : NodeContent{};
     editor::NodeBadgeSet badges;
     if (n.is_blueprint_instance()) {
         badges.set(editor::NodeBadge::Composite);
     }
-    std::optional<editor::NodeColor> color = n.view.color;
+    std::optional<editor::NodeColor> const color = n.view.color;
     return NodeFactory::create(
         n, frame_kind, render_iface, interner, content, badges, icon_font, color, bus_wires);
 }

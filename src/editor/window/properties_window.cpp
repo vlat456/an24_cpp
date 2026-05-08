@@ -100,7 +100,7 @@ static bool parse_table_entries(const std::string& str,
     while (pos < str.size()) {
         while (pos < str.size() && (str[pos] == ' ' || str[pos] == ';')) ++pos;
         if (pos >= str.size()) break;
-        size_t colon = str.find(':', pos);
+        size_t const colon = str.find(':', pos);
         if (colon == std::string::npos) break;
         size_t end = str.find(';', colon + 1);
         if (end == std::string::npos) end = str.size();
@@ -161,7 +161,7 @@ void PropertiesWindow::initialize_from_node(const bp2::Blueprint::Node& node,
     snapshot_string_params_.clear();
     pending_string_params_.clear();
     for (const auto& [key_iid, val] : node.semantic.params) {
-        std::string key_str = std::string(interner_->resolve(key_iid));
+        std::string const key_str = std::string(interner_->resolve(key_iid));
         snapshot_params_[key_str] = val;
         pending_params_[key_str] = val;
     }
@@ -221,10 +221,10 @@ void PropertiesWindow::render() {
     #ifndef EDITOR_TESTING
     ImGui::SetNextWindowSize(ImVec2(400, 0), ImGuiCond_FirstUseEver);
     bool window_open = true;
-    std::string node_id_label(interner_->resolve(target_node_id_));
+    std::string const node_id_label(interner_->resolve(target_node_id_));
     if (ImGui::Begin(("Properties: " + node_id_label).c_str(), &window_open)) {
         // Header: resolve type name from InternedId
-        std::string type_str = std::string(interner_->resolve(target->semantic.type));
+        std::string const type_str = std::string(interner_->resolve(target->semantic.type));
         ImGui::Text("%s (%s)", node_id_label.c_str(), type_str.c_str());
         ImGui::Separator();
 
@@ -304,8 +304,8 @@ void PropertiesWindow::render() {
 
 void PropertiesWindow::render_port_edge_param(const std::string& key) {
 #ifndef EDITOR_TESTING
-    const char* options[] = {"bottom", "top", "left", "right"};
-    const char* labels[]  = {"Bottom", "Top", "Left", "Right"};
+    const char const* options[] = {"bottom", "top", "left", "right"};
+    const char const* labels[]  = {"Bottom", "Top", "Left", "Right"};
 
     int current = 0;
     auto fit = pending_params_.find(key);
@@ -326,7 +326,7 @@ void PropertiesWindow::render_port_edge_param(const std::string& key) {
 
     if (ImGui::BeginCombo(key.c_str(), labels[current])) {
         for (int i = 0; i < 4; ++i) {
-            bool selected = (current == i);
+            bool const selected = (current == i);
             if (ImGui::Selectable(labels[i], selected)) {
                 if (fit != pending_params_.end()) {
                     fit->second = static_cast<float>(i);
@@ -397,8 +397,8 @@ void PropertiesWindow::render_table_param(const std::string& key) {
     }
 
     if (ImGui::Button("+ Add Row")) {
-        float new_key = keys.empty() ? 0.0f : keys.back() + 1.0f;
-        float new_val = keys.empty() ? 0.0f : values.back();
+        float const new_key = keys.empty() ? 0.0f : keys.back() + 1.0f;
+        float const new_val = keys.empty() ? 0.0f : values.back();
         keys.push_back(new_key);
         values.push_back(new_val);
         changed = true;
@@ -418,8 +418,8 @@ void PropertiesWindow::render_text_param(const std::string& key) {
 
 void PropertiesWindow::render_font_size_param(const std::string& key) {
 #ifndef EDITOR_TESTING
-    const char* options[] = {"small", "medium", "large"};
-    const char* labels[]  = {"Small", "Medium", "Large"};
+    const char const* options[] = {"small", "medium", "large"};
+    const char const* labels[]  = {"Small", "Medium", "Large"};
 
     std::string& value = pending_string_params_[key];
     int current = 2;
@@ -432,7 +432,7 @@ void PropertiesWindow::render_font_size_param(const std::string& key) {
 
     if (ImGui::BeginCombo(key.c_str(), labels[current])) {
         for (int i = 0; i < 3; ++i) {
-            bool selected = (current == i);
+            bool const selected = (current == i);
             if (ImGui::Selectable(labels[i], selected)) {
                 value = options[i];
             }
@@ -470,7 +470,7 @@ void PropertiesWindow::render_port_layout_row(const std::string& port_name) {
     // Side dropdown column
     ImGui::TableNextColumn();
     {
-        const char* options[] = {"Auto", "Left", "Right", "Top", "Bottom"};
+        const char const* options[] = {"Auto", "Left", "Right", "Top", "Bottom"};
         int current = 0;  // Auto
         if (it != pending_layout_overrides_.end() && it->side.has_value()) {
             const std::string& s = *it->side;
@@ -488,7 +488,7 @@ void PropertiesWindow::render_port_layout_row(const std::string& port_name) {
             if (current == 0) {
                 it->side = std::nullopt;
             } else {
-                static const char* side_names[] = {"left", "right", "top", "bottom"};
+                static const char const* side_names[] = {"left", "right", "top", "bottom"};
                 it->side = side_names[current - 1];
             }
         }
@@ -593,7 +593,7 @@ void PropertiesWindow::apply() {
         return;
     }
 
-    core::InternedId node_iid = target_node_id_;
+    core::InternedId const node_iid = target_node_id_;
 
     bool has_changes = false;
 
@@ -677,7 +677,7 @@ void PropertiesWindow::apply() {
                 }
             }
             if (!handled_as_bool) {
-                core::InternedId key_iid = interner_->intern(key);
+                core::InternedId const key_iid = interner_->intern(key);
                 updated.semantic.params[key_iid] = new_value;
             }
         }
@@ -744,7 +744,7 @@ void PropertiesWindow::render_bridge_port_type_section() {
 
     if (ImGui::BeginCombo("Port Type", port_type_label(types[static_cast<size_t>(current)]))) {
         for (size_t i = 0; i < types.size(); ++i) {
-            bool selected = (static_cast<int>(i) == current);
+            bool const selected = (static_cast<int>(i) == current);
             if (ImGui::Selectable(port_type_label(types[i]), selected)) {
                 pending_bridge_port_type_ = types[i];
             }

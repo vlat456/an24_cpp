@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    std::string bp_path = argv[1];
+    std::string const bp_path = argv[1];
     int steps      = 600;
     double dt = 1.0 / 60.0;
     int print_every = 60;
@@ -104,19 +104,19 @@ int main(int argc, char* argv[]) {
     }
 
     // --- Load input file ---
-    std::ifstream file(bp_path);
+    std::ifstream const file(bp_path);
     if (!file.is_open()) {
         std::cerr << "Cannot open: " << bp_path << "\n";
         return 1;
     }
     std::stringstream buf;
     buf << file.rdbuf();
-    std::string raw_json = buf.str();
+    std::string const raw_json = buf.str();
 
     // Blueprint file — canonical path via Flattener + elaborate_for_jit.
     core::StringInterner interner;
     bp2::PathArena arena(interner);
-    ComponentRegistry registry = load_component_registry("library/");
+    ComponentRegistry const registry = load_component_registry("library/");
 
     bp2::DecodeError err;
     auto bp = bp2::BlueprintCodec::decode(raw_json, interner, arena, registry, &err);
@@ -136,10 +136,10 @@ int main(int argc, char* argv[]) {
     }
 
     bp2::Flattener flattener(library);
-    bp2::FlatNetlist netlist = flattener.flatten(*bp, arena);
+    bp2::FlatNetlist const netlist = flattener.flatten(*bp, arena);
 
     if (dump_json) {
-        JitBuildInput jit_input = bp2::elaboration::elaborate_for_jit(netlist, arena, interner, registry);
+        JitBuildInput const jit_input = bp2::elaboration::elaborate_for_jit(netlist, arena, interner, registry);
         
         // Build canonical JSON output
         nlohmann::json out = nlohmann::json::object();
@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
         // Signals grouped by signal index
         std::map<uint32_t, std::vector<std::string>> sig_to_ports;
         for (const auto& [port_id, sig] : jit_input.port_to_signal) {
-            std::string_view port = jit_input.signal_key_interner.resolve(port_id);
+            std::string_view const port = jit_input.signal_key_interner.resolve(port_id);
             sig_to_ports[sig].push_back(std::string(port));
         }
         nlohmann::json signals_obj = nlohmann::json::object();
@@ -178,7 +178,7 @@ int main(int argc, char* argv[]) {
         // Group by signal index
         std::map<uint32_t, std::vector<std::string>> sig_to_ports;
         for (const auto& [port_id, sig] : build_input.port_to_signal) {
-            std::string_view port = build_input.signal_key_interner.resolve(port_id);
+            std::string_view const port = build_input.signal_key_interner.resolve(port_id);
             sig_to_ports[sig].push_back(std::string(port));
         }
 
@@ -216,7 +216,7 @@ int main(int argc, char* argv[]) {
     if (probe_all) {
         std::set<std::string> all;
         for (const auto& [port_id, sig] : build_input.port_to_signal) {
-            std::string_view port = build_input.signal_key_interner.resolve(port_id);
+            std::string_view const port = build_input.signal_key_interner.resolve(port_id);
             all.insert(std::string(port));
         }
         probes.assign(all.begin(), all.end());
@@ -250,7 +250,7 @@ int main(int argc, char* argv[]) {
         std::cout << std::setw(8) << step_num
                   << std::setw(10) << std::setprecision(4) << sim.get_time();
         for (const auto& p : probes) {
-            float v = sim.get_signal_value(sim.signal_key_interner().lookup(p));
+            float const v = sim.get_signal_value(sim.signal_key_interner().lookup(p));
             std::cout << std::setw(20) << std::setprecision(6) << v;
         }
         std::cout << "\n";

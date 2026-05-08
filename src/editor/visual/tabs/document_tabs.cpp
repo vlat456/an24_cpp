@@ -16,7 +16,7 @@ DocumentTabs::Result DocumentTabs::render(::WindowSystem& ws) {
     tab_bar_height_ = ImGui::GetItemRectSize().y;
 
     // One-shot: grab and consume the pending focus so SetSelected applies for exactly one frame
-    Document* focus_target = ws.pendingTabFocus();
+    Document const* focus_target = ws.pendingTabFocus();
 
     for (const auto& doc : ws.documents()) {
         // ImGui uses tab labels as IDs. Different documents can share the same

@@ -55,9 +55,9 @@ void Scene::render(IDrawList* dl, const RenderContext& ctx) {
     const bool has_bypass = static_cast<bool>(ctx.cache_bypass);
 
     for (auto* vw : visual_roots()) {
-        int li = static_cast<int>(vw->renderLayer());
+        int const li = static_cast<int>(vw->renderLayer());
 
-        an24::ScopedSection sec(prof, li);
+        an24::ScopedSection const sec(prof, li);
 
         // Sprite cache path: blit cached node, then render selection overlay.
         if (cache && vw->isClickable() && vw->is_node_kind()) {

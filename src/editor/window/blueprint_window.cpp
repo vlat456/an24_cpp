@@ -39,7 +39,7 @@ std::unique_ptr<EditingHost> make_embedded_host(bp2::EditorModel& root_model,
 
 void rebuild_root_scene(BlueprintWindow& window, const ComponentRegistry* parser_registry,
                             const editor::IconFont* icon_font) {
-    ComponentRegistry empty_reg;
+    ComponentRegistry const empty_reg;
     const ComponentRegistry& reg = parser_registry ? *parser_registry : empty_reg;
     visual::mutations::rebuild(window.scene, window.root_model.current(), window.interner,
         window.arena, std::span<const core::InternedId>{}, reg, nullptr, icon_font);
@@ -48,7 +48,7 @@ void rebuild_root_scene(BlueprintWindow& window, const ComponentRegistry* parser
 
 void rebuild_embedded_scene(BlueprintWindow& window, const ComponentRegistry* parser_registry,
                                 const editor::IconFont* icon_font) {
-    ComponentRegistry empty_reg;
+    ComponentRegistry const empty_reg;
     const ComponentRegistry& reg = parser_registry ? *parser_registry : empty_reg;
 
     const bp2::Blueprint* embedded_bp =
@@ -67,7 +67,7 @@ void rebuild_embedded_scene(BlueprintWindow& window, const ComponentRegistry* pa
 
 void rebuild_external_scene(BlueprintWindow& window, const ComponentRegistry* parser_registry,
                                 const editor::IconFont* icon_font) {
-    ComponentRegistry empty_reg;
+    ComponentRegistry const empty_reg;
     const ComponentRegistry& reg = parser_registry ? *parser_registry : empty_reg;
 
     std::vector<core::InternedId> instance_path(window.scope.path().begin(), window.scope.path().end());

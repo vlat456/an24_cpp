@@ -13,7 +13,7 @@ void OscilloscopeWindow::render(WindowSystem& ws) {
         return;
     }
 
-    Document* doc = ws.activeDocument();
+    Document const* doc = ws.activeDocument();
     if (!doc) {
         ImGui::TextDisabled("No active document");
         ImGui::End();

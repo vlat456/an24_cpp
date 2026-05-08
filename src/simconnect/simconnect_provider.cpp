@@ -94,7 +94,7 @@ void SimConnectProvider::handle_response(std::span<const uint8_t> payload) {
 }
 
 std::optional<SignalType> SimConnectProvider::signal_type(uint32_t signal_index) const {
-    ValType vt = val_type_for_signal(signal_index);
+    ValType const vt = val_type_for_signal(signal_index);
     switch (vt) {
         case ValType::Float32: return SignalType::Float32;
         case ValType::Int32:   return SignalType::Int32;
@@ -208,7 +208,7 @@ std::optional<SimVarMapping> SimConnectProvider::parse_mapping(
         ? SimVarDirection::Input : SimVarDirection::Output;
 
     std::string port_name = (mapping.direction == SimVarDirection::Input) ? "out" : "in";
-    std::string key_str = device.name + "." + port_name;
+    std::string const key_str = device.name + "." + port_name;
     mapping.signal_key = input.signal_key_interner.lookup(key_str);
     if (mapping.signal_key.empty()) {
         spdlog::warn("[SimConnectProvider] Device '{}' port '{}' key not interned, skipping",
@@ -232,9 +232,9 @@ std::optional<SimVarMapping> SimConnectProvider::parse_mapping(
 void SimConnectProvider::request_inputs() {
     if (input_mappings_.empty() || !is_connected()) return;
 
-    uint16_t tier_mask = tier_mask_for_frame(frame_counter_);
+    uint16_t const tier_mask = tier_mask_for_frame(frame_counter_);
 
-    size_t written = WireCodec::build_delta_read(
+    size_t const written = WireCodec::build_delta_read(
         send_buffer_.data(), send_buffer_.size(),
         tier_mask, host_epoch_);
 
@@ -291,8 +291,8 @@ void SimConnectProvider::extract_outputs_raw(const float* values, uint32_t value
     for (const auto& m : output_mappings_) {
         if (m.signal_index >= values_count) continue;
 
-        float value = values[m.signal_index];
-        WireValue current = float_to_wire_value(value, m.val_type);
+        float const value = values[m.signal_index];
+        WireValue const current = float_to_wire_value(value, m.val_type);
 
         auto shadow_it = output_shadow_.find(m.signal_index);
         if (shadow_it != output_shadow_.end()) {
@@ -311,7 +311,7 @@ void SimConnectProvider::extract_outputs_raw(const float* values, uint32_t value
     }
 
     if (!output_records_.empty()) {
-        size_t written = WireCodec::build_delta_write(
+        size_t const written = WireCodec::build_delta_write(
             send_buffer_.data(), send_buffer_.size(),
             output_records_, host_epoch_);
 
@@ -375,7 +375,7 @@ void SimConnectProvider::on_response(std::span<const uint8_t> payload) {
 
 void SimConnectProvider::handle_json_response(std::span<const uint8_t> payload) {
     try {
-        std::string_view sv(reinterpret_cast<const char*>(payload.data()), payload.size());
+        std::string_view const sv(reinterpret_cast<const char*>(payload.data()), payload.size());
         auto resp = nlohmann::json::parse(sv);
         if (resp.contains("cmd") && resp["cmd"].is_string()) {
             spdlog::debug("[SimConnectProvider] JSON response: {}", resp["cmd"].get<std::string>());
@@ -403,7 +403,7 @@ void SimConnectProvider::maybe_send_ping(double current_time) {
     if (current_time - last_ping_sent_time_ < PING_INTERVAL_SEC) return;
 
     uint16_t ping_id = next_ping_id_++;
-    size_t written = WireCodec::build_ping(
+    size_t const written = WireCodec::build_ping(
         send_buffer_.data(), send_buffer_.size(), ping_id);
 
     if (written > 0) {

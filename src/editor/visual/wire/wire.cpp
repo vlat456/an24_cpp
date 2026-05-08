@@ -43,7 +43,7 @@ std::optional<Pt> Wire::resolveEndpoint(const WireEndpoint& ep) const {
     if (!port) return std::nullopt;
 
     // Port center = port worldPos + (RADIUS, RADIUS)
-    Pt pos = port->worldPos();
+    Pt const pos = port->worldPos();
     return Pt(pos.x + PortConstants::RADIUS, pos.y + PortConstants::RADIUS);
 }
 
@@ -71,8 +71,8 @@ void Wire::rebuildGeometry() const {
     // Resolve current endpoint positions
     auto opt_start = resolveEndpoint(start_);
     auto opt_end   = resolveEndpoint(end_);
-    Pt cur_start = opt_start.value_or(Pt(0, 0));
-    Pt cur_end   = opt_end.value_or(Pt(0, 0));
+    Pt const cur_start = opt_start.value_or(Pt(0, 0));
+    Pt const cur_end   = opt_end.value_or(Pt(0, 0));
 
     // Auto-detect endpoint movement (epsilon tolerance for float rounding)
     if (!dirty_) {
@@ -103,10 +103,10 @@ void Wire::rebuildGeometry() const {
     constexpr float DST_OFFSET = PortConstants::RADIUS + DST_GAP;
     if (cached_polyline_.size() >= 2 && opt_start) {
         Pt& p0 = cached_polyline_.front();
-        Pt& p1 = cached_polyline_[1];
-        float dx = p1.x - p0.x;
-        float dy = p1.y - p0.y;
-        float len = std::sqrt(dx * dx + dy * dy);
+        Pt const& p1 = cached_polyline_[1];
+        float const dx = p1.x - p0.x;
+        float const dy = p1.y - p0.y;
+        float const len = std::sqrt(dx * dx + dy * dy);
         if (len > 1e-3f) {
             p0.x += (dx / len) * SRC_OFFSET;
             p0.y += (dy / len) * SRC_OFFSET;
@@ -114,10 +114,10 @@ void Wire::rebuildGeometry() const {
     }
     if (cached_polyline_.size() >= 2 && opt_end) {
         Pt& pN = cached_polyline_.back();
-        Pt& pPrev = cached_polyline_[cached_polyline_.size() - 2];
-        float dx = pPrev.x - pN.x;
-        float dy = pPrev.y - pN.y;
-        float len = std::sqrt(dx * dx + dy * dy);
+        Pt const& pPrev = cached_polyline_[cached_polyline_.size() - 2];
+        float const dx = pPrev.x - pN.x;
+        float const dy = pPrev.y - pN.y;
+        float const len = std::sqrt(dx * dx + dy * dy);
         if (len > 1e-3f) {
             pN.x += (dx / len) * DST_OFFSET;
             pN.y += (dy / len) * DST_OFFSET;
@@ -215,7 +215,7 @@ static WireStyle resolve_wire_style(const Wire& wire, const RenderContext& ctx,
                                     std::string_view wire_id, const Scene* scene,
                                     const WireEndpoint& start, const WireEndpoint& end) {
     uint32_t color = render_theme::COLOR_WIRE_UNSEL;
-    float thickness = Wire::WIRE_THICKNESS * ctx.zoom;
+    float const thickness = Wire::WIRE_THICKNESS * ctx.zoom;
 
     if (!ctx.selected_wire_id.empty() && ctx.selected_wire_id == wire_id) {
         return {render_theme::COLOR_WIRE, 2.5f * ctx.zoom};
@@ -254,12 +254,12 @@ static void render_crossing_arcs(IDrawList* dl, const RenderContext& ctx,
                                  uint32_t color, float thickness) {
     for (const auto& crossing : crossings) {
         if (!crossing.draw_arc) continue;
-        Pt sc = ctx.world_to_screen(crossing.pos);
-        float arc_r = render_theme::ARC_RADIUS_WORLD * ctx.zoom;
-        bool vert = (crossing.my_seg_dir == SegDir::Horiz || crossing.my_seg_dir == SegDir::Unknown);
+        Pt const sc = ctx.world_to_screen(crossing.pos);
+        float const arc_r = render_theme::ARC_RADIUS_WORLD * ctx.zoom;
+        bool const vert = (crossing.my_seg_dir == SegDir::Horiz || crossing.my_seg_dir == SegDir::Unknown);
         Pt arc_pts[render_theme::ARC_SEGMENTS + 1];
         for (int i = 0; i <= render_theme::ARC_SEGMENTS; ++i) {
-            float angle = 3.14159265f * static_cast<float>(i) / render_theme::ARC_SEGMENTS;
+            float const angle = 3.14159265f * static_cast<float>(i) / render_theme::ARC_SEGMENTS;
             arc_pts[i] = vert ? Pt(sc.x + std::cos(angle) * arc_r, sc.y - std::sin(angle) * arc_r)
                               : Pt(sc.x + std::sin(angle) * arc_r, sc.y + std::cos(angle) * arc_r);
         }
@@ -278,12 +278,12 @@ static void render_polyline_with_crossings(IDrawList* dl, const RenderContext& c
         if (!c.draw_arc) continue;
         for (size_t i = 0; i + 1 < world_pts.size(); ++i) {
             Pt a = world_pts[i], b = world_pts[i + 1];
-            float seg_len_sq = (b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y);
+            float const seg_len_sq = (b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y);
             if (seg_len_sq < 1e-6f) continue;
-            float t = ((c.pos.x - a.x) * (b.x - a.x) + (c.pos.y - a.y) * (b.y - a.y)) / seg_len_sq;
+            float const t = ((c.pos.x - a.x) * (b.x - a.x) + (c.pos.y - a.y) * (b.y - a.y)) / seg_len_sq;
             if (t >= -0.01f && t <= 1.01f) {
-                Pt proj(a.x + t * (b.x - a.x), a.y + t * (b.y - a.y));
-                float dist_sq = (proj.x - c.pos.x) * (proj.x - c.pos.x) +
+                Pt const proj(a.x + t * (b.x - a.x), a.y + t * (b.y - a.y));
+                float const dist_sq = (proj.x - c.pos.x) * (proj.x - c.pos.x) +
                                 (proj.y - c.pos.y) * (proj.y - c.pos.y);
                 if (dist_sq < 1.0f) {
                     segs.push_back({i, std::max(0.0f, std::min(1.0f, t)), c.pos, c.my_seg_dir});
@@ -297,13 +297,13 @@ static void render_polyline_with_crossings(IDrawList* dl, const RenderContext& c
     });
 
     // Draw polyline sub-segments, leaving gaps at crossings
-    float gap_r = render_theme::ARC_RADIUS_WORLD;
+    float const gap_r = render_theme::ARC_RADIUS_WORLD;
     ui::SmallVector<Pt, 16> current_sub;
     size_t cross_i = 0;
 
     for (size_t seg = 0; seg + 1 < world_pts.size(); ++seg) {
         Pt a = world_pts[seg], b = world_pts[seg + 1];
-        float seg_len = std::sqrt((b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y));
+        float const seg_len = std::sqrt((b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y));
 
         ui::SmallVector<float, 4> seg_ts;
         while (cross_i < segs.size() && segs[cross_i].seg_idx == seg) {
@@ -317,8 +317,8 @@ static void render_polyline_with_crossings(IDrawList* dl, const RenderContext& c
         } else {
             if (current_sub.empty()) current_sub.push_back(ctx.world_to_screen(a));
             float last_gap_end_t = -1.0f;
-            for (float ct : seg_ts) {
-                float gap_t = (seg_len > 1e-3f) ? gap_r / seg_len : 0.5f;
+            for (float const ct : seg_ts) {
+                float const gap_t = (seg_len > 1e-3f) ? gap_r / seg_len : 0.5f;
                 float t_before = ct - gap_t, t_after = ct + gap_t;
                 if (t_before < last_gap_end_t) { last_gap_end_t = std::max(last_gap_end_t, t_after); continue; }
                 if (t_before > 0.001f) {
@@ -348,19 +348,19 @@ static void render_polyline_with_crossings(IDrawList* dl, const RenderContext& c
 static void render_arrowhead(IDrawList* dl, const RenderContext& ctx,
                              const std::vector<Pt>& world_pts,
                              uint32_t color, float thickness, float base_thickness) {
-    Pt end = world_pts.back();
-    Pt prev = world_pts[world_pts.size() - 2];
+    Pt const end = world_pts.back();
+    Pt const prev = world_pts[world_pts.size() - 2];
     float dx = end.x - prev.x, dy = end.y - prev.y;
-    float len = std::sqrt(dx * dx + dy * dy);
+    float const len = std::sqrt(dx * dx + dy * dy);
     if (len < 1e-3f) return;
     dx /= len; dy /= len;
 
-    float scale = thickness / (base_thickness * ctx.zoom);
-    float arrow_len = 7.0f * ctx.zoom * scale;
-    float arrow_width = 3.5f * ctx.zoom * scale;
+    float const scale = thickness / (base_thickness * ctx.zoom);
+    float const arrow_len = 7.0f * ctx.zoom * scale;
+    float const arrow_width = 3.5f * ctx.zoom * scale;
 
-    Pt screen_end = ctx.world_to_screen(end);
-    Pt base_center(screen_end.x - dx * arrow_len, screen_end.y - dy * arrow_len);
+    Pt const screen_end = ctx.world_to_screen(end);
+    Pt const base_center(screen_end.x - dx * arrow_len, screen_end.y - dy * arrow_len);
     float px = -dy, py = dx;
     dl->add_triangle_filled(screen_end,
         Pt(base_center.x + px * arrow_width, base_center.y + py * arrow_width),
@@ -393,12 +393,12 @@ void Wire::render(IDrawList* dl, const RenderContext& ctx) const {
     // Routing point handles (when wire is selected or hovered)
     if ((!ctx.selected_wire_id.empty() && ctx.selected_wire_id == id_) ||
         (!ctx.hovered_wire_id.empty() && ctx.hovered_wire_id == id_)) {
-        float rp_radius = 4.0f * ctx.zoom;
+        float const rp_radius = 4.0f * ctx.zoom;
         const bool match_wire = !ctx.hovered_routing_point.empty()
                              && ctx.hovered_routing_point.wire_iid == iid_;
         for (size_t ci = 0; ci < children().size(); ++ci) {
-            Pt screen_rp = ctx.world_to_screen(children()[ci]->worldPos());
-            uint32_t rp_color = (match_wire && ctx.hovered_routing_point.index == ci)
+            Pt const screen_rp = ctx.world_to_screen(children()[ci]->worldPos());
+            uint32_t const rp_color = (match_wire && ctx.hovered_routing_point.index == ci)
                 ? render_theme::COLOR_WIRE_HOVER : render_theme::COLOR_ROUTING_POINT;
             handle_renderer::draw_handle(*dl, screen_rp, rp_radius, rp_color);
         }
@@ -454,10 +454,10 @@ void compute_wire_crossings(Scene& scene) {
 
         for (size_t a = 0; a < cell_wires.size(); ++a) {
             for (size_t b = a + 1; b < cell_wires.size(); ++b) {
-                size_t idx_a = wire_index[cell_wires[a]];
-                size_t idx_b = wire_index[cell_wires[b]];
-                size_t lo = idx_a < idx_b ? idx_a : idx_b;
-                size_t hi = idx_a < idx_b ? idx_b : idx_a;
+                size_t const idx_a = wire_index[cell_wires[a]];
+                size_t const idx_b = wire_index[cell_wires[b]];
+                size_t const lo = idx_a < idx_b ? idx_a : idx_b;
+                size_t const hi = idx_a < idx_b ? idx_b : idx_a;
 
                 if (!checked.emplace(lo, hi).second) continue;
 
@@ -472,10 +472,10 @@ void compute_wire_crossings(Scene& scene) {
                         auto pt = segment_crosses(poly_lo[i], poly_lo[i + 1],
                                                   poly_hi[j], poly_hi[j + 1]);
                         if (pt) {
-                            SegDir lo_dir = segment_direction(poly_lo[i], poly_lo[i + 1]);
+                            SegDir const lo_dir = segment_direction(poly_lo[i], poly_lo[i + 1]);
                             w_lo->appendCrossing({*pt, lo_dir, false});
 
-                            SegDir hi_dir = segment_direction(poly_hi[j], poly_hi[j + 1]);
+                            SegDir const hi_dir = segment_direction(poly_hi[j], poly_hi[j + 1]);
                             w_hi->appendCrossing({*pt, hi_dir, true});
                         }
                     }

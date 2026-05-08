@@ -101,7 +101,7 @@ void ScriptEditorWindow::render() {
 #ifndef EDITOR_TESTING
     ImGui::SetNextWindowSize(ImVec2(700, 500), ImGuiCond_FirstUseEver);
     bool window_open = true;
-    std::string node_id_label(interner_->resolve(target_node_id_));
+    std::string const node_id_label(interner_->resolve(target_node_id_));
     if (ImGui::Begin(("Script Editor: " + node_id_label).c_str(), &window_open)) {
         ImGui::Text("Lua Script — %s", node_id_label.c_str());
         ImGui::Separator();
