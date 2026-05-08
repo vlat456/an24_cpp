@@ -240,22 +240,22 @@ TEST(ProviderHostTest, ToggleEnabledDisconnectsAndReconnectsProvider) {
     sim.start(input);
     host.build(input, sim);
 
-    ASSERT_EQ(host.provider_count(), 1u);
+     ASSERT_EQ(host.provider_count(), 1u);
     EXPECT_TRUE(host.is_connected());
-    EXPECT_TRUE(host.is_type_connected("simconnect"));
+    EXPECT_TRUE(*host.is_type_connected("simconnect"));
 
     // Disable → disconnects matching provider
     bool new_state = host.toggle_enabled("simconnect");
     EXPECT_FALSE(new_state);
     EXPECT_FALSE(host.is_connected());
-    EXPECT_FALSE(host.is_type_connected("simconnect"));
+    EXPECT_FALSE(*host.is_type_connected("simconnect"));
     EXPECT_EQ(host.provider_count(), 1u);  // provider still exists, just disconnected
 
     // Enable → reconnects matching provider
     new_state = host.toggle_enabled("simconnect");
     EXPECT_TRUE(new_state);
     EXPECT_TRUE(host.is_connected());
-    EXPECT_TRUE(host.is_type_connected("simconnect"));
+    EXPECT_TRUE(*host.is_type_connected("simconnect"));
 }
 
 // ==...== Teardown clears providers but preserves enabled state ==...==
@@ -288,9 +288,9 @@ TEST(ProviderHostTest, TeardownIdempotent) {
     EXPECT_EQ(host.provider_count(), 0u);
 }
 
-// ==...== is_type_connected returns false for unknown type ==...==
+// ==...== is_type_connected returns nullopt for unknown type ==...==
 
-TEST(ProviderHostTest, IsTypeConnectedReturnsFalseForUnknownType) {
+TEST(ProviderHostTest, IsTypeConnectedReturnsNulloptForUnknownType) {
     SimvarProviderHost host;
-    EXPECT_FALSE(host.is_type_connected("nonexistent"));
+    EXPECT_EQ(host.is_type_connected("nonexistent"), std::nullopt);
 }
