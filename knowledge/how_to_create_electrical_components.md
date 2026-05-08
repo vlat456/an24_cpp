@@ -1,6 +1,6 @@
 # How To Create Electrical Components
 
-Practical guide for creating electrical components in the current architecture.
+Practical guide for creating electrical (and hydraulic/pneumatic) components in the current architecture.
 
 ## Decide Component Type First
 
@@ -17,23 +17,23 @@ For new work, prefer primitives.
 
 ---
 
-## Supported Electrical Solver Roles
+## Supported Nodal Solver Roles
 
-Current role kinds:
+Current role kinds (domain-agnostic):
 
-- `FixedVoltageNode`
-- `TheveninSource`
-- `ConductanceBranch`
+- `FixedNode` — clamps node potential (voltage/pressure)
+- `TheveninSource` — source with internal resistance
+- `ConductanceBranch` — linear conductance between two nodes
 
-If your component cannot map to these, it is out of scope for current MVP and needs architecture extension.
+If your component cannot map to these, it needs architecture extension.
 
 ---
 
-## Step-by-Step: Primitive Electrical Component
+## Step-by-Step: Primitive Component
 
-## 1) Add library blueprint definition
+### 1) Add library blueprint definition
 
-Create `library/electrical/MyElectricalThing.blueprint`.
+Create `library/<domain>/MyComponent.blueprint`.
 
 Required fields:
 
@@ -45,9 +45,7 @@ Required fields:
 - `param_defaults`
 - `solver_role`
 
-Example (conductance branch):
-
-This example is a **library type-definition asset** (`library/**/*.blueprint`), not a canonical strict-v1 blueprint document.
+Example (conductance branch, electrical):
 
 ```json
 {
@@ -72,30 +70,66 @@ This example is a **library type-definition asset** (`library/**/*.blueprint`), 
 }
 ```
 
-## 2) Add C++ component files
+Example (hydraulic valve):
 
-Add header/source under `src/jit_solver/components/`.
+```json
+{
+  "version": "3.0",
+  "id": "HydraulicValve",
+  "display_name": "Hydraulic Valve",
+  "scheduler_source": false,
+  "interface": [
+    { "name": "p_in",  "domain": 8, "direction": 0, "type": "Pressure" },
+    { "name": "p_out", "domain": 8, "direction": 1, "type": "Pressure" },
+    { "name": "ctrl",  "domain": 2, "direction": 0, "type": "Signal" }
+  ],
+  "cpp_class": true,
+  "domains": ["Hydraulic"],
+  "param_defaults": {
+    "max_conductance": "1.0"
+  },
+  "solver_role": {
+    "kind": "ConductanceBranch",
+    "ports": { "a": "p_in", "b": "p_out" },
+    "params": { "g": "max_conductance" }
+  }
+}
+```
+
+### 2) Add C++ component files
+
+Add header/source under `src/core/solvers/jit/components/`.
 
 For solver-owned primitives, `execute`/`commit` are usually no-op:
 
 ```cpp
 template <typename Provider>
-void ElectricalConductanceLike<Provider>::execute(SimulationState&, float) {}
+void ElectricalConductanceLike<Provider>::execute(SimulationState&, double) {}
 
 template <typename Provider>
-void ElectricalConductanceLike<Provider>::commit(SimulationState&, float) {}
+void ElectricalConductanceLike<Provider>::commit(SimulationState&, double) {}
 ```
 
-If you need derived outputs (observer behavior), compute those from solved values in `execute`.
+If you need derived outputs (observer behavior), compute those from solved values in `execute`:
 
-## 3) Register in component includes/variant
+```cpp
+template <typename Provider>
+void CurrentSense<Provider>::execute(SimulationState& st, double) {
+    if (st.electrical_rt != nullptr) {
+        float i = get_branch_current(*st.electrical_rt, handle_);
+        st.values[provider.get(PortNames::i_out)] = i;
+    }
+}
+```
+
+### 3) Register in component includes/variant
 
 Update:
 
-- `src/jit_solver/components/all.h`
+- `src/core/solvers/jit/components/all.h`
 - relevant variant registration paths in `jit_solver` build logic
 
-## 4) Regenerate port registry
+### 4) Regenerate port registry
 
 Run:
 
@@ -103,93 +137,52 @@ Run:
 cmake --build build --target regenerate_port_registry
 ```
 
-This updates `src/core/solvers/common/port_registry.h`.
+This updates:
+- `src/core/solvers/jit/build_factory.cpp`
+- `src/core/model/component_kind.h`
 
-## 5) Ensure builder path recognizes component
+### 5) Add library index entry
 
-If `solver_role` metadata is present and loaded through parser pipeline, extraction should use metadata path.
+Ensure `library/library_index.json` contains an entry for the new component.
 
-If tests build raw `DeviceInstance` directly (without library merge), fallback classname extraction may still be needed.
+### 6) Write tests
 
-## 6) Add tests
+Add tests in `tests/` following existing patterns:
 
-Minimum tests:
-
-1. build extraction kind/params are correct
-2. primitive-only circuit solves expected voltages/currents
-3. mixed primitive + wrapper circuit remains stable
-4. metadata validation failures are clear (missing role keys/ports/params)
-
-Existing suites to extend:
-
-- `tests/test_electrical_primitives.cpp`
-- `tests/test_electrical_island_build.cpp`
-- `tests/test_electrical_subsolver.cpp`
+```cpp
+TEST(MyComponentTest, BasicBehavior) {
+    auto comp = make_my_component();
+    auto st = make_state();
+    comp.execute(st, 1.0/60.0);
+    EXPECT_NEAR(st.values[provider.get(PortNames::out)], expected, 0.001f);
+}
+```
 
 ---
 
-## Step-by-Step: Wrapper Electrical Component (When Needed)
+## Domain Values Reference
 
-Use this path only when primitive role mapping is not enough.
-
-1. Implement component class with runtime state/outputs as needed.
-2. Keep electrical propagation solver-owned where possible.
-3. Add explicit extraction mapping in `src/jit_solver/jit_solver.cpp` (classname fallback path).
-4. Add handle assignment if component needs branch current feedback.
-5. Add regression tests for both extraction and runtime behavior.
-
-Avoid adding new pass-through electrical writes in push phase.
-
----
-
-## CurrentSense Pattern (Reference)
-
-`CurrentSense` currently demonstrates correct observer behavior:
-
-- extraction maps it to `ConductanceBranch`
-- runtime reads solved branch current by handle
-- no local fake current formula
-
-Use this pattern for future electrical meters/probes.
+| Domain | JSON String | Numeric Value |
+|--------|-------------|---------------|
+| Electrical | `"Electrical"` | 1 |
+| Logical | `"Logical"` | 2 |
+| Mechanical | `"Mechanical"` | 4 |
+| Hydraulic | `"Hydraulic"` | 8 |
+| Thermal | `"Thermal"` | 16 |
+| Pneumatic | `"Pneumatic"` | 32 |
 
 ---
 
-## Battery Pattern (Reference — Composite Approach)
+## Files
 
-The `12SAM28` battery is now a **pure composite blueprint** (`library/systems/12SAM28.blueprint`), not a C++ class. It demonstrates how to build complex electrical subsystems from primitives:
-
-- **ControlledVoltageSource**: Thevenin source (solver-owned, reads `cmd` from signal array)
-- **CurrentSense**: measures branch current (solver-owned, writes `i_out` to signal array)
-- **Multiply + Accumulator**: coulomb counting (integrates current to get charge in Ah)
-- **Normalize + LUT**: SOC → OCV feedback loop
-- **Splitter**: fans out signals for multiple consumers (one-to-one wiring constraint)
-
-Key design points:
-
-1. **One-frame delay in feedback**: CVS reads `cmd` in `update_dynamic_sources` (phase 1), but LUT writes new `cmd` in `scheduler.step` (phase 3). Tests need 2 warmup steps.
-2. **Port naming**: After expansion as device `sb`, ports are `sb:v_out.ext` (not `sb.v_out`). `get_port_value("sb", "v_out")` handles this automatically.
-3. **Accumulator initial value**: Set via `initial_val` param (28 Ah). First-frame cold-start logic snaps to this value.
-
-If adding similar stateful sources, prefer composites over new C++ classes. Use `commit()` for state integration in primitive components.
-
----
-
-## Common Pitfalls
-
-1. forgetting to regenerate `port_registry.h`
-2. adding new ports but not writing outputs in component runtime
-3. relying on direct `build_systems_dev()` tests without realizing `solver_role` may not be populated there
-4. reintroducing electrical pass-through writes for solver-owned components
-5. using float accumulators for tiny long-run deltas (use `double` for accumulated state)
-
----
-
-## Quick Checklist
-
-- [ ] blueprint has valid `solver_role`
-- [ ] ports/params mapped correctly in role metadata
-- [ ] C++ component added and included
-- [ ] port registry regenerated
-- [ ] extraction path verified (metadata and/or fallback)
-- [ ] regression tests added
-- [ ] no push pass-through electrical writes for solver-owned propagation
+| File | Purpose |
+|------|---------|
+| `src/core/solvers/jit/components/all.h` | Component includes |
+| `src/core/solvers/jit/build_factory.cpp` | AUTO-GENERATED factory |
+| `src/core/model/component_kind.h` | AUTO-GENERATED ComponentKind enum |
+| `src/core/solvers/common/build_algorithms.h` | Build algorithms |
+| `src/core/solvers/common/element_extraction.h` | Element extraction |
+| `src/core/solvers/common/nodal_types.h` | Nodal types |
+| `src/core/domain_types.h` | Domain enum |
+| `library/library_index.json` | Library index |
+| `src/io/json/component_registry_json_loader.h` | JSON loader |

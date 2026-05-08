@@ -10,16 +10,24 @@ An-24 is a real-time flight simulation system built around a modular component a
 │  (ImGui + OpenGL, Blueprint editing, Node widgets, Wire routing)        │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                        Blueprint V2 Layer                                │
-│  (Immutable data model, TypeRegistry, Flattener, Validation, Commands)  │
+│  (Immutable data model, ComponentRegistry, Flattener, Validation,      │
+│   Codec, EditorModel, LibraryIndex)                                     │
+├─────────────────────────────────────────────────────────────────────────┤
+│                         UI Framework                                     │
+│  (Scene, Widget, Grid, Layout, RenderContext — src/ui/)                 │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                         JIT Solver                                       │
-│  (SimulationState SoA, Domain scheduling, ComponentVariant dispatch)    │
+│  (SimulationState, Domain scheduling, ComponentVariant dispatch,        │
+│   Multi-domain nodal subsolver)                                         │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                       Component Layer                                    │
 │  (Template-based components with Provider pattern for port access)       │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                        Code Generation                                   │
 │  (AOT C++ generation from blueprints, compile-time optimization)         │
+├─────────────────────────────────────────────────────────────────────────┤
+│                       SimConnect Bridge                                  │
+│  (MSFS 2024 V2 delta wire protocol, SimVarProvider I/O)                  │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -38,17 +46,18 @@ Blueprint V2 uses copy-on-write semantics:
 
 ### 3. Structure of Arrays (SoA)
 SimulationState stores physics data in a unified signal array:
-- `values[]` - node values used by both push scheduler and electrical subsolver
+- `values[]` - node values used by both push scheduler and nodal subsolvers
 
 ### 4. Hybrid Execution Model
-The simulator uses both push scheduling and local electrical subsolver:
+The simulator uses both push scheduling and domain-specific nodal subsolvers:
 | Domain | Frequency | Execution |
 |--------|-----------|-----------|
-| Electrical | 60 Hz | Local island subsolver |
+| Electrical | 60 Hz | Nodal island subsolver |
 | Logical | 60 Hz | Push scheduler |
 | Mechanical | 20 Hz | Push scheduler |
-| Hydraulic | 5 Hz | Push scheduler |
+| Hydraulic | 5 Hz | Nodal island subsolver |
 | Thermal | 1 Hz | Push scheduler |
+| Pneumatic | 5 Hz | Nodal island subsolver |
 
 ### 5. ComponentVariant (Type-Safe Polymorphism)
 Uses `std::variant` instead of virtual functions:
@@ -57,88 +66,52 @@ using ComponentVariant = std::variant<
     Battery<JitProvider>,
     Switch<JitProvider>,
     AND<JitProvider>,
-    // ... all components
+    ...
 >;
 ```
+Dispatched via `std::visit` or pre-built typed pointer lists (SolverOwnedRefs).
 
-## Directory Structure
+### 6. Multi-Domain Nodal Solver
+A single domain-agnostic nodal solver (`solve_nodal`) handles:
+- **Electrical**: voltage / current
+- **Hydraulic**: pressure / flow
+- **Pneumatic**: pressure / flow
 
-```
-src/
-├── core/                    # Core simulation engine
-│   ├── model/               # ComponentSpec, ComponentRegistry, TypePresentation
-│   ├── solvers/
-│   │   ├── jit/             # Runtime solver + components
-│   │   │   ├── jit_solver.h # Build system, ComponentVariant
-│   │   │   ├── jit_solver.cpp (1958 LOC - needs splitting)
-│   │   │   ├── scheduler.h  # PushScheduler
-│   │   │   ├── simulator.h # Simulator class
-│   │   │   ├── state.h      # SimulationState (SoA arrays)
-│   │   │   ├── provider.h   # Provider pattern (port access abstraction)
-│   │   │   ├── components/  # All component implementations (~70)
-│   │   │   └── subsolvers/  # Electrical subsolver
-│   │   ├── aot/             # AOT code generation
-│   │   │   ├── codegen.h
-│   │   │   ├── codegen_composite.cpp  # Composite codegen (Flattener pipeline)
-│   │   │   ├── codegen_header.cpp
-│   │   │   ├── codegen_source.cpp
-│   │   │   └── electrical_codegen.cpp
-│   │   └── common/          # Shared types (signal_allocation, signal_union_rules, port_registry)
-│   ├── registry/            # Component resolution (DELETED: composite_expansion)
-│   └── utils/               # UnionFind, shared utilities
-├── blueprint_v2/            # Modern blueprint data model
-│   ├── blueprint/           # Core Blueprint class
-│   ├── library/             # BlueprintLibrary, type_def_to_blueprint
-│   ├── flattener/           # Blueprint flattening + FlatNetlist
-│   ├── elaboration/         # FlatNetlist → BuildInput conversion
-│   │   ├── elaboration_utils.h/.cpp    # Lightweight shared utils (no JIT dep)
-│   │   ├── elaboration_detail.h        # Shared device builder (JIT+codegen)
-│   │   ├── codegen_export.h/.cpp       # CodegenBuildInput + elaborate_for_codegen
-│   │   └── sim_export.h/.cpp           # JitBuildInput + elaborate_for_jit
-│   ├── interface/           # Port descriptors
-│   └── validation/          # Invariant checking
-├── editor/                  # Visual blueprint editor
-│   ├── data/                # Legacy data structures
-│   ├── visual/              # Widgets, rendering
-│   ├── commands/            # Command pattern
-│   └── router/              # Wire routing
-├── io/json/                 # JSON loading/parsing adapters
-└── ui/                      # Generic UI framework
+Each domain has its own `NodalRuntimeState` pointer in `SimulationState`.
 
-library/                     # Component definitions (JSON)
-tests/                       # Google Test suites
-examples/                    # Demo programs
-generated/                   # AOT-generated C++ code
-```
+## Subsystem Map
 
-## Simulation Loop (Current)
+| Subsystem | Path | Key Files |
+|-----------|------|-----------|
+| JIT Solver | `src/core/solvers/jit/` | `simulator.h`, `state.h`, `scheduler.h`, `jit_solver.h` |
+| AOT Codegen | `src/core/solvers/aot/` | `codegen.h`, `electrical_codegen.cpp` |
+| Shared Solver | `src/core/solvers/common/` | `build_algorithms.h`, `element_extraction.h`, `nodal_types.h` |
+| Blueprint V2 | `src/blueprint_v2/` | `blueprint/blueprint.h`, `editor_model/editor_model.h`, `codec/blueprint_codec.h` |
+| Editor | `src/editor/` | `window_system.h`, `document.h`, `visual/scene.h` |
+| UI Framework | `src/ui/` | `core/scene.h`, `core/widget.h`, `core/grid.h` |
+| SimConnect | `src/simconnect/` | `simconnect_provider.h`, `wire_protocol.h`, `wire_codec.h` |
+| Component Registry | `src/core/model/` | `component_registry.h`, `component_spec.h` |
+| JSON I/O | `src/io/json/` | `parse_json_api.h`, `component_registry_json_loader.h` |
+| Domain Types | `src/core/` | `domain_types.h` |
+| Strings | `src/core/strings/` | `interned_id.h` |
+| Registry | `src/core/registry/` | `component_resolution.h` |
 
-```
-For each frame (60 Hz):
-  1. Electrical subsolver solves connected islands
-  2. Push scheduler executes logical/mechanical/etc. components
-  3. Commit pass for stateful components (Battery discharge, state transitions)
-```
+## File Reference
 
-The electrical subsolver handles closed electrical networks while the push scheduler handles the rest.
-
-## Key Files Quick Reference
-
-| Purpose | File |
-|---------|------|
-| Simulation State | `src/core/solvers/jit/state.h` |
-| Component Provider | `src/core/solvers/common/provider.h` |
-| Provider Pattern | `src/core/solvers/common/provider.h` |
-| All Components | `src/core/solvers/jit/components/all.h` |
-| JIT Solver Build | `src/core/solvers/jit/jit_solver.h` |
-| Push Scheduler | `src/core/solvers/jit/scheduler.h` |
-| Simulator | `src/core/simulator.h` |
-| Blueprint V2 | `src/blueprint_v2/blueprint/blueprint.h` |
-| Canonical Component Registry | `src/core/model/component_registry.h` |
-| Code Generator | `src/core/solvers/aot/codegen.h` |
-| JSON Parser | `src/io/json/parse_json_api.h` |
-
-## Related Knowledge Notes
-
-- `knowledge/component_authoring.md` - rules for writing stable components
-- `knowledge/10_quick_reference.md` - updated with new file paths
+| Component | File |
+|-----------|------|
+| SimulationState | `src/core/solvers/jit/state.h` |
+| Simulator | `src/core/solvers/jit/simulator.h` |
+| PushScheduler | `src/core/solvers/jit/scheduler.h` |
+| JIT Solver | `src/core/solvers/jit/jit_solver.h` |
+| Nodal Subsolver | `src/core/solvers/jit/subsolvers/nodal_subsolver.h` |
+| ComponentRegistry | `src/core/model/component_registry.h` |
+| ComponentSpec | `src/core/model/component_spec.h` |
+| Blueprint | `src/blueprint_v2/blueprint/blueprint.h` |
+| EditorModel | `src/blueprint_v2/editor_model/editor_model.h` |
+| BlueprintCodec | `src/blueprint_v2/codec/blueprint_codec.h` |
+| Document | `src/editor/document.h` |
+| WindowSystem | `src/editor/window_system.h` |
+| Scene | `src/editor/visual/scene.h` |
+| UI Scene | `src/ui/core/scene.h` |
+| SimConnectProvider | `src/simconnect/simconnect_provider.h` |

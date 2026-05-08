@@ -107,9 +107,11 @@ The simulator uses a **hybrid model**:
 
 1. **Clamp dt** - `dt = std::min(dt, MAX_DT)` where MAX_DT=0.1s to prevent physics explosions
 2. **Pre-solve** - Update dynamic sources (CVS, variable conductance, AZS)
-3. **Solve electrical** - Local island subsolver for closed electrical networks
-4. **Push scheduler** - Execute all logical/mechanical/hydraulic/thermal components
-5. **Commit pass** - Battery discharge, state transitions
+3. **Solve electrical** - Domain-agnostic nodal subsolver for electrical networks
+4. **Solve hydraulic** - Domain-agnostic nodal subsolver for hydraulic networks (if present)
+5. **Solve pneumatic** - Domain-agnostic nodal subsolver for pneumatic networks (if present)
+6. **Push scheduler** - Execute all logical/mechanical/thermal components
+7. **Commit pass** - Battery discharge, state transitions
 
 **One-frame delay semantics**: State changes in `commit()` take effect in the next frame's `execute()`.
 
@@ -138,21 +140,33 @@ The simulator uses a **hybrid model**:
 
 ```
 src/
-├── jit_solver/       # Runtime solver + components
-│   ├── components/   # All component implementations
-│   ├── state.h       # SimulationState (values[] array)
-│   ├── jit_solver.h  # Build system, ComponentVariant
-│   ├── simulator.h   # Simulator class
-│   ├── scheduler.h   # PushScheduler
-│   └── subsolvers/   # Electrical subsolver
-├── io/json/         # JSON loading/parsing adapters
-├── codegen/         # AOT code generation
-├── editor/          # Visual blueprint editor (ImGui + OpenGL)
-├── blueprint_v2/    # Blueprint model, registry, flattener
-tests/               # Google Test executables
-examples/            # Demo programs (editor, benchmarks)
-library/             # Component library definitions (JSON blueprints)
-generated/           # AOT-generated C++ code
+├── blueprint_v2/       # Blueprint model, codec, flattener, validation
+│   ├── blueprint/      # Blueprint class
+│   ├── codec/          # BlueprintCodec strict v1 persistence
+│   ├── editor_model/   # EditorModel with undo/redo
+│   ├── flattener/      # Blueprint flattening
+│   ├── library/        # LibraryIndex
+│   └── validation/     # Validation suite
+├── core/
+│   ├── model/          # ComponentRegistry, ComponentSpec
+│   ├── registry/       # Component resolution
+│   ├── solvers/
+│   │   ├── aot/        # AOT code generation
+│   │   ├── common/     # Shared solver utilities, nodal types
+│   │   └── jit/        # JIT runtime, simulator, scheduler, components
+│   ├── strings/        # String interning (InternedId)
+│   └── utils/          # UnionFind, etc.
+├── editor/             # Visual blueprint editor (ImGui + OpenGL)
+│   ├── input/          # Canvas input FSM
+│   ├── visual/         # Scene, widgets, rendering
+│   └── window/         # Window management
+├── io/json/            # JSON loading/parsing adapters
+├── simconnect/         # MSFS 2024 SimConnect integration
+└── ui/                 # UI framework (Scene, Widget, Grid)
+tests/                  # Google Test executables
+examples/               # Demo programs (editor, benchmarks)
+library/                # Component library definitions (JSON blueprints)
+generated/              # AOT-generated C++ code
 ```
 
 ## Common Patterns
@@ -183,13 +197,17 @@ void MyComponent::commit(SimulationState& st, double dt) {
 }
 ```
 
-### Reading Solved Electrical State
+### Reading Solved Nodal State
 
 ```cpp
 void MyComponent::execute(SimulationState& st, double /*dt*/) {
     if (st.electrical_rt != nullptr) {
         float current = get_branch_current(*st.electrical_rt, electrical_handle);
         st.values[provider.get(PortNames::i_out)] = current;
+    }
+    if (st.hydraulic_rt != nullptr) {
+        float flow = get_branch_current(*st.hydraulic_rt, hydraulic_handle);
+        st.values[provider.get(PortNames::flow_out)] = flow;
     }
 }
 ```

@@ -1,6 +1,6 @@
 # Component System
 
-This document reflects the current component model after electrical subsolver migration.
+This document reflects the current component model after electrical subsolver migration and multi-domain expansion.
 
 ## Component Shape
 
@@ -54,12 +54,46 @@ struct AotProvider {
 
 ## ComponentVariant
 
-All JIT components are stored in a `std::variant` (`ComponentVariant`) and dispatched via `std::visit`.
+All JIT components are stored in a `std::variant` (`ComponentVariant`) and dispatched via `std::visit` or pre-built typed pointers.
 
 Files:
 
-- `src/jit_solver/components/all.h`
-- `src/jit_solver/jit_solver.h`
+- `src/core/solvers/jit/components/all.h`
+- `src/core/solvers/jit/jit_solver.h`
+
+---
+
+## Domains
+
+```cpp
+enum class Domain : uint8_t {
+    Electrical = 1 << 0,   // 1
+    Logical    = 1 << 1,   // 2
+    Mechanical = 1 << 2,   // 4
+    Hydraulic  = 1 << 3,   // 8
+    Thermal    = 1 << 4,   // 16
+    Pneumatic  = 1 << 5,   // 32
+};
+```
+
+Domains are bitmasks — a component can belong to multiple domains.
+
+## Port Types
+
+```cpp
+enum class PortType {
+    V,              // Voltage (Electrical default)
+    I,              // Current (Electrical default)
+    Signal,         // Generic float signal (Logical default)
+    Bool,           // Boolean signal (Logical default)
+    RPM,            // Rotational speed (Mechanical default)
+    Temperature,    // Thermal
+    Pressure,       // Pressure (Hydraulic default)
+    Position,       // Linear/angular position (Mechanical default)
+    Contextual,     // Domain-inferred from context
+    Any,            // Wildcard / untyped
+};
+```
 
 ---
 
@@ -99,52 +133,83 @@ These components expose interactive widgets (knobs, sliders, toggles) in the vis
 
 ---
 
+## Component Registry
+
+`ComponentRegistry` (formerly `TypeRegistry`) is the authoritative registry of all component types:
+
+```cpp
+struct ComponentRegistry {
+    void register_type(const std::string& classname, ComponentSpec spec,
+                       TypePresentation pres = {}, std::string category = "");
+    const ComponentSpec* get(const std::string& classname) const;
+    bool has(const std::string& classname) const;
+    std::vector<std::string> list_classnames() const;
+    const std::unordered_map<std::string, ComponentSpec>& all_types() const;
+};
+```
+
+File: `src/core/model/component_registry.h`
+
+---
+
+## Library Component Inventory
+
+### Electrical
+`Battery`, `Generator`, `Resistor`, `Switch`, `Relay`, `KnobSwitch`, `RotarySwitch1ToN`, `RotarySwitchNTo1`, `Slider`, `HoldButton`, `IndicatorLight`, `Transformer`, `CurrentSense`, `SolenoidValve`, `Voltmeter`, `VoltageSense`, `ElectricalSource`, `ElectricalConductance`, `ElectricPump`, `ElectricHeater`
+
+### Logical
+`AND`, `OR`, `NOT`, `XOR`, `NAND`, `Comparator`, `LUT`, `P`, `PD`, `PI`, `PID`
+
+### Math
+`Add`, `Subtract`, `Multiply`, `Divide`, `Clamp`, `Min`, `Max`, `LerpNode`, `Normalize`, `SlewRate`, `AsymSlewRate`, `FirstOrderLag`, `Integrator`, `Accumulator`, `TimeDelay`, `SampleHold`, `Monostable`, `Lesser`, `LesserEq`, `Greater`, `GreaterEq`
+
+### Mechanical
+`InertiaNode`, `Spring`
+
+### Hydraulic
+`HydraulicPump`, `HydraulicValve`, `HydraulicRef`
+
+### Pneumatic
+`PneumaticCompressor`, `PneumaticValve`, `PneumaticRef`
+
+### Thermal
+`TempSensor`
+
+### Special / Structural
+`RefNode`, `Bus`, `Splitter`, `Merger`, `BlueprintInput`, `BlueprintOutput`, `Group`, `Text`, `Value`
+
+### Connectors
+`SimConnectInput`, `SimConnectOutput`
+
+### Systems (Composite)
+`12SAM28`
+
+### Logical / Scripting
+`LuaScript`
+
+---
+
 ## Primitive-First Direction
 
-Two first-class electrical primitives exist now:
+Two first-class electrical primitives exist:
 
-- `ElectricalSource` -> `TheveninSource`
-- `ElectricalConductance` -> `ConductanceBranch`
+1. `ElectricalSource` — solver-owned voltage source
+2. `ElectricalConductance` — solver-owned conductance branch
 
-These are solver-owned and intended as base building blocks.
-
-Wrapper components remain for compatibility/authoring convenience, with planned decomposition over time.
+Wrappers (`Battery`, `Resistor`) still exist but new components should prefer primitives with `solver_role` metadata.
 
 ---
 
-## Metadata-Driven Solver Roles
+## Files
 
-Type definitions can declare optional `solver_role` metadata.
-
-Current supported role kinds:
-
-- `FixedVoltageNode`
-- `TheveninSource`
-- `ConductanceBranch`
-
-Role metadata defines:
-
-- `kind`
-- `ports` mapping role key -> component port name
-- `params` mapping role key -> param name
-
-Examples exist in:
-
-- `library/electrical/ElectricalSource.blueprint`
-- `library/electrical/ElectricalConductance.blueprint`
-- `library/RefNode.blueprint`
-
-If `solver_role` is absent, builder may use explicit classname fallback extraction.
-
----
-
-## Adding New Electrical Components
-
-Use one of two paths:
-
-1. **Preferred:** create a primitive with `solver_role` metadata
-2. **Transitional:** wrapper component with explicit classname extraction path
-
-For practical instructions, see:
-
-- `knowledge/how_to_create_electrical_components.md`
+| File | Purpose |
+|------|---------|
+| `src/core/solvers/jit/components/all.h` | All component includes |
+| `src/core/solvers/common/provider.h` | Provider pattern |
+| `src/core/solvers/jit/state.h` | SimulationState |
+| `src/core/model/component_registry.h` | ComponentRegistry |
+| `src/core/model/component_spec.h` | ComponentSpec |
+| `src/core/domain_types.h` | Domain, PortType enums |
+| `src/core/solvers/common/port_registry.h` | Port name registry |
+| `src/core/solvers/jit/build_factory.cpp` | AUTO-GENERATED component factory |
+| `src/core/solvers/aot/codegen_registry.cpp` | Codegen tool that produces the factory |

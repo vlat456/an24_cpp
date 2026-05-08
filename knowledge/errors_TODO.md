@@ -163,7 +163,7 @@ E-001 — Exceptions in the Electrical Solve Hot Path
 
 - Severity: High
 - Category: Performance
-- Location: src/jit_solver/subsolvers/electrical_subsolver.cpp — 7 throw sites (lines 28, 151, 210, 216, 311, 324, 344)
+- Location: src/core/solvers/jit/subsolvers/nodal_subsolver.cpp — 7 throw sites (lines 28, 151, 210, 216, 311, 324, 344)
 - Problem: The solver uses throw std::runtime_error for both invariant violations and recoverable conditions (singular matrix). At line 282-288, the Gaussian solver uses try/catch as control flow — textbook exception misuse. Additionally, std::to_string() in the throw expressions allocates heap memory.
 - Impact: Prevents the compiler from marking solve_electrical as noexcept, blocking optimizations across the entire call chain. On the singular-matrix fallback path (which fires routinely in the editor), exception machinery has real overhead.
 - Fix: Make solve_dense_gaussian return bool. Use assert() for invariant violations in debug, early-return with sentinel in release. Remove all throws from the per-frame path. Mark solve_electrical as noexcept.
@@ -174,7 +174,7 @@ E-002 — Full Variant Scan for 5-10 Solver-Owned Components
 
 - Severity: High
 - Category: Performance
-- Location: src/jit_solver/simulator.cpp:21-113 — update_dynamic_sources() and commit_solver_owned_devices()
+- Location: src/core/solvers/jit/simulator.cpp:21-113 — update_dynamic_sources() and commit_solver_owned_devices()
 - Problem: Both functions iterate ALL devices in br.devices (an unordered_map of ComponentVariant with 68+ types) doing std::visit on every entry, just to find the ~5-10 solver-owned components (CVS, AZS, Relay, Battery, etc.). This is O(N_devices × variant_jump_table) per frame — potentially 100+ variant visitations for ~10 actual matches.
 - Impact: Branch mispredictions and cache pollution from visiting 60+ irrelevant component types every frame. This is pure waste.
 - Fix: At build time, store typed pointers/references to solver-owned components in dedicated small vectors inside BuildResult. Then the per-frame functions become tight loops over known types — no variant visitation at all:
@@ -229,7 +229,7 @@ E-006 — alignas(64) on std::vector Members Is Misleading
 
 - Severity: Low
 - Category: Correctness / Memory
-- Location: src/jit_solver/state.h:17-21
+- Location: src/core/solvers/jit/state.h:17-21
 - Problem: alignas(64) std::vector<float> values; aligns the vector control block (3 pointers on the stack/struct), NOT the heap-allocated data buffer. values.data() gets whatever alignment std::allocator provides (typically 16 bytes). Any future SIMD work would segfault or underperform.
 - Impact: False confidence in alignment. Not currently causing bugs since no SIMD is used on these buffers, but it's a trap for future developers.
 - Fix: Either use a custom aligned allocator, or remove the misleading alignas(64) to avoid confusion.
@@ -241,7 +241,7 @@ E-007 — build_systems_dev() Is a ~2000-Line Monolith
 
 - Severity: Medium
 - Category: Architecture / Maintainability
-- Location: src/jit_solver/jit_solver.cpp (entire file)
+- Location: src/core/solvers/jit/jit_solver.cpp (entire file)
 - Problem: Single function containing: union-find (~30 lines), ParamReader class (~70 lines), 80-way else if component factory (1200 lines), electrical island building (200 lines), scheduler wiring (~100 lines). Adding a new component requires finding the right spot in an 80-branch if-else chain.
 - Impact: This is the #1 maintainability concern. Every new component touches this file. Merge conflicts are likely in team development.
 - Fix: Extract into focused compilation units: component_factory.cpp (or use a self-registering registry pattern), signal_allocator.cpp, and keep island building in its existing subsolver module.
@@ -264,7 +264,7 @@ E-009 — The 9-Phase Pipeline May Be Over-Engineered
 
 - Severity: Low
 - Category: Over-engineering
-- Location: src/jit_solver/simulator.cpp — the step() function
+- Location: src/core/solvers/jit/simulator.cpp — the step() function
 - Problem: The 9-phase pipeline (passive stamp → first electrical → observers → logical 1 → control commit → actuator stamp + second electrical → logical 2 → sub-rate domains → finalize) solves a real ordering problem, but two electrical solves per frame is expensive. The second solve exists to handle actuator feedback (AZS/relay state changes) within the same frame.
 - Impact: For a game where one-frame delay is acceptable, a single electrical solve with one-frame-delayed actuator states would halve the electrical solver cost.
 - Fix: Consider whether the second electrical pass is worth it. If AZS/relay state changes can tolerate a one-frame delay (at 60Hz+ this is 16ms or less — invisible to players), you can collapse to a single solve pass and simplify the pipeline significantly.
@@ -335,7 +335,7 @@ too early to see the converged value.
 
 **Files changed:**
 
-- `src/jit_solver/simulator.cpp` — added dual logical passes
+- `src/core/solvers/jit/simulator.cpp` — added dual logical passes
 - `tests/test_port_map_regression.cpp` — updated `run_step()` helper
 - `tests/test_and_gate_debug.cpp` — updated `run_step()` helper
 
@@ -360,8 +360,8 @@ too early to see the converged value.
 
 **Files changed:**
 
-- `src/jit_solver/subsolvers/electrical_subsolver.cpp` — all throws removed, graceful fallback
-- `src/jit_solver/subsolvers/electrical_subsolver.h` — `noexcept` added to declaration
+- `src/core/solvers/jit/subsolvers/nodal_subsolver.cpp` — all throws removed, graceful fallback
+- `src/core/solvers/jit/subsolvers/nodal_subsolver.h` — `noexcept` added to declaration
 - `tests/test_electrical_subsolver.cpp` — 3 EXPECT_THROW tests updated to graceful-fallback tests
 
 **Regression tests:** `E001_Noexcept.SolveElectricalIsNoexcept`, `E001_Noexcept.SolveGaussianReturnsBool`, `E001_Noexcept.DuplicateFixedConstraintsSameValueNoThrow`
@@ -380,9 +380,9 @@ too early to see the converged value.
 
 **Files changed:**
 
-- `src/jit_solver/jit_solver.h` — `SolverOwnedRefs` struct, `solver_owned` field in `BuildResult`
-- `src/jit_solver/jit_solver.cpp` — population loop at end of `build_systems_dev()`
-- `src/jit_solver/simulator.cpp` — `update_dynamic_sources()` and `commit_solver_owned_devices()` rewritten
+- `src/core/solvers/jit/jit_solver.h` — `SolverOwnedRefs` struct, `solver_owned` field in `BuildResult`
+- `src/core/solvers/jit/jit_solver.cpp` — population loop at end of `build_systems_dev()`
+- `src/core/solvers/jit/simulator.cpp` — `update_dynamic_sources()` and `commit_solver_owned_devices()` rewritten
 
 **Regression tests:** `E002_SolverOwnedRefs.PopulatedAfterBuild`, `E002_SolverOwnedRefs.PointersMatchDeviceMap`, `E002_SolverOwnedRefs.EmptyCircuitHasEmptyRefs`
 
@@ -395,7 +395,7 @@ too early to see the converged value.
 **What was done:**
 
 - Added `_COUNT` sentinel to `PortNames` enum in `port_names.h`.
-- Updated codegen (`src/codegen/codegen.cpp`) to emit `_COUNT` sentinel.
+- Updated codegen (`src/core/solvers/aot/codegen.cpp`) to emit `_COUNT` sentinel.
 - Replaced `JitProvider`'s `std::unordered_map<PortNames, uint32_t>` with flat array `uint32_t indices[static_cast<size_t>(PortNames::_COUNT)]`.
 - Constructor memsets to `0xFF` (UNMAPPED = UINT32_MAX).
 - Added `set()`, `get()`, `has()` methods. `get()` is a single array index — nearly matching AOT performance.
@@ -403,9 +403,9 @@ too early to see the converged value.
 
 **Files changed:**
 
-- `src/jit_solver/components/port_names.h` — `_COUNT` sentinel added
-- `src/codegen/codegen.cpp` — codegen updated to emit `_COUNT`
-- `src/jit_solver/components/provider.h` — `JitProvider` rewritten with flat array
+- `src/core/solvers/jit/components/port_names.h` — `_COUNT` sentinel added
+- `src/core/solvers/aot/codegen.cpp` — codegen updated to emit `_COUNT`
+- `src/core/solvers/common/provider.h` — `JitProvider` rewritten with flat array
 - `tests/test_generator.cpp` — updated from `provider.indices[X] = Y` to `provider.set(X, Y)`
 - `tests/test_electric_heater_regression.cpp` — same change
 
@@ -425,8 +425,8 @@ too early to see the converged value.
 
 **Files changed:**
 
-- `src/jit_solver/simulator.h` — `float time_` → `double time_`, `get_time()` returns `double`
-- `src/jit_solver/simulator.cpp` — `0.0f` → `0.0` for time_ references
+- `src/core/solvers/jit/simulator.h` — `float time_` → `double time_`, `get_time()` returns `double`
+- `src/core/solvers/jit/simulator.cpp` — `0.0f` → `0.0` for time_ references
 
 **Regression tests:** `E004_DoubleTime.GetTimeReturnsDouble`, `E004_DoubleTime.PrecisionAfterManySteps`, `E004_DoubleTime.SimulatorTimeStartsAtZero`
 
@@ -449,8 +449,8 @@ too early to see the converged value.
 
 **Files changed:**
 
-- `src/jit_solver/components/port_registry.h` — architecture comment block
-- `src/jit_solver/jit_solver.h` — updated `BuildResult::devices` comment
+- `src/core/solvers/common/port_registry.h` — architecture comment block
+- `src/core/solvers/jit/jit_solver.h` — updated `BuildResult::devices` comment
 
 **Regression tests:** `E005_ComponentVariant.IsStdVariant`, `E005_ComponentVariant.HasManyAlternatives`, `E005_ComponentVariant.ContainsBatteryAndAZS`
 
@@ -467,7 +467,7 @@ too early to see the converged value.
 
 **Files changed:**
 
-- `src/jit_solver/state.h` — removed `alignas(64)`, added explanatory comment
+- `src/core/solvers/jit/state.h` — removed `alignas(64)`, added explanatory comment
 
 **Regression tests:** `E006_NoMisleadingAlignas.SimulationStateDefaultAlignment`, `E006_NoMisleadingAlignas.VectorDataIsHeapAllocated`
 
@@ -486,8 +486,8 @@ too early to see the converged value.
 
 **Files changed:**
 
-- `src/jit_solver/simulator.h` — `static constexpr float MAX_DT = 0.1f` added
-- `src/jit_solver/simulator.cpp` — dt clamp at top of `step()`
+- `src/core/solvers/jit/simulator.h` — `static constexpr float MAX_DT = 0.1f` added
+- `src/core/solvers/jit/simulator.cpp` — dt clamp at top of `step()`
 
 **Regression tests:** `E008_DtClamp.MaxDtConstantExists`, `E008_DtClamp.LargeDtIsClamped`, `E008_DtClamp.NormalDtIsNotClamped`, `E008_DtClamp.ExactlyMaxDtIsNotClamped`, `E008_DtClamp.ZeroDtIsIgnored`, `E008_DtClamp.NegativeDtIsIgnored`
 
@@ -511,7 +511,7 @@ However, `get_port_value("sb", "v_out")` looked up `sb.v_out` (dot-separated) wh
 
 **Files changed:**
 
-- `src/jit_solver/simulator.cpp` — `get_port_value()` fallback to `node:port.ext`
+- `src/core/solvers/jit/simulator.cpp` — `get_port_value()` fallback to `node:port.ext`
 - `tests/test_12sam28.cpp` — 2-step warmup before measurements
 
 **Regression tests:** `SAM28Composite.InitialOutputsAreSane`, `SAM28Composite.DischargeDecreasesChargeAndSoc`, `SAM28Composite.SocToOcvFeedbackCausesVoltageDrop`
@@ -534,7 +534,7 @@ However, `get_port_value("sb", "v_out")` looked up `sb.v_out` (dot-separated) wh
 
 **Files changed:**
 
-- `src/jit_solver/simulator.cpp` — pipeline architecture comment
+- `src/core/solvers/jit/simulator.cpp` — pipeline architecture comment
 
 **Regression tests:** `E009_SingleSolve.PipelineProducesConsistentElectricalResults`, `E009_SingleSolve.StepCountAndTimeConsistent`
 
@@ -594,7 +594,7 @@ Two blueprints in `closed_circuit.blueprint` contain reusable electrical enginee
 - Inputs: `v_in`, `v_ref`
 - Output: `load_current`
 
-**Proposed C++ component:** `InductiveLoadModel` in `src/jit_solver/components/inductive_load_model.h`
+**Proposed C++ component:** `InductiveLoadModel` in `src/core/solvers/jit/components/inductive_load_model.h`
 
 #### 22b. ThermalDeratingModel
 
@@ -612,7 +612,7 @@ Two blueprints in `closed_circuit.blueprint` contain reusable electrical enginee
 - Inputs: `current`, `command` (un-derated)
 - Output: `derated_command` [0-1]
 
-**Proposed C++ component:** `ThermalDeratingModel` in `src/jit_solver/components/thermal_derating_model.h`
+**Proposed C++ component:** `ThermalDeratingModel` in `src/core/solvers/jit/components/thermal_derating_model.h`
 
 **Why extract to C++:**
 1. Both use Integrator internally — consolidating to single component eliminates redundant state
@@ -621,10 +621,10 @@ Two blueprints in `closed_circuit.blueprint` contain reusable electrical enginee
 4. Enables AOT optimization of the model computation
 
 **Files to create:**
-- `src/jit_solver/components/inductive_load_model.h`
-- `src/jit_solver/components/inductive_load_model.cpp`
-- `src/jit_solver/components/thermal_derating_model.h`
-- `src/jit_solver/components/thermal_derating_model.cpp`
+- `src/core/solvers/jit/components/inductive_load_model.h`
+- `src/core/solvers/jit/components/inductive_load_model.cpp`
+- `src/core/solvers/jit/components/thermal_derating_model.h`
+- `src/core/solvers/jit/components/thermal_derating_model.cpp`
 - `library/models/InductiveLoadModel.blueprint` (for blueprint registry)
 - `library/models/ThermalDeratingModel.blueprint` (for blueprint registry)
 
@@ -721,7 +721,7 @@ Multi-port nodes (standard component nodes) now center port groups on their resp
 
 - `library/systems/12SAM28.blueprint` — `v_neg` direction: `InOut` → `In`
 - `library/electrical/ControlledVoltageSource.blueprint` — `v_neg` direction: `Out` → `In`
-- `src/jit_solver/components/port_registry.h` — regenerated via `update_port_registry`
+- `src/core/solvers/common/port_registry.h` — regenerated via `update_port_registry`
 
 ---
 
@@ -1030,15 +1030,15 @@ All scheduling constants centralized in codegen under `DomainSchedule` namespace
 
 **Files changed (final pass):**
 
-- `src/jit_solver/components/azs.h` — removed `commit_control()` declaration
-- `src/jit_solver/components/azs.cpp` — inlined `commit_control()` body into `commit()`
-- `src/jit_solver/components/switch.h` — removed `commit_control()` declaration
-- `src/jit_solver/components/switch.cpp` — inlined `commit_control()` body into `commit()`
-- `src/jit_solver/components/hold_button.h` — removed `commit_control()` declaration
-- `src/jit_solver/components/hold_button.cpp` — inlined `commit_control()` body into `commit()`
-- `src/jit_solver/components/relay.h` — removed `commit_control()` declaration
-- `src/jit_solver/components/relay.cpp` — inlined `commit_control()` body into `commit()`
-- `src/codegen/codegen.cpp` — removed `commit_control` comment
+- `src/core/solvers/jit/components/azs.h` — removed `commit_control()` declaration
+- `src/core/solvers/jit/components/azs.cpp` — inlined `commit_control()` body into `commit()`
+- `src/core/solvers/jit/components/switch.h` — removed `commit_control()` declaration
+- `src/core/solvers/jit/components/switch.cpp` — inlined `commit_control()` body into `commit()`
+- `src/core/solvers/jit/components/hold_button.h` — removed `commit_control()` declaration
+- `src/core/solvers/jit/components/hold_button.cpp` — inlined `commit_control()` body into `commit()`
+- `src/core/solvers/jit/components/relay.h` — removed `commit_control()` declaration
+- `src/core/solvers/jit/components/relay.cpp` — inlined `commit_control()` body into `commit()`
+- `src/core/solvers/aot/codegen.cpp` — removed `commit_control` comment
 - `tests/test_azs.cpp` — replaced all `commit_control()` calls with `commit()`
 - `tests/test_push_runtime_regression.cpp` — replaced `commit_control()` calls with `commit()`
 
@@ -1148,7 +1148,7 @@ The hand-written `build_components.cpp` and its 5 category split files have been
 
 ### ~~19. Remove `MaxSelector -> Max` Metadata Alias Bridge~~ ✓ DONE
 
-**File:** `src/jit_solver/jit_solver.cpp:metadata_classname_for()`
+**File:** `src/core/solvers/jit/jit_solver.cpp:metadata_classname_for()`
 
 **Problem:**
 
@@ -1158,7 +1158,7 @@ The hand-written `build_components.cpp` and its 5 category split files have been
 
 **Resolution (2026-03-31):**
 
-- Deleted `src/jit_solver/components/max_selector.h` and `src/jit_solver/components/max_selector.cpp`.
+- Deleted `src/core/solvers/jit/components/max_selector.h` and `src/core/solvers/jit/components/max_selector.cpp`.
 - Removed `#include "max_selector.h"` from `all.h` and `jit_solver.cpp`.
 - Removed `MaxSelector` if-branch from `metadata_classname_for()`.
 - Changed `else if (dev.classname == "Max" || dev.classname == "MaxSelector")` to `else if (dev.classname == "Max")` in `build_systems_dev()`.
@@ -1197,7 +1197,7 @@ test. Deleted entirely; test rewritten to validate port_registry.h codegen const
 
 ### 5. Deep ComponentVariant Compile Time
 
-**File:** `src/jit_solver/jit_solver.h`
+**File:** `src/core/solvers/jit/jit_solver.h`
 
 **Problem:** `ComponentVariant` has 80+ alternatives, causing:
 
@@ -1215,7 +1215,7 @@ test. Deleted entirely; test rewritten to validate port_registry.h codegen const
 
 ### ~~10. Sentinel Signal Ordering~~ ✓ FIXED
 
-**File:** `src/jit_solver/jit_solver.cpp`
+**File:** `src/core/solvers/jit/jit_solver.cpp`
 
 **Problem:** Sentinel ordering previously risked drifting from the fixed-signal set.
 
@@ -1234,7 +1234,7 @@ result.fixed_signals.push_back(result.signal_count - 1);
 
 ### 6. Alignment Without Runtime Verification
 
-**File:** `src/jit_solver/state.h:20-32`
+**File:** `src/core/solvers/jit/state.h:20-32`
 
 ```cpp
 alignas(64) std::vector<float> across;
@@ -1423,7 +1423,7 @@ This caused at least 3 bugs and every new code path that touched composite bound
 
 - `src/editor/document.cpp` — `addBlueprint()` bridge node naming fix, `build_simulation_json()` simplification
 - `src/editor/signal_key_resolver.cpp` — `find_embedded_bridge_node()` simplification
-- `src/jit_solver/simulator.cpp` — `get_port_value()` comment clarification
+- `src/core/solvers/jit/simulator.cpp` — `get_port_value()` comment clarification
 - `knowledge/05_editor.md` — updated documentation
 
 **Regression tests (5 new):**

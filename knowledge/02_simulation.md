@@ -1,6 +1,6 @@
 # Simulation Engine
 
-The simulation system uses a **hybrid model** combining push scheduling with electrical subsolver.
+The simulation system uses a **hybrid model** combining push scheduling with domain-specific nodal subsolvers.
 
 ## Architecture
 
@@ -13,6 +13,8 @@ The simulation system uses a **hybrid model** combining push scheduling with ele
 │  │ ├── devices (ComponentVariant map)                      │   │
 │  │ ├── scheduler (PushScheduler)                            │   │
 │  │ ├── electrical_plan (islands)                           │   │
+│  │ ├── hydraulic_plan (islands)                            │   │
+│  │ ├── pneumatic_plan (islands)                            │   │
 │  │ └── solver_owned (typed pointer lists)                  │   │
 │  └─────────────────────────────────────────────────────────┘   │
 │                              ↓                                   │
@@ -20,7 +22,9 @@ The simulation system uses a **hybrid model** combining push scheduling with ele
 │  │ SimulationState                                         │   │
 │  │ ├── values[] (all runtime signals)                      │   │
 │  │ ├── lut_keys[], lut_values[]                            │   │
-│  │ └── electrical_rt (valid only during step)              │   │
+│  │ ├── electrical_rt (valid during step, electrical solve) │   │
+│  │ ├── hydraulic_rt (valid during step, hydraulic solve)   │   │
+│  │ └── pneumatic_rt (valid during step, pneumatic solve)   │   │
 │  └─────────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -30,14 +34,16 @@ The simulation system uses a **hybrid model** combining push scheduling with ele
 `Simulator::step(dt)` sequence:
 
 1. **Clamp dt** — `dt = std::min(dt, MAX_DT)` (MAX_DT=0.1s) prevents physics explosions
-2. Set `state.electrical_rt = &electrical_rt_` (RAII guard)
-3. **Pre-solve** — `update_dynamic_sources()` stamps actuator states from previous frame
-4. **Solve electrical** — `solve_electrical(electrical_plan, state, electrical_rt_, dt)`
-5. **Solver-owned execute ops** — `run_solver_owned_ops(solver_execute_ops, state, dt)`
-6. **Push scheduler** — `scheduler.step(state, dt)` runs all logical/mechanical/etc components
-7. **Solver-owned commit ops** — `run_solver_owned_ops(solver_commit_ops, state, dt)`
-8. Clear `state.electrical_rt`
-9. Advance `time_ += dt`, `step_count_++`
+2. Set domain runtime state pointers on `state` (electrical_rt, hydraulic_rt, pneumatic_rt)
+3. **Pre-solve** — update dynamic sources (CVS, variable conductance, AZS)
+4. **Solve electrical** — `solve_nodal(electrical_plan, ...)`
+5. **Solve hydraulic** — `solve_nodal(hydraulic_plan, ...)` (if present)
+6. **Solve pneumatic** — `solve_nodal(pneumatic_plan, ...)` (if present)
+7. **Solver-owned execute ops** — `run_solver_owned_ops(solver_execute_ops, state, dt)`
+8. **Push scheduler** — `scheduler.step(state, dt)` runs all logical/mechanical/etc components
+9. **Solver-owned commit ops** — `run_solver_owned_ops(solver_commit_ops, state, dt)`
+10. Clear domain runtime state pointers
+11. Advance `time_ += dt`, `step_count_++`
 
 ## Key Classes
 
@@ -49,50 +55,29 @@ class Simulator {
 
     std::optional<BuildResult> build_result_;
     SimulationState state_;
-    ElectricalRuntimeState electrical_rt_;
     bool running_ = false;
     double time_ = 0.0;
     uint64_t step_count_ = 0;
 
 public:
-    void start_from_json(const std::string& json_str);
+    void start(const JitBuildInput& input);
+    void stop();
     void step(double dt);
-    void apply_overrides(const std::unordered_map<std::string, float>& overrides);
 
-    float get_wire_voltage(const std::string& port_name) const;
-    bool get_boolean_output(const std::string& port_name) const;
-    double get_battery_charge(const std::string& device_name) const;
-};
-```
+    bool is_running() const { return running_; }
+    bool is_built() const { return build_result_.has_value(); }
 
-### BuildResult
-```cpp
-struct BuildResult {
-    uint32_t signal_count;
-    std::vector<uint32_t> fixed_signals;
-    PortToSignal port_to_signal;
+    double get_time() const { return time_; }
+    uint64_t get_step_count() const { return step_count_; }
+    size_t get_signal_count() const { return state_.values.size(); }
 
-    BuildDeviceStore devices;
-    PushScheduler scheduler;
+    float* values() { return state_.values.data(); }
+    const float* values() const { return state_.values.data(); }
 
-    // Nodal domain plans (electrical, hydraulic, pneumatic)
-    NodalBuildPlan electrical_plan;
-    NodalBuildPlan hydraulic_plan;
-    NodalBuildPlan pneumatic_plan;
-
-    // Dynamic source patch ops (data-driven from solver_role.patch_op)
-    std::vector<NodalPatchOp> electrical_patch_ops;
-    std::vector<NodalPatchOp> hydraulic_patch_ops;
-    std::vector<NodalPatchOp> pneumatic_patch_ops;
-
-    SolverOwnedRefs solver_owned;
-    std::vector<SolverStepOp> solver_execute_ops;
-    std::vector<SolverStepOp> solver_commit_ops;
-    std::vector<float> lut_keys;
-    std::vector<float> lut_values;
-
-    // Nodal domain slots for unified simulator loop
-    std::array<NodalSlot, NODAL_DOMAIN_COUNT> nodal_slots() const;
+    float get_signal_value(core::InternedId key) const;
+    void apply_typed_overrides(const std::vector<std::pair<core::InternedId, float>>& overrides);
+    const core::StringInterner& signal_key_interner() const;
+    core::InternedId resolve_signal_key(std::string_view node_id, std::string_view port_name) const;
 };
 ```
 
@@ -102,33 +87,75 @@ struct SimulationState {
     std::vector<float> values;
     std::vector<float> lut_keys;
     std::vector<float> lut_values;
-    ElectricalRuntimeState* electrical_rt = nullptr;  // Valid only during step()
+
+    NodalRuntimeState* electrical_rt = nullptr;
+    NodalRuntimeState* hydraulic_rt = nullptr;
+    NodalRuntimeState* pneumatic_rt = nullptr;
+
+    [[nodiscard]] uint32_t allocate_signal(float initial_value);
+    float signal(uint32_t idx) const;
+    float& signal(uint32_t idx);
 };
 ```
 
-### ComponentVariant
-Type-safe polymorphic storage using `std::variant`:
+### PushScheduler
+Uses `ScheduledComponent` with type-erased `ErasedStep` dispatch:
 ```cpp
-using ComponentVariant = std::variant<
-    AND<JitProvider>,
-    AZS<JitProvider>,
-    Accumulator<JitProvider>,
-    Add<JitProvider>,
-    // ... all components (~70 types, generated by codegen)
->;
+struct ScheduledComponent {
+    void execute(SimulationState& st, double dt) const;
+    void commit(SimulationState& st, double dt) const;
+
+    template <typename T>
+    static ScheduledComponent for_type(T* component);
+};
+
+class PushScheduler {
+    std::vector<ScheduledComponent> sources_;
+    std::vector<ScheduledComponent> consumers_;
+
+public:
+    template <typename T> void add_source(T* component);
+    template <typename T> void add_consumer(T* component);
+    void step(SimulationState& st, double dt);
+};
 ```
 
-## Domain Scheduling
+## Nodal Subsolver (Domain-Agnostic)
 
-| Domain | Frequency | Execution |
-|--------|-----------|-----------|
-| Electrical | 60 Hz | Local island subsolver |
-| Logical | 60 Hz | Push scheduler |
-| Mechanical | 20 Hz | Push scheduler |
-| Hydraulic | 5 Hz | Push scheduler |
-| Thermal | 1 Hz | Push scheduler |
+The same `solve_nodal` function handles electrical, hydraulic, and pneumatic networks:
 
-## See Also
+```cpp
+void solve_nodal(
+    const NodalBuildPlan& plan,
+    const std::vector<float>& element_value_a,
+    SimulationState& st,
+    NodalRuntimeState& rt,
+    double dt
+) noexcept;
+```
 
-- `03_components.md` — Component API (execute/commit)
-- `10_quick_reference.md` — Build commands and file locations
+Each domain has its own `NodalBuildPlan` and `NodalRuntimeState`, but shares the same solver implementation. The domain is determined by which runtime pointer is active (electrical_rt, hydraulic_rt, pneumatic_rt).
+
+## Build Process
+
+`Simulator::start()` internally calls `build_systems_dev()`:
+
+1. Parse devices from `JitBuildInput`
+2. Setup port indices in `JitProvider`
+3. Allocate signals via union-find
+4. Build domain-specific nodal plans (electrical, hydraulic, pneumatic)
+5. Populate `PushScheduler` with sources and consumers
+6. Seal `BuildDeviceStore` to prevent post-build mutation
+
+## File Locations
+
+| File | Path |
+|------|------|
+| Simulator | `src/core/solvers/jit/simulator.h` |
+| SimulationState | `src/core/solvers/jit/state.h` |
+| PushScheduler | `src/core/solvers/jit/scheduler.h` |
+| ErasedStep | `src/core/solvers/jit/erased_step.h` |
+| Nodal Subsolver | `src/core/solvers/jit/subsolvers/nodal_subsolver.h` |
+| Nodal Types | `src/core/solvers/common/nodal_types.h` |
+| Build Algorithms | `src/core/solvers/common/build_algorithms.h` |
+| Domain Types | `src/core/domain_types.h` |
