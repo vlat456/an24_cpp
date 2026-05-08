@@ -20,12 +20,12 @@ WireValue float_to_wire_value(float value, ValType vt);
 // Verifies mapping resolution (including tier/epsilon), delta packet I/O,
 // input injection, output change detection, and robustness.
 
-// -- Helper: build a minimal JitBuildInput with one SimVarInput + one SimVarOutput --
+// -- Helper: build a minimal JitBuildInput with one SimConnectInput + one SimConnectOutput --
 
 static JitBuildInput make_simvar_build_input() {
     JitBuildInput input;
 
-    // SimVarInput (AVar)
+    // SimConnectInput (AVar)
     SolverDevice simvar_in;
     simvar_in.name = "msfs_ambient_temp";
     simvar_in.classname = "SimConnectInput";
@@ -37,9 +37,9 @@ static JitBuildInput make_simvar_build_input() {
     simvar_in.params["index"] = "0";
     simvar_in.params["default_value"] = "15.0";
     simvar_in.ports["out"] = Port{bp2::Direction::Output, PortType::Signal, Domain::Logical, true};
-    input.devices.push_back(std::move(simvar_in));
+     input.devices.push_back(std::move(simvar_in));
 
-    // SimVarOutput (AVar, data mode)
+    // SimConnectOutput (AVar, data mode)
     SolverDevice simvar_out;
     simvar_out.name = "msfs_bus_voltage";
     simvar_out.classname = "SimConnectOutput";

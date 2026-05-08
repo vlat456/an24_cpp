@@ -8,8 +8,7 @@
 // MockProvider Tests
 // =============================================================================
 // Verifies that the mock provider correctly scans SimConnectInput/SimConnectOutput
-// nodes (as well as legacy SimVarInput/SimVarOutput), injects mock values into
-// the signal array, and captures output values.
+// nodes, injects mock values into the signal array, and captures output values.
 
 static JitBuildInput make_mock_build_input() {
     JitBuildInput input;
@@ -108,9 +107,9 @@ TEST(MockProviderTest, BuildIgnoresNonSimVarNodes) {
     JIT_Simulator sim;
     sim.start(input);
 
-    provider.build(input, sim);
+     provider.build(input, sim);
 
-    // Only SimVarInput and SimVarOutput should be mapped
+    // Only SimConnectInput and SimConnectOutput should be mapped
     EXPECT_EQ(provider.input_count(), 1u);
     EXPECT_EQ(provider.output_count(), 1u);
 }
