@@ -36,6 +36,19 @@ ui::Widget* Scene::add(std::unique_ptr<ui::Widget> w) {
     return ptr;
 }
 
+void Scene::remove_node(std::string_view node_id, ISpriteCache* cache) {
+    if (auto* w = find(node_id)) {
+        if (cache) cache->evict(node_id);
+        remove(w);
+    }
+}
+
+void Scene::remove_wire(std::string_view wire_id) {
+    if (auto* w = find(wire_id)) {
+        remove(w);
+    }
+}
+
 void Scene::render(IDrawList* dl, const RenderContext& ctx) {
     auto& prof = scene_profiler();
     ISpriteCache* cache = ctx.sprite_cache;

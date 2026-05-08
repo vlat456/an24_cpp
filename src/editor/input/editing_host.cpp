@@ -204,14 +204,7 @@ public:
 
     bool remove_node(core::InternedId id,
                      std::vector<core::InternedId> connected_wire_ids) override {
-        return model_.mutate_atomically([&] {
-            for (core::InternedId const wid : connected_wire_ids) {
-                model_.remove_wire(wid);
-            }
-            if (!model_.remove_node(id)) {
-                throw std::logic_error("EditorModelHost::remove_node target not found");
-            }
-        });
+        return model_.remove_node_and_wires(id, std::move(connected_wire_ids));
     }
 
     bool bake_blueprint_instance(core::InternedId id,
@@ -399,11 +392,8 @@ public:
             return false;
         }
         return root_model_.mutate_atomically([&] {
-            bp2::Blueprint next = current_blueprint();
-            for (core::InternedId const wid : connected_wire_ids) {
-                next = next.without_wire(wid);
-            }
-            next = next.without_node(id);
+            bp2::Blueprint next = current_blueprint().without_node_and_wires(
+                id, connected_wire_ids);
             propagate_inline_change(std::move(next));
         });
     }

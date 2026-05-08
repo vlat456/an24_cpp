@@ -8,6 +8,7 @@
 
 namespace visual {
 
+class ISpriteCache;
 struct RenderContext;
 
 // ==-----------------------------------------------------------------------
@@ -91,6 +92,15 @@ public:
     Widget* find(std::string_view id) const {
         return static_cast<Widget*>(ui::Scene::find(id));
     }
+
+    /// Incremental mutation: mark a node widget for removal.
+    /// Evicts the node's sprite cache entry if a cache is provided.
+    /// Call flushRemovals() (or use flushGuard()) to complete the removal.
+    void remove_node(std::string_view node_id, ISpriteCache* cache = nullptr);
+
+    /// Incremental mutation: mark a wire widget for removal.
+    /// Call flushRemovals() (or use flushGuard()) to complete the removal.
+    void remove_wire(std::string_view wire_id);
 
     /// Typed view over roots — zero-allocation, range-for compatible.
     /// Usage: `for (auto* w : scene.visual_roots()) { ... }`

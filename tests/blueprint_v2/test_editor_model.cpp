@@ -9,6 +9,25 @@
 #include "editor/subwindow_open_target.h"
 #include <random>
 
+static bp2::Blueprint::Node make_node(core::StringInterner& interner,
+                                       const char* id, const char* type) {
+    bp2::Blueprint::Node node;
+    node.semantic.id = interner.intern(id);
+    node.semantic.type = interner.intern(type);
+    return node;
+}
+
+static bp2::Blueprint::Wire make_wire(core::StringInterner& interner,
+                                       const char* id,
+                                       const char* src_node, const char* src_port,
+                                       const char* dst_node, const char* dst_port) {
+    bp2::Blueprint::Wire wire;
+    wire.id = interner.intern(id);
+    wire.source = bp2::WireEndpoint{interner.intern(src_node), interner.intern(src_port)};
+    wire.target = bp2::WireEndpoint{interner.intern(dst_node), interner.intern(dst_port)};
+    return wire;
+}
+
 TEST(EditorModel, EmptyByDefault) {
      bp2::EditorModel model;
      EXPECT_TRUE(model.current().nodes().empty());
@@ -727,4 +746,96 @@ TEST(ReplacePreserveOrder, WireReplacementPreservesMetadata) {
     EXPECT_EQ(result.name(), "Test Blueprint 2");
     ASSERT_EQ(result.iface().ports().size(), 1u);
     EXPECT_EQ(result.iface().ports()[0].name, interner.intern("ext_out"));
+}
+
+// ============================================================================
+// Batch mutation: without_node_and_wires
+// ============================================================================
+
+TEST(BlueprintBatchMutation, WithoutNodeAndWiresRemovesNodeAndWires) {
+    core::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(make_node(interner, "n1", "Battery"));
+    bp = bp.with_node(make_node(interner, "n2", "Lamp"));
+
+    bp2::Blueprint::Wire w1;
+    w1.id = interner.intern("w1");
+    w1.source = bp2::WireEndpoint{interner.intern("n1"), interner.intern("v_out")};
+    w1.target = bp2::WireEndpoint{interner.intern("n2"), interner.intern("v_in")};
+    bp = bp.with_wire(std::move(w1));
+
+    auto result = bp.without_node_and_wires(interner.intern("n1"), {interner.intern("w1")});
+
+    EXPECT_EQ(result.nodes().size(), 1u);
+    EXPECT_EQ(result.wires().size(), 0u);
+    EXPECT_NE(result.find_node(interner.intern("n2")), nullptr);
+    EXPECT_EQ(result.find_node(interner.intern("n1")), nullptr);
+}
+
+TEST(BlueprintBatchMutation, WithoutNodeAndWiresRemovesMultipleWires) {
+    core::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(make_node(interner, "n1", "Battery"));
+    bp = bp.with_node(make_node(interner, "n2", "Lamp"));
+    bp = bp.with_node(make_node(interner, "n3", "Bus"));
+
+    bp = bp.with_wire(make_wire(interner, "w1", "n1", "v_out", "n2", "v_in"));
+    bp = bp.with_wire(make_wire(interner, "w2", "n2", "v_out", "n3", "v"));
+
+    auto result = bp.without_node_and_wires(interner.intern("n2"),
+                                              {interner.intern("w1"), interner.intern("w2")});
+
+    EXPECT_EQ(result.nodes().size(), 2u);
+    EXPECT_EQ(result.wires().size(), 0u);
+    EXPECT_NE(result.find_node(interner.intern("n1")), nullptr);
+    EXPECT_NE(result.find_node(interner.intern("n3")), nullptr);
+    EXPECT_EQ(result.find_node(interner.intern("n2")), nullptr);
+}
+
+TEST(BlueprintBatchMutation, WithoutNodeAndWiresNoWireIdsRemovesOnlyNode) {
+    core::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(make_node(interner, "n1", "Battery"));
+    bp = bp.with_node(make_node(interner, "n2", "Lamp"));
+
+    auto result = bp.without_node_and_wires(interner.intern("n1"), {});
+
+    EXPECT_EQ(result.nodes().size(), 1u);
+    EXPECT_NE(result.find_node(interner.intern("n2")), nullptr);
+    EXPECT_EQ(result.find_node(interner.intern("n1")), nullptr);
+}
+
+TEST(EditorModelBatchMutation, RemoveNodeAndWiresSingleUndoCheckpoint) {
+    core::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::EditorModel model;
+
+    model.add_node(make_node(interner, "n1", "Battery"));
+    model.add_node(make_node(interner, "n2", "Lamp"));
+    model.add_wire(make_wire(interner, "w1", "n1", "v_out", "n2", "v_in"));
+
+    EXPECT_EQ(model.undo_depth(), 3u);  // 3 add operations
+
+    EXPECT_TRUE(model.remove_node_and_wires(interner.intern("n1"), {interner.intern("w1")}));
+
+    EXPECT_EQ(model.current().nodes().size(), 1u);
+    EXPECT_EQ(model.current().wires().size(), 0u);
+    EXPECT_EQ(model.undo_depth(), 4u);  // +1 for batch remove, not +2
+
+    model.undo();
+    EXPECT_EQ(model.current().nodes().size(), 2u);
+    EXPECT_EQ(model.current().wires().size(), 1u);
+}
+
+TEST(EditorModelBatchMutation, RemoveNodeAndWiresReturnsFalseForMissingNode) {
+    core::StringInterner interner;
+    bp2::EditorModel model;
+
+    EXPECT_FALSE(model.remove_node_and_wires(interner.intern("nope"), {}));
 }

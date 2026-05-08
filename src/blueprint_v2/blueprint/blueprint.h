@@ -229,6 +229,10 @@ public:
     Blueprint without_node(core::InternedId id) const;
     Blueprint with_wire(Wire w) const;
     Blueprint without_wire(core::InternedId id) const;
+    /// Batch-remove a node and multiple wires in a single copy.
+    /// More efficient than calling without_node + without_wire repeatedly.
+    Blueprint without_node_and_wires(core::InternedId node_id,
+                                      const std::vector<core::InternedId>& wire_ids) const;
     Blueprint with_id(core::InternedId id) const;
     Blueprint with_name(std::string n) const;
     Blueprint with_interface(Interface iface) const;

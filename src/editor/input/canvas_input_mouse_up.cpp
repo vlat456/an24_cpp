@@ -253,7 +253,15 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
 
                 if (!wire_iid.empty()) {
                     snapshot_and_execute(cmd_set_routing_points(wire_iid, std::move(new_points)));
-                    rebuild_scene();
+                    scene_.remove_wire(interner_->resolve(wire_iid));
+                    scene_.flushRemovals();
+                    const bp2::Blueprint::Wire* updated_wire = host_->find_wire(wire_iid);
+                    if (updated_wire) {
+                        auto wire_widget = visual::mutations::create_wire_widget(
+                            *updated_wire, *arena_, *interner_, scene_);
+                        if (wire_widget) scene_.add(std::move(wire_widget));
+                    }
+                    rebuild_snapshot();
                 }
             }
             result.double_click_consumed = true;
@@ -298,7 +306,15 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
 
                 if (!wire_iid.empty()) {
                     snapshot_and_execute(cmd_set_routing_points(wire_iid, std::move(new_points)));
-                    rebuild_scene();
+                    scene_.remove_wire(interner_->resolve(wire_iid));
+                    scene_.flushRemovals();
+                    const bp2::Blueprint::Wire* updated_wire = host_->find_wire(wire_iid);
+                    if (updated_wire) {
+                        auto wire_widget = visual::mutations::create_wire_widget(
+                            *updated_wire, *arena_, *interner_, scene_);
+                        if (wire_widget) scene_.add(std::move(wire_widget));
+                    }
+                    rebuild_snapshot();
                 }
             }
             result.double_click_consumed = true;
@@ -338,16 +354,22 @@ InputResult CanvasInput::on_key(Key key) {
         case Key::Backspace: {
             if (selected_node_ids_.empty()) break;
 
+            // Collect connected wires before mutation so we can remove them
+            // incrementally from the visual scene afterward.
+            std::vector<core::InternedId> all_connected_wires;
+            all_connected_wires.reserve(host_->wires().size());
+
             host_->mutate_atomically([&] {
                 for (const auto& nid : selected_node_ids_) {
                     if (!nid.empty()) {
                         std::vector<core::InternedId> connected_wires;
                         connected_wires.reserve(host_->wires().size());
                         for (const auto& w : host_->wires()) {
-auto [src_node, _src_port] = editor_math::path_to_node_port(w.source, *arena_);
-auto [tgt_node, _tgt_port] = editor_math::path_to_node_port(w.target, *arena_);
+                            auto [src_node, _src_port] = editor_math::path_to_node_port(w.source, *arena_);
+                            auto [tgt_node, _tgt_port] = editor_math::path_to_node_port(w.target, *arena_);
                             if (src_node == nid || tgt_node == nid) {
                                 connected_wires.push_back(w.id);
+                                all_connected_wires.push_back(w.id);
                             }
                         }
                         host_->remove_node(nid, std::move(connected_wires));
@@ -355,8 +377,19 @@ auto [tgt_node, _tgt_port] = editor_math::path_to_node_port(w.target, *arena_);
                 }
             });
             host_->debug_validate_integrity();
+
+            {
+                auto guard = scene_.flushGuard();
+                for (const auto& nid : selected_node_ids_) {
+                    scene_.remove_node(interner_->resolve(nid), nullptr);
+                }
+                for (const auto& wid : all_connected_wires) {
+                    scene_.remove_wire(interner_->resolve(wid));
+                }
+            }
+            rebuild_snapshot();
+
             hovered_rp_id_ = {};
-            rebuild_scene();
             clear_selection();
             result.rebuild_simulation = true;
             break;

@@ -14,8 +14,6 @@ void EditorModel::push_checkpoint_if_enabled() {
 
 bool EditorModel::mutate_atomically(const std::function<void()>& fn) {
     const bool is_outermost = (checkpoint_suppression_depth_ == 0);
-
-    const Blueprint before = current_;
     const size_t undo_before = undo_stack_.size();
     const size_t redo_before = redo_stack_.size();
 
@@ -28,25 +26,24 @@ bool EditorModel::mutate_atomically(const std::function<void()>& fn) {
         --checkpoint_suppression_depth_;
     } catch (...) {
         --checkpoint_suppression_depth_;
-        if (is_outermost) {
-            // TODO: Probably this code is unreachable
-            current_ = before;
-            undo_stack_.resize(undo_before);
+        if (is_outermost && !undo_stack_.empty()) {
+            current_ = undo_stack_.back();
+            undo_stack_.pop_back();
             redo_stack_.resize(redo_before);
             invalidate_indices();
         }
         throw;
     }
 
-    if (is_outermost && current_ == before) {
-        undo_stack_.resize(undo_before);
+    if (is_outermost && !undo_stack_.empty() && current_ == undo_stack_.back()) {
+        undo_stack_.pop_back();
         redo_stack_.resize(redo_before);
         invalidate_indices();
         return false;
     }
 
     invalidate_indices();
-    return is_outermost ? true : (current_ != before);
+    return true;
 }
 
 bool EditorModel::add_node(Blueprint::Node node) {
@@ -62,6 +59,15 @@ bool EditorModel::remove_node(core::InternedId id) {
     if (!current_.find_node(id)) return false;
     push_checkpoint_if_enabled();
     current_ = current_.without_node(id);
+    invalidate_indices();
+    return true;
+}
+
+bool EditorModel::remove_node_and_wires(core::InternedId node_id,
+                                          std::vector<core::InternedId> wire_ids) {
+    if (!current_.find_node(node_id)) return false;
+    push_checkpoint_if_enabled();
+    current_ = current_.without_node_and_wires(node_id, wire_ids);
     invalidate_indices();
     return true;
 }

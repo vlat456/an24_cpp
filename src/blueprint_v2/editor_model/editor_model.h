@@ -37,6 +37,10 @@ public:
     // === Commands (return true if changed) ===
     bool add_node(Blueprint::Node node);
     bool remove_node(core::InternedId id);
+    /// Batch-remove a node and its connected wires in a single blueprint mutation.
+    /// More efficient than calling remove_node + remove_wire repeatedly.
+    bool remove_node_and_wires(core::InternedId node_id,
+                                std::vector<core::InternedId> wire_ids);
     bool add_wire(Blueprint::Wire wire);
     bool remove_wire(core::InternedId id);
     bool update_node(core::InternedId id, const std::function<void(Blueprint::Node&)>& fn);

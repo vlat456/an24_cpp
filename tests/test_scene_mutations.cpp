@@ -20,6 +20,7 @@
 #include "core/strings/interned_id.h"
 #include "blueprint_v2/blueprint/node_content_type.h"
 #include "editor/visual/presentation/node_badge.h"
+#include "editor/visual/presentation/canvas_scene_snapshot.h"
 
 // ============================================================================
 // Helpers
@@ -1533,4 +1534,181 @@ TEST(SimulationReset, ResetRuntimeStateStoreToDefaultsShowsDefaultsInRebuild) {
     ASSERT_NE(w_after, nullptr);
     EXPECT_FLOAT_EQ(w_after->currentContent().value, 0.0f)
         << "After clearing runtime state, rebuild must show default value";
+}
+
+// ============================================================================
+// Incremental mutations
+// ============================================================================
+
+TEST(SceneMutations, IncrementalRemoveNode) {
+    core::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    auto n1 = make_bp2_node(interner, "bat1", "Battery");
+    set_iface(n1, {
+        make_port(interner, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+    auto n2 = make_bp2_node(interner, "lamp1", "Lamp");
+    set_iface(n2, {
+        make_port(interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(n1));
+    bp = bp.with_node(std::move(n2));
+
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const core::InternedId>{}, scene_reg());
+
+    ASSERT_EQ(scene.roots().size(), 2u);
+    ASSERT_NE(scene.find("bat1"), nullptr);
+    ASSERT_NE(scene.find("lamp1"), nullptr);
+
+    scene.remove_node("bat1", nullptr);
+    scene.flushRemovals();
+
+    EXPECT_EQ(scene.roots().size(), 1u);
+    EXPECT_EQ(scene.find("bat1"), nullptr);
+    EXPECT_NE(scene.find("lamp1"), nullptr);
+}
+
+TEST(SceneMutations, IncrementalRemoveWire) {
+    core::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    auto n1 = make_bp2_node(interner, "bat1", "Battery");
+    set_iface(n1, {
+        make_port(interner, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+    auto n2 = make_bp2_node(interner, "lamp1", "Lamp");
+    set_iface(n2, {
+        make_port(interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
+    auto wire = make_bp2_wire(interner, arena, "w1", "bat1", "v_out", "lamp1", "v_in");
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(n1));
+    bp = bp.with_node(std::move(n2));
+    bp = bp.with_wire(std::move(wire));
+
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const core::InternedId>{}, scene_reg());
+
+    ASSERT_EQ(scene.roots().size(), 3u);
+    ASSERT_NE(scene.find("w1"), nullptr);
+
+    scene.remove_wire("w1");
+    scene.flushRemovals();
+
+    EXPECT_EQ(scene.roots().size(), 2u);
+    EXPECT_EQ(scene.find("w1"), nullptr);
+    EXPECT_NE(scene.find("bat1"), nullptr);
+    EXPECT_NE(scene.find("lamp1"), nullptr);
+}
+
+TEST(SceneMutations, IncrementalAddNodeWidget) {
+    core::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    auto n1 = make_bp2_node(interner, "bat1", "Battery");
+    set_iface(n1, {
+        make_port(interner, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(n1));
+
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const core::InternedId>{}, scene_reg());
+
+    ASSERT_EQ(scene.roots().size(), 1u);
+
+    auto n2 = make_bp2_node(interner, "lamp1", "Lamp");
+    set_iface(n2, {
+        make_port(interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
+    bp = bp.with_node(std::move(n2));
+
+    const auto& node = *bp.find_node(interner.intern("lamp1"));
+    auto widget = visual::mutations::create_node_widget(
+        node, bp, interner, arena, std::span<const core::InternedId>{}, scene_reg(),
+        nullptr, nullptr, {});
+    scene.add(std::move(widget));
+
+    EXPECT_EQ(scene.roots().size(), 2u);
+    EXPECT_NE(scene.find("lamp1"), nullptr);
+}
+
+TEST(SceneMutations, IncrementalAddWireWidget) {
+    core::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    auto n1 = make_bp2_node(interner, "bat1", "Battery");
+    set_iface(n1, {
+        make_port(interner, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+    auto n2 = make_bp2_node(interner, "lamp1", "Lamp");
+    set_iface(n2, {
+        make_port(interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(n1));
+    bp = bp.with_node(std::move(n2));
+
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const core::InternedId>{}, scene_reg());
+
+    ASSERT_EQ(scene.roots().size(), 2u);
+
+    auto wire = make_bp2_wire(interner, arena, "w1", "bat1", "v_out", "lamp1", "v_in");
+    bp = bp.with_wire(std::move(wire));
+
+    const auto& w = *bp.find_wire(interner.intern("w1"));
+    auto wire_widget = visual::mutations::create_wire_widget(w, arena, interner, scene);
+    ASSERT_NE(wire_widget, nullptr);
+    scene.add(std::move(wire_widget));
+
+    EXPECT_EQ(scene.roots().size(), 3u);
+    EXPECT_NE(scene.find("w1"), nullptr);
+}
+
+TEST(SceneMutations, IncrementalRemovePreservesSnapshotConsistency) {
+    core::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    auto n1 = make_bp2_node(interner, "bat1", "Battery");
+    set_iface(n1, {
+        make_port(interner, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V),
+    });
+    auto n2 = make_bp2_node(interner, "lamp1", "Lamp");
+    set_iface(n2, {
+        make_port(interner, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V),
+    });
+    auto wire = make_bp2_wire(interner, arena, "w1", "bat1", "v_out", "lamp1", "v_in");
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(n1));
+    bp = bp.with_node(std::move(n2));
+    bp = bp.with_wire(std::move(wire));
+
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, bp, interner, arena, std::span<const core::InternedId>{}, scene_reg());
+
+    auto snapshot_before = editor::presentation::build_canvas_scene_snapshot(scene, interner);
+    size_t hit_objects_before = snapshot_before.hit_objects.size();
+    ASSERT_GT(hit_objects_before, 0u);
+
+    scene.remove_node("bat1", nullptr);
+    scene.remove_wire("w1");
+    scene.flushRemovals();
+
+    auto snapshot_after = editor::presentation::build_canvas_scene_snapshot(scene, interner);
+
+    // After removing bat1 and its connected wire, only lamp1 should remain.
+    EXPECT_EQ(scene.roots().size(), 1u);
+    EXPECT_NE(scene.find("lamp1"), nullptr);
+
+    // Snapshot should have fewer hit objects (no bat1 ports, no wire).
+    EXPECT_LT(snapshot_after.hit_objects.size(), hit_objects_before);
 }

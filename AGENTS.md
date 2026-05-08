@@ -92,6 +92,41 @@ ctest -R "editor_data" --output-on-failure
 - `ctest` - Run all tests
 - `./build/examples/an24_editor` - Launch visual editor
 
+## Language Server Protocol (LSP)
+
+This project uses **clangd** as the C++ language server. The LSP powers IDE features for both human developers and the OhMyOpenCode agent system.
+
+### Setup
+
+1. **Install clangd** (via Homebrew on macOS):
+   ```bash
+   brew install llvm
+   ```
+   The binary is typically at `/opt/homebrew/opt/llvm/bin/clangd` (Apple Silicon) or `/usr/local/opt/llvm/bin/clangd` (Intel).
+
+2. **Generate compile commands**:
+   ```bash
+   cmake -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+   ln -sf build/compile_commands.json compile_commands.json
+   ```
+
+3. **Editor configuration**: Install a clangd plugin for your editor (e.g., VS Code "clangd" extension, Neovim `nvim-lspconfig`).
+
+### Agent Usage
+
+Agents should leverage the LSP for:
+
+- **Diagnostics** — type errors, warnings, unused includes (`lsp_diagnostics`)
+- **Navigation** — go-to-definition, find-references (`lsp_goto_definition`, `lsp_find_references`)
+- **Symbol search** — workspace-wide symbol lookup (`lsp_symbols`)
+- **Refactoring** — safe renames across the codebase (`lsp_rename`)
+
+### Troubleshooting
+
+- **LSP not responding**: Verify `compile_commands.json` exists in the project root and the build directory is up to date.
+- **Missing headers**: Regenerate compile commands after adding new files or changing include paths.
+- **High CPU**: The initial index can take a few minutes on large codebases. clangd caches this for subsequent sessions.
+
 ## Code Style Guidelines
 
 ### File Organization

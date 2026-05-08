@@ -6,6 +6,7 @@
 #include "core/model/component_registry.h"
 
 #include <algorithm>
+#include <unordered_set>
 
 namespace bp2 {
 
@@ -272,6 +273,26 @@ Blueprint Blueprint::with_node(Node n) const {
     });
 
     copy.node_idx_valid_ = false;
+    return copy;
+}
+
+Blueprint Blueprint::without_node_and_wires(core::InternedId node_id,
+                                             const std::vector<core::InternedId>& wire_ids) const {
+    Blueprint copy = *this;
+
+    std::erase_if(copy.nodes_, [node_id](const Node& node) {
+        return node.semantic.id == node_id;
+    });
+
+    if (!wire_ids.empty()) {
+        std::unordered_set<core::InternedId> wire_set(wire_ids.begin(), wire_ids.end());
+        std::erase_if(copy.wires_, [&wire_set](const Wire& wire) {
+            return wire_set.count(wire.id) > 0;
+        });
+    }
+
+    copy.node_idx_valid_ = false;
+    copy.wire_idx_valid_ = false;
     return copy;
 }
 

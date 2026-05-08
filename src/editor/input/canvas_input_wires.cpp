@@ -96,7 +96,13 @@ InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
         bool const added = host_->add_wire(std::move(w));
         if (added) {
             host_->debug_validate_integrity();
-            rebuild_scene();
+            const bp2::Blueprint::Wire* new_wire = host_->find_wire(wire_iid);
+            if (new_wire) {
+                auto wire_widget = visual::mutations::create_wire_widget(
+                    *new_wire, *arena_, *interner_, scene_);
+                if (wire_widget) scene_.add(std::move(wire_widget));
+            }
+            rebuild_snapshot();
             result.rebuild_simulation = true;
         }
     }
@@ -199,7 +205,8 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
                 ? host_->resolve_wire_domain(candidate_ep, fixed_ep)
                 : host_->resolve_wire_domain(fixed_ep, candidate_ep);
 
-            const bool updated_ok = host_->update_wire(wire.id, [&](bp2::Blueprint::Wire& wr) {
+            const core::InternedId wire_id = wire.id;
+            const bool updated_ok = host_->update_wire(wire_id, [&](bp2::Blueprint::Wire& wr) {
                 if (reconnect_detach_start_) {
                     wr.source = candidate_ep;
                 } else {
@@ -210,7 +217,15 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
 
             if (updated_ok) {
                 host_->debug_validate_integrity();
-                rebuild_scene();
+                scene_.remove_wire(interner_->resolve(wire_id));
+                scene_.flushRemovals();
+                const bp2::Blueprint::Wire* updated_wire = host_->find_wire(wire_id);
+                if (updated_wire) {
+                    auto wire_widget = visual::mutations::create_wire_widget(
+                        *updated_wire, *arena_, *interner_, scene_);
+                    if (wire_widget) scene_.add(std::move(wire_widget));
+                }
+                rebuild_snapshot();
                 result.rebuild_simulation = true;
                 reconnected = true;
             }
@@ -218,8 +233,11 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
     }
 
     if (!reconnected && reconnect_wire_idx_ < host_->wires().size()) {
-        if (host_->remove_wire(wire.id)) {
-            rebuild_scene();
+        const core::InternedId wire_id = wires[reconnect_wire_idx_].id;
+        if (host_->remove_wire(wire_id)) {
+            scene_.remove_wire(interner_->resolve(wire_id));
+            scene_.flushRemovals();
+            rebuild_snapshot();
             result.rebuild_simulation = true;
         }
     }

@@ -28,10 +28,14 @@ namespace visual::mutations {
 
 // side_from_relative_position() and path_to_node_port() live in editor_math (snap.h)
 
+// ============================================================================
+// Bus-wire ref helpers
+// ============================================================================
+
 /// Build a bus-wire reference from a bp2::Blueprint::Wire.
 /// Returns std::nullopt if the source/target paths are malformed.
 static std::optional<BusWireRef> to_bus_wire_ref(const bp2::Blueprint::Wire& w,
-                                                 const bp2::PathArena& arena) {
+                                                  const bp2::PathArena& arena) {
     auto [src_node, src_port] = editor_math::path_to_node_port(w.source, arena);
     auto [tgt_node, tgt_port] = editor_math::path_to_node_port(w.target, arena);
     if (src_node.empty() || src_port.empty() || tgt_node.empty() || tgt_port.empty()) {
@@ -40,16 +44,27 @@ static std::optional<BusWireRef> to_bus_wire_ref(const bp2::Blueprint::Wire& w,
     return BusWireRef{w.id, src_node, tgt_node};
 }
 
+std::vector<BusWireRef> build_bus_wires(const bp2::Blueprint& bp,
+                                         const bp2::PathArena& arena) {
+    std::vector<BusWireRef> bus_wires;
+    bus_wires.reserve(bp.wires().size());
+    for (const bp2::Blueprint::Wire& w : bp.wires()) {
+        std::optional<BusWireRef> bw = to_bus_wire_ref(w, arena);
+        if (bw) bus_wires.push_back(*bw);
+    }
+    return bus_wires;
+}
+
 // ============================================================================
 // Wire widget helpers
 // ============================================================================
 
 /// Resolve a node/port endpoint to a visual::Port* in the scene.
-static Port* resolve_port(Scene& scene,
-                          core::InternedId node_id,
-                          core::InternedId port_name,
-                          core::InternedId wire_id,
-                          const core::StringInterner& interner) {
+static Port* resolve_port(const Scene& scene,
+                           core::InternedId node_id,
+                           core::InternedId port_name,
+                           core::InternedId wire_id,
+                           const core::StringInterner& interner) {
     std::string_view node_sv = interner.resolve(node_id);
     Widget* widget = scene.find(node_sv);
     if (!widget) return nullptr;
@@ -58,11 +73,10 @@ static Port* resolve_port(Scene& scene,
     return widget->portByName(port_sv, wire_sv);
 }
 
-/// Create a visual::Wire widget from a bp2::Blueprint::Wire and add it to the scene.
-static visual::Wire* create_wire_widget(Scene& scene,
-                                        const bp2::Blueprint::Wire& w,
-                                        const bp2::PathArena& arena,
-                                        const core::StringInterner& interner) {
+std::unique_ptr<Wire> create_wire_widget(const bp2::Blueprint::Wire& w,
+                                          const bp2::PathArena& arena,
+                                          const core::StringInterner& interner,
+                                          const Scene& scene) {
     auto [src_node_id, src_port] = editor_math::path_to_node_port(w.source, arena);
     auto [tgt_node_id, tgt_port] = editor_math::path_to_node_port(w.target, arena);
     if (src_node_id.empty() || src_port.empty() || tgt_node_id.empty() || tgt_port.empty()) {
@@ -84,26 +98,24 @@ static visual::Wire* create_wire_widget(Scene& scene,
         wire_id_sv,
         start_node_sv, start_port_sv,
         end_node_sv,   end_port_sv);
-    visual::Wire* wire_ptr = wire_widget.get();
 
     for (size_t i = 0; i < w.routing_points.size(); ++i) {
         wire_widget->addRoutingPoint(ui::Pt(w.routing_points[i].first, w.routing_points[i].second), i);
     }
 
-    scene.add(std::move(wire_widget));
-    return wire_ptr;
+    return wire_widget;
 }
 
 // ============================================================================
 // Ref/Value node port orientation
 // ============================================================================
 
-static void orient_ref_node_ports(Scene& scene,
-                                  const bp2::Blueprint& bp,
-                                  const bp2::PathArena& arena,
-                                  const core::StringInterner& interner,
-                                  std::span<const core::InternedId> /*instance_path*/,
-                                  const ComponentRegistry& registry) {
+void orient_ref_node_ports(Scene& scene,
+                            const bp2::Blueprint& bp,
+                            const bp2::PathArena& arena,
+                            const core::StringInterner& interner,
+                            std::span<const core::InternedId> /*instance_path*/,
+                            const ComponentRegistry& registry) {
     using editor::presentation::NodeFrameKind;
     std::unordered_map<core::InternedId, core::InternedId> ref_to_connected;
 
@@ -154,6 +166,44 @@ static void orient_ref_node_ports(Scene& scene,
 }
 
 // ============================================================================
+// Node widget creation
+// ============================================================================
+
+std::unique_ptr<Widget> create_node_widget(const bp2::Blueprint::Node& n,
+                                            const bp2::Blueprint& bp,
+                                            core::StringInterner& interner,
+                                            bp2::PathArena& arena,
+                                            std::span<const core::InternedId> instance_path,
+                                            const ComponentRegistry& registry,
+                                            const editor::RuntimeNodeStateStore* runtime_state_store,
+                                            const editor::IconFont* icon_font,
+                                            const std::vector<BusWireRef>& bus_wires) {
+    const bp2::Interface render_iface = bp.resolve_node_iface(
+        n,
+        bp2::Blueprint::NodeIfaceAuthority{interner, &registry});
+    const std::string type_name(interner.resolve(n.semantic.type));
+    const ComponentSpec* def = registry.get(type_name);
+    const TypePresentation* pres = registry.get_presentation(type_name);
+    auto frame_kind = editor::presentation::resolve_frame_kind(def, pres);
+    const editor::NodeInstanceKey instance_key = editor::make_node_instance_key(instance_path, n.semantic.id);
+    const editor::RuntimeNodeState* runtime_state = nullptr;
+    if (runtime_state_store != nullptr) {
+        const auto it = runtime_state_store->find(instance_key);
+        if (it != runtime_state_store->end()) {
+            runtime_state = &it->second;
+        }
+    }
+    NodeContent content = def ? create_runtime_node_content(n, *def, pres, interner, runtime_state) : NodeContent{};
+    editor::NodeBadgeSet badges;
+    if (n.is_blueprint_instance()) {
+        badges.set(editor::NodeBadge::Composite);
+    }
+    std::optional<editor::NodeColor> color = n.view.color;
+    return NodeFactory::create(
+        n, frame_kind, render_iface, interner, content, badges, icon_font, color, bus_wires);
+}
+
+// ============================================================================
 // Public API
 // ============================================================================
 
@@ -165,52 +215,24 @@ static void orient_ref_node_ports(Scene& scene,
 /// the same `node.view.color` directly to live widgets after mutation. Both paths
 /// derive color via `NodeColor::to_uint32()` and must stay in sync.
 void rebuild(Scene& scene,
-             const bp2::Blueprint& bp,
-             core::StringInterner& interner,
-             bp2::PathArena& arena,
-             std::span<const core::InternedId> instance_path,
-             const ComponentRegistry& registry,
-             const editor::RuntimeNodeStateStore* runtime_state_store,
-             const editor::IconFont* icon_font) {
+              const bp2::Blueprint& bp,
+              core::StringInterner& interner,
+              bp2::PathArena& arena,
+              std::span<const core::InternedId> instance_path,
+              const ComponentRegistry& registry,
+              const editor::RuntimeNodeStateStore* runtime_state_store,
+              const editor::IconFont* icon_font) {
     auto guard = scene.flushGuard();
     scene.clear();
 
-    // Build wire refs for BusNodeWidget alias port construction
-    std::vector<BusWireRef> bus_wires;
-    bus_wires.reserve(bp.wires().size());
-    for (const bp2::Blueprint::Wire& w : bp.wires()) {
-        std::optional<BusWireRef> bw = to_bus_wire_ref(w, arena);
-        if (bw) bus_wires.push_back(*bw);
-    }
+    const std::vector<BusWireRef> bus_wires = build_bus_wires(bp, arena);
 
-     // 1) Create node widgets for all nodes in this group
-     for (const bp2::Blueprint::Node& n : bp.nodes()) {
-         const bp2::Interface render_iface = bp.resolve_node_iface(
-             n,
-             bp2::Blueprint::NodeIfaceAuthority{interner, &registry});
-         const std::string type_name(interner.resolve(n.semantic.type));
-          const ComponentSpec* def = registry.get(type_name);
-          const TypePresentation* pres = registry.get_presentation(type_name);
-          auto frame_kind = editor::presentation::resolve_frame_kind(def, pres);
-           const editor::NodeInstanceKey instance_key = editor::make_node_instance_key(instance_path, n.semantic.id);
-          const editor::RuntimeNodeState* runtime_state = nullptr;
-          if (runtime_state_store != nullptr) {
-              const auto it = runtime_state_store->find(instance_key);
-              if (it != runtime_state_store->end()) {
-                  runtime_state = &it->second;
-              }
-          }
-NodeContent content = def ? create_runtime_node_content(n, *def, pres, interner, runtime_state) : NodeContent{};
-           // Resolve static badges from structural properties
-           editor::NodeBadgeSet badges;
-           if (n.is_blueprint_instance()) {
-               badges.set(editor::NodeBadge::Composite);
-           }
-            std::optional<editor::NodeColor> color = n.view.color;
-            std::unique_ptr<Widget> widget = NodeFactory::create(
-                n, frame_kind, render_iface, interner, content, badges, icon_font, color, bus_wires);
-          scene.add(std::move(widget));
-      }
+    // 1) Create node widgets for all nodes in this group
+    for (const bp2::Blueprint::Node& n : bp.nodes()) {
+        auto widget = create_node_widget(n, bp, interner, arena, instance_path, registry,
+                                          runtime_state_store, icon_font, bus_wires);
+        scene.add(std::move(widget));
+    }
 
     // Orient single-port ref/value nodes toward their connected node.
     orient_ref_node_ports(scene, bp, arena, interner, instance_path, registry);
@@ -221,11 +243,12 @@ NodeContent content = def ? create_runtime_node_content(n, *def, pres, interner,
         auto [tgt_node_id, tgt_port] = editor_math::path_to_node_port(w.target, arena);
         if (src_node_id.empty() || tgt_node_id.empty()) continue;
 
-         const bp2::Blueprint::Node* sn = bp.find_node(src_node_id);
-         const bp2::Blueprint::Node* en = bp.find_node(tgt_node_id);
-         if (!sn || !en) continue;
+        const bp2::Blueprint::Node* sn = bp.find_node(src_node_id);
+        const bp2::Blueprint::Node* en = bp.find_node(tgt_node_id);
+        if (!sn || !en) continue;
 
-        create_wire_widget(scene, w, arena, interner);
+        auto wire_widget = create_wire_widget(w, arena, interner, scene);
+        if (wire_widget) scene.add(std::move(wire_widget));
     }
 }
 
