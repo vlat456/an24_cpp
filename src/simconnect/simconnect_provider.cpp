@@ -385,17 +385,25 @@ ValType SimConnectProvider::val_type_for_signal(uint32_t signal_index) const {
 void SimConnectProvider::maybe_send_ping(double current_time) {
     if (current_time - last_ping_sent_time_ < PING_INTERVAL_SEC) return;
 
+    uint16_t ping_id = next_ping_id_++;
     size_t written = WireCodec::build_ping(
-        send_buffer_.data(), send_buffer_.size(), next_ping_id_++);
+        send_buffer_.data(), send_buffer_.size(), ping_id);
 
     if (written > 0) {
         send_bytes(send_buffer_.data(), written);
         last_ping_sent_time_ = current_time;
-        spdlog::trace("[SimConnectProvider] Ping sent (id={})", next_ping_id_ - 1);
+        last_ping_id_ = ping_id;
+        spdlog::trace("[SimConnectProvider] Ping sent (id={})", ping_id);
     }
 }
 
 void SimConnectProvider::handle_pong(const PacketHeader& pong_hdr) {
+    if (pong_hdr.seq_id != last_ping_id_) {
+        spdlog::debug("[SimConnectProvider] Stale pong (id={}, expected={})",
+                      pong_hdr.seq_id, last_ping_id_);
+        return;
+    }
+
     last_pong_recv_time_ = current_time_;
 
     if (!connection_healthy_) {

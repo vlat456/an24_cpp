@@ -125,4 +125,5 @@ private:
     double current_time_          = 0.0;
     bool   connection_healthy_    = false;
     uint16_t next_ping_id_        = 1;
+    uint16_t last_ping_id_        = 0;
 };
