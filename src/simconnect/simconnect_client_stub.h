@@ -61,10 +61,14 @@ public:
     /// Clear all recorded state (for test isolation).
     void reset();
 
+    /// Make send_bytes() fail on next call (for testing failure handling).
+    void set_send_bytes_should_fail(bool fail) { send_bytes_should_fail_ = fail; }
+
 private:
     static std::string make_key(const std::string& sim_var, int index);
 
     bool connected_ = false;
+    bool send_bytes_should_fail_ = false;
     std::map<std::string, float> sim_values_;
     std::map<std::string, float> written_;
     std::vector<std::pair<std::string, uint32_t>> events_sent_;

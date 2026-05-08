@@ -29,6 +29,9 @@ bool StubSimConnectClient::send_request(const std::string& json_payload) {
 }
 
 bool StubSimConnectClient::send_bytes(const uint8_t* data, size_t len) {
+    if (send_bytes_should_fail_) {
+        return false;
+    }
     last_request_bytes_.assign(data, data + len);
     return true;
 }
@@ -105,6 +108,7 @@ void StubSimConnectClient::reset() {
     last_request_json_.clear();
     last_request_bytes_.clear();
     response_cb_ = nullptr;
+    send_bytes_should_fail_ = false;
     // Note: connected_ is NOT reset — connection state is orthogonal to data state.
     // Call disconnect() explicitly to reset connection state.
 }

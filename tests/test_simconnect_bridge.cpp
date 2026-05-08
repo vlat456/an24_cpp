@@ -989,3 +989,22 @@ TEST(SimConnectProviderImplTest, FloatToWireValueUnknownValTypeReturnsZero) {
     EXPECT_EQ(wv.u32, 0u);
 #endif
 }
+
+TEST(SimConnectStubTest, SendBytesFailureInjection) {
+    auto stub = std::make_unique<StubSimConnectClient>();
+    stub->connect();
+    
+    // Default: send_bytes succeeds
+    uint8_t test_data[] = {0x01, 0x02, 0x03, 0x04};
+    EXPECT_TRUE(stub->send_bytes(test_data, 4));
+    EXPECT_EQ(stub->last_request_bytes().size(), 4u);
+    
+    // With failure flag set: send_bytes returns false
+    stub->set_send_bytes_should_fail(true);
+    EXPECT_FALSE(stub->send_bytes(test_data, 4));
+    
+    // After reset: failure flag is cleared, send_bytes succeeds again
+    stub->reset();
+    stub->connect();
+    EXPECT_TRUE(stub->send_bytes(test_data, 4));
+}
