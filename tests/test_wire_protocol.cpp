@@ -5,6 +5,7 @@
 #include <cstring>
 #include <vector>
 #include <cmath>
+#include <limits>
 
 // =============================================================================
 // Wire Protocol V2 Types — #445
@@ -279,6 +280,30 @@ TEST(WireProtocolTest, ValueChangedZeroEpsilonUsesExactMatch) {
     WireValue prev(1.0f);
     WireValue curr(1.000001f);  // Tiny difference
     EXPECT_TRUE(value_changed(curr, prev, 0.0f, ValType::Float32));
+}
+
+TEST(WireProtocolTest, ValueChangedDetectsInfinityTransitions) {
+    // Regression: +inf ↔ -inf transitions must be detected even with epsilon > 0.
+    // +inf - (-inf) = NaN, and NaN > threshold = false, so without the guard
+    // these transitions are silently missed.
+    WireValue pos_inf;
+    pos_inf.f32 = std::numeric_limits<float>::infinity();
+    WireValue neg_inf;
+    neg_inf.f32 = -std::numeric_limits<float>::infinity();
+    WireValue normal(42.0f);
+
+    // +inf → -inf
+    EXPECT_TRUE(value_changed(neg_inf, pos_inf, 0.01f, ValType::Float32));
+    // -inf → +inf
+    EXPECT_TRUE(value_changed(pos_inf, neg_inf, 0.01f, ValType::Float32));
+    // +inf → +inf (same bit pattern)
+    EXPECT_FALSE(value_changed(pos_inf, pos_inf, 0.01f, ValType::Float32));
+    // -inf → -inf (same bit pattern)
+    EXPECT_FALSE(value_changed(neg_inf, neg_inf, 0.01f, ValType::Float32));
+    // normal → +inf
+    EXPECT_TRUE(value_changed(pos_inf, normal, 0.01f, ValType::Float32));
+    // normal → -inf
+    EXPECT_TRUE(value_changed(neg_inf, normal, 0.01f, ValType::Float32));
 }
 
 // =============================================================================

@@ -273,6 +273,12 @@ inline bool value_changed(WireValue current, WireValue previous,
                 return current.u32 != previous.u32;
             }
 
+            // Infinity transitions: +inf - (-inf) = NaN, so abs(diff) > threshold
+            // returns false. Detect via bit-level comparison instead.
+            if (std::isinf(current.f32) || std::isinf(previous.f32)) {
+                return current.u32 != previous.u32;
+            }
+
             float diff = std::abs(current.f32 - previous.f32);
             // Relative threshold: scale epsilon by magnitude of previous value,
             // floored at epsilon to avoid sub-epsilon noise on small values.
