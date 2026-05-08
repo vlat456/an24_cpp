@@ -5,6 +5,8 @@ set(SIMCONNECT_SOURCES
     simconnect_client_stub.cpp
     simconnect_client_stub.h
     simconnect_client.h
+    simconnect_coordinator.cpp
+    simconnect_coordinator.h
     simconnect_mapping.h
     simconnect_provider.cpp
     simconnect_provider.h
