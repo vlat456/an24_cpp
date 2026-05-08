@@ -170,7 +170,7 @@ TEST(SimConnectProviderImplTest, BuildMappingsAssignsDefaultTierByVarType) {
     bridge.build_mappings(input);
 
     // Default tier for AVar is TIER_FAST
-    auto* stub = static_cast<StubSimConnectClient*>(bridge.client());
+    auto* stub = static_cast<StubSimConnectClient*>(*bridge.client());
     // We verify via the DeltaRead packet — tier mask will include fast
     EXPECT_EQ(bridge.input_count(), 1u);
 }
@@ -278,7 +278,7 @@ TEST(SimConnectProviderImplTest, RequestInputsSends8ByteDeltaRead) {
 
     bridge.request_inputs();
 
-    auto* stub = static_cast<StubSimConnectClient*>(bridge.client());
+    auto* stub = static_cast<StubSimConnectClient*>(*bridge.client());
     const auto& req = stub->last_request_bytes();
 
     // Should be exactly 8 bytes — DeltaRead is header-only
@@ -308,7 +308,7 @@ TEST(SimConnectProviderImplTest, RequestInputsTierMaskVariesByFrame) {
 
     // Frame 0: 0%5==0, 0%30==0 → all tiers
     bridge.request_inputs();
-    auto* stub = static_cast<StubSimConnectClient*>(bridge.client());
+    auto* stub = static_cast<StubSimConnectClient*>(*bridge.client());
     auto result0 = WireCodec::parse(stub->last_request_bytes().data(),
                                 stub->last_request_bytes().size());
     ASSERT_NE(result0.header, nullptr);
@@ -342,10 +342,11 @@ TEST(SimConnectProviderImplTest, RequestInputsDoesNothingWhenNotConnected) {
 
     SimConnectProvider bridge;
     bridge.build_mappings(input);
-    // NOT connecting
-
-    auto* stub = static_cast<StubSimConnectClient*>(bridge.client());
+    bridge.connect();
+    auto* stub = static_cast<StubSimConnectClient*>(*bridge.client());
     std::vector<uint8_t> before = stub->last_request_bytes();
+    bridge.disconnect();
+    // Now disconnected — request_inputs should do nothing
 
     bridge.request_inputs();
     EXPECT_EQ(stub->last_request_bytes(), before);
@@ -367,7 +368,7 @@ TEST(SimConnectProviderImplTest, ExtractOutputsSendsDeltaWrite) {
     values[1] = 28.5f;
     bridge.extract_outputs_raw(values.data(), values.size());
 
-    auto* stub = static_cast<StubSimConnectClient*>(bridge.client());
+    auto* stub = static_cast<StubSimConnectClient*>(*bridge.client());
     const auto& req = stub->last_request_bytes();
 
     ASSERT_GE(req.size(), sizeof(PacketHeader));
@@ -417,7 +418,7 @@ TEST(SimConnectProviderImplTest, DeltaWriteSkipsUnchangedDataOutputs) {
     std::vector<float> values(input.signal_count, 0.0f);
     bridge.extract_outputs_raw(values.data(), values.size());
 
-    auto* stub = static_cast<StubSimConnectClient*>(bridge.client());
+    auto* stub = static_cast<StubSimConnectClient*>(*bridge.client());
     const auto& req = stub->last_request_bytes();
 
     // The output value hasn't changed from initial 0 → no DeltaWrite sent
@@ -484,7 +485,7 @@ TEST(SimConnectProviderImplTest, DeltaWriteOnlySendsChangedOutputs) {
     bridge.extract_outputs_raw(values.data(), values.size());
 
     // Third extract: still no change (output stays at 0)
-    auto* stub = static_cast<StubSimConnectClient*>(bridge.client());
+    auto* stub = static_cast<StubSimConnectClient*>(*bridge.client());
     const auto& req = stub->last_request_bytes();
     if (req.size() >= sizeof(PacketHeader)) {
 
@@ -509,7 +510,7 @@ TEST(SimConnectProviderImplTest, OnResponseParsesDeltaUpdate) {
 
     bridge.request_inputs();
 
-    auto* stub = static_cast<StubSimConnectClient*>(bridge.client());
+    auto* stub = static_cast<StubSimConnectClient*>(*bridge.client());
 
     // Build V2 DeltaUpdate with value 42.0
     uint16_t expected_id = compute_intern_id("AN24_TEST_VAR");
@@ -540,7 +541,7 @@ TEST(SimConnectProviderImplTest, FullSyncReplacesAllValues) {
 
     bridge.request_inputs();
 
-    auto* stub = static_cast<StubSimConnectClient*>(bridge.client());
+    auto* stub = static_cast<StubSimConnectClient*>(*bridge.client());
 
     // Build FullSync with both input values
     uint16_t id_temp = compute_intern_id("AMBIENT TEMPERATURE");
@@ -574,7 +575,7 @@ TEST(SimConnectProviderImplTest, DeltaUpdateIgnoresUnknownIds) {
 
     bridge.request_inputs();
 
-    auto* stub = static_cast<StubSimConnectClient*>(bridge.client());
+    auto* stub = static_cast<StubSimConnectClient*>(*bridge.client());
 
     uint16_t id_known = compute_intern_id("AMBIENT TEMPERATURE");
     uint16_t id_unknown = 9999;
@@ -607,7 +608,7 @@ TEST(SimConnectProviderImplTest, OnResponseHandlesMalformedJson) {
     bridge.build_mappings(input);
     bridge.connect();
 
-    auto* stub = static_cast<StubSimConnectClient*>(bridge.client());
+    auto* stub = static_cast<StubSimConnectClient*>(*bridge.client());
     stub->trigger_mock_response("not valid json {{{");
     stub->trigger_mock_response("");
     stub->trigger_mock_response(R"({"missing":"cmd_field"})");
@@ -627,7 +628,7 @@ TEST(SimConnectProviderImplTest, MalformedBinaryPacketDoesNotCrash) {
     bridge.build_mappings(input);
     bridge.connect();
 
-    auto* stub = static_cast<StubSimConnectClient*>(bridge.client());
+    auto* stub = static_cast<StubSimConnectClient*>(*bridge.client());
 
     // Valid magic but truncated (header only, count says 5 records)
     PacketHeader hdr;
@@ -673,7 +674,7 @@ TEST(SimConnectProviderImplTest, DeltaRoundTripReadRequestDeltaUpdate) {
     // 1. Send request (8-byte DeltaRead)
     bridge.request_inputs();
 
-    auto* stub = static_cast<StubSimConnectClient*>(bridge.client());
+    auto* stub = static_cast<StubSimConnectClient*>(*bridge.client());
     const auto& req = stub->last_request_bytes();
 
     // 2. Verify it's a DeltaRead
@@ -708,7 +709,7 @@ TEST(SimConnectProviderImplTest, DeltaRoundTripFullSyncThenDeltaUpdate) {
     bridge.build_mappings(input);
     bridge.connect();
 
-    auto* stub = static_cast<StubSimConnectClient*>(bridge.client());
+    auto* stub = static_cast<StubSimConnectClient*>(*bridge.client());
 
     uint16_t var_id = compute_intern_id("SYNC_VAR");
 
@@ -767,7 +768,7 @@ TEST(SimConnectProviderImplTest, EpochWraparoundRejectsStaleResponse) {
     // Alternative: directly send a stale response and verify it's ignored.
     // For a clean test, we'll advance the epoch and send responses with known gaps.
 
-    auto* stub = static_cast<StubSimConnectClient*>(bridge.client());
+    auto* stub = static_cast<StubSimConnectClient*>(*bridge.client());
 
     uint16_t var_id = compute_intern_id("EPOCH_WRAP_VAR");
 
@@ -819,7 +820,7 @@ TEST(SimConnectProviderImplTest, PollSendsPingAfter5Seconds) {
     SimConnectProvider bridge;
     bridge.connect();
 
-    auto* stub = static_cast<StubSimConnectClient*>(bridge.client());
+    auto* stub = static_cast<StubSimConnectClient*>(*bridge.client());
 
 
     // Poll at t=0 — no ping yet (just connected)
@@ -828,7 +829,7 @@ TEST(SimConnectProviderImplTest, PollSendsPingAfter5Seconds) {
     stub->reset();
     stub->set_response_callback([&](std::span<const uint8_t> p) {
         // Re-register callback after reset
-        const_cast<SimConnectProvider&>(bridge).client()->send_request(
+        (*const_cast<SimConnectProvider&>(bridge).client())->send_request(
             std::string(reinterpret_cast<const char*>(p.data()), p.size()));
     });
     // Re-connect after reset
@@ -860,7 +861,7 @@ TEST(SimConnectProviderImplTest, PongReceivedResetsHealth) {
     SimConnectProvider bridge;
     bridge.connect();
 
-    auto* stub = static_cast<StubSimConnectClient*>(bridge.client());
+    auto* stub = static_cast<StubSimConnectClient*>(*bridge.client());
 
     EXPECT_FALSE(bridge.is_alive());
 
@@ -887,7 +888,7 @@ TEST(SimConnectProviderImplTest, PongEchoesPingSeqId) {
     SimConnectProvider bridge;
     bridge.connect();
 
-    auto* stub = static_cast<StubSimConnectClient*>(bridge.client());
+    auto* stub = static_cast<StubSimConnectClient*>(*bridge.client());
 
 
     // Advance time to trigger a ping
@@ -915,7 +916,7 @@ TEST(SimConnectProviderImplTest, StalePongIsIgnored) {
     SimConnectProvider bridge;
     bridge.connect();
 
-    auto* stub = static_cast<StubSimConnectClient*>(bridge.client());
+    auto* stub = static_cast<StubSimConnectClient*>(*bridge.client());
 
     bridge.poll(0.0);
     bridge.poll(6.0);
@@ -948,7 +949,7 @@ TEST(SimConnectProviderImplTest, BuildMappingsResetsFrameCounterAndEpoch) {
         bridge.request_inputs();
     }
 
-    auto* stub = static_cast<StubSimConnectClient*>(bridge.client());
+    auto* stub = static_cast<StubSimConnectClient*>(*bridge.client());
     auto result = WireCodec::parse(stub->last_request_bytes().data(),
                                    stub->last_request_bytes().size());
     ASSERT_NE(result.header, nullptr);
@@ -1013,7 +1014,7 @@ TEST(SimConnectProviderImplTest, InvalidBinaryPacketDoesNotAttemptJsonParse) {
     SimConnectProvider bridge;
     bridge.connect();
     
-    auto* stub = static_cast<StubSimConnectClient*>(bridge.client());
+    auto* stub = static_cast<StubSimConnectClient*>(*bridge.client());
     
     // Construct a header-sized payload with invalid magic
     uint8_t bad_magic[sizeof(PacketHeader)] = {0xFF, 0xFF, 0x02, 0x01, 0, 0, 0, 0};

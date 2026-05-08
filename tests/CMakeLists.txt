@@ -854,6 +854,9 @@ add_sim_test(simconnect_stub_tests SOURCES test_simconnect_stub.cpp LINKS simcon
 # SimConnectProvider integration tests (Issue #432/#466: mapping + inject/extract + delta protocol)
 add_sim_test(simconnect_bridge_tests SOURCES test_simconnect_bridge.cpp LINKS simconnect_bridge)
 
+# SimConnectCoordinator tests (Issue #480: multi-document shared client)
+add_sim_test(simconnect_coordinator_tests SOURCES test_simconnect_coordinator.cpp LINKS simconnect_bridge)
+
 # MockProvider tests (Issue #460: SimVarProvider interface + mock)
 add_sim_test(mock_provider_tests SOURCES test_mock_provider.cpp LINKS jit_solver)
 
