@@ -5,6 +5,7 @@
 
 #include <nlohmann/json.hpp>
 #include <spdlog/spdlog.h>
+#include <cassert>
 
 // ==...== SimVarProvider Interface ==...==
 
@@ -230,21 +231,27 @@ void SimConnectProvider::request_inputs() {
     }
 }
 
-static float wire_value_to_float(const WireValue& wv, ValType vt) {
+float wire_value_to_float(const WireValue& wv, ValType vt) {
     switch (vt) {
         case ValType::Float32: return wv.f32;
         case ValType::Int32:   return static_cast<float>(wv.i32);
         case ValType::Bool:    return wv.u32 != 0 ? 1.0f : 0.0f;
     }
+    spdlog::warn("[SimConnectProvider] Unknown ValType {} in wire_value_to_float, returning 0",
+                 static_cast<uint8_t>(vt));
+    assert(false && "Unknown ValType — protocol mismatch?");
     return 0.0f;
 }
 
-static WireValue float_to_wire_value(float value, ValType vt) {
+WireValue float_to_wire_value(float value, ValType vt) {
     switch (vt) {
         case ValType::Float32: return WireValue(value);
         case ValType::Int32:   return WireValue(static_cast<int32_t>(value));
         case ValType::Bool:    return WireValue(value > SIGNAL_BOOL_THRESHOLD);
     }
+    spdlog::warn("[SimConnectProvider] Unknown ValType {} in float_to_wire_value, returning zero",
+                 static_cast<uint8_t>(vt));
+    assert(false && "Unknown ValType — protocol mismatch?");
     return WireValue{};
 }
 

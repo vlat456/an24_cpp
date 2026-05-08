@@ -9,6 +9,10 @@
 #include <gtest/gtest.h>
 #include <cstring>
 
+// Forward declarations for internal helpers tested directly.
+float wire_value_to_float(const WireValue& wv, ValType vt);
+WireValue float_to_wire_value(float value, ValType vt);
+
 // =============================================================================
 // SimConnectProvider Tests — V2 Delta Protocol
 // =============================================================================
@@ -947,4 +951,28 @@ TEST(SimConnectProviderImplTest, BuildMappingsResetsFrameCounterAndEpoch) {
     ASSERT_NE(result.header, nullptr);
     // Frame 0: 0%5==0, 0%30==0 → all tiers
     EXPECT_EQ(result.header->count, TIER_MASK_FAST | TIER_MASK_MEDIUM | TIER_MASK_SLOW);
+}
+
+// =============================================================================
+// Internal helper robustness — unknown ValType fallback (#485)
+// =============================================================================
+
+TEST(SimConnectProviderImplTest, WireValueToFloatUnknownValTypeReturnsZero) {
+    WireValue wv(3.14f);
+    ValType invalid = static_cast<ValType>(99);
+#ifndef NDEBUG
+    EXPECT_DEATH((void)wire_value_to_float(wv, invalid), "");
+#else
+    EXPECT_FLOAT_EQ(wire_value_to_float(wv, invalid), 0.0f);
+#endif
+}
+
+TEST(SimConnectProviderImplTest, FloatToWireValueUnknownValTypeReturnsZero) {
+    ValType invalid = static_cast<ValType>(99);
+#ifndef NDEBUG
+    EXPECT_DEATH((void)float_to_wire_value(3.14f, invalid), "");
+#else
+    WireValue wv = float_to_wire_value(3.14f, invalid);
+    EXPECT_EQ(wv.u32, 0u);
+#endif
 }
