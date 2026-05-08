@@ -372,7 +372,9 @@ void SimConnectProvider::handle_json_response(std::span<const uint8_t> payload) 
 
 void SimConnectProvider::send_bytes(const uint8_t* data, size_t len) {
     if (!client_ || !client_->is_connected()) return;
-    client_->send_bytes(data, len);
+    if (!client_->send_bytes(data, len)) {
+        spdlog::warn("[SimConnectProvider] send_bytes failed ({} bytes), packet dropped", len);
+    }
 }
 
 ValType SimConnectProvider::val_type_for_signal(uint32_t signal_index) const {
