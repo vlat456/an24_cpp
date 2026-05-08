@@ -8,13 +8,13 @@ void Comparator<Provider>::pre_load() {
 
 template <typename Provider>
 void Comparator<Provider>::execute(SimulationState& st, double /*dt*/) {
-    float Va = st.values[provider.get(PortNames::Va)];
-    float Vb = st.values[provider.get(PortNames::Vb)];
+    float const Va = st.values[provider.get(PortNames::Va)];
+    float const Vb = st.values[provider.get(PortNames::Vb)];
 
-    float diff = Va - Vb;
+    float const diff = Va - Vb;
 
-    bool set = (diff >= Von);
-    bool keep = (diff > Voff);
+    bool const set = (diff >= Von);
+    bool const keep = (diff > Voff);
     output_state = set || (output_state && keep);
 
     st.values[provider.get(PortNames::o)] = output_state ? 1.0f : 0.0f;

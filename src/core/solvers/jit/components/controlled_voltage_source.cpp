@@ -5,7 +5,7 @@
 
 template <typename Provider>
 void ControlledVoltageSource<Provider>::pre_load() {
-    float safe_r = std::max(r_internal, 1e-9f);
+    float const safe_r = std::max(r_internal, 1e-9f);
     inv_r = 1.0f / safe_r;
 }
 

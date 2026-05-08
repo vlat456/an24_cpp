@@ -31,7 +31,7 @@ LayoutResult compute_layout(const Blueprint& bp, const LayoutOptions& options) {
     sugiyama::minimize_crossings(graph, layering, options.crossing_minimization_sweeps);
 
     // Phase 4: Assign coordinates.
-    sugiyama::Spacing spacing{
+    sugiyama::Spacing const spacing{
         options.horizontal_spacing,
         options.vertical_spacing,
         options.margin_x,

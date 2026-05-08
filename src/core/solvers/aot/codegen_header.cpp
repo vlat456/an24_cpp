@@ -64,7 +64,7 @@ void emit_systems_class_declaration(
     oss << "public:\n";
 
     for (const auto& dev : devices) {
-        std::string aot_type = codegen_detail::generate_aot_provider_type(dev, port_to_signal, signal_count);
+        std::string const aot_type = codegen_detail::generate_aot_provider_type(dev, port_to_signal, signal_count);
         oss << "    " << dev.classname << "<" << aot_type << "> " << codegen_detail::sanitize_name(dev.name) << ";\n";
     }
     oss << "\n";
@@ -76,8 +76,8 @@ void emit_systems_class_declaration(
             if (port.second.alias.has_value() && !port.second.alias.value().empty()) {
                 continue;
             }
-            std::string port_key = signal_key::make_node_port_key(dev.name, port_name);
-            uint32_t sig = port_to_signal.count(port_key) ? port_to_signal.at(port_key) : signal_count;
+            std::string const port_key = signal_key::make_node_port_key(dev.name, port_name);
+            uint32_t const sig = port_to_signal.count(port_key) ? port_to_signal.at(port_key) : signal_count;
             oss << "    static constexpr uint32_t " << codegen_detail::sanitize_name(dev.name) << "_" << port_name << "_idx = " << sig << ";\n";
         }
     }
@@ -193,7 +193,7 @@ std::string CodeGen::generate_header(
     oss << "#endif\n\n";
 
     for (const auto& [port, sig] : port_to_signal) {
-        std::string const_name = "SIG_" + codegen_detail::sanitize_name(codegen_detail::to_upper(port));
+        std::string const const_name = "SIG_" + codegen_detail::sanitize_name(codegen_detail::to_upper(port));
         oss << "constexpr uint32_t " << const_name << " = " << sig << ";\n";
     }
     oss << "\n";
@@ -202,7 +202,7 @@ std::string CodeGen::generate_header(
     bool first = true;
     for (const auto& dev : devices) {
         if (dev.kind == ComponentKind::RefNode) {
-            std::string port_key = dev.name + ".v";
+            std::string const port_key = dev.name + ".v";
             if (port_to_signal.count(port_key)) {
                 if (!first) {
                     oss << ", ";

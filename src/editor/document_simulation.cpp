@@ -21,9 +21,9 @@ void dispatch_color_to_widget(WindowManager& window_manager,
                               core::InternedId node_iid,
                               const WindowScopeId& scope_id,
                               std::optional<editor::NodeColor> color) {
-    BlueprintWindow* win = window_manager.find(scope_id);
+    BlueprintWindow const* win = window_manager.find(scope_id);
     if (!win) return;
-    std::string_view node_sv = interner.resolve(node_iid);
+    std::string_view const node_sv = interner.resolve(node_iid);
     if (auto* widget = win->scene.find(node_sv)) {
         widget->setCustomColor(color.has_value() ? std::optional<uint32_t>(color->to_uint32()) : std::nullopt);
     }
@@ -70,7 +70,7 @@ void Document::purge_transient_node_state() {
 // ============================================================================
 
 void Document::rebuild_window_scenes() {
-    ComponentRegistry empty_reg;
+    ComponentRegistry const empty_reg;
     const ComponentRegistry& reg = type_registry_ ? *type_registry_ : empty_reg;
     const auto& rt = sim_bridge_.runtime_node_states();
     const editor::IconFont* icon_font = this->icon_font();

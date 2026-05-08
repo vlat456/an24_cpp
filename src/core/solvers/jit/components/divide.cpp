@@ -4,10 +4,10 @@
 
 template <typename Provider>
 void Divide<Provider>::execute(SimulationState& st, double /*dt*/) {
-    float A = st.values[provider.get(PortNames::A)];
-    float B = st.values[provider.get(PortNames::B)];
+    float const A = st.values[provider.get(PortNames::A)];
+    float const B = st.values[provider.get(PortNames::B)];
     // Avoid division by zero - if B is effectively zero, output zero
-    float result = (std::abs(B) > 1e-6f) ? (A / B) : 0.0f;
+    float const result = (std::abs(B) > 1e-6f) ? (A / B) : 0.0f;
     st.values[provider.get(PortNames::o)] = result;
 }
 

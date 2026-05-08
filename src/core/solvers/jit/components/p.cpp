@@ -5,9 +5,9 @@
 
 template <typename Provider>
 void P<Provider>::execute(SimulationState& st, double /*dt*/) {
-    float sp = st.values[provider.get(PortNames::setpoint)];
-    float fb = st.values[provider.get(PortNames::feedback)];
-    float error = sp - fb;
+    float const sp = st.values[provider.get(PortNames::setpoint)];
+    float const fb = st.values[provider.get(PortNames::feedback)];
+    float const error = sp - fb;
     float output = Kp * error;
     output = std::clamp(output, output_min, output_max);
     st.values[provider.get(PortNames::output)] = output;

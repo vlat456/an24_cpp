@@ -19,8 +19,8 @@ MenuTree CatalogRegistry::build_menu_tree(
             const std::string& cat = cat_it->second;
             size_t start = 0;
             while (start < cat.size()) {
-                size_t slash = cat.find('/', start);
-                std::string segment = slash == std::string::npos
+                size_t const slash = cat.find('/', start);
+                std::string const segment = slash == std::string::npos
                     ? cat.substr(start)
                     : cat.substr(start, slash - start);
                 node = &node->children[segment];

@@ -19,7 +19,7 @@ void KnobSwitch<Provider>::execute(SimulationState& /*st*/, double /*dt*/) {
 template <typename Provider>
 void KnobSwitch<Provider>::commit(SimulationState& st, double /*dt*/) {
     // Read control input — interpreted as 0-based position index
-    float control = st.values[provider.get(PortNames::control)];
+    float const control = st.values[provider.get(PortNames::control)];
 
     // Edge detection: on first commit (last_control == -1.0 sentinel),
     // preserve factory-set initial_position when control is at default (0.0).

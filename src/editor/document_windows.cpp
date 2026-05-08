@@ -93,13 +93,13 @@ void Document::openSubWindow(const WindowScopeId& target_scope) {
         // Nested external-ref windows opened from an embedded host do NOT yet
         // have an external parent window, so their parent must still resolve as
         // embedded here.
-        WindowScopeId external_parent_scope = WindowScopeId::external(parent_path);
+        WindowScopeId const external_parent_scope = WindowScopeId::external(parent_path);
         const editor::ResolvedScope external_parent = resolve_signal_scope(external_parent_scope);
         if (external_parent.blueprint && external_parent.interner) {
             bp = external_parent.blueprint;
             bp_interner = external_parent.interner;
         } else {
-            WindowScopeId embedded_parent_scope = WindowScopeId::embedded(parent_path);
+            WindowScopeId const embedded_parent_scope = WindowScopeId::embedded(parent_path);
             const editor::ResolvedScope embedded_parent = resolve_signal_scope(embedded_parent_scope);
             bp = embedded_parent.blueprint;
             bp_interner = embedded_parent.interner;
@@ -116,7 +116,7 @@ void Document::openSubWindow(const WindowScopeId& target_scope) {
     const bp2::Blueprint::Node* node = local_node_id.empty() ? nullptr : bp->find_node(local_node_id);
 
     if (node && node->is_blueprint_instance() && node->has_embedded_blueprint()) {
-        std::string type_name = std::string(bp_interner->resolve(node->semantic.type));
+        std::string const type_name = std::string(bp_interner->resolve(node->semantic.type));
         auto [win, created] = window_manager_.open(target_scope,
                                                    type_name + " [" + editor::instance_path_to_scope_string(interner_, target_scope.path()) + "]");
         if (!win) {
@@ -150,7 +150,7 @@ void Document::openSubWindow(const WindowScopeId& target_scope) {
         // Non-embedded blueprint instance that resolve_subwindow_open_target still
         // classified as EmbeddedNested (e.g. blueprint has source but not
         // has_embedded_blueprint). Open as read-only scope.
-        std::string type_name = std::string(bp_interner->resolve(node->semantic.type));
+        std::string const type_name = std::string(bp_interner->resolve(node->semantic.type));
         auto [win, created] = window_manager_.open(target_scope,
                                                    type_name + " [" + editor::instance_path_to_scope_string(interner_, target_scope.path()) + "]");
         if (!win) {

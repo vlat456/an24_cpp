@@ -50,7 +50,7 @@ std::unordered_map<core::InternedId, NodePosition> assign_coordinates(
     for (size_t li = 0; li < layering.layers.size(); ++li) {
         const auto& layer = layering.layers[li];
         for (size_t pos = 0; pos < layer.size(); ++pos) {
-            float h = sizes.lookup_height(layer[pos], 80.0f);
+            float const h = sizes.lookup_height(layer[pos], 80.0f);
             layer_infos[li].max_height = std::max(layer_infos[li].max_height, h);
             layer_infos[li].total_height += h;
             if (pos + 1 < layer.size()) {
@@ -68,17 +68,17 @@ std::unordered_map<core::InternedId, NodePosition> assign_coordinates(
 
     for (size_t layer_idx = 0; layer_idx < layering.layers.size(); ++layer_idx) {
         const auto& layer = layering.layers[layer_idx];
-        float x = spacing.margin_x + static_cast<float>(layer_idx) * spacing.horizontal;
+        float const x = spacing.margin_x + static_cast<float>(layer_idx) * spacing.horizontal;
 
         // Center this layer vertically relative to the tallest layer.
-        float offset_y = (max_layer_height - layer_infos[layer_idx].total_height) * 0.5f;
+        float const offset_y = (max_layer_height - layer_infos[layer_idx].total_height) * 0.5f;
         float y = spacing.margin_y + offset_y;
 
         for (size_t pos = 0; pos < layer.size(); ++pos) {
-            core::InternedId id = layer[pos];
+            core::InternedId const id = layer[pos];
             result[id] = {x, y};
 
-            float h = sizes.lookup_height(id, 80.0f);
+            float const h = sizes.lookup_height(id, 80.0f);
             y += h + spacing.vertical;
         }
     }

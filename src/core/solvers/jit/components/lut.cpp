@@ -5,7 +5,7 @@
 
 template <typename Provider>
 void LUT<Provider>::execute(SimulationState& st, double /*dt*/) {
-    float x = st.values[provider.get(PortNames::input)];
+    float const x = st.values[provider.get(PortNames::input)];
     const float* keys = st.lut_keys.data() + table_offset;
     const float* vals = st.lut_values.data() + table_offset;
     st.values[provider.get(PortNames::output)] = interpolate(x, keys, vals, table_size);
@@ -32,7 +32,7 @@ bool LUT<Provider>::parse_table(const std::string& table_str,
         if (pos >= table_str.size()) break;
 
         // Find colon separator
-        size_t colon = table_str.find(':', pos);
+        size_t const colon = table_str.find(':', pos);
         if (colon == std::string::npos) break;
 
         // Find end of value (next semicolon or end)
@@ -41,8 +41,8 @@ bool LUT<Provider>::parse_table(const std::string& table_str,
 
         {
             // Locale-independent parsing with whitespace tolerance
-            std::string k_str = table_str.substr(pos, colon - pos);
-            std::string v_str = table_str.substr(colon + 1, end - colon - 1);
+            std::string const k_str = table_str.substr(pos, colon - pos);
+            std::string const v_str = table_str.substr(colon + 1, end - colon - 1);
             float kf, vf;
             if (!locale_safe::parse_float(k_str, kf) ||
                 !locale_safe::parse_float(v_str, vf)) break;
@@ -66,9 +66,9 @@ float LUT<Provider>::interpolate(float x, const float* keys, const float* vals, 
     // Find the interval
     for (uint16_t i = 0; i < size - 1; ++i) {
         if (x >= keys[i] && x <= keys[i + 1]) {
-            float span = keys[i + 1] - keys[i];
+            float const span = keys[i + 1] - keys[i];
             if (span < 1e-9f) return vals[i]; // Guard: duplicate breakpoints
-            float t = (x - keys[i]) / span;
+            float const t = (x - keys[i]) / span;
             return vals[i] + t * (vals[i + 1] - vals[i]);
         }
     }

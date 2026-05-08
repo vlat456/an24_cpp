@@ -129,7 +129,7 @@ void MainMenu::renderRecentFilesMenu(WindowSystem& ws) {
 
     for (size_t i = 0; i < recent_snapshot.size(); i++) {
         const std::string& recent_path = recent_snapshot[i];
-        std::string name = std::filesystem::path(recent_path).filename().string();
+        std::string const name = std::filesystem::path(recent_path).filename().string();
 
         if (ImGui::MenuItem(name.c_str())) {
             deferred_open = recent_path;
@@ -172,7 +172,7 @@ void MainMenu::renderToolsMenu(WindowSystem& ws) {
             active_doc->startSimulation();
         }
 
-        ZNTuneResult r = tune_pi_ziegler_nichols(*active_doc, cfg, apply_result);
+        ZNTuneResult const r = tune_pi_ziegler_nichols(*active_doc, cfg, apply_result);
         ws.znTune.last_ok = r.ok;
         ws.znTune.last_was_preview = !apply_result;
         ws.znTune.last_cfg = cfg;
@@ -246,8 +246,8 @@ void MainMenu::renderAdaptersMenu(WindowSystem& ws) {
     }
 
     for (const auto& type : types) {
-        bool enabled = host->is_enabled(type);
-        std::string label = type + (enabled ? "   [On]" : "   [Off]");
+        bool const enabled = host->is_enabled(type);
+        std::string const label = type + (enabled ? "   [On]" : "   [Off]");
         if (ImGui::MenuItem(label.c_str())) {
             host->toggle_enabled(type);
         }
@@ -323,11 +323,11 @@ void MainMenu::renderEditMenu(WindowSystem& ws, const FocusScope::Resolved& focu
     Document* doc = focus.document;
     BlueprintWindow* win = focus.window;
 
-    bool props_open = ws.propertiesWindow().is_open();
-    bool can_undo = doc->canUndo() && !props_open;
-    bool can_redo = doc->canRedo() && !props_open;
-    bool has_sel = win && !win->input.selected_node_ids().empty();
-    bool writable = !focus.is_read_only();
+    bool const props_open = ws.propertiesWindow().is_open();
+    bool const can_undo = doc->canUndo() && !props_open;
+    bool const can_redo = doc->canRedo() && !props_open;
+    bool const has_sel = win && !win->input.selected_node_ids().empty();
+    bool const writable = !focus.is_read_only();
 
     if (ImGui::MenuItem("Undo", "Ctrl+Z", false, can_undo && writable)) {
         doc->performUndo();
@@ -368,7 +368,7 @@ void MainMenu::renderViewMenu(WindowSystem& ws, const FocusScope::Resolved& focu
     if (focus.is_valid()) {
         BlueprintWindow* win = focus.window;
         Document* doc = focus.document;
-        bool writable = !focus.is_read_only();
+        bool const writable = !focus.is_read_only();
 
         ImGui::Separator();
         if (ImGui::MenuItem("Shrink Nodes To Fit", nullptr, false, writable)) {
@@ -401,7 +401,7 @@ void MainMenu::renderAboutDialog() {
 
     ImGui::OpenPopup("About");
 
-    ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+    ImVec2 const center = ImGui::GetMainViewport()->GetCenter();
     ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
     if (ImGui::BeginPopupModal("About", &about_open_, ImGuiWindowFlags_AlwaysAutoResize)) {

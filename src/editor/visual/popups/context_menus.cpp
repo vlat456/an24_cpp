@@ -82,12 +82,12 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
         
         bool is_read_only = false;
         if (!ws.nodeContextMenu.scope_id.is_root()) {
-            BlueprintWindow* win = doc->windowManager().find(ws.nodeContextMenu.scope_id);
+            BlueprintWindow const* win = doc->windowManager().find(ws.nodeContextMenu.scope_id);
             is_read_only = win && win->read_only;
         }
         
         if (!is_read_only) {
-            std::string type_name(doc->interner().resolve(node.semantic.type));
+            std::string const type_name(doc->interner().resolve(node.semantic.type));
             auto kind = parse_component_kind(type_name);
             if (kind == ComponentKind::LuaScript) {
                 if (ImGui::MenuItem("Edit Script...")) {
@@ -104,7 +104,7 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
             }
             const CanvasInput* source_input = &doc->input();
             if (!ws.nodeContextMenu.scope_id.is_root()) {
-                if (BlueprintWindow* win = doc->windowManager().find(ws.nodeContextMenu.scope_id)) {
+                if (BlueprintWindow const* win = doc->windowManager().find(ws.nodeContextMenu.scope_id)) {
                     source_input = &win->input;
                 }
             }
@@ -127,7 +127,7 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
                  while (idx < 100000) {
                      std::string candidate = "extracted_blueprint_" + std::to_string(idx);
                      bool used = false;
-                     core::InternedId cid = doc->interner().lookup(candidate);
+                     core::InternedId const cid = doc->interner().lookup(candidate);
                      if (!cid.empty()) {
                          for (const auto& nn : doc->blueprint().nodes()) {
                              if (nn.is_blueprint_instance() && nn.semantic.type == cid) {
@@ -173,7 +173,7 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
             if (!lib_idx) {
                 return;
             }
-            std::string node_id_str(doc->interner().resolve(node.semantic.id));
+            std::string const node_id_str(doc->interner().resolve(node.semantic.id));
             const auto result = editor::resolve_subwindow_open_target(
                 doc->blueprint(), doc->interner(), *lib_idx, node_id_str);
             const auto& target = result.target;
@@ -198,7 +198,7 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
              }
               ImGui::Separator();
               if (ImGui::MenuItem("Open in editor")) {
-                  std::string bp_id_str(doc->interner().resolve(sbi_node->blueprint_instance().source.blueprint_id()));
+                  std::string const bp_id_str(doc->interner().resolve(sbi_node->blueprint_instance().source.blueprint_id()));
                   auto lib_path_opt = ws.libraryIndex().resolve(bp_id_str);
                   if (lib_path_opt) {
                       ws.openDocument(lib_path_opt.value());

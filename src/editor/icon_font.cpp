@@ -22,7 +22,7 @@ ui::IDrawList::NativeFont IconFontLoader::load(ImFontAtlas* atlas, const char* t
     config.PixelSnapH  = true;
     config.MergeMode   = false;   // SEPARATE font — do NOT merge into Roboto
 
-    ImFont* font = atlas->AddFontFromFileTTF(ttf_path, size_pixels, &config, icon_ranges);
+    ImFont const* font = atlas->AddFontFromFileTTF(ttf_path, size_pixels, &config, icon_ranges);
     if (font) {
         spdlog::info("Loaded FontAwesome icon font from: {}", ttf_path);
     } else {

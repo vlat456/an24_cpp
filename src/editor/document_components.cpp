@@ -148,7 +148,7 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
     PortType bridge_port_type = PortType::Contextual;
 
     if (is_bridge) {
-        std::string canonical_id = signal_key::make_child_scope_key(
+        std::string const canonical_id = signal_key::make_child_scope_key(
             editor::instance_path_to_scope_string(interner_, scope_id.path()), node.view.name);
         if (!scope_id.is_root()) {
             node.semantic.id = interner_.intern(canonical_id);
@@ -286,7 +286,7 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
     }
     // Issue #91: Blueprint-instance interface derives from source authority only.
     // Store port descriptors temporarily to set on inline blueprint interface.
-    bp2::Interface inline_bp_iface = bp2::Interface(std::move(iface_ports));
+    bp2::Interface const inline_bp_iface = bp2::Interface(std::move(iface_ports));
 
     bp2::Blueprint loaded;
     try {

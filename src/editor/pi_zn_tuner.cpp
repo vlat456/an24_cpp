@@ -47,14 +47,14 @@ static std::vector<float> run_closed_loop(Document& doc,
 ZNTuneResult tune_pi_ziegler_nichols(Document& doc, const ZNTuneConfig& cfg, bool apply_result_to_pi) {
     ZNTuneResult out;
 
-    core::InternedId node_id = doc.interner().lookup(cfg.pi_node);
+    core::InternedId const node_id = doc.interner().lookup(cfg.pi_node);
     if (node_id.empty() || !doc.blueprint().find_node(node_id)) {
         out.error = "PI node not found";
         return out;
     }
 
-    core::InternedId kp_key = doc.interner().intern("Kp");
-    core::InternedId ki_key = doc.interner().intern("Ki");
+    core::InternedId const kp_key = doc.interner().intern("Kp");
+    core::InternedId const ki_key = doc.interner().intern("Ki");
 
     const bp2::Blueprint original_bp = doc.model().current();
 
@@ -152,13 +152,13 @@ ZNTuneResult tune_pi_ziegler_nichols(Document& doc, const ZNTuneConfig& cfg, boo
 }
 
 bool apply_pi_params(Document& doc, const std::string& pi_node, float Kp, float Ki, std::string* error_out) {
-    core::InternedId node_id = doc.interner().lookup(pi_node);
+    core::InternedId const node_id = doc.interner().lookup(pi_node);
     if (node_id.empty() || !doc.blueprint().find_node(node_id)) {
         if (error_out) *error_out = "PI node not found";
         return false;
     }
-    core::InternedId kp_key = doc.interner().intern("Kp");
-    core::InternedId ki_key = doc.interner().intern("Ki");
+    core::InternedId const kp_key = doc.interner().intern("Kp");
+    core::InternedId const ki_key = doc.interner().intern("Ki");
 
     doc.model().push_checkpoint();
     execute(doc.model(), doc.interner(), cmd_set_param(node_id, kp_key, Kp));

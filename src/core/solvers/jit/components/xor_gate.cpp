@@ -3,11 +3,11 @@
 
 template <typename Provider>
 void XOR<Provider>::execute(SimulationState& st, double /*dt*/) {
-    float A = st.values[provider.get(PortNames::A)];
-    float B = st.values[provider.get(PortNames::B)];
-    bool a = (A > 0.5f);
-    bool b = (B > 0.5f);
-    bool result = a != b;
+    float const A = st.values[provider.get(PortNames::A)];
+    float const B = st.values[provider.get(PortNames::B)];
+    bool const a = (A > 0.5f);
+    bool const b = (B > 0.5f);
+    bool const result = a != b;
     st.values[provider.get(PortNames::o)] = result ? 1.0f : 0.0f;
 }
 

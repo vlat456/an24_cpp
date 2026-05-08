@@ -4,8 +4,8 @@
 
 template <typename Provider>
 void Max<Provider>::execute(SimulationState& st, double /*dt*/) {
-    float A = st.values[provider.get(PortNames::A)];
-    float B = st.values[provider.get(PortNames::B)];
+    float const A = st.values[provider.get(PortNames::A)];
+    float const B = st.values[provider.get(PortNames::B)];
     st.values[provider.get(PortNames::o)] = std::max(A, B);
 }
 

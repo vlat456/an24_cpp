@@ -48,7 +48,7 @@ bool is_bridge_node(const Blueprint::Node& node,
 
 bool is_bridge_port_name(core::InternedId port_name,
                          core::StringInterner& interner) {
-    BridgePortNames ports(interner);
+    BridgePortNames const ports(interner);
     return port_name == ports.ext || port_name == ports.port;
 }
 
@@ -174,7 +174,7 @@ IndexedSignalGraph build_indexed_signal_graph(const Blueprint& bp,
         if (!port.alias.has_value()) {
             continue;
         }
-        WireEndpoint alias_ep{graph.ports[idx].endpoint.node, *port.alias};
+        WireEndpoint const alias_ep{graph.ports[idx].endpoint.node, *port.alias};
         auto alias_it = graph.port_to_index.find(alias_ep);
         if (alias_it != graph.port_to_index.end()) {
             graph.uf.unite(idx, alias_it->second);

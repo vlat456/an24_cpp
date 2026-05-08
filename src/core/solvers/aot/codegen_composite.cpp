@@ -39,11 +39,11 @@ CompositeCodegenResult flatten_and_generate(
 
     auto input = bp2::elaboration::elaborate_for_codegen(netlist, arena, interner, registry);
     warn_lua_script_devices(input.devices);
-    ElectricalPlanCodegen electrical_plan = extract_electrical_plan(input.devices, input.port_to_signal);
+    ElectricalPlanCodegen const electrical_plan = extract_electrical_plan(input.devices, input.port_to_signal);
 
-    std::string class_name = codegen_detail::sanitize_name(td.classname) + "_Systems";
-    std::string source_file = td.classname + ".blueprint";
-    std::string header_name = "generated_" + codegen_detail::sanitize_name(td.classname) + ".h";
+    std::string const class_name = codegen_detail::sanitize_name(td.classname) + "_Systems";
+    std::string const source_file = td.classname + ".blueprint";
+    std::string const header_name = "generated_" + codegen_detail::sanitize_name(td.classname) + ".h";
 
     CompositeCodegenResult result;
     result.class_name = class_name;

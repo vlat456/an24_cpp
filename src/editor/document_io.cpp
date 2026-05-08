@@ -155,7 +155,7 @@ bool Document::load(const std::string& path) {
     // or trigger a full rebuild/simulation restart.
     this->apply_normalized_node_sizes(true, false, false);
 
-    ComponentRegistry empty_reg;
+    ComponentRegistry const empty_reg;
     const ComponentRegistry& reg = type_registry_ ? *type_registry_ : empty_reg;
     resetNodeContent(reg);
 
@@ -175,14 +175,14 @@ bool Document::load(const std::string& path) {
 void Document::sync_next_wire_id() {
     int max_seen = -1;
     for (const auto& w : model_.current().wires()) {
-        std::string_view wid = interner_.resolve(w.id);
+        std::string_view const wid = interner_.resolve(w.id);
         if (wid.size() <= 5 || wid.substr(0, 5) != "wire_") {
             continue;
         }
         int n = 0;
         bool ok = true;
         for (size_t i = 5; i < wid.size(); ++i) {
-            char c = wid[i];
+            char const c = wid[i];
             if (c < '0' || c > '9') {
                 ok = false;
                 break;

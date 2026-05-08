@@ -21,7 +21,7 @@ void ColorPickerDialog::render(WindowSystem& ws) {
             return;
         }
 
-        core::InternedId node_iid = ws.colorPicker.node_id;
+        core::InternedId const node_iid = ws.colorPicker.node_id;
         const bp2::Blueprint::Node* node_ptr = (doc && !node_iid.empty())
             ? doc->find_node_in_scope(ws.colorPicker.scope_id, ws.colorPicker.node_id)
             : nullptr;
@@ -43,10 +43,10 @@ void ColorPickerDialog::render(WindowSystem& ws) {
             ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_DisplayRGB);
 
         if (ImGui::Button("Apply")) {
-            float r = ws.colorPicker.rgba[0];
-            float g = ws.colorPicker.rgba[1];
-            float b = ws.colorPicker.rgba[2];
-            float a = ws.colorPicker.rgba[3];
+            float const r = ws.colorPicker.rgba[0];
+            float const g = ws.colorPicker.rgba[1];
+            float const b = ws.colorPicker.rgba[2];
+            float const a = ws.colorPicker.rgba[3];
 
             doc->set_node_color_for_scope(ws.colorPicker.scope_id, node_iid, editor::NodeColor{r, g, b, a});
             ws.colorPicker.source_document_id.reset();

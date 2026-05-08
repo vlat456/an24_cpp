@@ -18,7 +18,7 @@ const Blueprint* resolve_embedded_blueprint(
     std::span<const core::InternedId> path)
 {
     const Blueprint* current = &root_bp;
-    for (core::InternedId segment : path) {
+    for (core::InternedId const segment : path) {
         const Blueprint::Node* node = current->find_node(segment);
         if (!node || !node->has_embedded_blueprint() || !node->blueprint_instance().source.inline_def()) {
             return nullptr;

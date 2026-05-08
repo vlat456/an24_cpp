@@ -19,7 +19,7 @@ Viewport::Viewport()
 {}
 
 Pt Viewport::screen_to_world(Pt screen, Pt canvas_min) const {
-    Pt rel(screen.x - canvas_min.x, screen.y - canvas_min.y);
+    Pt const rel(screen.x - canvas_min.x, screen.y - canvas_min.y);
     return Pt(rel.x / zoom + pan.x, rel.y / zoom + pan.y);
 }
 
@@ -36,14 +36,14 @@ void Viewport::pan_by(Pt screen_delta) {
 
 void Viewport::zoom_at(float delta, Pt screen_pos, Pt canvas_min) {
     // Запоминаем мировые координаты до zoom
-    Pt world_before = screen_to_world(screen_pos, canvas_min);
+    Pt const world_before = screen_to_world(screen_pos, canvas_min);
 
     // Применяем zoom
     zoom = zoom * (1.0f + delta * editor_constants::ZOOM_SPEED);
     clamp_zoom();
 
     // Корректируем pan чтобы точка осталась под курсором
-    Pt world_after = screen_to_world(screen_pos, canvas_min);
+    Pt const world_after = screen_to_world(screen_pos, canvas_min);
     pan.x -= world_after.x - world_before.x;
     pan.y -= world_after.y - world_before.y;
 }
@@ -80,15 +80,15 @@ void Viewport::fit_content(Pt content_min, Pt content_max, float window_w, float
     if (ch < 1.0f) ch = 1.0f;
 
     constexpr float padding = 60.0f; // pixels of margin
-    float usable_w = std::max(window_w - 2 * padding, 1.0f);
-    float usable_h = std::max(window_h - 2 * padding, 1.0f);
+    float const usable_w = std::max(window_w - 2 * padding, 1.0f);
+    float const usable_h = std::max(window_h - 2 * padding, 1.0f);
 
     zoom = std::min(usable_w / cw, usable_h / ch);
     clamp_zoom();
 
     // Center content: pan so that center of content maps to center of window
-    float cx = (content_min.x + content_max.x) * 0.5f;
-    float cy = (content_min.y + content_max.y) * 0.5f;
+    float const cx = (content_min.x + content_max.x) * 0.5f;
+    float const cy = (content_min.y + content_max.y) * 0.5f;
     pan.x = cx - (window_w * 0.5f) / zoom;
     pan.y = cy - (window_h * 0.5f) / zoom;
 }

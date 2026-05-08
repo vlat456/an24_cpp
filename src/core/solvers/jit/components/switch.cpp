@@ -6,7 +6,7 @@ template <typename Provider>
 void Switch<Provider>::execute(SimulationState& st, double /*dt*/) {
     // Push model: when closed, propagate v_in to v_out; when open, set v_out=0
     if (closed) {
-        float v_in = st.values[provider.get(PortNames::v_in)];
+        float const v_in = st.values[provider.get(PortNames::v_in)];
         st.values[provider.get(PortNames::v_out)] = v_in;
     } else {
         st.values[provider.get(PortNames::v_out)] = 0.0f;
@@ -15,7 +15,7 @@ void Switch<Provider>::execute(SimulationState& st, double /*dt*/) {
 
 template <typename Provider>
 void Switch<Provider>::commit(SimulationState& st, double /*dt*/) {
-    float current_control = st.values[provider.get(PortNames::control)];
+    float const current_control = st.values[provider.get(PortNames::control)];
 
     if (std::abs(current_control - last_control) > 0.1f) {
         closed = !closed;

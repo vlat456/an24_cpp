@@ -32,10 +32,10 @@ GroupNodeWidget::GroupNodeWidget(const bp2::Blueprint::Node& data,
     setLocalPos(Pt(data.layout.x, data.layout.y));
 
     // Snap size to grid, enforce minimums
-    float sw = data.layout.width.has_value()  ? *data.layout.width  : editor_constants::MIN_GROUP_WIDTH;
-    float sh = data.layout.height.has_value() ? *data.layout.height : editor_constants::MIN_GROUP_HEIGHT;
-    float w = editor_math::snap_size_to_layout_grid(std::max(sw, editor_constants::MIN_GROUP_WIDTH));
-    float h = editor_math::snap_size_to_layout_grid(std::max(sh, editor_constants::MIN_GROUP_HEIGHT));
+    float const sw = data.layout.width.has_value()  ? *data.layout.width  : editor_constants::MIN_GROUP_WIDTH;
+    float const sh = data.layout.height.has_value() ? *data.layout.height : editor_constants::MIN_GROUP_HEIGHT;
+    float const w = editor_math::snap_size_to_layout_grid(std::max(sw, editor_constants::MIN_GROUP_WIDTH));
+    float const h = editor_math::snap_size_to_layout_grid(std::max(sh, editor_constants::MIN_GROUP_HEIGHT));
     setSize(Pt(w, h));
 }
 
@@ -68,13 +68,13 @@ void GroupNodeWidget::layout(float w, float h) {
 void GroupNodeWidget::render(IDrawList* dl, const RenderContext& ctx) const {
     if (!dl) return;
 
-    Pt pos = worldPos();
-    Pt sz = size();
-    float zoom = ctx.zoom;
+    Pt const pos = worldPos();
+    Pt const sz = size();
+    float const zoom = ctx.zoom;
 
-    Pt screen_min = ctx.world_to_screen(pos);
-    Pt screen_max = ctx.world_to_screen(Pt(pos.x + sz.x, pos.y + sz.y));
-    float rounding = editor_constants::GROUP_ROUNDING * zoom;
+    Pt const screen_min = ctx.world_to_screen(pos);
+    Pt const screen_max = ctx.world_to_screen(Pt(pos.x + sz.x, pos.y + sz.y));
+    float const rounding = editor_constants::GROUP_ROUNDING * zoom;
 
     // Semi-transparent fill (use custom color with low alpha if set)
     uint32_t fill;
@@ -87,8 +87,8 @@ void GroupNodeWidget::render(IDrawList* dl, const RenderContext& ctx) const {
 
     // Title text
     if (!name_.empty()) {
-        float pad = editor_constants::GROUP_TITLE_PADDING * zoom;
-        Pt text_pos(screen_min.x + pad, screen_min.y + pad);
+        float const pad = editor_constants::GROUP_TITLE_PADDING * zoom;
+        Pt const text_pos(screen_min.x + pad, screen_min.y + pad);
         dl->add_text(text_pos, name_.c_str(), render_theme::COLOR_GROUP_TITLE,
                      editor_constants::Font::Medium * zoom);
     }
@@ -98,11 +98,11 @@ void GroupNodeWidget::render(IDrawList* dl, const RenderContext& ctx) const {
 void GroupNodeWidget::renderPost(IDrawList* dl, const RenderContext& ctx) const {
     if (!dl) return;
 
-    Pt pos = worldPos();
-    Pt sz = size();
-    Pt screen_min = ctx.world_to_screen(pos);
-    Pt screen_max = ctx.world_to_screen(Pt(pos.x + sz.x, pos.y + sz.y));
-    float rounding = editor_constants::GROUP_ROUNDING * ctx.zoom;
+    Pt const pos = worldPos();
+    Pt const sz = size();
+    Pt const screen_min = ctx.world_to_screen(pos);
+    Pt const screen_max = ctx.world_to_screen(Pt(pos.x + sz.x, pos.y + sz.y));
+    float const rounding = editor_constants::GROUP_ROUNDING * ctx.zoom;
 
     // Selection border drawn after children so it appears on top
     handle_renderer::draw_selection_border(*dl, ctx, *this, screen_min, screen_max, rounding);

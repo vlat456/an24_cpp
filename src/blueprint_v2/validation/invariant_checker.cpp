@@ -152,7 +152,7 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
                 // Type not found (already caught by earlier type check)
                 continue;
             }
-            Interface expected = interface_from_type_definition(*def, interner);
+            Interface const expected = interface_from_type_definition(*def, interner);
             if (node.component().iface != expected) {
                 out.error = "component node iface desynced from registry at node id="
                     + iid_to_string(node.semantic.id) + " type=" + iid_to_string(node.semantic.type);

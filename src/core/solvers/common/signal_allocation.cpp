@@ -30,7 +30,7 @@ std::unordered_map<std::string, uint32_t> finalize_signal_indices(
     // Assign compact signal indices [0, N)
     std::map<uint32_t, uint32_t> root_to_signal;
     uint32_t next_signal = 0;
-    for (uint32_t root : unique_roots) {
+    for (uint32_t const root : unique_roots) {
         root_to_signal[root] = next_signal++;
     }
 

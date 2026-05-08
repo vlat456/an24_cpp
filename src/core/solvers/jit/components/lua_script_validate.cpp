@@ -28,7 +28,7 @@ std::optional<std::string> lua_validate_script(std::string_view script) {
 
     std::optional<std::string> result;
 
-    std::string script_str(script);
+    std::string const script_str(script);
     if (luaL_dostring(L, script_str.c_str()) != LUA_OK) {
         const char* err = lua_tostring(L, -1);
         result = err ? std::string(err) : "Unknown compilation error";

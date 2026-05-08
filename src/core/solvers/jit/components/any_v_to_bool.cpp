@@ -3,8 +3,8 @@
 
 template <typename Provider>
 void Any_V_to_Bool<Provider>::execute(SimulationState& st, double /*dt*/) {
-    float vin = st.values[provider.get(PortNames::Vin)];
-    bool result = (vin > 0.5f);
+    float const vin = st.values[provider.get(PortNames::Vin)];
+    bool const result = (vin > 0.5f);
     st.values[provider.get(PortNames::out)] = result ? 1.0f : 0.0f;
 }
 

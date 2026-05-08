@@ -9,13 +9,13 @@ void PI<Provider>::execute(SimulationState& st, double dt) {
     constexpr double kDtMax = 0.1;
     const float safe_dt = static_cast<float>(std::clamp(dt, kDtMin, kDtMax));
 
-    float sp = st.values[provider.get(PortNames::setpoint)];
-    float fb = st.values[provider.get(PortNames::feedback)];
-    float kp = st.values[provider.get(PortNames::Kp)];
-    float ki = st.values[provider.get(PortNames::Ki)];
-    float o_min = st.values[provider.get(PortNames::output_min)];
-    float o_max = st.values[provider.get(PortNames::output_max)];
-    float error = sp - fb;
+    float const sp = st.values[provider.get(PortNames::setpoint)];
+    float const fb = st.values[provider.get(PortNames::feedback)];
+    float const kp = st.values[provider.get(PortNames::Kp)];
+    float const ki = st.values[provider.get(PortNames::Ki)];
+    float const o_min = st.values[provider.get(PortNames::output_min)];
+    float const o_max = st.values[provider.get(PortNames::output_max)];
+    float const error = sp - fb;
 
     integral += error * safe_dt;
 

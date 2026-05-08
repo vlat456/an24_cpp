@@ -11,8 +11,8 @@ void HoldButton<Provider>::execute(SimulationState& st, double /*dt*/) {
 
 template <typename Provider>
 void HoldButton<Provider>::commit(SimulationState& st, double /*dt*/) {
-    float current_control = st.values[provider.get(PortNames::control)];
-    bool active = std::abs(current_control - idle) > 0.1f;
+    float const current_control = st.values[provider.get(PortNames::control)];
+    bool const active = std::abs(current_control - idle) > 0.1f;
     is_pressed = active;
 
     // Update state output

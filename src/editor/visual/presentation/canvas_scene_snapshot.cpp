@@ -189,7 +189,7 @@ void project_widget_recursive(const visual::Widget& widget,
     case ui::WidgetKind::BusNode:
     case ui::WidgetKind::TextNode:
     case ui::WidgetKind::GroupNode: {
-        core::InternedId node_iid = node_widget_iid(widget, interner);
+        core::InternedId const node_iid = node_widget_iid(widget, interner);
         const ui::Rect node_bounds = widget_bounds(widget);
 
         // Only NodeWidget has semantic content rendering
@@ -363,18 +363,18 @@ visual::HitResult hit_test_canvas_scene(const CanvasSceneSnapshot& snapshot, ui:
     for (const auto& obj : snapshot.hit_objects) {
         switch (obj.kind) {
             case CanvasHitObjectKind::Port: {
-                float cx = obj.bounds.x + obj.bounds.w * 0.5f;
-                float cy = obj.bounds.y + obj.bounds.h * 0.5f;
-                ui::Pt center(cx, cy);
+                float const cx = obj.bounds.x + obj.bounds.w * 0.5f;
+                float const cy = obj.bounds.y + obj.bounds.h * 0.5f;
+                ui::Pt const center(cx, cy);
                 if (hit_geometry::distance(world_pos, center) <= hit_geometry::port_hit_radius()) {
                     best_port = &obj;
                 }
                 break;
             }
             case CanvasHitObjectKind::RoutingPoint: {
-                float cx = obj.bounds.x + obj.bounds.w * 0.5f;
-                float cy = obj.bounds.y + obj.bounds.h * 0.5f;
-                ui::Pt center(cx, cy);
+                float const cx = obj.bounds.x + obj.bounds.w * 0.5f;
+                float const cy = obj.bounds.y + obj.bounds.h * 0.5f;
+                ui::Pt const center(cx, cy);
                 if (hit_geometry::distance(world_pos, center) <= hit_geometry::routing_point_hit_radius()) {
                     best_routing_point = &obj;
                 }
@@ -398,7 +398,7 @@ visual::HitResult hit_test_canvas_scene(const CanvasSceneSnapshot& snapshot, ui:
                 break;
             }
             case CanvasHitObjectKind::WireSegment: {
-                float d = hit_geometry::distance_to_segment(world_pos, obj.segment_p0, obj.segment_p1);
+                float const d = hit_geometry::distance_to_segment(world_pos, obj.segment_p0, obj.segment_p1);
                 if (d < hit_geometry::wire_segment_hit_tolerance() && d < best_wire_dist) {
                     best_wire_dist = d;
                     best_wire = &obj;
@@ -413,8 +413,8 @@ visual::HitResult hit_test_canvas_scene(const CanvasSceneSnapshot& snapshot, ui:
 
     // --- Priority 1: Ports ---
     if (best_port) {
-        float cx = best_port->bounds.x + best_port->bounds.w * 0.5f;
-        float cy = best_port->bounds.y + best_port->bounds.h * 0.5f;
+        float const cx = best_port->bounds.x + best_port->bounds.w * 0.5f;
+        float const cy = best_port->bounds.y + best_port->bounds.h * 0.5f;
         return visual::HitPort{
             .node_id = best_port->node_id,
             .port_name = best_port->element_id,
@@ -426,8 +426,8 @@ visual::HitResult hit_test_canvas_scene(const CanvasSceneSnapshot& snapshot, ui:
 
     // --- Priority 2: Routing points ---
     if (best_routing_point) {
-        float cx = best_routing_point->bounds.x + best_routing_point->bounds.w * 0.5f;
-        float cy = best_routing_point->bounds.y + best_routing_point->bounds.h * 0.5f;
+        float const cx = best_routing_point->bounds.x + best_routing_point->bounds.w * 0.5f;
+        float const cy = best_routing_point->bounds.y + best_routing_point->bounds.h * 0.5f;
         return visual::HitRoutingPoint{
             .wire_id = best_routing_point->rp_wire_id,
             .index = best_routing_point->rp_index,
@@ -492,9 +492,9 @@ visual::HitResult hit_test_canvas_scene_ports(const CanvasSceneSnapshot& snapsho
     for (const auto& obj : snapshot.hit_objects) {
         if (obj.kind != CanvasHitObjectKind::Port) continue;
 
-        float cx = obj.bounds.x + obj.bounds.w * 0.5f;
-        float cy = obj.bounds.y + obj.bounds.h * 0.5f;
-        ui::Pt center(cx, cy);
+        float const cx = obj.bounds.x + obj.bounds.w * 0.5f;
+        float const cy = obj.bounds.y + obj.bounds.h * 0.5f;
+        ui::Pt const center(cx, cy);
         if (hit_geometry::distance(world_pos, center) <= hit_geometry::port_hit_radius()) {
             return visual::HitPort{
                 .node_id = obj.node_id,

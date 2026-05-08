@@ -130,7 +130,7 @@ void topological_sort_consumers(
         if (it_io == io_by_consumer.end()) {
             continue;
         }
-        for (uint32_t sig : it_io->second.writes) {
+        for (uint32_t const sig : it_io->second.writes) {
             writers_by_signal[sig].push_back(name);
         }
     }
@@ -141,7 +141,7 @@ void topological_sort_consumers(
         if (it_io == io_by_consumer.end()) {
             continue;
         }
-        for (uint32_t sig : it_io->second.reads) {
+        for (uint32_t const sig : it_io->second.reads) {
             auto it_writers = writers_by_signal.find(sig);
             if (it_writers == writers_by_signal.end()) {
                 continue;

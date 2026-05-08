@@ -51,7 +51,7 @@ static bool maybe_log_hover_signal_resolution(
     }
 
     if (enabled) {
-        std::string_view key_sv = resolved_key.empty() ? std::string_view{} : std::string_view{"(resolved)"};
+        std::string_view const key_sv = resolved_key.empty() ? std::string_view{} : std::string_view{"(resolved)"};
         std::fprintf(stdout, "[DBG-HOVER] %s.%s => %.*s (%.2fV)\n",
                 visual_node.c_str(), visual_port.c_str(),
                 static_cast<int>(key_sv.size()), key_sv.data(), value);
@@ -66,7 +66,7 @@ static void render_probe_markers(BlueprintWindow& win, Document& doc, WindowSyst
     if (!ws.showOscilloscope) return;
     ws.oscilloscope.for_each_probe_in_scope(doc.id(), win.resolved_scope_id(),
         [&](const OscilloscopeProbe& probe) {
-            Pt sp = win.viewport.world_to_screen(probe.world_pos, cmin);
+            Pt const sp = win.viewport.world_to_screen(probe.world_pos, cmin);
             visual::osc::draw_probe_marker(draw_list, sp, probe.color);
         });
 }
@@ -81,7 +81,7 @@ static void render_hover_scope_tooltip(Document& doc,
     // Resolve label from signal InternedId for display.
     std::string label = "<signal>";
     if (!signal_iid.empty()) {
-        std::string_view sv = doc.signal_key_interner().resolve(signal_iid);
+        std::string_view const sv = doc.signal_key_interner().resolve(signal_iid);
         label = std::string{sv};
     }
 
@@ -132,8 +132,8 @@ void CanvasRenderer::render(BlueprintWindow& win, Document& doc, WindowSystem& w
     auto& prof = profiler();
 
     if (hovered) {
-        ImVec2 mp = ImGui::GetMousePos();
-        Pt mouse_world = win.viewport.screen_to_world(Pt(mp.x, mp.y), cmin);
+        ImVec2 const mp = ImGui::GetMousePos();
+        Pt const mouse_world = win.viewport.screen_to_world(Pt(mp.x, mp.y), cmin);
         win.input.update_hover(mouse_world);
     } else {
         win.input.update_hover(Pt(CanvasConstants::HOVER_CLEAR_X, CanvasConstants::HOVER_CLEAR_Y));
@@ -164,7 +164,7 @@ void CanvasRenderer::render(BlueprintWindow& win, Document& doc, WindowSystem& w
 
 void CanvasRenderer::renderGrid(BlueprintWindow& win, Pt cmin, Pt cmax, ImDrawList* draw_list) {
     auto dl = make_dl(draw_list);
-    visual::GridRenderer grid;
+    visual::GridRenderer const grid;
     grid.render(dl, win.viewport, cmin, cmax);
 }
 
@@ -204,7 +204,7 @@ void CanvasRenderer::renderBlueprint(BlueprintWindow& win, Document& doc, Window
     // Each InputState that modifies node geometry in-place during drag
     // maps to a bypass so the cache is skipped for the affected node.
     if (win.input.state() == InputState::ResizingNode) {
-        std::string_view resize_id = win.input.resize_node_id();
+        std::string_view const resize_id = win.input.resize_node_id();
         ctx.cache_bypass = [resize_id](std::string_view id) {
             return id == resize_id;
         };
@@ -227,9 +227,9 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
     (void)draw_list;
     if (!doc.isSimulationRunning()) return;
 
-    ImVec2 mp = ImGui::GetMousePos();
-    Pt mouse_screen(mp.x, mp.y);
-    Pt mouse_world = win.viewport.screen_to_world(mouse_screen, cmin);
+    ImVec2 const mp = ImGui::GetMousePos();
+    Pt const mouse_screen(mp.x, mp.y);
+    Pt const mouse_world = win.viewport.screen_to_world(mouse_screen, cmin);
 
     core::StringInterner& rendered_interner = win.rendered_interner();
     const auto snapshot = editor::presentation::build_canvas_scene_snapshot(win.scene, rendered_interner);
@@ -237,17 +237,17 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
     ws.oscilloscope.clear_hover_signal(doc.id());
 
     if (auto* hp = std::get_if<visual::HitPort>(&hit)) {
-        std::string_view node_id = rendered_interner.resolve(hp->node_id);
+        std::string_view const node_id = rendered_interner.resolve(hp->node_id);
         if (node_id.empty()) return;
 
-        std::string_view port_name = rendered_interner.resolve(hp->port_name);
-        Pt port_screen = win.viewport.world_to_screen(hp->center - Pt(visual::PortConstants::RADIUS, visual::PortConstants::RADIUS), cmin);
-        core::InternedId signal_iid = doc.resolve_endpoint_signal_key(
+        std::string_view const port_name = rendered_interner.resolve(hp->port_name);
+        Pt const port_screen = win.viewport.world_to_screen(hp->center - Pt(visual::PortConstants::RADIUS, visual::PortConstants::RADIUS), cmin);
+        core::InternedId const signal_iid = doc.resolve_endpoint_signal_key(
             win.resolved_scope_id(), node_id, port_name);
         if (signal_iid.empty()) return;
 
         // Dev-only diagnostics: log signal resolution on hover (if AN24_EDITOR_DEBUG_SIGNAL_KEYS=1)
-        float current_value = doc.get_signal_value(signal_iid);
+        float const current_value = doc.get_signal_value(signal_iid);
         maybe_log_hover_signal_resolution(std::string(node_id), std::string(port_name), signal_iid, current_value);
 
         ws.oscilloscope.set_hover_signal(doc.id(), signal_iid);
@@ -255,13 +255,13 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
         return;
 
     } else if (auto* hw = std::get_if<visual::HitWire>(&hit)) {
-        std::string_view wire_id = rendered_interner.resolve(hw->wire_id);
-        core::InternedId signal_iid = doc.resolve_wire_signal_key(
+        std::string_view const wire_id = rendered_interner.resolve(hw->wire_id);
+        core::InternedId const signal_iid = doc.resolve_wire_signal_key(
             win.resolved_scope_id(), wire_id);
         if (signal_iid.empty()) return;
 
         // Dev-only diagnostics: log signal resolution on hover (if AN24_EDITOR_DEBUG_SIGNAL_KEYS=1)
-        float current_value = doc.get_signal_value(signal_iid);
+        float const current_value = doc.get_signal_value(signal_iid);
         maybe_log_hover_signal_resolution(std::string(wire_id), "src", signal_iid, current_value);
            
         // Project mouse onto wire segment for tooltip anchor
@@ -270,13 +270,13 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
                      ? static_cast<visual::Wire*>(found) : nullptr;
         if (!wire) return;
         const auto& poly = wire->polyline();
-        size_t seg = hw->segment;
+        size_t const seg = hw->segment;
         Pt anchor = mouse_world;
         if (seg + 1 < poly.size()) {
             // Closest point on segment
             Pt a = poly[seg], b = poly[seg + 1];
             float dx = b.x - a.x, dy = b.y - a.y;
-            float len_sq = dx * dx + dy * dy;
+            float const len_sq = dx * dx + dy * dy;
             if (len_sq > 1e-6f) {
                 float t = ((mouse_world.x - a.x) * dx + (mouse_world.y - a.y) * dy) / len_sq;
                 if (t < 0.f) t = 0.f;
@@ -295,11 +295,11 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
 void CanvasRenderer::renderTempWire(BlueprintWindow& win, Pt cmin, ImDrawList* draw_list) {
     if (!win.input.has_temp_wire()) return;
     
-    Pt start_world = win.input.temp_wire_start();
-    Pt end_world = win.input.temp_wire_end_world();
-    Pt s = win.viewport.world_to_screen(start_world, cmin);
-    Pt e = win.viewport.world_to_screen(end_world, cmin);
-    uint32_t color = win.input.is_reconnecting()
+    Pt const start_world = win.input.temp_wire_start();
+    Pt const end_world = win.input.temp_wire_end_world();
+    Pt const s = win.viewport.world_to_screen(start_world, cmin);
+    Pt const e = win.viewport.world_to_screen(end_world, cmin);
+    uint32_t const color = win.input.is_reconnecting()
         ? CanvasColors::TEMP_WIRE_RECONNECT
         : CanvasColors::TEMP_WIRE_NEW;
     draw_list->AddLine(ImVec2(s.x, s.y), ImVec2(e.x, e.y), color, 2.0f);
@@ -310,24 +310,24 @@ void CanvasRenderer::renderMarquee(BlueprintWindow& win, Pt cmin, ImDrawList* dr
     
     auto dl = make_dl(draw_list);
     
-    Pt ms = win.viewport.world_to_screen(win.input.marquee_start(), cmin);
-    Pt me = win.viewport.world_to_screen(win.input.marquee_end(), cmin);
-    Pt rmin(std::min(ms.x, me.x), std::min(ms.y, me.y));
-    Pt rmax(std::max(ms.x, me.x), std::max(ms.y, me.y));
+    Pt const ms = win.viewport.world_to_screen(win.input.marquee_start(), cmin);
+    Pt const me = win.viewport.world_to_screen(win.input.marquee_end(), cmin);
+    Pt const rmin(std::min(ms.x, me.x), std::min(ms.y, me.y));
+    Pt const rmax(std::max(ms.x, me.x), std::max(ms.y, me.y));
     dl.add_rect_filled(rmin, rmax, CanvasColors::MARQUEE_FILL);
     dl.add_rect(rmin, rmax, CanvasColors::MARQUEE_BORDER, 1.0f);
 }
 
 void CanvasRenderer::handleInput(BlueprintWindow& win, Document& doc, WindowSystem& ws, Pt cmin) {
-    ImGuiIO& io = ImGui::GetIO();
+    ImGuiIO const& io = ImGui::GetIO();
     
     Modifiers mods;
     mods.alt  = io.KeyAlt;
     mods.ctrl = io.KeyCtrl || io.KeySuper;
     mods.shift = io.KeyShift;
 
-    ImVec2 mp = ImGui::GetMousePos();
-    Pt screen_pos(mp.x, mp.y);
+    ImVec2 const mp = ImGui::GetMousePos();
+    Pt const screen_pos(mp.x, mp.y);
 
     // Dispatch helper: apply input result to document, then let WindowSystem handle the action.
     auto dispatch = [&](InputResult result) {
@@ -355,7 +355,7 @@ void CanvasRenderer::handleInput(BlueprintWindow& win, Document& doc, WindowSyst
     }
 
     if (ImGui::IsMouseDragging(0)) {
-        ImVec2 delta = ImGui::GetMouseDragDelta(0);
+        ImVec2 const delta = ImGui::GetMouseDragDelta(0);
         dispatch(win.input.on_mouse_drag(MouseButton::Left, Pt(delta.x, delta.y), cmin));
         ImGui::ResetMouseDragDelta(0);
     }

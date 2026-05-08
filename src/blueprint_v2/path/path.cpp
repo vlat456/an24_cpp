@@ -37,8 +37,8 @@ std::optional<Path> PathArena::parse(std::string_view s) {
     
     Path current = root();
     while (!s.empty()) {
-        size_t slash_pos = s.find('/');
-        size_t colon_pos = s.find(':');
+        size_t const slash_pos = s.find('/');
+        size_t const colon_pos = s.find(':');
         
         std::string_view token;
         if (slash_pos == std::string_view::npos) {
@@ -49,10 +49,10 @@ std::optional<Path> PathArena::parse(std::string_view s) {
             s.remove_prefix(slash_pos + 1);
         }
         
-        size_t colon_in_token = token.rfind(':');
+        size_t const colon_in_token = token.rfind(':');
         if (colon_in_token != std::string_view::npos) {
-            std::string_view node_id = token.substr(0, colon_in_token);
-            std::string_view port_name = token.substr(colon_in_token + 1);
+            std::string_view const node_id = token.substr(0, colon_in_token);
+            std::string_view const port_name = token.substr(colon_in_token + 1);
             current = make_node(current, interner_.intern(node_id));
             current = make_port(current, interner_.intern(port_name));
         } else {

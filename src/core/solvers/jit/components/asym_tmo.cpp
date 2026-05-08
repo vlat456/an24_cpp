@@ -10,27 +10,27 @@ void AsymTMO<Provider>::pre_load() {
 
 template <typename Provider>
 void AsymTMO<Provider>::execute(SimulationState& st, double dt) {
-    uint32_t in_idx = provider.get(PortNames::in);
-    uint32_t out_idx = provider.get(PortNames::out);
-    float input = st.values[in_idx];
+    uint32_t const in_idx = provider.get(PortNames::in);
+    uint32_t const out_idx = provider.get(PortNames::out);
+    float const input = st.values[in_idx];
 
     // === Two-Phase State Semantics ===
 
     // Phase 1 (execute): Read from COMMITTED state
     // Cold start initialization
-    float committed_value = current_value + (input - current_value) * first_frame_mask;
-    float committed_mask = 0.0f; // first_frame_mask consumed
+    float const committed_value = current_value + (input - current_value) * first_frame_mask;
+    float const committed_mask = 0.0f; // first_frame_mask consumed
 
     // Branchless Asymmetric Logic
-    float diff = input - committed_value;
+    float const diff = input - committed_value;
     // WASM f32.select for tau selection
-    float active_inv_tau = (diff > 0.0f) ? inv_tau_up : inv_tau_down;
+    float const active_inv_tau = (diff > 0.0f) ? inv_tau_up : inv_tau_down;
 
-    float factor = std::min(static_cast<float>(dt) * active_inv_tau, 1.0f);
-    float dz_mask = (std::abs(diff) >= deadzone) ? 1.0f : 0.0f;
+    float const factor = std::min(static_cast<float>(dt) * active_inv_tau, 1.0f);
+    float const dz_mask = (std::abs(diff) >= deadzone) ? 1.0f : 0.0f;
 
     // Compute next value
-    float new_value = committed_value + diff * factor * dz_mask;
+    float const new_value = committed_value + diff * factor * dz_mask;
 
     // Stage next state
     next_current_value = new_value;

@@ -33,19 +33,19 @@ PortType resolve_effective_port_type(EditingHost& host,
 
 InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
     InputResult result;
-    Pt world = viewport_.screen_to_world(screen_pos, canvas_min);
+    Pt const world = viewport_.screen_to_world(screen_pos, canvas_min);
     auto port_hit = editor::presentation::hit_test_canvas_scene_ports(snapshot_, world);
 
     if (auto* ph = std::get_if<visual::HitPort>(&port_hit)) {
         if (!wire_start_endpoint_.has_value()) return result;
 
-        CanvasInput::WireStartEndpoint start = *wire_start_endpoint_;
+        CanvasInput::WireStartEndpoint const start = *wire_start_endpoint_;
         core::InternedId end_node_iid = ph->node_id;
         core::InternedId end_port_iid = ph->port_name;
 
         if (start.node_id == end_node_iid && start.port_id == end_port_iid) return result;
 
-        bool compatible = visual::Port::areDirectionsCompatible(start.direction, ph->direction);
+        bool const compatible = visual::Port::areDirectionsCompatible(start.direction, ph->direction);
         if (!compatible) return result;
 
         if (!visual::Port::areTypesCompatible(start.type, ph->type)) {
@@ -84,8 +84,8 @@ InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
             std::swap(start_port_iid, end_port_iid);
         }
 
-        std::string wire_id_str = host_->allocate_wire_id();
-        core::InternedId wire_iid = interner_->intern(wire_id_str);
+        std::string const wire_id_str = host_->allocate_wire_id();
+        core::InternedId const wire_iid = interner_->intern(wire_id_str);
 
         bp2::Blueprint::Wire w;
         w.id     = wire_iid;
@@ -93,7 +93,7 @@ InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
         w.target = bp2::WireEndpoint{end_node_iid, end_port_iid};
         w.domain = host_->resolve_wire_domain(w.source, w.target);
 
-        bool added = host_->add_wire(std::move(w));
+        bool const added = host_->add_wire(std::move(w));
         if (added) {
             host_->debug_validate_integrity();
             rebuild_scene();
@@ -105,7 +105,7 @@ InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
 
 InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) {
     InputResult result;
-    Pt world = viewport_.screen_to_world(screen_pos, canvas_min);
+    Pt const world = viewport_.screen_to_world(screen_pos, canvas_min);
     auto port_hit = editor::presentation::hit_test_canvas_scene_ports(snapshot_, world);
 
     bool reconnected = false;
@@ -231,7 +231,7 @@ std::optional<CanvasInput::WirePortMatch> CanvasInput::find_wire_on_port(
     core::InternedId port_node_iid, core::InternedId port_name_iid) const {
     if (port_node_iid.empty() || port_name_iid.empty()) return std::nullopt;
 
-    std::string_view port_name_sv = interner_->resolve(port_name_iid);
+    std::string_view const port_name_sv = interner_->resolve(port_name_iid);
 
     // Bus nodes: wires are keyed by the canonical "v" port.
     // Alias port names map to the wire whose ID matches the alias.
@@ -241,7 +241,7 @@ std::optional<CanvasInput::WirePortMatch> CanvasInput::find_wire_on_port(
         }
 
         if (is_wire_alias_port_name(port_name_sv)) {
-            size_t wi = find_wire_index(port_name_iid);
+            size_t const wi = find_wire_index(port_name_iid);
             if (wi == SIZE_MAX) return std::nullopt;
             const bp2::Blueprint::Wire& w = host_->wires()[wi];
 
@@ -286,8 +286,8 @@ CanvasInput::WirePortMatch CanvasInput::build_wire_port_match(
         if (!node) return std::nullopt;
         constexpr float DEFAULT_W = 64.0f;
         constexpr float DEFAULT_H = 32.0f;
-        float w = node->layout.width.value_or(DEFAULT_W);
-        float h = node->layout.height.value_or(DEFAULT_H);
+        float const w = node->layout.width.value_or(DEFAULT_W);
+        float const h = node->layout.height.value_or(DEFAULT_H);
         return Pt(node->layout.x + w * 0.5f, node->layout.y + h * 0.5f);
     };
 

@@ -3,20 +3,20 @@
 
 template <typename Provider>
 void SampleHold<Provider>::execute(SimulationState& st, double /*dt*/) {
-    uint32_t in_idx = provider.get(PortNames::in);
-    uint32_t trig_idx = provider.get(PortNames::trigger);
-    uint32_t out_idx = provider.get(PortNames::out);
+    uint32_t const in_idx = provider.get(PortNames::in);
+    uint32_t const trig_idx = provider.get(PortNames::trigger);
+    uint32_t const out_idx = provider.get(PortNames::out);
 
-    float val_in = st.values[in_idx];
-    float trig_in = st.values[trig_idx];
+    float const val_in = st.values[in_idx];
+    float const trig_in = st.values[trig_idx];
 
     // === Two-Phase State Semantics ===
 
     // Phase 1 (execute): Rising edge detector from COMMITTED last_trig
-    bool is_rising = (trig_in > 0.5f && last_trig <= 0.5f);
+    bool const is_rising = (trig_in > 0.5f && last_trig <= 0.5f);
 
     // If rising edge, update stored value, otherwise keep committed value
-    float new_stored_value = is_rising ? val_in : stored_value;
+    float const new_stored_value = is_rising ? val_in : stored_value;
 
     // Stage next state
     next_stored_value = new_stored_value;

@@ -160,7 +160,7 @@ void LuaScript<Provider>::execute(SimulationState& st, double dt) {
 
     lua_createtable(L_, static_cast<int>(MAX_PORTS), 0);
     for (uint8_t i = 0; i < MAX_PORTS; ++i) {
-        float val = (input_indices[i] != UNMAPPED) ? st.signal(input_indices[i]) : 0.0f;
+        float const val = (input_indices[i] != UNMAPPED) ? st.signal(input_indices[i]) : 0.0f;
         lua_pushnumber(L_, static_cast<lua_Number>(val));
         lua_rawseti(L_, -2, static_cast<int>(i + 1));
     }
@@ -169,7 +169,7 @@ void LuaScript<Provider>::execute(SimulationState& st, double dt) {
 
     lua_sethook(L_, instruction_hook, LUA_MASKCOUNT, MAX_INSTRUCTIONS);
 
-    int status = lua_pcall(L_, 2, 1, 0);
+    int const status = lua_pcall(L_, 2, 1, 0);
 
     lua_sethook(L_, nullptr, 0, 0);
 

@@ -10,8 +10,8 @@ void Relay<Provider>::execute(SimulationState& st, double /*dt*/) {
 
 template <typename Provider>
 void Relay<Provider>::commit(SimulationState& st, double /*dt*/) {
-    float control = st.values[provider.get(PortNames::control)];
-    float ht = st.values[provider.get(PortNames::hold_threshold)];
+    float const control = st.values[provider.get(PortNames::control)];
+    float const ht = st.values[provider.get(PortNames::hold_threshold)];
 
     if (control > ht) {
         closed = true;

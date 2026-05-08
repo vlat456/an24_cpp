@@ -49,7 +49,7 @@ CompiledPresentationSpec make_presentation_spec(const bp2::Blueprint::Node& node
     spec.title = node.view.name;  // name is tier-1 canonical, OK to read from view
 
     // Full runtime content: canonical static semantics plus current dynamic state.
-    NodeContent nc = def ? create_runtime_node_content(node, *def, pres, interner, runtime_state) : NodeContent{};
+    NodeContent const nc = def ? create_runtime_node_content(node, *def, pres, interner, runtime_state) : NodeContent{};
     spec.content_type = nc.type;
     spec.content_label = nc.label;
     spec.content_min = nc.min;
@@ -67,7 +67,7 @@ CompiledPresentationSpec make_presentation_spec(const bp2::Blueprint::Node& node
         auto font_it = node.semantic.string_params.find("font_size");
         if (font_it != node.semantic.string_params.end()) {
             char* end = nullptr;
-            float parsed = std::strtof(font_it->second.c_str(), &end);
+            float const parsed = std::strtof(font_it->second.c_str(), &end);
             if (end != font_it->second.c_str() && parsed > 0.0f) {
                 spec.annotation_font_size = parsed;
             }
@@ -204,7 +204,7 @@ void append_interaction(PresentationNode& parent,
                         float max_value = 0.0f,
                         float step = 0.0f) {
     PresentationNode child = make_node(ids);
-    core::InternedId region_id = ids.alloc();
+    core::InternedId const region_id = ids.alloc();
     child.hit_regions.push_back(HitRegion{region_id, HitShapeKind::Rectangle});
 
     InteractionBinding binding;
@@ -310,10 +310,10 @@ void build_indicator_content(PresentationNode& root, ElementIdAllocator& ids,
         if (value <= 0.0f) {
             paint.fill_color = 0xFF505050;
         } else {
-            uint8_t g = static_cast<uint8_t>(48 + 207 * b);
-            uint8_t r_col = static_cast<uint8_t>(48 * (1.0f - b));
-            uint8_t b_col = static_cast<uint8_t>(48 * (1.0f - b));
-            uint8_t alpha = static_cast<uint8_t>(80 + 175 * b);
+            uint8_t const g = static_cast<uint8_t>(48 + 207 * b);
+            uint8_t const r_col = static_cast<uint8_t>(48 * (1.0f - b));
+            uint8_t const b_col = static_cast<uint8_t>(48 * (1.0f - b));
+            uint8_t const alpha = static_cast<uint8_t>(80 + 175 * b);
             paint.fill_color = (alpha << 24) | (b_col << 16) | (g << 8) | r_col;
         }
         paint.stroke_color = 0xFF404040;

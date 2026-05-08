@@ -119,7 +119,7 @@ void SimvarProviderHost::build(const JitBuildInput& input, JIT_Simulator& sim) {
     // Group SimVar devices by provider type (derived from ComponentKind)
     std::unordered_map<std::string, std::vector<SolverDevice>> groups;
     for (const auto& device : input.devices) {
-        std::string ptype = provider_type_for_kind(device.kind);
+        std::string const ptype = provider_type_for_kind(device.kind);
         if (ptype.empty()) continue;  // Not an I/O connector
         groups[ptype].push_back(device);
     }

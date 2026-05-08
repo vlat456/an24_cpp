@@ -45,7 +45,7 @@ void place_fragment_node(const PresentationNode& node,
         const float child_h = child_count > 0.0f ? std::max(0.0f, (bounds.h - total_gap) / child_count) : 0.0f;
         float cursor_y = bounds.y;
         for (const PresentationNode& child : node.children) {
-            ui::Rect child_bounds{bounds.x, cursor_y, bounds.w, child_h};
+            ui::Rect const child_bounds{bounds.x, cursor_y, bounds.w, child_h};
             place_fragment_node(child, child_bounds, placements);
             cursor_y += child_h + gap;
         }
@@ -56,7 +56,7 @@ void place_fragment_node(const PresentationNode& node,
     const float child_w = child_count > 0.0f ? std::max(0.0f, (bounds.w - total_gap) / child_count) : 0.0f;
     float cursor_x = bounds.x;
     for (const PresentationNode& child : node.children) {
-        ui::Rect child_bounds{cursor_x, bounds.y, child_w, bounds.h};
+        ui::Rect const child_bounds{cursor_x, bounds.y, child_w, bounds.h};
         place_fragment_node(child, child_bounds, placements);
         cursor_x += child_w + gap;
     }
@@ -109,8 +109,8 @@ void arrange_edge_rail(const std::vector<RailEntryMetrics>& entries,
     const float center_x = node_w * 0.5f;
 
     for (size_t i = 0; i < n; ++i) {
-        float ideal_x = center_x + (static_cast<float>(i) - static_cast<float>(n - 1) * 0.5f) * layout_grid;
-        float snapped_x = std::round(ideal_x / layout_grid) * layout_grid;
+        float const ideal_x = center_x + (static_cast<float>(i) - static_cast<float>(n - 1) * 0.5f) * layout_grid;
+        float const snapped_x = std::round(ideal_x / layout_grid) * layout_grid;
 
         RailPlacement placement;
         placement.index = i;
@@ -267,7 +267,7 @@ NodeShellLayout measure_node_shell(const NodeShellLayoutSpec& spec) {
         }
     }
 
-    float height = spec.header_height
+    float const height = spec.header_height
         + (!spec.top_entries.empty() ? spec.row_height : 0.0f)
         + side_rows_h
         + content_h

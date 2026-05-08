@@ -94,7 +94,7 @@ bool EditorApp::initSDL() {
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, gl_setup::DEPTH_SIZE);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, gl_setup::STENCIL_SIZE);
 
-    SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+    SDL_WindowFlags const window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
 
     window_ = SDL_CreateWindow("AN-24 Blueprint Editor",
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
@@ -128,7 +128,7 @@ bool EditorApp::initImGui() {
     io.IniFilename = nullptr;
 
     ImGuiTheme::LoadRobotoWithCyrillic(18.0f);
-    ImFont* fa_font = ImGuiTheme::LoadFontAwesome(io.Fonts, 14.0f);
+    ImFont const* fa_font = ImGuiTheme::LoadFontAwesome(io.Fonts, 14.0f);
     if (fa_font) {
         icon_font_.handle = reinterpret_cast<ui::IDrawList::NativeFont>(fa_font);
         ws_.renderingResources().icon_font = &icon_font_;
@@ -163,7 +163,7 @@ int EditorApp::run() {
         return -1;
     }
 
-    std::string settings_path = getConfigPath();
+    std::string const settings_path = getConfigPath();
     ensureConfigDir(settings_path);
     ws_.settings.loadFrom(settings_path);
 
@@ -226,7 +226,7 @@ int EditorApp::run() {
         // and not needed for day-to-day development. Re-enable locally with
         // -DCMAKE_CXX_FLAGS="-DAN24_PROFILE" when profiling specific sections.
 
-        if (Document* doc = ws_.activeDocument()) {
+        if (Document const* doc = ws_.activeDocument()) {
             if (!doc->filepath().empty()) {
                 ws_.settings.setActiveTab(doc->filepath());
             } else {
@@ -329,9 +329,9 @@ void EditorApp::render() {
     }
     }
 
-    float menu_height = ImGui::GetFrameHeight();
-    float available_h = io.DisplaySize.y - menu_height;
-    float available_w = io.DisplaySize.x;
+    float const menu_height = ImGui::GetFrameHeight();
+    float const available_h = io.DisplaySize.y - menu_height;
+    float const available_w = io.DisplaySize.x;
 
     { SCOPED_PROFILE(profiler_, prof_render_inspector_);
     inspector_panel_.setVisible(ws_.showInspector);
@@ -345,7 +345,7 @@ void EditorApp::render() {
     }
     }
 
-    float canvas_x = inspector_panel_.totalWidth();
+    float const canvas_x = inspector_panel_.totalWidth();
 
     ws_.reconcile_owner_bound_ui();
 

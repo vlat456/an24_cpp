@@ -49,11 +49,11 @@ TextNodeWidget::TextNodeWidget(const bp2::Blueprint::Node& data,
     }
 
     // Snap size to grid
-    ui::Pt default_sz(128.0f, 48.0f);
-    float sw = data.layout.width.has_value()  ? *data.layout.width  : default_sz.x;
-    float sh = data.layout.height.has_value() ? *data.layout.height : default_sz.y;
-    float w = editor_math::snap_size_to_layout_grid(std::max(sw, 64.0f));
-    float h = editor_math::snap_size_to_layout_grid(std::max(sh, 32.0f));
+    ui::Pt const default_sz(128.0f, 48.0f);
+    float const sw = data.layout.width.has_value()  ? *data.layout.width  : default_sz.x;
+    float const sh = data.layout.height.has_value() ? *data.layout.height : default_sz.y;
+    float const w = editor_math::snap_size_to_layout_grid(std::max(sw, 64.0f));
+    float const h = editor_math::snap_size_to_layout_grid(std::max(sh, 32.0f));
     setSize(Pt(w, h));
 }
 
@@ -76,21 +76,21 @@ void TextNodeWidget::layout(float w, float h) {
 void TextNodeWidget::render(IDrawList* dl, const RenderContext& ctx) const {
     if (!dl) return;
 
-    Pt pos = worldPos();
-    Pt sz = size();
-    float zoom = ctx.zoom;
+    Pt const pos = worldPos();
+    Pt const sz = size();
+    float const zoom = ctx.zoom;
 
-    Pt screen_min = ctx.world_to_screen(pos);
-    Pt screen_max = ctx.world_to_screen(Pt(pos.x + sz.x, pos.y + sz.y));
-    float rounding = editor_constants::GROUP_ROUNDING * zoom;
+    Pt const screen_min = ctx.world_to_screen(pos);
+    Pt const screen_max = ctx.world_to_screen(Pt(pos.x + sz.x, pos.y + sz.y));
+    float const rounding = editor_constants::GROUP_ROUNDING * zoom;
 
     // Border only (no fill for text nodes)
-    uint32_t border_color = render_theme::COLOR_TEXT_BORDER;
+    uint32_t const border_color = render_theme::COLOR_TEXT_BORDER;
     dl->add_rect_with_rounding_corners(screen_min, screen_max, border_color, rounding,
                                        editor_constants::DRAW_CORNERS_ALL, 1.0f);
 
-    float pad = editor_constants::GROUP_TITLE_PADDING * zoom;
-    float font_size = font_size_base_ * zoom;
+    float const pad = editor_constants::GROUP_TITLE_PADDING * zoom;
+    float const font_size = font_size_base_ * zoom;
 
     if (text_.empty()) {
         // Placeholder
@@ -98,14 +98,14 @@ void TextNodeWidget::render(IDrawList* dl, const RenderContext& ctx) const {
                      "Text", render_theme::COLOR_TEXT_DIM, font_size);
     } else {
         // Multiline text rendering
-        float line_height = font_size * 1.4f;
+        float const line_height = font_size * 1.4f;
         float y = screen_min.y + pad;
 
         size_t p = 0;
         while (p < text_.size()) {
             size_t nl = text_.find('\n', p);
             if (nl == std::string::npos) nl = text_.size();
-            std::string line = text_.substr(p, nl - p);
+            std::string const line = text_.substr(p, nl - p);
             if (!line.empty()) {
                 dl->add_text(Pt(screen_min.x + pad, y), line.c_str(),
                              render_theme::COLOR_TEXT, font_size);
@@ -120,11 +120,11 @@ void TextNodeWidget::render(IDrawList* dl, const RenderContext& ctx) const {
 void TextNodeWidget::renderPost(IDrawList* dl, const RenderContext& ctx) const {
     if (!dl) return;
 
-    Pt pos = worldPos();
-    Pt sz = size();
-    Pt screen_min = ctx.world_to_screen(pos);
-    Pt screen_max = ctx.world_to_screen(Pt(pos.x + sz.x, pos.y + sz.y));
-    float rounding = editor_constants::GROUP_ROUNDING * ctx.zoom;
+    Pt const pos = worldPos();
+    Pt const sz = size();
+    Pt const screen_min = ctx.world_to_screen(pos);
+    Pt const screen_max = ctx.world_to_screen(Pt(pos.x + sz.x, pos.y + sz.y));
+    float const rounding = editor_constants::GROUP_ROUNDING * ctx.zoom;
 
     // Selection border drawn after children so it appears on top
     handle_renderer::draw_selection_border(*dl, ctx, *this, screen_min, screen_max, rounding);

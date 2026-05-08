@@ -9,15 +9,15 @@ Graph extract_graph(const Blueprint& bp, float default_width, float default_heig
     // -- Nodes --
     g.nodes.reserve(bp.nodes().size());
     for (const auto& node : bp.nodes()) {
-        float w = node.layout.width.value_or(default_width);
-        float h = node.layout.height.value_or(default_height);
+        float const w = node.layout.width.value_or(default_width);
+        float const h = node.layout.height.value_or(default_height);
         g.nodes.push_back({node.semantic.id, w, h});
     }
 
     // -- Edges from wires (collapse multi-edges) --
     for (const auto& wire : bp.wires()) {
-        core::InternedId src = wire.source.node;
-        core::InternedId tgt = wire.target.node;
+        core::InternedId const src = wire.source.node;
+        core::InternedId const tgt = wire.target.node;
         if (src.empty() || tgt.empty() || src == tgt) continue;
 
         // Only insert if this edge doesn't already exist.

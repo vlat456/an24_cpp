@@ -34,7 +34,7 @@ void EditorSettings::loadFrom(const std::string& filepath) {
         if (j.contains("recentFiles") && j["recentFiles"].is_array()) {
             for (const auto& p : j["recentFiles"]) {
                 if (!p.is_string()) continue;
-                std::string path = p.get<std::string>();
+                std::string const path = p.get<std::string>();
                 if (!has_embedded_nul(path) && path_exists(path)) {
                     recent_files_.push_back(path);
                 }
@@ -44,7 +44,7 @@ void EditorSettings::loadFrom(const std::string& filepath) {
         if (j.contains("openTabs") && j["openTabs"].is_array()) {
             for (const auto& p : j["openTabs"]) {
                 if (!p.is_string()) continue;
-                std::string path = p.get<std::string>();
+                std::string const path = p.get<std::string>();
                 if (!has_embedded_nul(path) && path_exists(path)) {
                     open_tabs_.push_back(path);
                 }
@@ -75,7 +75,7 @@ void EditorSettings::saveTo(const std::string& filepath) const {
             j["activeTab"] = active_tab_;
         }
 
-        std::string serialized = j.dump(2, ' ', false, json::error_handler_t::replace);
+        std::string const serialized = j.dump(2, ' ', false, json::error_handler_t::replace);
 
         std::ofstream f(filepath);
         if (f.is_open()) {

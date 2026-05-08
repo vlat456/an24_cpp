@@ -4,7 +4,7 @@
 template <typename Provider>
 void TempSensor<Provider>::execute(SimulationState& st, double /*dt*/) {
     // Push model: temperature sensor - pass through with scaling
-    float temp_in = st.values[provider.get(PortNames::temp_in)];
+    float const temp_in = st.values[provider.get(PortNames::temp_in)];
     st.values[provider.get(PortNames::temp_out)] = temp_in * sensitivity;
 }
 

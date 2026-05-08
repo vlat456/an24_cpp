@@ -163,11 +163,11 @@ void build_device_bindings(
         if (is_knob_switch) {
             const auto& indices = device_elements.at(base_name);
             size_t elem_position = 0;
-            for (size_t idx : indices) {
+            for (size_t const idx : indices) {
                 if (raw_elements[idx].element_id == element_id) break;
                 ++elem_position;
             }
-            std::string indexed_name = base_name + "_" + std::to_string(elem_position);
+            std::string const indexed_name = base_name + "_" + std::to_string(elem_position);
             tmp_bindings.push_back({indexed_name, pos.first, pos.second, element_id});
         } else if (!re.device_name.empty()) {
             tmp_bindings.push_back({base_name, pos.first, pos.second, element_id});
@@ -241,7 +241,7 @@ static uint32_t lookup_signal(
     const std::string& port_name,
     const std::unordered_map<std::string, uint32_t>& port_to_signal)
 {
-    std::string key = signal_key::make_node_port_key(device_name, port_name);
+    std::string const key = signal_key::make_node_port_key(device_name, port_name);
     auto it = port_to_signal.find(key);
     return (it != port_to_signal.end()) ? it->second : UINT32_MAX;
 }
@@ -273,7 +273,7 @@ struct AotPatchOpContext {
     }
 
     std::string device_element_key(size_t i, int handle_index = -1) const {
-        std::string base = codegen_detail::sanitize_name(devices[i].name);
+        std::string const base = codegen_detail::sanitize_name(devices[i].name);
         return handle_index >= 0
             ? base + "_" + std::to_string(handle_index)
             : base;
@@ -286,7 +286,7 @@ struct AotPatchOpContext {
 
     void fill_signal_ports(NodalPatchOp& op, const PatchOpDecl& decl, size_t i) const {
         const size_t n_signals = std::min(decl.signal_ports.size(), size_t(5));
-        uint32_t* targets[] = { &op.s0, &op.s1, &op.s2, &op.s3, &op.s4 };
+        uint32_t* const targets[] = { &op.s0, &op.s1, &op.s2, &op.s3, &op.s4 };
         for (size_t j = 0; j < n_signals; ++j) {
             *targets[j] = lookup_signal(devices[i].name, decl.signal_ports[j], port_to_signal);
         }
@@ -313,7 +313,7 @@ ElectricalPlanCodegen extract_electrical_plan(
 
     auto device_has_any_ports = [&](const ResolvedDevice& dev) -> bool {
         for (const auto& [port_name, _port] : dev.ports) {
-            std::string full_port = signal_key::make_node_port_key(dev.name, port_name);
+            std::string const full_port = signal_key::make_node_port_key(dev.name, port_name);
             if (port_to_signal.find(full_port) != port_to_signal.end()) {
                 return true;
             }
@@ -358,7 +358,7 @@ ElectricalPlanCodegen extract_electrical_plan(
     for (const auto& b : plan.device_bindings) {
         binding_map[b.device_field_name] = b.element_id;
     }
-    AotPatchOpContext ctx{devices, port_to_signal, binding_map};
+    AotPatchOpContext const ctx{devices, port_to_signal, binding_map};
     build_algo::build_patch_ops_generic(plan.patch_ops, ctx);
 
     return plan;

@@ -205,7 +205,7 @@ public:
     bool remove_node(core::InternedId id,
                      std::vector<core::InternedId> connected_wire_ids) override {
         return model_.mutate_atomically([&] {
-            for (core::InternedId wid : connected_wire_ids) {
+            for (core::InternedId const wid : connected_wire_ids) {
                 model_.remove_wire(wid);
             }
             if (!model_.remove_node(id)) {
@@ -400,7 +400,7 @@ public:
         }
         return root_model_.mutate_atomically([&] {
             bp2::Blueprint next = current_blueprint();
-            for (core::InternedId wid : connected_wire_ids) {
+            for (core::InternedId const wid : connected_wire_ids) {
                 next = next.without_wire(wid);
             }
             next = next.without_node(id);

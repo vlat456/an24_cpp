@@ -419,7 +419,7 @@ std::vector<std::pair<Path, PortDescriptor>> Blueprint::all_ports(PathArena& are
 }
 
 void Blueprint::validate(::ComponentRegistry const& parser_registry, core::StringInterner& interner) const {
-    PathArena arena(interner);
+    PathArena const arena(interner);
     auto result = InvariantChecker::validate(*this, arena, parser_registry, interner);
     if (!result.valid) {
         throw std::runtime_error(std::string("Blueprint validation: ") + result.error);
@@ -446,7 +446,7 @@ void Blueprint::collect_ports_recursive(
     }
 
     for (auto const& node : nodes_) {
-        Path node_path = arena.make_node(prefix, node.semantic.id);
+        Path const node_path = arena.make_node(prefix, node.semantic.id);
         for (auto const& port : resolve_node_iface(node, NodeIfaceAuthority{interner, &parser_registry})) {
             result.push_back(std::make_pair(arena.make_port(node_path, port.name), port));
         }

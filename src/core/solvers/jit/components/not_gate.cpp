@@ -3,9 +3,9 @@
 
 template <typename Provider>
 void NOT<Provider>::execute(SimulationState& st, double /*dt*/) {
-    float A = st.values[provider.get(PortNames::A)];
-    bool a = (A > 0.5f);
-    bool result = !a;
+    float const A = st.values[provider.get(PortNames::A)];
+    bool const a = (A > 0.5f);
+    bool const result = !a;
     st.values[provider.get(PortNames::o)] = result ? 1.0f : 0.0f;
 }
 

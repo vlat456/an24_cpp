@@ -76,7 +76,7 @@ void NodeSpriteCache::bake(const Widget& widget, const RenderContext& ctx) {
     if (it != cache_.end()) {
         Entry& entry = it->second;
         if (!entry.dirty) {
-            float ratio = std::abs(ctx.zoom - entry.baked_zoom)
+            float const ratio = std::abs(ctx.zoom - entry.baked_zoom)
                         / std::max(entry.baked_zoom, 0.01f);
             if (ratio < kZoomThreshold) return;
             entry.dirty = true;
@@ -186,7 +186,7 @@ bool NodeSpriteCache::blit(const Widget& widget, ui::IDrawList* dl,
 
     // Pass GL texture as opaque NativeTexture. UV Y-flip compensates
     // OpenGL FBO origin (bottom-left) vs ImGui (top-left).
-    ui::IDrawList::NativeTexture tex_handle =
+    ui::IDrawList::NativeTexture const tex_handle =
         static_cast<ui::IDrawList::NativeTexture>(entry.texture);
 
     dl->add_image(tex_handle, screen_min, screen_max,
@@ -220,7 +220,7 @@ void NodeSpriteCache::bake_dirty_nodes(const Scene& scene, const RenderContext& 
         } else {
             // Skip if cached and zoom hasn't drifted.
             if (it != cache_.end() && !it->second.dirty) {
-                float ratio = std::abs(ctx.zoom - it->second.baked_zoom)
+                float const ratio = std::abs(ctx.zoom - it->second.baked_zoom)
                             / std::max(it->second.baked_zoom, 0.01f);
                 if (ratio < kZoomThreshold) continue;
             }

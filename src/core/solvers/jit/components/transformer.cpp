@@ -6,9 +6,9 @@
 template <typename Provider>
 void Transformer<Provider>::execute(SimulationState& st, double /*dt*/) {
     // Push model: transformer with voltage ratio
-    float v_primary = st.values[provider.get(PortNames::primary)];
+    float const v_primary = st.values[provider.get(PortNames::primary)];
     // Secondary voltage = primary voltage * ratio
-    float v_secondary_target = v_primary * ratio;
+    float const v_secondary_target = v_primary * ratio;
     st.values[provider.get(PortNames::secondary)] = v_secondary_target;
 }
 

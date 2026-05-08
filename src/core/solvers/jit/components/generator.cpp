@@ -6,7 +6,7 @@
 template <typename Provider>
 void Generator<Provider>::pre_load() {
     // Match Battery's safety pattern: floor resistance instead of zeroing out
-    float safe_r = std::max(internal_r, 1e-6f);
+    float const safe_r = std::max(internal_r, 1e-6f);
     inv_internal_r = 1.0f / safe_r;
 }
 

@@ -53,7 +53,7 @@ BusNodeWidget::BusNodeWidget(const bp2::Blueprint::Node& data,
     if (size_explicitly_set_) {
         default_size = Pt(*data.layout.width, *data.layout.height);
     }
-    Pt snapped = editor_math::snap_size_to_layout_grid(default_size);
+    Pt const snapped = editor_math::snap_size_to_layout_grid(default_size);
     setSize(snapped);
 
     rebuildPorts();
@@ -88,7 +88,7 @@ void BusNodeWidget::rebuildPorts() {
     // Port stores a string_view, so the name must point to stable storage
     // (the interner) — never to a local std::string.
     for (const auto& w : wires_) {
-        std::string_view wire_id = interner_->resolve(w.id);
+        std::string_view const wire_id = interner_->resolve(w.id);
         auto* p = emplaceChild<Port>(wire_id, bp2::Direction::InOut, PortType::V);
         ports_.push_back(p);
     }
@@ -101,14 +101,14 @@ void BusNodeWidget::rebuildPorts() {
     // Only auto-size when the user hasn't manually resized, or when the
     // current size is too small to fit all ports.
     if (!wires_.empty()) {
-        Pt auto_sz = calculateBusSize(ports_.size());
+        Pt const auto_sz = calculateBusSize(ports_.size());
         if (!size_explicitly_set_) {
             setSize(auto_sz);
         } else {
             // Grow to fit ports if user's size is too small, but never shrink
-            Pt cur = size();
-            float w = std::max(cur.x, auto_sz.x);
-            float h = std::max(cur.y, auto_sz.y);
+            Pt const cur = size();
+            float const w = std::max(cur.x, auto_sz.x);
+            float const h = std::max(cur.y, auto_sz.y);
             setSize(Pt(w, h));
         }
     }
@@ -151,8 +151,8 @@ Pt BusNodeWidget::calculatePortLocalPos(size_t index) const {
                   size().y / 2.0f - PortConstants::RADIUS);
     }
 
-    float step = PortConstants::LAYOUT_GRID;
-    float offset = step * (index + 1) - PortConstants::RADIUS;
+    float const step = PortConstants::LAYOUT_GRID;
+    float const offset = step * (index + 1) - PortConstants::RADIUS;
 
     switch (port_edge_) {
         case PortEdge::Bottom:
@@ -253,22 +253,22 @@ void BusNodeWidget::layout(float w, float h) {
 void BusNodeWidget::render(IDrawList* dl, const RenderContext& ctx) const {
     if (!dl) return;
 
-    Pt pos = worldPos();
-    Pt sz = size();
-    float zoom = ctx.zoom;
+    Pt const pos = worldPos();
+    Pt const sz = size();
+    float const zoom = ctx.zoom;
 
-    Pt screen_min = ctx.world_to_screen(pos);
-    Pt screen_max = ctx.world_to_screen(Pt(pos.x + sz.x, pos.y + sz.y));
-    float rounding = editor_constants::NODE_ROUNDING * zoom;
+    Pt const screen_min = ctx.world_to_screen(pos);
+    Pt const screen_max = ctx.world_to_screen(Pt(pos.x + sz.x, pos.y + sz.y));
+    float const rounding = editor_constants::NODE_ROUNDING * zoom;
 
     // Body fill
-    uint32_t fill = custom_fill_.value_or(render_theme::COLOR_BUS_FILL);
+    uint32_t const fill = custom_fill_.value_or(render_theme::COLOR_BUS_FILL);
     dl->add_rect_filled_with_rounding(screen_min, screen_max, fill, rounding);
 
     // Name text
-    Pt center((screen_min.x + screen_max.x) / 2.0f,
+    Pt const center((screen_min.x + screen_max.x) / 2.0f,
               (screen_min.y + screen_max.y) / 2.0f);
-    Pt text_pos(screen_min.x + 3.0f * zoom, center.y - 5.0f * zoom);
+    Pt const text_pos(screen_min.x + 3.0f * zoom, center.y - 5.0f * zoom);
     dl->add_text(text_pos, name_.c_str(), render_theme::COLOR_TEXT, 10.0f * zoom);
 
     // Border
@@ -281,11 +281,11 @@ void BusNodeWidget::render(IDrawList* dl, const RenderContext& ctx) const {
 void BusNodeWidget::renderPost(IDrawList* dl, const RenderContext& ctx) const {
     if (!dl) return;
 
-    Pt pos = worldPos();
-    Pt sz = size();
-    Pt screen_min = ctx.world_to_screen(pos);
-    Pt screen_max = ctx.world_to_screen(Pt(pos.x + sz.x, pos.y + sz.y));
-    float rounding = editor_constants::NODE_ROUNDING * ctx.zoom;
+    Pt const pos = worldPos();
+    Pt const sz = size();
+    Pt const screen_min = ctx.world_to_screen(pos);
+    Pt const screen_max = ctx.world_to_screen(Pt(pos.x + sz.x, pos.y + sz.y));
+    float const rounding = editor_constants::NODE_ROUNDING * ctx.zoom;
 
     // Selection border drawn after children so it appears on top
     handle_renderer::draw_selection_border(*dl, ctx, *this, screen_min, screen_max, rounding);

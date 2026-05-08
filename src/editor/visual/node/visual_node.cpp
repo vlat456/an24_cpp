@@ -60,7 +60,7 @@ public:
             text_w = dl ? dl->calc_text_size(text_.c_str(), kFontSize).x
                         : fallback_text_width(text_, kFontSize);
         }
-        float badges_w = compute_badges_width(dl);
+        float const badges_w = compute_badges_width(dl);
         return Pt(kPadding * 2.0f + text_w + badges_w, kHeight);
     }
 
@@ -71,11 +71,11 @@ public:
     void render(IDrawList* dl, const RenderContext& ctx) const override {
         if (!dl) return;
 
-        Pt origin = ctx.world_to_screen(worldPos());
+        Pt const origin = ctx.world_to_screen(worldPos());
         float zoom = ctx.zoom;
-        float visual_h = kVisualHeight * zoom;
-        float rounding = editor_constants::NODE_ROUNDING * zoom;
-        Pt max(origin.x + size().x * zoom, origin.y + visual_h);
+        float const visual_h = kVisualHeight * zoom;
+        float const rounding = editor_constants::NODE_ROUNDING * zoom;
+        Pt const max(origin.x + size().x * zoom, origin.y + visual_h);
         dl->add_rect_filled_with_rounding_corners(
             origin, max, render_theme::COLOR_HEADER_FILL, rounding, 0x30);
 
@@ -83,7 +83,7 @@ public:
         float text_w = 0.0f;
 
         if (!text_.empty()) {
-            Pt text_pos(origin.x + kPadding * zoom,
+            Pt const text_pos(origin.x + kPadding * zoom,
                         origin.y + (kVisualHeight - kFontSize) * zoom * 0.5f);
             dl->set_clip_rect(origin, max);
             dl->add_text(text_pos, text_.c_str(), render_theme::COLOR_TEXT, font);
@@ -99,11 +99,11 @@ public:
 
         dl->set_clip_rect(origin, max);
         badges_.for_each([&](editor::NodeBadge badge) {
-            editor::BadgeVisuals vis = editor::get_badge_visuals(badge);
+            editor::BadgeVisuals const vis = editor::get_badge_visuals(badge);
             char utf8[5];
             editor::IconFont::codepoint_to_utf8(vis.codepoint, utf8);
             dl->add_text_with_font(Pt(x, y), utf8, vis.color, font, icon_font_->handle);
-            Pt sz = dl->calc_text_size_with_font(utf8, font, icon_font_->handle);
+            Pt const sz = dl->calc_text_size_with_font(utf8, font, icon_font_->handle);
             x += sz.x + kIconGap * zoom;
         });
         dl->clear_clip();
@@ -112,9 +112,9 @@ public:
     void renderDebugPaintBounds(IDrawList* dl, const RenderContext& ctx) const override {
         if (!dl || text_.empty()) return;
         const float font = kFontSize * ctx.zoom;
-        Pt origin = ctx.world_to_screen(worldPos());
-        Pt text_size = dl->calc_text_size(text_.c_str(), font);
-        Pt text_pos(origin.x + kPadding * ctx.zoom,
+        Pt const origin = ctx.world_to_screen(worldPos());
+        Pt const text_size = dl->calc_text_size(text_.c_str(), font);
+        Pt const text_pos(origin.x + kPadding * ctx.zoom,
                     origin.y + (kVisualHeight - kFontSize) * ctx.zoom * 0.5f);
         dl->add_rect(text_pos,
                      Pt(text_pos.x + text_size.x, text_pos.y + text_size.y),
@@ -140,11 +140,11 @@ private:
         float w = kIconPadLeft;
         bool first = true;
         badges_.for_each([&](editor::NodeBadge badge) {
-            editor::BadgeVisuals vis = editor::get_badge_visuals(badge);
+            editor::BadgeVisuals const vis = editor::get_badge_visuals(badge);
             char utf8[5];
             editor::IconFont::codepoint_to_utf8(vis.codepoint, utf8);
             if (dl) {
-                Pt sz = dl->calc_text_size_with_font(utf8, kFontSize, icon_font_->handle);
+                Pt const sz = dl->calc_text_size_with_font(utf8, kFontSize, icon_font_->handle);
                 w += sz.x;
             } else {
                 // Fallback: estimate icon width as font size
@@ -180,14 +180,14 @@ public:
     void render(IDrawList* dl, const RenderContext& ctx) const override {
         if (!dl || text_.empty()) return;
 
-        Pt origin = ctx.world_to_screen(worldPos());
-        float zoom = ctx.zoom;
-        float font = kFontSize * zoom;
-        Pt text_size = dl->calc_text_size(text_.c_str(), font);
-        float tx = std::max(origin.x,
+        Pt const origin = ctx.world_to_screen(worldPos());
+        float const zoom = ctx.zoom;
+        float const font = kFontSize * zoom;
+        Pt const text_size = dl->calc_text_size(text_.c_str(), font);
+        float const tx = std::max(origin.x,
                             origin.x + size().x * zoom - text_size.x - kRightPadding * zoom);
-        float ty = origin.y + (kHeight * zoom - font) * 0.5f;
-        Pt clip_max(origin.x + size().x * zoom, origin.y + kHeight * zoom);
+        float const ty = origin.y + (kHeight * zoom - font) * 0.5f;
+        Pt const clip_max(origin.x + size().x * zoom, origin.y + kHeight * zoom);
         dl->set_clip_rect(origin, clip_max);
         dl->add_text(Pt(tx, ty), text_.c_str(), render_theme::COLOR_TEXT_DIM, font);
         dl->clear_clip();
@@ -196,11 +196,11 @@ public:
     void renderDebugPaintBounds(IDrawList* dl, const RenderContext& ctx) const override {
         if (!dl || text_.empty()) return;
         const float font = kFontSize * ctx.zoom;
-        Pt origin = ctx.world_to_screen(worldPos());
-        Pt text_size = dl->calc_text_size(text_.c_str(), font);
-        float tx = std::max(origin.x,
+        Pt const origin = ctx.world_to_screen(worldPos());
+        Pt const text_size = dl->calc_text_size(text_.c_str(), font);
+        float const tx = std::max(origin.x,
                             origin.x + size().x * ctx.zoom - text_size.x - kRightPadding * ctx.zoom);
-        float ty = origin.y + (kHeight * ctx.zoom - font) * 0.5f;
+        float const ty = origin.y + (kHeight * ctx.zoom - font) * 0.5f;
         dl->add_rect(Pt(tx, ty),
                      Pt(tx + text_size.x, ty + text_size.y),
                      0xFF00FFFF,
@@ -246,17 +246,17 @@ TextPaintGeometry resolve_text_paint_geometry(const editor::presentation::SceneR
                                               const RenderContext& ctx) {
     TextPaintGeometry geometry;
     const auto* text_geo = std::get_if<editor::presentation::TextGeometry>(&object.geometry);
-    float font_size = (text_geo && text_geo->font_size > 0.0f) ? text_geo->font_size : 10.0f;
-    bool center_aligned = text_geo ? text_geo->center_aligned : false;
-    float offset_x = text_geo ? text_geo->x : 0.0f;
-    float offset_y = text_geo ? text_geo->y : 0.0f;
+    float const font_size = (text_geo && text_geo->font_size > 0.0f) ? text_geo->font_size : 10.0f;
+    bool const center_aligned = text_geo ? text_geo->center_aligned : false;
+    float const offset_x = text_geo ? text_geo->x : 0.0f;
+    float const offset_y = text_geo ? text_geo->y : 0.0f;
     geometry.font = font_size * ctx.zoom;
     geometry.pos = ctx.world_to_screen(Pt(node_pos.x + object.bounds.x + offset_x,
                                           node_pos.y + object.bounds.y + offset_y));
     geometry.size = dl.calc_text_size(object.text.c_str(), geometry.font);
     if (center_aligned) {
         // Center text within the element bounds width, offset_x is additional shift from center
-        float bounds_center_x = ctx.world_to_screen(Pt(node_pos.x + object.bounds.x + object.bounds.w * 0.5f + offset_x, 0.0f)).x;
+        float const bounds_center_x = ctx.world_to_screen(Pt(node_pos.x + object.bounds.x + object.bounds.w * 0.5f + offset_x, 0.0f)).x;
         geometry.pos.x = bounds_center_x - geometry.size.x * 0.5f;
     }
     return geometry;
@@ -267,12 +267,12 @@ LinePaintGeometry resolve_line_paint_geometry(const editor::presentation::SceneR
                                               const RenderContext& ctx) {
     const auto* line_geo = std::get_if<editor::presentation::LineGeometry>(&object.geometry);
     // Geometry origin (0,0) maps to center of element bounds
-    float base_x = object.bounds.x + object.bounds.w * 0.5f + (line_geo ? line_geo->cx : 0.0f);
-    float base_y = object.bounds.y + object.bounds.h * 0.5f + (line_geo ? line_geo->cy : 0.0f);
-    Pt center = ctx.world_to_screen(Pt(node_pos.x + base_x, node_pos.y + base_y));
-    float angle = (line_geo ? line_geo->angle_deg : 0.0f) * DEG2RAD;
-    float radius_a = (line_geo ? line_geo->inner_radius : 0.0f) * ctx.zoom;
-    float radius_b = (line_geo ? line_geo->outer_radius : 0.0f) * ctx.zoom;
+    float const base_x = object.bounds.x + object.bounds.w * 0.5f + (line_geo ? line_geo->cx : 0.0f);
+    float const base_y = object.bounds.y + object.bounds.h * 0.5f + (line_geo ? line_geo->cy : 0.0f);
+    Pt const center = ctx.world_to_screen(Pt(node_pos.x + base_x, node_pos.y + base_y));
+    float const angle = (line_geo ? line_geo->angle_deg : 0.0f) * DEG2RAD;
+    float const radius_a = (line_geo ? line_geo->inner_radius : 0.0f) * ctx.zoom;
+    float const radius_b = (line_geo ? line_geo->outer_radius : 0.0f) * ctx.zoom;
     return {
         Pt(center.x + std::cos(angle) * radius_a, center.y - std::sin(angle) * radius_a),
         Pt(center.x + std::cos(angle) * radius_b, center.y - std::sin(angle) * radius_b),
@@ -283,10 +283,10 @@ RectPaintGeometry resolve_rect_paint_geometry(const editor::presentation::SceneR
                                               const Pt& node_pos,
                                               const RenderContext& ctx) {
     const auto* rect_geo = std::get_if<editor::presentation::RectGeometry>(&object.geometry);
-    float x = object.bounds.x + (rect_geo ? rect_geo->x : 0.0f);
-    float y = object.bounds.y + (rect_geo ? rect_geo->y : 0.0f);
-    float w = rect_geo ? rect_geo->w : object.bounds.w;
-    float h = rect_geo ? rect_geo->h : object.bounds.h;
+    float const x = object.bounds.x + (rect_geo ? rect_geo->x : 0.0f);
+    float const y = object.bounds.y + (rect_geo ? rect_geo->y : 0.0f);
+    float const w = rect_geo ? rect_geo->w : object.bounds.w;
+    float const h = rect_geo ? rect_geo->h : object.bounds.h;
     return {
         ctx.world_to_screen(Pt(node_pos.x + x, node_pos.y + y)),
         ctx.world_to_screen(Pt(node_pos.x + x + w, node_pos.y + y + h)),
@@ -376,7 +376,7 @@ NodeWidget::NodeWidget(const bp2::Blueprint::Node& data,
                   data.view.name, type_name_, min_sz.x, min_sz.y,
                   pref_sz.x, pref_sz.y, has_explicit, w, h);
 
-    Pt snapped = editor_math::snap_size_to_layout_grid(Pt(w, h));
+    Pt const snapped = editor_math::snap_size_to_layout_grid(Pt(w, h));
     w = snapped.x;
     h = snapped.y;
 
@@ -428,7 +428,7 @@ void NodeWidget::build(const bp2::Blueprint::Node& data,
             port_ptrs_.push_back(entry.port);
 
             // Create label widget
-            TextAlign align = (side == bp2::PortLayoutSide::Right) ? TextAlign::Right : TextAlign::Left;
+            TextAlign const align = (side == bp2::PortLayoutSide::Right) ? TextAlign::Right : TextAlign::Left;
             entry.label = emplaceChild<Label>(rp.port_name, PortConstants::LABEL_FONT_SIZE,
                                                PortConstants::LABEL_COLOR, align);
 
@@ -499,11 +499,11 @@ void NodeWidget::refresh_content_semantic_snapshot() {
     spec.content_unit = cached_content_unit_;
 
     // Compile content through the single-authority compiler path
-    editor::presentation::NodePresentation presentation =
+    editor::presentation::NodePresentation const presentation =
         editor::presentation::compile_node_presentation(spec);
 
     // Check if the compiler produced any renderable content
-    bool has_content = !presentation.content.children.empty();
+    bool const has_content = !presentation.content.children.empty();
     if (!has_content) {
         return;
     }
@@ -689,11 +689,11 @@ void NodeWidget::renderTree(IDrawList* dl, const RenderContext& ctx) const {
             float bx = h_origin.x + kHeaderPadding * zoom + text_w + kHeaderIconPadLeft * zoom;
             const float by = h_origin.y + (kHeaderVisualHeight - kHeaderFontSize) * zoom * 0.5f;
             badges_.for_each([&](editor::NodeBadge badge) {
-                editor::BadgeVisuals vis = editor::get_badge_visuals(badge);
+                editor::BadgeVisuals const vis = editor::get_badge_visuals(badge);
                 char utf8[5];
                 editor::IconFont::codepoint_to_utf8(vis.codepoint, utf8);
                 dl->add_text_with_font(Pt(bx, by), utf8, vis.color, font, icon_font_->handle);
-                Pt sz = dl->calc_text_size_with_font(utf8, font, icon_font_->handle);
+                Pt const sz = dl->calc_text_size_with_font(utf8, font, icon_font_->handle);
                 bx += sz.x + kHeaderIconGap * zoom;
             });
         }
@@ -719,10 +719,10 @@ void NodeWidget::renderTree(IDrawList* dl, const RenderContext& ctx) const {
                     dl->add_rect(rect.min, rect.max, object.stroke_color, object.stroke_width * zoom);
             } else if (object.primitive == editor::presentation::PaintPrimitiveKind::Circle) {
                 const auto* cg = std::get_if<editor::presentation::CircleGeometry>(&object.geometry);
-                float cx = object.bounds.x + object.bounds.w * 0.5f + (cg ? cg->cx : 0.0f);
-                float cy = object.bounds.y + object.bounds.h * 0.5f + (cg ? cg->cy : 0.0f);
-                float r = (cg ? cg->radius : 0.0f) * zoom;
-                Pt center = ctx.world_to_screen(Pt(node_pos.x + cx, node_pos.y + cy));
+                float const cx = object.bounds.x + object.bounds.w * 0.5f + (cg ? cg->cx : 0.0f);
+                float const cy = object.bounds.y + object.bounds.h * 0.5f + (cg ? cg->cy : 0.0f);
+                float const r = (cg ? cg->radius : 0.0f) * zoom;
+                Pt const center = ctx.world_to_screen(Pt(node_pos.x + cx, node_pos.y + cy));
                 dl->add_circle_filled(center, r, object.fill_color, 24);
                 if (object.stroke_width > 0.0f)
                     dl->add_circle(center, r, object.stroke_color, 24);
@@ -731,17 +731,17 @@ void NodeWidget::renderTree(IDrawList* dl, const RenderContext& ctx) const {
                 dl->add_line(line.a, line.b, object.fill_color, object.stroke_width * zoom);
             } else if (object.primitive == editor::presentation::PaintPrimitiveKind::Arc) {
                 const auto* ag = std::get_if<editor::presentation::ArcGeometry>(&object.geometry);
-                float cx = object.bounds.x + object.bounds.w * 0.5f + (ag ? ag->cx : 0.0f);
-                float cy = object.bounds.y + object.bounds.h * 0.5f + (ag ? ag->cy : 0.0f);
-                float radius = (ag ? ag->radius : 0.0f) * zoom;
-                float start = (ag ? ag->start_angle_deg : 0.0f) * DEG2RAD;
-                float sweep = (ag ? ag->sweep_angle_deg : 0.0f) * DEG2RAD;
-                Pt center = ctx.world_to_screen(Pt(node_pos.x + cx, node_pos.y + cy));
+                float const cx = object.bounds.x + object.bounds.w * 0.5f + (ag ? ag->cx : 0.0f);
+                float const cy = object.bounds.y + object.bounds.h * 0.5f + (ag ? ag->cy : 0.0f);
+                float const radius = (ag ? ag->radius : 0.0f) * zoom;
+                float const start = (ag ? ag->start_angle_deg : 0.0f) * DEG2RAD;
+                float const sweep = (ag ? ag->sweep_angle_deg : 0.0f) * DEG2RAD;
+                Pt const center = ctx.world_to_screen(Pt(node_pos.x + cx, node_pos.y + cy));
                 constexpr int seg = 32;
                 Pt pts[seg + 1];
                 for (int i = 0; i <= seg; ++i) {
-                    float t = static_cast<float>(i) / seg;
-                    float a = start + t * sweep;
+                    float const t = static_cast<float>(i) / seg;
+                    float const a = start + t * sweep;
                     pts[i] = Pt(center.x + std::cos(a) * radius, center.y - std::sin(a) * radius);
                 }
                 dl->add_polyline(pts, seg + 1, object.fill_color, object.stroke_width * zoom);
@@ -795,12 +795,12 @@ void NodeWidget::renderTree(IDrawList* dl, const RenderContext& ctx) const {
         const Pt l_sz  = lbl->size();
         const float font = PortConstants::LABEL_FONT_SIZE * zoom;
         const float avail_w = l_sz.x * zoom;
-        float ty = l_pos.y + (l_sz.y * zoom - font) * 0.5f;
+        float const ty = l_pos.y + (l_sz.y * zoom - font) * 0.5f;
         float tx = l_pos.x;
 
         const std::string& text = lbl->text();
         if (lbl->align() == TextAlign::Right) {
-            float text_w = dl->calc_text_size(text.c_str(), font).x;
+            float const text_w = dl->calc_text_size(text.c_str(), font).x;
             tx = l_pos.x + avail_w - text_w;
         }
         dl->add_text(Pt(tx, ty), text.c_str(), PortConstants::LABEL_COLOR, font);
@@ -846,21 +846,21 @@ void NodeWidget::renderPost(IDrawList* dl, const RenderContext& ctx) const {
         return;
     }
 
-    Pt pos = worldPos();
-    Pt sz = size();
-    Pt screen_min = ctx.world_to_screen(pos);
-    Pt screen_max = ctx.world_to_screen(Pt(pos.x + sz.x, pos.y + sz.y));
-    float rounding = editor_constants::NODE_ROUNDING * ctx.zoom;
+    Pt const pos = worldPos();
+    Pt const sz = size();
+    Pt const screen_min = ctx.world_to_screen(pos);
+    Pt const screen_max = ctx.world_to_screen(Pt(pos.x + sz.x, pos.y + sz.y));
+    float const rounding = editor_constants::NODE_ROUNDING * ctx.zoom;
 
     dl->add_rect_with_rounding_corners(screen_min, screen_max,
         render_theme::COLOR_SELECTED, rounding,
         editor_constants::DRAW_CORNERS_ALL, 2.0f * ctx.zoom);
 
-    Pt mn = worldMin();
-    Pt mx = worldMax();
-    float r = editor_constants::RESIZE_HANDLE_SIZE * 0.5f * ctx.zoom;
-    uint32_t color = render_theme::COLOR_RESIZE_HANDLE;
-    Pt corners[] = {
+    Pt const mn = worldMin();
+    Pt const mx = worldMax();
+    float const r = editor_constants::RESIZE_HANDLE_SIZE * 0.5f * ctx.zoom;
+    uint32_t const color = render_theme::COLOR_RESIZE_HANDLE;
+    Pt const corners[] = {
         ctx.world_to_screen(mn),
         ctx.world_to_screen(Pt(mx.x, mn.y)),
         ctx.world_to_screen(Pt(mn.x, mx.y)),
@@ -876,7 +876,7 @@ void NodeWidget::renderDebugPaintBounds(IDrawList* dl, const RenderContext& ctx)
         return;
     }
 
-    Pt pos = worldPos();
+    Pt const pos = worldPos();
     for (const auto& object : content_semantic_snapshot_.render_objects) {
         if (object.kind != editor::presentation::SceneRenderObjectKind::ContentPaint) {
             continue;
@@ -899,10 +899,10 @@ void NodeWidget::renderDebugPaintBounds(IDrawList* dl, const RenderContext& ctx)
 
         if (object.primitive == editor::presentation::PaintPrimitiveKind::Circle) {
             const auto* circle_geo = std::get_if<editor::presentation::CircleGeometry>(&object.geometry);
-            float cx = object.bounds.x + object.bounds.w * 0.5f + (circle_geo ? circle_geo->cx : 0.0f);
-            float cy = object.bounds.y + object.bounds.h * 0.5f + (circle_geo ? circle_geo->cy : 0.0f);
-            float radius = (circle_geo ? circle_geo->radius : 0.0f) * ctx.zoom;
-            Pt center = ctx.world_to_screen(Pt(pos.x + cx, pos.y + cy));
+            float const cx = object.bounds.x + object.bounds.w * 0.5f + (circle_geo ? circle_geo->cx : 0.0f);
+            float const cy = object.bounds.y + object.bounds.h * 0.5f + (circle_geo ? circle_geo->cy : 0.0f);
+            float const radius = (circle_geo ? circle_geo->radius : 0.0f) * ctx.zoom;
+            Pt const center = ctx.world_to_screen(Pt(pos.x + cx, pos.y + cy));
             dl->add_rect(Pt(center.x - radius, center.y - radius),
                          Pt(center.x + radius, center.y + radius),
                          DEBUG_PAINT_BOUNDS_COLOR,
@@ -921,10 +921,10 @@ void NodeWidget::renderDebugPaintBounds(IDrawList* dl, const RenderContext& ctx)
 
         if (object.primitive == editor::presentation::PaintPrimitiveKind::Arc) {
             const auto* arc_geo = std::get_if<editor::presentation::ArcGeometry>(&object.geometry);
-            float cx = object.bounds.x + object.bounds.w * 0.5f + (arc_geo ? arc_geo->cx : 0.0f);
-            float cy = object.bounds.y + object.bounds.h * 0.5f + (arc_geo ? arc_geo->cy : 0.0f);
-            float radius = (arc_geo ? arc_geo->radius : 0.0f) * ctx.zoom;
-            Pt center = ctx.world_to_screen(Pt(pos.x + cx, pos.y + cy));
+            float const cx = object.bounds.x + object.bounds.w * 0.5f + (arc_geo ? arc_geo->cx : 0.0f);
+            float const cy = object.bounds.y + object.bounds.h * 0.5f + (arc_geo ? arc_geo->cy : 0.0f);
+            float const radius = (arc_geo ? arc_geo->radius : 0.0f) * ctx.zoom;
+            Pt const center = ctx.world_to_screen(Pt(pos.x + cx, pos.y + cy));
             dl->add_rect(Pt(center.x - radius, center.y - radius),
                          Pt(center.x + radius, center.y + radius),
                          DEBUG_PAINT_BOUNDS_COLOR,

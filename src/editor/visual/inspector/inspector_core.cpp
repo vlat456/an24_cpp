@@ -37,8 +37,8 @@ void Inspector::setSortMode(SortMode mode) {
 
 bool Inspector::detectSceneChange() {
     if (!bp_) return false;
-    size_t nc = bp_->nodes().size();
-    size_t wc = bp_->wires().size();
+    size_t const nc = bp_->nodes().size();
+    size_t const wc = bp_->wires().size();
     if (nc != last_node_count_ || wc != last_wire_count_) {
         last_node_count_ = nc;
         last_wire_count_ = wc;
@@ -51,10 +51,10 @@ std::pair<core::InternedId, core::InternedId> Inspector::decode_port_path(bp2::P
     // Expects: Port -> Node -> Root
     if (!arena_) return {};
     if (p.kind() != bp2::PathKind::Port) return {};
-    core::InternedId port_name = p.segment();
-    bp2::Path node_path = arena_->parent(p);
+    core::InternedId const port_name = p.segment();
+    bp2::Path const node_path = arena_->parent(p);
     if (node_path.kind() != bp2::PathKind::Node) return {};
-    core::InternedId node_id = node_path.segment();
+    core::InternedId const node_id = node_path.segment();
     return {node_id, port_name};
 }
 
@@ -139,10 +139,10 @@ std::string Inspector::findConnectionFor(const bp2::Blueprint::Node& node,
 
     for (const auto& dw : wires) {
         // Match the port's direction: inputs match wire.target, outputs match wire.source
-        core::InternedId local_node  = (direction == bp2::Direction::Input) ? dw.tgt_node : dw.src_node;
-        core::InternedId local_port  = (direction == bp2::Direction::Input) ? dw.tgt_port : dw.src_port;
-        core::InternedId remote_node = (direction == bp2::Direction::Input) ? dw.src_node : dw.tgt_node;
-        core::InternedId remote_port = (direction == bp2::Direction::Input) ? dw.src_port : dw.tgt_port;
+        core::InternedId const local_node  = (direction == bp2::Direction::Input) ? dw.tgt_node : dw.src_node;
+        core::InternedId const local_port  = (direction == bp2::Direction::Input) ? dw.tgt_port : dw.src_port;
+        core::InternedId const remote_node = (direction == bp2::Direction::Input) ? dw.src_node : dw.tgt_node;
+        core::InternedId const remote_port = (direction == bp2::Direction::Input) ? dw.src_port : dw.tgt_port;
 
         if (local_node == node.semantic.id && local_port == port.name) {
             const auto* other = bp_->find_node(remote_node);
@@ -182,6 +182,6 @@ bool Inspector::passesFilter(const bp2::Blueprint::Node& node) const {
         ) != haystack.end();
     };
 
-    std::string type_str = std::string(interner_->resolve(node.semantic.type));
+    std::string const type_str = std::string(interner_->resolve(node.semantic.type));
     return contains_lower(node.view.name) || contains_lower(type_str);
 }

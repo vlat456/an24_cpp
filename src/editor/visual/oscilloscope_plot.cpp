@@ -42,7 +42,7 @@ void compute_range(const std::vector<OscilloscopeModel::ChannelView>& channels,
     for (const auto& ch : channels) {
         if (!ch.probe || ch.probe->samples.empty()) continue;
         const std::deque<float> tail = visible_tail(ch.probe->samples);
-        for (float v : tail) {
+        for (float const v : tail) {
             if (!has_val) {
                 min_v = max_v = v;
                 has_val = true;

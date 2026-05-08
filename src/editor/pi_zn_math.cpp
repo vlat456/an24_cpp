@@ -35,7 +35,7 @@ static Peaks find_peaks(const std::vector<float>& y, float prominence_frac = 0.0
 } // namespace
 
 bool zn_is_sustained_oscillation(const std::vector<float>& y, int min_peaks) {
-    Peaks pk = find_peaks(y);
+    Peaks const pk = find_peaks(y);
     if (static_cast<int>(pk.idx.size()) < min_peaks) return false;
 
     const int start = static_cast<int>(y.size() / 3);
@@ -49,7 +49,7 @@ bool zn_is_sustained_oscillation(const std::vector<float>& y, int min_peaks) {
 
     std::vector<float> amp;
     amp.reserve(pk.val.size());
-    for (float v : pk.val) amp.push_back(std::fabs(v - mean));
+    for (float const v : pk.val) amp.push_back(std::fabs(v - mean));
     if (static_cast<int>(amp.size()) < min_peaks) return false;
 
     const int m = std::min(4, static_cast<int>(amp.size() / 2));

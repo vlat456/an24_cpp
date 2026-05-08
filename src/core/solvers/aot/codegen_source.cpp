@@ -74,7 +74,7 @@ void emit_source_prelude(
     oss << "#endif\n\n";
 
     for (const auto& dev : devices) {
-        std::string aot_type = codegen_detail::generate_aot_provider_type(dev, port_to_signal, signal_count);
+        std::string const aot_type = codegen_detail::generate_aot_provider_type(dev, port_to_signal, signal_count);
         oss << "template class " << dev.classname << "<" << aot_type << ">;\n";
     }
     oss << "\n";
@@ -104,7 +104,7 @@ std::optional<LutEntry> parse_lut_table(const ResolvedDevice& dev) {
         if (pos >= tbl.size()) {
             break;
         }
-        size_t colon = tbl.find(':', pos);
+        size_t const colon = tbl.find(':', pos);
         if (colon == std::string::npos) {
             break;
         }
@@ -152,7 +152,7 @@ void emit_constructor_params(
             if (param.first == "inv_internal_r" || param.first == "inv_capacity") {
                 continue;
             }
-            std::string type = infer_type(param.second);
+            std::string const type = infer_type(param.second);
             oss << "    " << codegen_detail::sanitize_name(dev.name) << "." << param.first << " = "
                 << format_value(param.second, type) << ";\n";
         }
@@ -183,7 +183,7 @@ void emit_constructor_params(
                 if (name.size() > knob_name.size() + 1 &&
                     name.compare(0, knob_name.size(), knob_name) == 0 &&
                     name[knob_name.size()] == '_') {
-                    std::string suffix = name.substr(knob_name.size() + 1);
+                    std::string const suffix = name.substr(knob_name.size() + 1);
                     if (!suffix.empty() &&
                         suffix.find_first_not_of("0123456789") == std::string::npos) {
                         knob_indexed[knob_name].push_back(
@@ -251,7 +251,7 @@ void emit_preload_method(
         oss << "    static const float lut_keys_data[] = {";
         bool first_k = true;
         for (const auto& e : lut_entries) {
-            for (float k : e.keys) {
+            for (float const k : e.keys) {
                 if (!first_k) {
                     oss << ", ";
                 }
@@ -264,7 +264,7 @@ void emit_preload_method(
         oss << "    static const float lut_vals_data[] = {";
         bool first_v = true;
         for (const auto& e : lut_entries) {
-            for (float v : e.values) {
+            for (float const v : e.values) {
                 if (!first_v) {
                     oss << ", ";
                 }

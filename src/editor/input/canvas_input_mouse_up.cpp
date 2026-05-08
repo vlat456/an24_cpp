@@ -53,7 +53,7 @@ void CanvasInput::commit_drag_node() {
       });
 
      std::unordered_set<core::InternedId> nodes_to_orient;
-     for (core::InternedId id : moved_node_ids) {
+     for (core::InternedId const id : moved_node_ids) {
          nodes_to_orient.insert(id);
      }
 
@@ -81,7 +81,7 @@ void CanvasInput::commit_drag_node() {
      for (const auto& [ref_id, connected_id] : ref_to_connected) {
          orient_ref_node_port_impl(ref_id, connected_id);
      }
-     for (core::InternedId id : moved_node_ids) {
+     for (core::InternedId const id : moved_node_ids) {
          const bp2::Blueprint::Node* n = host_->find_node(id);
          if (n && is_ref_node(*host_, *n) && ref_to_connected.count(id) == 0) {
              orient_ref_node_port_by_wire_scan(id);
@@ -141,7 +141,7 @@ void CanvasInput::orient_ref_node_port_by_wire_scan(core::InternedId ref_node_id
 void CanvasInput::commit_drag_routing_point() {
      const bp2::Blueprint::Wire* bp2_wire = host_->find_wire(rp_wire_id_);
      if (!bp2_wire) return;
-     Pt final_pos = rp_drag_pos_;
+     Pt const final_pos = rp_drag_pos_;
 
      std::vector<std::pair<float,float>> new_points;
      new_points.reserve(rp_initial_points_.size());
@@ -171,7 +171,7 @@ void CanvasInput::commit_drag_routing_point() {
 void CanvasInput::commit_resize_node() {
      Pt new_pos = resize_current_pos_;
      Pt new_size = resize_current_size_;
-     core::InternedId node_iid = resize_widget_id_;
+     core::InternedId const node_iid = resize_widget_id_;
      if ((new_pos == resize_original_pos_ && new_size == resize_original_size_) || node_iid.empty()) return;
      host_->update_node(node_iid, [&](bp2::Blueprint::Node& n) {
          n.layout.x = new_pos.x;
@@ -186,7 +186,7 @@ InputResult CanvasInput::on_mouse_up(MouseButton btn, Pt screen_pos, Pt canvas_m
     InputResult result;
 
     if (btn == MouseButton::Left) {
-         Pt world = viewport_.screen_to_world(screen_pos, canvas_min);
+         Pt const world = viewport_.screen_to_world(screen_pos, canvas_min);
          if (state_uses_semantic_control_session()) {
              last_world_pos_ = world;
              Pt semantic_point = world;
@@ -194,7 +194,7 @@ InputResult CanvasInput::on_mouse_up(MouseButton btn, Pt screen_pos, Pt canvas_m
                  semantic_point = Pt(world.x - semantic_session_seed_->node_world_pos.x,
                                      world.y - semantic_session_seed_->node_world_pos.y);
              }
-             editor::presentation::SemanticCanvasControllerResult semantic =
+             editor::presentation::SemanticCanvasControllerResult const semantic =
                  semantic_canvas_controller_.on_pointer_release(semantic_point);
              publish_semantic_control_result(semantic, result);
          }
@@ -239,13 +239,13 @@ InputResult CanvasInput::on_mouse_up(MouseButton btn, Pt screen_pos, Pt canvas_m
 
 InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
     InputResult result;
-    Pt world = viewport_.screen_to_world(screen_pos, canvas_min);
+    Pt const world = viewport_.screen_to_world(screen_pos, canvas_min);
 
     auto hit = editor::presentation::hit_test_canvas_scene(snapshot_, world);
 
     if (!read_only && !simulation_mode) {
         if (auto* hrp = std::get_if<visual::HitRoutingPoint>(&hit)) {
-            core::InternedId wire_iid = hrp->wire_id;
+            core::InternedId const wire_iid = hrp->wire_id;
             const bp2::Blueprint::Wire* bp2_wire = host_->find_wire(wire_iid);
             if (bp2_wire && hrp->index < bp2_wire->routing_points.size()) {
                 auto new_points = bp2_wire->routing_points;
@@ -288,12 +288,12 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
 
     if (!read_only && !simulation_mode) {
         if (auto* hw = std::get_if<visual::HitWire>(&hit)) {
-            core::InternedId wire_iid = hw->wire_id;
+            core::InternedId const wire_iid = hw->wire_id;
             const bp2::Blueprint::Wire* bp2_wire = host_->find_wire(wire_iid);
             if (bp2_wire) {
                 auto new_points = bp2_wire->routing_points;
-                Pt snapped = editor_math::snap_to_grid(world, viewport_.grid_step);
-                size_t insert_idx = hw->segment;
+                Pt const snapped = editor_math::snap_to_grid(world, viewport_.grid_step);
+                size_t const insert_idx = hw->segment;
                 new_points.insert(new_points.begin() + static_cast<long>(insert_idx), {snapped.x, snapped.y});
 
                 if (!wire_iid.empty()) {
@@ -322,7 +322,7 @@ InputResult CanvasInput::on_key(Key key) {
     switch (key) {
         case Key::Escape:
             if (state_ != InputState::Idle && state_ != InputState::Panning) {
-                bool needs_rebuild =
+                bool const needs_rebuild =
                     state_ == InputState::DraggingNode ||
                     state_ == InputState::DraggingRoutingPoint ||
                     state_ == InputState::ResizingNode;
@@ -379,18 +379,18 @@ auto [tgt_node, _tgt_port] = editor_math::path_to_node_port(w.target, *arena_);
 }
 
 void CanvasInput::finish_marquee() {
-    float min_x = std::min(marquee_start_.x, marquee_end_.x);
-    float max_x = std::max(marquee_start_.x, marquee_end_.x);
-    float min_y = std::min(marquee_start_.y, marquee_end_.y);
-    float max_y = std::max(marquee_start_.y, marquee_end_.y);
+    float const min_x = std::min(marquee_start_.x, marquee_end_.x);
+    float const max_x = std::max(marquee_start_.x, marquee_end_.x);
+    float const min_y = std::min(marquee_start_.y, marquee_end_.y);
+    float const max_y = std::max(marquee_start_.y, marquee_end_.y);
 
     constexpr float DEFAULT_W = 64.0f;
     constexpr float DEFAULT_H = 32.0f;
     for (const auto& node : host_->nodes()) {
-        float w = node.layout.width.value_or(DEFAULT_W);
-        float h = node.layout.height.value_or(DEFAULT_H);
-        float cx = node.layout.x + w * 0.5f;
-        float cy = node.layout.y + h * 0.5f;
+        float const w = node.layout.width.value_or(DEFAULT_W);
+        float const h = node.layout.height.value_or(DEFAULT_H);
+        float const cx = node.layout.x + w * 0.5f;
+        float const cy = node.layout.y + h * 0.5f;
         if (cx >= min_x && cx <= max_x && cy >= min_y && cy <= max_y)
             add_node_selection(node.semantic.id);
     }

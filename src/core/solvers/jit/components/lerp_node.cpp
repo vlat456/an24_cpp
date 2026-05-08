@@ -5,17 +5,17 @@
 
 template <typename Provider>
 void LerpNode<Provider>::execute(SimulationState& st, double dt) {
-    float v_input = st.values[provider.get(PortNames::input)];
+    float const v_input = st.values[provider.get(PortNames::input)];
     (void)dt;
 
     // Read from COMMITTED state
-    float committed_value = current_value + (v_input - current_value) * first_frame_mask;
-    float committed_mask = 0.0f; // first_frame_mask consumed
+    float const committed_value = current_value + (v_input - current_value) * first_frame_mask;
+    float const committed_mask = 0.0f; // first_frame_mask consumed
 
-    float diff = v_input - committed_value;
-    float dz_mask = (std::abs(diff) >= deadzone) ? 1.0f : 0.0f;
+    float const diff = v_input - committed_value;
+    float const dz_mask = (std::abs(diff) >= deadzone) ? 1.0f : 0.0f;
 
-    float new_output = committed_value + factor * diff * dz_mask;
+    float const new_output = committed_value + factor * diff * dz_mask;
 
     // Stage next state (not directly committed)
     next_current_value = new_output;

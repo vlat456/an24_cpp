@@ -120,7 +120,7 @@ std::string_view CanvasInput::resize_node_id() const {
 }
 
 bool CanvasInput::select_node_by_id(std::string_view node_id) {
-    core::InternedId iid = interner_->intern(node_id);
+    core::InternedId const iid = interner_->intern(node_id);
     const bp2::Blueprint::Node* node = host_->find_node(iid);
     if (!node) return false;
 
@@ -129,9 +129,9 @@ bool CanvasInput::select_node_by_id(std::string_view node_id) {
 
     constexpr float DEFAULT_W = 64.0f;
     constexpr float DEFAULT_H = 32.0f;
-    float w = node->layout.width.value_or(DEFAULT_W);
-    float h = node->layout.height.value_or(DEFAULT_H);
-    Pt center(node->layout.x + w * 0.5f, node->layout.y + h * 0.5f);
+    float const w = node->layout.width.value_or(DEFAULT_W);
+    float const h = node->layout.height.value_or(DEFAULT_H);
+    Pt const center(node->layout.x + w * 0.5f, node->layout.y + h * 0.5f);
     viewport_.centerOn(center, 800.0f, 600.0f);
     return true;
 }
@@ -204,7 +204,7 @@ void CanvasInput::enter_drag_node(core::InternedId node_id, Pt world_pos, bool c
     for (const auto& selected_id : selected_node_ids_) {
         const bp2::Blueprint::Node* node = host_->find_node(selected_id);
         if (!node) continue;
-        Pt node_pos(node->layout.x, node->layout.y);
+        Pt const node_pos(node->layout.x, node->layout.y);
         drag_offsets_.push_back(node_pos - world_pos);
         drag_initial_positions_.push_back(node_pos);
     }
@@ -268,7 +268,7 @@ void CanvasInput::enter_marquee(Pt world_pos) {
 void CanvasInput::setup_semantic_interaction_state(const visual::HitNode& node_hit,
                                                    const CanvasInput::SemanticContentTarget& target,
                                                    Pt world_pos) {
-    core::InternedId node_id = node_hit.node_id;
+    core::InternedId const node_id = node_hit.node_id;
     const bp2::Blueprint::Node* node = host_->find_node(node_id);
     if (!node) return;
 
@@ -277,8 +277,8 @@ void CanvasInput::setup_semantic_interaction_state(const visual::HitNode& node_h
     }
 
     // Cache session geometry at interaction start
-    Pt node_world_pos = node_hit.world_pos;
-    Bounds content_bounds = node_hit.content_bounds;
+    Pt const node_world_pos = node_hit.world_pos;
+    Bounds const content_bounds = node_hit.content_bounds;
     semantic_session_seed_ = SemanticSessionSeed{
         node_id,
         node_world_pos,
@@ -291,7 +291,7 @@ void CanvasInput::setup_semantic_interaction_state(const visual::HitNode& node_h
     switch (target.role) {
         case CanvasInput::SemanticContentRole::ContinuousScalar: {
             state_ = InputState::DraggingSlider;
-            float origin_local_x = content_bounds.x;
+            float const origin_local_x = content_bounds.x;
             const auto spec = host_->resolve_presentation_spec(node_id);
             semantic_canvas_controller_.set_active_scalar_mapping({
                 origin_local_x,
@@ -305,7 +305,7 @@ void CanvasInput::setup_semantic_interaction_state(const visual::HitNode& node_h
         case CanvasInput::SemanticContentRole::DiscreteSelector: {
             state_ = InputState::DraggingKnob;
             const auto spec = host_->resolve_presentation_spec(node_id);
-            int start_pos = static_cast<int>(spec.content_value);
+            int const start_pos = static_cast<int>(spec.content_value);
             int num_positions = target.steps;
             if (num_positions < 2) num_positions = 2;
             semantic_canvas_controller_.set_active_discrete_mapping({
@@ -386,7 +386,7 @@ bool CanvasInput::state_uses_semantic_control_session() const {
 bool CanvasInput::handle_resolved_interaction(const visual::HitNode& node_hit,
                                               const CanvasInput::SemanticContentTarget& target,
                                               Pt world, InputResult& result) {
-    core::InternedId node_id = node_hit.node_id;
+    core::InternedId const node_id = node_hit.node_id;
     if (node_id.empty()) {
         return false;
     }
@@ -396,7 +396,7 @@ bool CanvasInput::handle_resolved_interaction(const visual::HitNode& node_hit,
     }
 
     semantic_canvas_controller_.reset();
-    editor::presentation::SemanticCanvasControllerResult semantic =
+    editor::presentation::SemanticCanvasControllerResult const semantic =
         configure_and_dispatch_semantic_interaction(node_hit, target, world);
     return publish_semantic_control_result(semantic, result);
 }

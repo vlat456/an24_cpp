@@ -12,7 +12,7 @@ bool Document::apply_normalized_node_sizes(bool preserve_manual,
 
     bp2::Blueprint updated = model_.current();
     visual::Scene probe_scene;
-    ComponentRegistry empty_reg;
+    ComponentRegistry const empty_reg;
     const ComponentRegistry& reg = type_registry_ ? *type_registry_ : empty_reg;
     const editor::IconFont* icon_font = this->icon_font();
     visual::mutations::rebuild(probe_scene, updated, interner_, arena_, std::span<const core::InternedId>{}, reg,

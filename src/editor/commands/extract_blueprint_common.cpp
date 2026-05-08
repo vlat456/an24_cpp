@@ -71,8 +71,8 @@ core::InternedId next_unique_id(core::StringInterner& interner,
                               const std::unordered_set<core::InternedId>& used,
                               const std::string& prefix) {
     for (int i = 1; i < 1000000; ++i) {
-        std::string candidate = prefix + std::to_string(i);
-        core::InternedId id = interner.lookup(candidate);
+        std::string const candidate = prefix + std::to_string(i);
+        core::InternedId const id = interner.lookup(candidate);
         if (id.empty() || used.find(id) == used.end()) {
             return interner.intern(candidate);
         }

@@ -9,11 +9,11 @@ void PD<Provider>::execute(SimulationState& st, double dt) {
     constexpr double kDtMax = 0.1;
     const float safe_dt = static_cast<float>(std::clamp(dt, kDtMin, kDtMax));
 
-    float sp = st.values[provider.get(PortNames::setpoint)];
-    float fb = st.values[provider.get(PortNames::feedback)];
-    float error = sp - fb;
+    float const sp = st.values[provider.get(PortNames::setpoint)];
+    float const fb = st.values[provider.get(PortNames::feedback)];
+    float const error = sp - fb;
 
-    float derivative = (error - last_error) / safe_dt;
+    float const derivative = (error - last_error) / safe_dt;
     d_filtered += filter_alpha * (derivative - d_filtered);
 
     float output = Kp * error + Kd * d_filtered;

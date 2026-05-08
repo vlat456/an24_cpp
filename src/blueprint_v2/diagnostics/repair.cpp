@@ -62,7 +62,7 @@ RepairReport diagnose_and_repair(Blueprint& bp,
 
     std::unordered_set<core::InternedId> seen_wires;
     std::vector<core::InternedId> wires_to_remove;
-    PathResolver resolver;
+    PathResolver const resolver;
     for (const auto& w : bp.wires()) {
         if (!seen_wires.insert(w.id).second) {
             report.issues.push_back({
@@ -82,7 +82,7 @@ RepairReport diagnose_and_repair(Blueprint& bp,
         }
     }
 
-    for (core::InternedId wid : wires_to_remove) {
+    for (core::InternedId const wid : wires_to_remove) {
         bp = bp.without_wire(wid);
     }
     report.removed_wires = wires_to_remove.size();

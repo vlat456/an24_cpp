@@ -4,9 +4,9 @@
 
 template <typename Provider>
 void Clamp<Provider>::execute(SimulationState& st, double /*dt*/) {
-    float input = st.values[provider.get(PortNames::in)];
-    float lo = st.values[provider.get(PortNames::min)];
-    float hi = st.values[provider.get(PortNames::max)];
+    float const input = st.values[provider.get(PortNames::in)];
+    float const lo = st.values[provider.get(PortNames::min)];
+    float const hi = st.values[provider.get(PortNames::max)];
 
     st.values[provider.get(PortNames::out)] = std::clamp(input, lo, hi);
 }

@@ -17,15 +17,15 @@ void ControlledCurrentSource<Provider>::execute(SimulationState& st, double /*dt
     // emulates current source effect via voltage offset (V = I * r_shunt).
     // This is a deterministic approximation since push model cannot inject current.
     // Read control input
-    float cmd = st.values[provider.get(PortNames::cmd)];
+    float const cmd = st.values[provider.get(PortNames::cmd)];
     
     // Compute commanded current with gain and limits
-    float i_source = std::clamp(cmd * gain, min_i, max_i);
+    float const i_source = std::clamp(cmd * gain, min_i, max_i);
     
     // Push model: emulate current source effect via voltage
     // Set v_pos to the voltage equivalent of the current (V = I * r_shunt)
     // and v_neg to 0 as reference
-    float v_equivalent = i_source * r_shunt;
+    float const v_equivalent = i_source * r_shunt;
     st.values[provider.get(PortNames::v_pos)] = v_equivalent;
     st.values[provider.get(PortNames::v_neg)] = 0.0f;
 }

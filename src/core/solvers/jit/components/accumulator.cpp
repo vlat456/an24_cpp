@@ -3,20 +3,20 @@
 
 template <typename Provider>
 void Accumulator<Provider>::execute(SimulationState& st, double dt) {
-    uint32_t in_idx = provider.get(PortNames::in);
-    uint32_t out_idx = provider.get(PortNames::out);
+    uint32_t const in_idx = provider.get(PortNames::in);
+    uint32_t const out_idx = provider.get(PortNames::out);
 
-    float val_in = st.values[in_idx];
+    float const val_in = st.values[in_idx];
 
     // === Two-Phase State Semantics ===
 
     // Phase 1 (execute): Read from COMMITTED state
     // Cold Start: snap to initial_val on first frame
-    float committed = state + (initial_val - state) * first_frame_mask;
-    float committed_mask = 0.0f; // first_frame_mask consumed
+    float const committed = state + (initial_val - state) * first_frame_mask;
+    float const committed_mask = 0.0f; // first_frame_mask consumed
 
     // Accumulate: state += in * dt
-    float new_state = committed + val_in * dt;
+    float const new_state = committed + val_in * dt;
 
     // Stage next state
     next_state = new_state;

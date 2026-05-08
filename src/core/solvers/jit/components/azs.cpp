@@ -22,7 +22,7 @@ void AZS<Provider>::execute(SimulationState& st, double dt) {
     
     // Thermal behavior: use branch current from solver.
     // T += (I² * r_heat - T * k_cool) * dt
-    float I = current;
+    float const I = current;
     temp += (I * I * r_heat - temp * k_cool) * dt;
     // Floor at zero
     temp = std::max(temp, 0.0);
@@ -30,7 +30,7 @@ void AZS<Provider>::execute(SimulationState& st, double dt) {
 
 template <typename Provider>
 void AZS<Provider>::commit(SimulationState& st, double /*dt*/) {
-    float current_control = st.values[provider.get(PortNames::control)];
+    float const current_control = st.values[provider.get(PortNames::control)];
     if (std::abs(current_control - last_control) > 0.1f) {
         if (!closed) tripped = false;
         closed = !closed;

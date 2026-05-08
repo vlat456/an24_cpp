@@ -150,7 +150,7 @@ std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
     out = out.with_interface(source.iface());
 
     std::unordered_set<core::InternedId> used_node_ids = collect_used_node_ids(source);
-    core::InternedId nested_instance_id = next_unique_id(interner, used_node_ids, "extract_inst_");
+    core::InternedId const nested_instance_id = next_unique_id(interner, used_node_ids, "extract_inst_");
     if (nested_instance_id.empty()) {
         set_error(error_out, "failed to allocate nested instance id");
         return std::nullopt;
@@ -165,8 +165,8 @@ std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
      }
 
     for (const auto& w : source.wires()) {
-        core::InternedId src_node = w.source.node;
-        core::InternedId tgt_node = w.target.node;
+        core::InternedId const src_node = w.source.node;
+        core::InternedId const tgt_node = w.target.node;
         if (src_node.empty() || tgt_node.empty()) {
             set_error(error_out, "wire endpoint path unresolved during extraction");
             return std::nullopt;

@@ -17,8 +17,8 @@ std::optional<ResolvedPort> PathResolver::resolve(Path const& path,
         return std::nullopt;
     }
 
-    Path parent = arena.parent(path);
-    core::InternedId port_name = path.segment();
+    Path const parent = arena.parent(path);
+    core::InternedId const port_name = path.segment();
 
     if (parent.kind() == PathKind::Root) {
         auto maybe = root.iface().find(port_name);
@@ -40,7 +40,7 @@ std::optional<ResolvedPort> PathResolver::resolve(Path const& path,
         std::reverse(chain.begin(), chain.end());
 
         const Blueprint* current_bp = &root;
-        for (Path seg : chain) {
+        for (Path const seg : chain) {
             if (seg.kind() != PathKind::Node) {
                 return std::nullopt;
             }
@@ -74,10 +74,10 @@ std::optional<ResolvedPort> PathResolver::resolve(Path const& path,
         std::reverse(chain.begin(), chain.end());
 
         const Blueprint* current_bp = &root;
-        Path current_bp_path = arena.root();
+        Path const current_bp_path = arena.root();
         const Blueprint::Node* node = nullptr;
         for (size_t i = 0; i < chain.size(); ++i) {
-            Path seg = chain[i];
+            Path const seg = chain[i];
             const bool is_last = (i + 1 == chain.size());
             
             if (seg.kind() == PathKind::Node && is_last) {
@@ -125,8 +125,8 @@ std::optional<ResolvedPort> PathResolver::resolve(Path const& path,
 }
 
 bool PathResolver::direction_compatible(Direction source, Direction target) const {
-    bool src_can_drive = (source == Direction::Output || source == Direction::InOut);
-    bool tgt_can_receive = (target == Direction::Input || target == Direction::InOut);
+    bool const src_can_drive = (source == Direction::Output || source == Direction::InOut);
+    bool const tgt_can_receive = (target == Direction::Input || target == Direction::InOut);
     return src_can_drive && tgt_can_receive;
 }
 

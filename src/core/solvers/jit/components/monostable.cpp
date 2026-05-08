@@ -4,19 +4,19 @@
 
 template <typename Provider>
 void Monostable<Provider>::execute(SimulationState& st, double dt) {
-    uint32_t in_idx = provider.get(PortNames::in);
-    uint32_t out_idx = provider.get(PortNames::out);
+    uint32_t const in_idx = provider.get(PortNames::in);
+    uint32_t const out_idx = provider.get(PortNames::out);
 
     // Convert input to 0.0 or 1.0
-    float raw_in = (st.values[in_idx] > 0.5f) ? 1.0f : 0.0f;
+    float const raw_in = (st.values[in_idx] > 0.5f) ? 1.0f : 0.0f;
 
     // === Two-Phase State Semantics ===
 
     // Phase 1 (execute): Rising edge detector from COMMITTED last_in
-    bool trigger = (raw_in > 0.5f && last_in <= 0.5f);
+    bool const trigger = (raw_in > 0.5f && last_in <= 0.5f);
 
     // Compute next_timer: if triggered, reset to duration; otherwise tick down
-    float new_timer = trigger ? duration : std::max(0.0f, timer - static_cast<float>(dt));
+    float const new_timer = trigger ? duration : std::max(0.0f, timer - static_cast<float>(dt));
 
     // Stage next state
     next_timer = new_timer;

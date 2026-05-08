@@ -7,9 +7,9 @@ template <typename Provider>
 void Inverter<Provider>::execute(SimulationState& st, double /*dt*/) {
     // Push model: DC to AC conversion
     // Input: dc_in, Output: ac_out
-    float v_dc = st.values[provider.get(PortNames::dc_in)];
+    float const v_dc = st.values[provider.get(PortNames::dc_in)];
     // AC output is DC input scaled by efficiency
-    float v_ac_target = v_dc * efficiency;
+    float const v_ac_target = v_dc * efficiency;
     st.values[provider.get(PortNames::ac_out)] = v_ac_target;
 }
 

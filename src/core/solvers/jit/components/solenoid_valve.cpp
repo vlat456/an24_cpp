@@ -15,8 +15,8 @@ void SolenoidValve<Provider>::execute(SimulationState& st, double /*dt*/) {
 template <typename Provider>
 void SolenoidValve<Provider>::commit(SimulationState& st, double /*dt*/) {
     // Control logic: valve opens when ctrl voltage exceeds 12V.
-    float ctrl = st.values[provider.get(PortNames::ctrl)];
-    bool ctrl_active = ctrl > 12.0f;
+    float const ctrl = st.values[provider.get(PortNames::ctrl)];
+    bool const ctrl_active = ctrl > 12.0f;
 
     // Apply normally_closed logic: NC valve opens when ctrl is active.
     open = normally_closed ? ctrl_active : !ctrl_active;

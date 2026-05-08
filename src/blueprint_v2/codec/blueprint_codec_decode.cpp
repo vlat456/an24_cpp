@@ -326,7 +326,7 @@ Blueprint decode_nodes(Blueprint bp,
                         param_found = true;
                     } else {
                         // Check if it was already assigned
-                        core::InternedId key_iid = interner.intern(param_key);
+                        core::InternedId const key_iid = interner.intern(param_key);
                         if (node.semantic.params.count(key_iid) > 0 ||
                             node.semantic.string_params.count(param_key) > 0) {
                             param_found = true;
@@ -420,7 +420,7 @@ Blueprint decode_wires(Blueprint bp,
 Blueprint resolve_wire_domains(Blueprint bp,
                                ::ComponentRegistry const& parser_registry,
                                core::StringInterner& interner) {
-    PathResolver resolver;
+    PathResolver const resolver;
     Blueprint result = bp;
 
     // Clear existing wires and re-add them with resolved domains.

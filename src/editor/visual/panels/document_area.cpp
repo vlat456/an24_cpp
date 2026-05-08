@@ -28,7 +28,7 @@ DocumentArea::Result DocumentArea::render(::WindowSystem& ws, float x, float y,
     }
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + tab_height);
     
-    ImVec2 content_size = ImGui::GetContentRegionAvail();
+    ImVec2 const content_size = ImGui::GetContentRegionAvail();
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
     
     if (ImGui::BeginChild("##CanvasArea", content_size, false,
@@ -57,11 +57,11 @@ void DocumentArea::renderCanvas(::WindowSystem& ws, float, float,
 
     auto canvas_min = ImGui::GetWindowContentRegionMin();
     auto canvas_max = ImGui::GetWindowContentRegionMax();
-    Pt cmin(canvas_min.x + ImGui::GetWindowPos().x,
+    Pt const cmin(canvas_min.x + ImGui::GetWindowPos().x,
             canvas_min.y + ImGui::GetWindowPos().y);
-    Pt cmax(canvas_max.x + ImGui::GetWindowPos().x,
+    Pt const cmax(canvas_max.x + ImGui::GetWindowPos().x,
             canvas_max.y + ImGui::GetWindowPos().y);
-    bool hovered = ImGui::IsWindowHovered();
+    bool const hovered = ImGui::IsWindowHovered();
 
     canvas_renderer_.render(active_doc->root(), *active_doc, ws, cmin, cmax,
                             ImGui::GetWindowDrawList(), hovered);

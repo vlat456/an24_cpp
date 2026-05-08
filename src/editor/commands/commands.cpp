@@ -8,7 +8,7 @@ void execute(bp2::EditorModel& model, core::StringInterner& interner, Command cm
         if constexpr (std::is_same_v<T, CmdAddNode>) {
             model.add_node(std::move(c.node));
         } else if constexpr (std::is_same_v<T, CmdRemoveNode>) {
-            for (core::InternedId wid : c.connected_wire_ids) {
+            for (core::InternedId const wid : c.connected_wire_ids) {
                 model.remove_wire(wid);
             }
             model.remove_node(c.node_id);

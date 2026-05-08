@@ -23,7 +23,7 @@ std::vector<BridgePortDefinition> extract_bridge_definitions(
         // Determine direction and type from the "ext" port descriptor
         bp2::BridgeDirection dir = bp2::BridgeDirection::Input;
         PortType ptype = PortType::Signal;
-        BridgePortNames ports(interner);
+        BridgePortNames const ports(interner);
         for (const auto& pd : comp.ports) {
             if (pd.name == ports.ext) {
                 dir = (pd.direction == bp2::Direction::Input)

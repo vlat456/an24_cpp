@@ -182,7 +182,7 @@ Path Flattener::resolve_endpoint(
 
     // У bridge ноды ищем порт "ext" — это внешняя сторона моста
     core::InternedId ext_port_id{};
-    BridgePortNames ports(arena.interner());
+    BridgePortNames const ports(arena.interner());
     for (auto const& p : inner->resolve_node_iface(*bridge, Blueprint::NodeIfaceAuthority{arena.interner()})) {
         if (p.name == ports.ext) {
             ext_port_id = p.name;
@@ -262,7 +262,7 @@ void Flattener::emit_component(
     const BridgePortNames ports(arena.interner());
     for (auto const& port : bp.resolve_node_iface(node, Blueprint::NodeIfaceAuthority{arena.interner()})) {
         const Path port_path = arena.make_port(node_path, port.name);
-        SignalIndex sig = get_or_create_signal(
+        SignalIndex const sig = get_or_create_signal(
             port_path, port.domain, signals, uf, out);
         comp.ports.push_back(port);
         comp.port_signals.emplace_back(std::make_pair(port.name, sig));
@@ -373,7 +373,7 @@ void Flattener::visit_blueprint_instance(
         }
         if (ext_id == core::InternedId{}) continue;
 
-        Path ext_path = arena.make_port(bridge_path, ext_id);
+        Path const ext_path = arena.make_port(bridge_path, ext_id);
         if (auto it = signals.find(ext_path); it != signals.end()) {
             nested_signals[ext_path] = it->second;
         }
@@ -467,7 +467,7 @@ void Flattener::compact_signals(core::utils::UnionFind& uf, FlatNetlist& out) {
 
     for (auto& comp : out.components) {
         for (auto& [name, sig] : comp.port_signals) {
-            uint32_t root = uf.find(sig);
+            uint32_t const root = uf.find(sig);
             auto [it, inserted] = root_to_compact.emplace(std::make_pair(root, next_compact));
             if (inserted) next_compact++;
             sig = it->second;
@@ -479,7 +479,7 @@ void Flattener::compact_signals(core::utils::UnionFind& uf, FlatNetlist& out) {
     // что первое обращение к пути определяет домен.
     std::vector<FlatNetlist::Signal> compacted(next_compact);
     for (auto& [index, domain, connected_ports] : out.signals) {
-        uint32_t root = uf.find(index);
+        uint32_t const root = uf.find(index);
         auto it = root_to_compact.find(root);
         if (it == root_to_compact.end()) continue;  // orphaned — никто не ссылается
         const uint32_t ci = it->second;

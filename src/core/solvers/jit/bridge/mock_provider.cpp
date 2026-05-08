@@ -51,7 +51,7 @@ void MockProvider::build(const JitBuildInput& input, JIT_Simulator& /*sim*/) {
 
         // Resolve signal key
         const std::string key_str = device.name + "." + port_name;
-        core::InternedId signal_key = input.signal_key_interner.lookup(key_str);
+        core::InternedId const signal_key = input.signal_key_interner.lookup(key_str);
         if (signal_key.empty()) {
             spdlog::warn("[MockProvider] Device '{}' port '{}' key not interned, skipping",
                          device.name, port_name);
@@ -120,10 +120,10 @@ void MockProvider::read_into(float* values, uint32_t count) {
 
 void MockProvider::write_from(const float* values, uint32_t count) {
     if (!values || count == 0) return;
-    for (uint32_t idx : output_indices_) {
+    for (uint32_t const idx : output_indices_) {
         if (idx >= count) continue;
         auto type_it = signal_types_.find(idx);
-        SignalType stype = (type_it != signal_types_.end()) ? type_it->second : SignalType::Float32;
+        SignalType const stype = (type_it != signal_types_.end()) ? type_it->second : SignalType::Float32;
         mock_outputs_[idx] = from_float(values[idx], stype);
     }
 }

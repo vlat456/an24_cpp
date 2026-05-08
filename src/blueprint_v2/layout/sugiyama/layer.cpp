@@ -56,7 +56,7 @@ CycleBreakResult break_cycles(const Graph& graph) {
             bool found_unvisited = false;
 
             while (idx < succs.size()) {
-                core::InternedId next = succs[idx];
+                core::InternedId const next = succs[idx];
                 idx++;
 
                 if (color[next] == Color::Gray) {
@@ -133,13 +133,13 @@ std::unordered_map<core::InternedId, int> longest_path_rank(
     size_t qi = 0;
     while (qi < queue.size()) {
         auto node = queue[qi++];
-        int node_rank = rank[node];
+        int const node_rank = rank[node];
 
         auto it = cbr.effective_succ.find(node);
         if (it == cbr.effective_succ.end()) continue;
 
         for (const auto& succ : it->second) {
-            int candidate = node_rank + 1;
+            int const candidate = node_rank + 1;
             auto& succ_rank = rank[succ];
             succ_rank = std::max(succ_rank, candidate);
 

@@ -10,11 +10,11 @@ void PanelSplitter::render(float available_width, float available_height) {
         id_ = ++next_id_;
     }
     
-    float max_size = (direction_ == SplitterDirection::Horizontal) 
+    float const max_size = (direction_ == SplitterDirection::Horizontal) 
         ? available_width * config_.max_size_ratio 
         : available_height * config_.max_size_ratio;
     
-    float splitter_length = (direction_ == SplitterDirection::Horizontal)
+    float const splitter_length = (direction_ == SplitterDirection::Horizontal)
         ? available_height
         : available_width;
     
@@ -51,7 +51,7 @@ void PanelSplitter::render(float available_width, float available_height) {
     }
     
     if (ImGui::IsItemActive()) {
-        float delta = direction_ == SplitterDirection::Horizontal 
+        float const delta = direction_ == SplitterDirection::Horizontal 
             ? ImGui::GetIO().MouseDelta.x 
             : ImGui::GetIO().MouseDelta.y;
         size_ += delta;

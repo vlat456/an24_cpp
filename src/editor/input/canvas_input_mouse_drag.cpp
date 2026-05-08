@@ -11,7 +11,7 @@
 void CanvasInput::handle_drag_node(Pt world_delta) {
     drag_anchor_ = drag_anchor_ + world_delta;
 
-    Pt snapped = editor_math::snap_to_grid(drag_anchor_, viewport_.grid_step);
+    Pt const snapped = editor_math::snap_to_grid(drag_anchor_, viewport_.grid_step);
 
     std::unordered_set<core::InternedId> connected_wire_ids;
 
@@ -20,8 +20,8 @@ void CanvasInput::handle_drag_node(Pt world_delta) {
     for (const auto& node_id : selected_node_ids()) {
         auto* widget = resolve_node(node_id);
         if (!widget) continue;
-        Pt offset = (drag_idx < drag_offsets_.size()) ? drag_offsets_[drag_idx] : Pt(0, 0);
-        Pt new_pos = snapped + offset;
+        Pt const offset = (drag_idx < drag_offsets_.size()) ? drag_offsets_[drag_idx] : Pt(0, 0);
+        Pt const new_pos = snapped + offset;
 
         // Track final positions for commit (no widget readback needed).
         drag_current_positions_.push_back(new_pos);
@@ -61,10 +61,10 @@ void CanvasInput::handle_resize_node(Pt world_delta) {
     auto* resize_widget = resolve_node(resize_widget_id_);
     if (!resize_widget) return;
 
-    float grid = viewport_.grid_step;
-    Pt orig_pos = resize_original_pos_;
-    Pt orig_sz = resize_original_size_;
-    Pt delta = drag_anchor_;
+    float const grid = viewport_.grid_step;
+    Pt const orig_pos = resize_original_pos_;
+    Pt const orig_sz = resize_original_size_;
+    Pt const delta = drag_anchor_;
     Pt new_pos = orig_pos;
     Pt new_size = orig_sz;
 
@@ -90,7 +90,7 @@ void CanvasInput::handle_resize_node(Pt world_delta) {
     float min_h = editor_constants::PORT_LAYOUT_GRID;
     if (resize_widget->kind() == ui::WidgetKind::Node) {
         auto* node_widget = static_cast<visual::NodeWidget*>(resize_widget);
-        Pt minimum = node_widget->minimumNodeSize();
+        Pt const minimum = node_widget->minimumNodeSize();
         min_w = minimum.x;
         min_h = minimum.y;
     }
@@ -136,8 +136,8 @@ void CanvasInput::handle_resize_node(Pt world_delta) {
 
 InputResult CanvasInput::on_mouse_drag(MouseButton btn, Pt screen_delta, Pt canvas_min) {
     InputResult result;
-    float zoom = viewport_.zoom;
-    Pt world_delta(screen_delta.x / zoom, screen_delta.y / zoom);
+    float const zoom = viewport_.zoom;
+    Pt const world_delta(screen_delta.x / zoom, screen_delta.y / zoom);
 
     if (btn == MouseButton::Left) {
         switch (state_) {
@@ -153,14 +153,14 @@ InputResult CanvasInput::on_mouse_drag(MouseButton btn, Pt screen_delta, Pt canv
 
             case InputState::DraggingRoutingPoint: {
                 drag_anchor_ = drag_anchor_ + world_delta;
-                Pt snapped = editor_math::snap_to_grid(drag_anchor_, viewport_.grid_step);
+                Pt const snapped = editor_math::snap_to_grid(drag_anchor_, viewport_.grid_step);
                 rp_drag_pos_ = snapped;
 
                 auto* rp_wire = resolve_wire(rp_wire_id_);
                 visual::RoutingPoint* rp_point = nullptr;
                 if (rp_wire && rp_index_ < rp_wire->children().size()) {
                     auto* rp_child = rp_wire->children()[rp_index_].get();
-                    visual::RoutingPoint* rp_point =
+                    visual::RoutingPoint const* rp_point =
                         (rp_child->kind() == ui::WidgetKind::RoutingPoint)
                         ? static_cast<visual::RoutingPoint*>(rp_child) : nullptr;
                 }
@@ -200,7 +200,7 @@ InputResult CanvasInput::on_mouse_drag(MouseButton btn, Pt screen_delta, Pt canv
                     semantic_point = Pt(last_world_pos_.x - semantic_session_seed_->node_world_pos.x,
                                         last_world_pos_.y - semantic_session_seed_->node_world_pos.y);
                 }
-                editor::presentation::SemanticCanvasControllerResult semantic =
+                editor::presentation::SemanticCanvasControllerResult const semantic =
                     semantic_canvas_controller_.on_pointer_drag(semantic_point);
                 publish_semantic_control_result(semantic, result);
                 break;

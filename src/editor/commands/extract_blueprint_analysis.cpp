@@ -133,7 +133,7 @@ bool validate_blueprint_name_for_extract(const bp2::Blueprint& source,
         return set_error(error_out, "extracted blueprint name must be non-empty");
     }
 
-    core::InternedId blueprint_iid = interner.intern(blueprint_name);
+    core::InternedId const blueprint_iid = interner.intern(blueprint_name);
     for (const auto& node : source.nodes()) {
         if (!node.is_blueprint_instance()) {
             continue;
@@ -209,7 +209,7 @@ std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
     plan.max_x = std::numeric_limits<float>::lowest();
     plan.max_y = std::numeric_limits<float>::lowest();
 
-    for (core::InternedId node_id : selected_ids) {
+    for (core::InternedId const node_id : selected_ids) {
         const auto* node = bp.find_node(node_id);
         if (!node) {
             return set_error(error_out, "selected node not found"), std::nullopt;

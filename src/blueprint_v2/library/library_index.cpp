@@ -16,7 +16,7 @@ LibraryIndex load_library_index(const std::string& path) {
         throw std::runtime_error("Cannot open library index file: " + path);
     }
 
-    std::string content((std::istreambuf_iterator<char>(file)),
+    std::string const content((std::istreambuf_iterator<char>(file)),
                          std::istreambuf_iterator<char>());
 
     json j;
@@ -86,7 +86,7 @@ LibraryIndex load_library_index(const std::string& path) {
             throw std::runtime_error("Library index: entries[" + std::to_string(i)
                                      + "]: missing or non-string 'blueprint_id'");
         }
-        std::string id = entry["blueprint_id"].get<std::string>();
+        std::string const id = entry["blueprint_id"].get<std::string>();
         if (id.empty()) {
             throw std::runtime_error("Library index: entries[" + std::to_string(i)
                                      + "]: 'blueprint_id' must not be empty");
@@ -97,7 +97,7 @@ LibraryIndex load_library_index(const std::string& path) {
             throw std::runtime_error("Library index: entries[" + std::to_string(i)
                                      + "]: missing or non-string 'path'");
         }
-        std::string entry_path = entry["path"].get<std::string>();
+        std::string const entry_path = entry["path"].get<std::string>();
         if (entry_path.empty()) {
             throw std::runtime_error("Library index: entries[" + std::to_string(i)
                                      + "]: 'path' must not be empty");

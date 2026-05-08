@@ -29,7 +29,7 @@ bool save_blueprint_to_file(const bp2::Blueprint& bp,
                             bp2::PathArena const& arena,
                             const ComponentRegistry& parser_registry,
                             const char* path) {
-    std::string json_str = bp2::BlueprintCodec::encode(bp, interner, arena, &parser_registry);
+    std::string const json_str = bp2::BlueprintCodec::encode(bp, interner, arena, &parser_registry);
     std::ofstream file(path);
     if (!file.is_open()) return false;
     file << json_str;
@@ -41,7 +41,7 @@ std::optional<bp2::Blueprint> load_blueprint_from_file(
         core::StringInterner& interner,
         bp2::PathArena& arena,
         const ComponentRegistry& parser_registry) {
-    std::ifstream file(path);
+    std::ifstream const file(path);
     if (!file.is_open()) return std::nullopt;
     std::stringstream buffer;
     buffer << file.rdbuf();
@@ -91,7 +91,7 @@ bool validate_blueprint_for_persist(
           if (node.has_embedded_blueprint() || node.is_bridge_port()) {
               continue;
           }
-          std::string type_name(interner.resolve(node.semantic.type));
+          std::string const type_name(interner.resolve(node.semantic.type));
           if (!parser_registry.has(type_name)) {
               if (error_out) *error_out = "unknown node type: " + type_name;
              return false;

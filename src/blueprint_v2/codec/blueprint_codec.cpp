@@ -67,7 +67,7 @@ std::optional<Blueprint> BlueprintCodec::decode(
                 }
                 return std::nullopt;
             }
-            for (char c : bp_id) {
+            for (char const c : bp_id) {
                 if (c <= 0x20 || c > 0x7E) {
                     if (error_out) {
                         error_out->message = "blueprint_id must contain only printable ASCII with no whitespace";

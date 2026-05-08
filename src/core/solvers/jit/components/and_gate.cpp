@@ -3,12 +3,12 @@
 
 template <typename Provider>
 void AND<Provider>::execute(SimulationState& st, double /*dt*/) {
-    float A = st.values[provider.get(PortNames::A)];
-    float B = st.values[provider.get(PortNames::B)];
+    float const A = st.values[provider.get(PortNames::A)];
+    float const B = st.values[provider.get(PortNames::B)];
     // Treat > 0.5V as TRUE, else FALSE
-    bool a = (A > 0.5f);
-    bool b = (B > 0.5f);
-    bool result = a && b;
+    bool const a = (A > 0.5f);
+    bool const b = (B > 0.5f);
+    bool const result = a && b;
     st.values[provider.get(PortNames::o)] = result ? 1.0f : 0.0f;
 }
 

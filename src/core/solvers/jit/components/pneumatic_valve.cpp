@@ -14,8 +14,8 @@ void PneumaticValve<Provider>::execute(SimulationState& st, double /*dt*/) {
 template <typename Provider>
 void PneumaticValve<Provider>::commit(SimulationState& st, double /*dt*/) {
     // Control logic: valve opens when ctrl exceeds 0.5.
-    float ctrl = st.values[provider.get(PortNames::ctrl)];
-    bool ctrl_active = ctrl > 0.5f;
+    float const ctrl = st.values[provider.get(PortNames::ctrl)];
+    bool const ctrl_active = ctrl > 0.5f;
 
     // Apply normally_closed logic: NC valve opens when ctrl is active.
     state = normally_closed ? ctrl_active : !ctrl_active;

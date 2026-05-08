@@ -121,13 +121,13 @@ std::optional<SynthesizedBoundary> synthesize_extracted_boundary(
             node.layout.x + node.layout.width.value_or(kDefaultNodeWidth));
     }
 
-    BridgeSideBuildParams in_params{plan.inputs, true, node_center_y,
+    BridgeSideBuildParams const in_params{plan.inputs, true, node_center_y,
                                     0.0f, 0.0f, WindowScopeId::root(),
                                     "bp_in_", nullptr};
     create_bridge_nodes_for_side(bridge_host, in_params, interner,
                                  used_node_ids, input_bridge_ids);
 
-    BridgeSideBuildParams out_params{plan.outputs, false, node_center_y,
+    BridgeSideBuildParams const out_params{plan.outputs, false, node_center_y,
                                      max_internal_right + kBridgeMarginX, 0.0f,
                                      WindowScopeId::root(), "bp_out_", nullptr};
     create_bridge_nodes_for_side(bridge_host, out_params, interner,

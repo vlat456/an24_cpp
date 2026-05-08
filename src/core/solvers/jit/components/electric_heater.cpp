@@ -10,10 +10,10 @@ void ElectricHeater<Provider>::execute(SimulationState& st, double /*dt*/) {
 
     // Thermal output: P_thermal = V^2 * G * efficiency
     // Where G = max_power / (V^2 + 0.01) for constant power behavior
-    float v_in = st.values[provider.get(PortNames::power)];
-    float v_sq = v_in * v_in;
-    float g = max_power / (v_sq + 0.01f);
-    float heat_power = v_sq * g * efficiency;
+    float const v_in = st.values[provider.get(PortNames::power)];
+    float const v_sq = v_in * v_in;
+    float const g = max_power / (v_sq + 0.01f);
+    float const heat_power = v_sq * g * efficiency;
     st.values[provider.get(PortNames::heat_out)] = heat_power;
 }
 

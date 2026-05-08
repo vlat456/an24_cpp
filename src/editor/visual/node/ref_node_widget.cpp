@@ -51,10 +51,10 @@ RefNodeWidget::RefNodeWidget(const bp2::Blueprint::Node& data,
     buildLayout(data, render_iface, interner);
 
     // Size based on text width + horizontal padding
-    float text_w = name_.empty() ? 0.0f : name_.length() * PortConstants::LABEL_FONT_SIZE * 0.8f;
+    float const text_w = name_.empty() ? 0.0f : name_.length() * PortConstants::LABEL_FONT_SIZE * 0.8f;
     constexpr float h_pad = 16.0f;
     constexpr float v_pad = 4.0f;
-    Pt node_size(text_w + h_pad, PortConstants::LABEL_FONT_SIZE + v_pad);
+    Pt const node_size(text_w + h_pad, PortConstants::LABEL_FONT_SIZE + v_pad);
     setSize(node_size);
     positionPort();
 }
@@ -142,7 +142,7 @@ Port* RefNodeWidget::portByName(std::string_view port_name,
 
 Pt RefNodeWidget::preferredSize(IDrawList* dl) const {
     if (!dl) return Pt(56.0f, 20.0f);
-    float w = dl->calc_text_size(name_.c_str(), PortConstants::LABEL_FONT_SIZE).x;
+    float const w = dl->calc_text_size(name_.c_str(), PortConstants::LABEL_FONT_SIZE).x;
     constexpr float h_pad = 16.0f;
     constexpr float v_pad = 4.0f;
     return Pt(w + h_pad, PortConstants::LABEL_FONT_SIZE + v_pad);
@@ -160,39 +160,39 @@ void RefNodeWidget::layout(float w, float h) {
 void RefNodeWidget::render(IDrawList* dl, const RenderContext& ctx) const {
     if (!dl) return;
 
-    Pt pos = worldPos();
-    Pt sz = size();
-    float zoom = ctx.zoom;
+    Pt const pos = worldPos();
+    Pt const sz = size();
+    float const zoom = ctx.zoom;
 
-    Pt screen_min = ctx.world_to_screen(pos);
-    Pt screen_max = ctx.world_to_screen(Pt(pos.x + sz.x, pos.y + sz.y));
-    float rounding = editor_constants::NODE_ROUNDING * zoom;
+    Pt const screen_min = ctx.world_to_screen(pos);
+    Pt const screen_max = ctx.world_to_screen(Pt(pos.x + sz.x, pos.y + sz.y));
+    float const rounding = editor_constants::NODE_ROUNDING * zoom;
 
     // Body fill
-    uint32_t fill = custom_fill_.value_or(render_theme::COLOR_BUS_FILL);
+    uint32_t const fill = custom_fill_.value_or(render_theme::COLOR_BUS_FILL);
     dl->add_rect_filled_with_rounding(screen_min, screen_max, fill, rounding);
 
     // Border
-    uint32_t border_color = render_theme::COLOR_BUS_BORDER;
+    uint32_t const border_color = render_theme::COLOR_BUS_BORDER;
     dl->add_rect_with_rounding_corners(screen_min, screen_max, border_color, rounding,
                                        editor_constants::DRAW_CORNERS_ALL, 1.0f);
 
     // Value text, vertically centered
-    float font_size = PortConstants::LABEL_FONT_SIZE * zoom;
-    float text_h = dl->calc_text_size(name_.c_str(), font_size).y;
-    float text_y = screen_min.y + (sz.y * zoom - text_h) / 2.0f;
-    float text_x = screen_min.x + 2.0f * zoom;
+    float const font_size = PortConstants::LABEL_FONT_SIZE * zoom;
+    float const text_h = dl->calc_text_size(name_.c_str(), font_size).y;
+    float const text_y = screen_min.y + (sz.y * zoom - text_h) / 2.0f;
+    float const text_x = screen_min.x + 2.0f * zoom;
     dl->add_text(Pt(text_x, text_y), name_.c_str(), render_theme::COLOR_TEXT, font_size);
 }
 
 void RefNodeWidget::renderPost(IDrawList* dl, const RenderContext& ctx) const {
     if (!dl) return;
 
-    Pt pos = worldPos();
-    Pt sz = size();
-    Pt screen_min = ctx.world_to_screen(pos);
-    Pt screen_max = ctx.world_to_screen(Pt(pos.x + sz.x, pos.y + sz.y));
-    float rounding = editor_constants::NODE_ROUNDING * ctx.zoom;
+    Pt const pos = worldPos();
+    Pt const sz = size();
+    Pt const screen_min = ctx.world_to_screen(pos);
+    Pt const screen_max = ctx.world_to_screen(Pt(pos.x + sz.x, pos.y + sz.y));
+    float const rounding = editor_constants::NODE_ROUNDING * ctx.zoom;
 
     // Selection border drawn after children so it appears on top
     handle_renderer::draw_selection_border(*dl, ctx, *this, screen_min, screen_max, rounding);

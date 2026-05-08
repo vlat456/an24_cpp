@@ -15,7 +15,7 @@ static core::InternedId find_embedded_bridge_node(
     std::string_view port_name) {
 
     // Canonical colon-convention node: proxy_id:port_name
-    std::string colon_id = signal_key::make_child_scope_key(proxy_id, port_name);
+    std::string const colon_id = signal_key::make_child_scope_key(proxy_id, port_name);
 
     auto colon_iid = sim_interner.lookup(colon_id);
     if (!colon_iid.empty()) {
@@ -40,8 +40,8 @@ core::InternedId resolve_runtime_signal_key(
         return {};
     }
 
-    std::string_view node_sv = bp_interner.resolve(endpoint.node_iid);
-    std::string_view port_sv = bp_interner.resolve(endpoint.port_iid);
+    std::string_view const node_sv = bp_interner.resolve(endpoint.node_iid);
+    std::string_view const port_sv = bp_interner.resolve(endpoint.port_iid);
 
     if (context.mode == SignalKeyContextMode::Root) {
         // Root mode: check if node is a blueprint instance
@@ -49,10 +49,10 @@ core::InternedId resolve_runtime_signal_key(
             // For embedded blueprints with materialized children, the bridge
             // node ID may differ from the default colon convention.
             if (endpoint.node->has_embedded_blueprint()) {
-                core::InternedId bridge_iid = find_embedded_bridge_node(bp, sim_interner, node_sv, port_sv);
+                core::InternedId const bridge_iid = find_embedded_bridge_node(bp, sim_interner, node_sv, port_sv);
                 if (!bridge_iid.empty()) {
-                    std::string bridge_str(bp_interner.resolve(bridge_iid));
-                    std::string exposed_key = signal_key::make_exposed_node_port_from_bridge_node(bridge_str);
+                    std::string const bridge_str(bp_interner.resolve(bridge_iid));
+                    std::string const exposed_key = signal_key::make_exposed_node_port_from_bridge_node(bridge_str);
                     if (!exposed_key.empty()) {
                         return sim_interner.lookup(exposed_key);
                     }
@@ -68,8 +68,8 @@ core::InternedId resolve_runtime_signal_key(
         // Embedded and external child-blueprint views use the same runtime key
         // rule: resolve the local child node.port, then prefix with the parent
         // instance id that owns the child blueprint in the runtime graph.
-        std::string_view parent_sv = bp_interner.resolve(context.parent_instance_id);
-        std::string child_key = build_signal_key(node_sv, port_sv);
+        std::string_view const parent_sv = bp_interner.resolve(context.parent_instance_id);
+        std::string const child_key = build_signal_key(node_sv, port_sv);
         return sim_interner.lookup(resolve_external_ref_signal_key(parent_sv, child_key));
     }
 }

@@ -19,7 +19,7 @@ bool resolve_probe_signal(Document& doc,
                                  std::string& out_label) {
     const std::string_view wire_sv = doc.interner().resolve(wire_iid);
     if (wire_sv.empty()) return false;
-    core::InternedId key_iid = doc.resolve_wire_signal_key(scope_id, wire_sv);
+    core::InternedId const key_iid = doc.resolve_wire_signal_key(scope_id, wire_sv);
     if (key_iid.empty()) return false;
     out_key = key_iid;
     out_label = std::string{wire_sv};
@@ -34,7 +34,7 @@ bool resolve_probe_anchor(Document& doc,
                                  ui::Pt& out_world) {
     const std::string_view wire_sv = doc.interner().resolve(wire_iid);
 
-    BlueprintWindow* win = nullptr;
+    BlueprintWindow const* win = nullptr;
     for (auto& wptr : doc.windowManager().windows()) {
         if (wptr && wptr->resolved_scope_id() == scope_id) {
             win = wptr.get();
@@ -49,7 +49,7 @@ bool resolve_probe_anchor(Document& doc,
     const auto& poly = vw->polyline();
     if (poly.size() < 2) return false;
     if (!preferred_world) {
-        size_t mid = poly.size() / 2;
+        size_t const mid = poly.size() / 2;
         out_world = poly[mid];
         return true;
     }
@@ -129,7 +129,7 @@ void OscilloscopeModel::toggle_probe(Document& doc,
     if (wire_iid.empty()) return;
 
     auto& partition = docs_[doc.id()];
-    ProbeKey key{scope_id, wire_iid};
+    ProbeKey const key{scope_id, wire_iid};
 
     auto it = partition.probes.find(key);
     if (it != partition.probes.end()) {

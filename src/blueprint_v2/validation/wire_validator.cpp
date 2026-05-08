@@ -18,7 +18,7 @@ WireValidator::Result WireValidator::validate(Blueprint::Wire const& wire,
         return out;
     }
 
-    PathResolver resolver;
+    PathResolver const resolver;
     auto src = resolver.resolve(wire.source, bp, parser_registry, interner);
     auto tgt = resolver.resolve(wire.target, bp, parser_registry, interner);
     if (!src || !tgt) {

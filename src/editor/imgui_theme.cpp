@@ -8,7 +8,7 @@ namespace ImGuiTheme {
 // Helper: Get path to fonts directory
 static std::string GetFontPath(const char* font_name) {
     // Try multiple possible locations for fonts directory
-    std::vector<std::string> candidates = {
+    std::vector<std::string> const candidates = {
         // Relative to executable (when running from build/)
         std::string("fonts/") + font_name,
         std::string("../src/fonts/") + font_name,
@@ -105,7 +105,7 @@ ImFont* LoadRobotoWithCyrillic(float size_pixels) {
 }
 
 ImFont* LoadFontAwesome(ImFontAtlas* atlas, float size_pixels) {
-    std::string font_path = GetFontPath("fa-solid-900.ttf");
+    std::string const font_path = GetFontPath("fa-solid-900.ttf");
     if (font_path.empty()) {
         spdlog::warn("FontAwesome TTF not found — node badges will not render");
         return nullptr;

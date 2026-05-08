@@ -125,12 +125,12 @@ void overlay_from_cache(NodeContent& content,
             content.state = simulation.get_signal_value(p.state) > 0.5f;
         },
         [&](const editor::SliderPorts& p) {
-            if (float val = simulation.get_signal_value(p.readback); std::isfinite(val)) {
+            if (float const val = simulation.get_signal_value(p.readback); std::isfinite(val)) {
                 content.value = val;
             }
         },
         [&](const editor::KnobPorts& p) {
-            if (float val = simulation.get_signal_value(p.position); std::isfinite(val)) {
+            if (float const val = simulation.get_signal_value(p.position); std::isfinite(val)) {
                 content.value = val;
             }
         }
@@ -196,9 +196,9 @@ void dispatch_content_to_widget(WindowManager& window_manager,
                                 core::InternedId node_iid,
                                 const WindowScopeId& scope_id,
                                 const NodeContent& content) {
-    BlueprintWindow* win = window_manager.find(scope_id);
+    BlueprintWindow const* win = window_manager.find(scope_id);
     if (!win) return;
-    std::string_view node_sv = interner.resolve(node_iid);
+    std::string_view const node_sv = interner.resolve(node_iid);
     auto* widget = win->scene.find(node_sv);
     if (!widget) return;
     auto* nw = (widget && widget->kind() == ui::WidgetKind::Node)
@@ -351,8 +351,8 @@ void SimulationBridge::Impl::build_signal_cache() {
             if (src_node_id.empty() || src_port_id.empty()) continue;
 
             const bp2::Blueprint::Node* node = resolved.blueprint->find_node(src_node_id);
-            editor::SignalEndpoint endpoint{node, src_node_id, src_port_id};
-            core::InternedId signal_iid = editor::resolve_runtime_signal_key(
+            editor::SignalEndpoint const endpoint{node, src_node_id, src_port_id};
+            core::InternedId const signal_iid = editor::resolve_runtime_signal_key(
                 *resolved.blueprint, *resolved.interner, sim_interner, endpoint, resolved.context);
             if (!signal_iid.empty()) {
                 wire_signal_cache[w.id] = signal_iid;
@@ -364,10 +364,10 @@ void SimulationBridge::Impl::build_signal_cache() {
 std::pair<core::InternedId, core::InternedId>
 SimulationBridge::Impl::bp2_path_to_node_port(const bp2::Path& path) const {
     if (path.kind() != bp2::PathKind::Port) return {};
-    core::InternedId port_name = path.segment();
-    bp2::Path parent = arena.parent(path);
+    core::InternedId const port_name = path.segment();
+    bp2::Path const parent = arena.parent(path);
     if (parent.kind() != bp2::PathKind::Node) return {};
-    core::InternedId node_id = parent.segment();
+    core::InternedId const node_id = parent.segment();
     return {node_id, port_name};
 }
 
@@ -461,7 +461,7 @@ void SimulationBridge::step(double dt) {
 
     i.provider_host.poll(dt);
 
-    uint32_t count = static_cast<uint32_t>(i.simulation.get_signal_count());
+    uint32_t const count = static_cast<uint32_t>(i.simulation.get_signal_count());
     i.provider_host.read_into(i.simulation.values(), count);
 
     i.override_buffer.clear();
@@ -516,10 +516,10 @@ void SimulationBridge::update_node_content() {
     auto& i = *impl_;
     const bp2::Blueprint& bp = i.model.current();
 
-    bp2::BlueprintLibrary library = build_library(library_index, type_registry, i.interner);
+    bp2::BlueprintLibrary const library = build_library(library_index, type_registry, i.interner);
 
     bp2::Flattener flattener(library);
-    bp2::FlatNetlist netlist = flattener.flatten(bp, i.arena);
+    bp2::FlatNetlist const netlist = flattener.flatten(bp, i.arena);
     return bp2::elaboration::elaborate_for_jit(netlist, i.arena, i.interner, *type_registry);
 }
 
@@ -534,8 +534,8 @@ void SimulationBridge::trigger_switch(core::InternedId node_id, const WindowScop
     const core::InternedId control_key = extract_control_port(it->second.ports);
     if (control_key.empty()) return;
 
-    float current = i.simulation.get_signal_value(control_key);
-    float next = (current < 0.5f) ? 1.0f : 0.0f;
+    float const current = i.simulation.get_signal_value(control_key);
+    float const next = (current < 0.5f) ? 1.0f : 0.0f;
     i.typed_overrides.push_back({control_key, next});
 }
 
