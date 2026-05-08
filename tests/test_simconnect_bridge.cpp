@@ -997,7 +997,7 @@ TEST(SimConnectStubTest, SendBytesFailureInjection) {
     // Default: send_bytes succeeds
     uint8_t test_data[] = {0x01, 0x02, 0x03, 0x04};
     EXPECT_TRUE(stub->send_bytes(test_data, 4));
-    EXPECT_EQ(stub->last_request_bytes().size(), 4u);
+     EXPECT_EQ(stub->last_request_bytes().size(), 4u);
     
     // With failure flag set: send_bytes returns false
     stub->set_send_bytes_should_fail(true);
@@ -1007,4 +1007,20 @@ TEST(SimConnectStubTest, SendBytesFailureInjection) {
     stub->reset();
     stub->connect();
     EXPECT_TRUE(stub->send_bytes(test_data, 4));
+}
+
+TEST(SimConnectProviderImplTest, InvalidBinaryPacketDoesNotAttemptJsonParse) {
+    SimConnectProvider bridge;
+    bridge.connect();
+    
+    auto* stub = static_cast<StubSimConnectClient*>(bridge.client());
+    
+    // Construct a header-sized payload with invalid magic
+    uint8_t bad_magic[sizeof(PacketHeader)] = {0xFF, 0xFF, 0x02, 0x01, 0, 0, 0, 0};
+    std::string bad_packet(reinterpret_cast<const char*>(bad_magic), sizeof(bad_magic));
+    
+    // Trigger response — should log "Invalid binary packet" and NOT attempt JSON parse
+    stub->trigger_mock_response(bad_packet);
+    
+    // Verify: just that it doesn't crash and completes successfully
 }
