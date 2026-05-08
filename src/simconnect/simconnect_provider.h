@@ -123,6 +123,6 @@ private:
     double last_ping_sent_time_   = 0.0;
     double last_pong_recv_time_   = 0.0;
     double current_time_          = 0.0;
-    bool   connection_healthy_    = true;
+    bool   connection_healthy_    = false;
     uint16_t next_ping_id_        = 1;
 };

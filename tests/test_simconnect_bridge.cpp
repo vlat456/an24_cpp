@@ -862,9 +862,7 @@ TEST(SimConnectProviderImplTest, PongReceivedResetsHealth) {
 
     auto* stub = static_cast<StubSimConnectClient*>(bridge.client());
 
-
-    // Initially healthy
-    EXPECT_TRUE(bridge.is_alive());
+    EXPECT_FALSE(bridge.is_alive());
 
     // Simulate first pong at t=5 to establish baseline
     bridge.poll(5.0);
@@ -913,10 +911,9 @@ TEST(SimConnectProviderImplTest, PongEchoesPingSeqId) {
     EXPECT_TRUE(bridge.is_alive());
 }
 
-TEST(SimConnectProviderImplTest, IsAliveInitiallyTrue) {
+TEST(SimConnectProviderImplTest, IsAliveInitiallyFalse) {
     SimConnectProvider bridge;
-    // Not connected, but is_alive reflects heartbeat state, not connection
-    EXPECT_TRUE(bridge.is_alive());
+    EXPECT_FALSE(bridge.is_alive());
 }
 
 // ==...== Frame Counter Reset (issue #489) ==...==
