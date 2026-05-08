@@ -92,13 +92,13 @@ bool SimvarProviderHost::is_enabled(const std::string& type) const {
     return enabled_types_.count(type) > 0;
 }
 
-bool SimvarProviderHost::is_type_connected(const std::string& type) const {
+std::optional<bool> SimvarProviderHost::is_type_connected(const std::string& type) const {
     for (const auto& entry : providers_) {
         if (entry.type == type) {
             return entry.provider->is_connected();
         }
     }
-    return false;
+    return std::nullopt;
 }
 
 void SimvarProviderHost::teardown() {

@@ -73,7 +73,8 @@ public:
     bool is_enabled(const std::string& type) const;
 
     /// Check if a specific provider type has a connected instance.
-    bool is_type_connected(const std::string& type) const;
+    /// Returns nullopt if no provider of this type exists.
+    std::optional<bool> is_type_connected(const std::string& type) const;
 
     /// Enumerate all registered provider type names.
     /// Returns alphabetically sorted list.
