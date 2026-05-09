@@ -157,6 +157,14 @@ enum class ValType : uint8_t {
     Bool    = 0x02,
 };
 
+/// Parse a val_type string to enum. Returns true on success.
+inline bool parse_val_type(std::string_view s, ValType& out) {
+    if (s == "Int32")    { out = ValType::Int32;   return true; }
+    if (s == "Bool")     { out = ValType::Bool;    return true; }
+    if (s == "Float32")  { out = ValType::Float32; return true; }
+    return false;
+}
+
 // =============================================================================
 // PacketHeader — 8 bytes, packed
 // =============================================================================

@@ -10,6 +10,8 @@ set(SIMCONNECT_SOURCES
     simconnect_mapping.h
     simconnect_provider.cpp
     simconnect_provider.h
+    simvar_catalog.cpp
+    simvar_catalog.h
 )
 
 add_library(simconnect_bridge STATIC ${SIMCONNECT_SOURCES})

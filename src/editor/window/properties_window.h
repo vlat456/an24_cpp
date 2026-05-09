@@ -145,6 +145,9 @@ private:
 
     void cancel_and_close();
 
+    /// Render a simvar dropdown for SimConnectInput/SimConnectOutput "var_name" param
+    void render_simvar_name_param(const std::string& key);
+
     /// Render a dropdown for "port_edge" param (Bus nodes)
     void render_port_edge_param(const std::string& key);
 

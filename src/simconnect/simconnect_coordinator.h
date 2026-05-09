@@ -84,6 +84,13 @@ public:
     bool send_bytes(const uint8_t* data, size_t len);
     bool send_request(const std::string& json_payload);
 
+    // ==...== Variable Enumeration ==...==
+
+    /// Send an enumerate_vars request to the WASM bridge via the control channel.
+    /// The bridge responds with available LVars which the provider stores in SimVarCatalog.
+    /// Returns false if not connected.
+    bool send_enumerate_vars_request(VarType var_type);
+
     // ==...== Test-only: raw client access ==...==
 
     std::optional<SimConnectClient*> client();

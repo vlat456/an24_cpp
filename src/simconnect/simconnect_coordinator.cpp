@@ -178,6 +178,20 @@ void SimConnectCoordinator::broadcast_response(std::span<const uint8_t> payload)
     }
 }
 
+// ==...== Variable Enumeration ==...==
+
+bool SimConnectCoordinator::send_enumerate_vars_request(VarType var_type) {
+    if (!client_ || !client_->is_connected()) return false;
+    if (var_type == VarType::HEvent) return false;
+
+    nlohmann::json j;
+    j["cmd"] = "EnumerateVars";
+    j["var_type"] = var_type_name(var_type);
+
+    std::string const payload = j.dump();
+    return client_->send_request(payload);
+}
+
 // ==...== Registration ==...==
 
 void SimConnectCoordinator::send_register_names() {

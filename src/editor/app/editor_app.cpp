@@ -5,11 +5,13 @@
 #include "editor/imgui_theme.h"
 #include "editor/visual/dialogs/file_dialogs.h"
 #include "simconnect/simconnect_provider.h"
+#include "simconnect/simvar_catalog.h"
 
 #include <imgui.h>
 #include <backends/imgui_impl_sdl2.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <SDL2/SDL.h>
+#include <spdlog/spdlog.h>
 
 #ifdef __APPLE__
 #define GL_SILENCE_DEPRECATION
@@ -170,6 +172,27 @@ int EditorApp::run() {
     // Register external simulator provider types.
     // This makes them available in the Adapters menu and for auto-connect.
     SimConnectProvider::register_type();
+
+    // Load the bundled AVar catalog for UI variable selection dropdowns.
+    {
+        static const char* catalog_candidates[] = {
+            "resources/simvar_catalog.json",
+            "../resources/simvar_catalog.json",
+            "../../resources/simvar_catalog.json",
+            "../../../resources/simvar_catalog.json",
+        };
+        bool loaded = false;
+        for (const char* p : catalog_candidates) {
+            if (SimVarCatalog::instance().load_bundled(p)) {
+                spdlog::info("[EditorApp] Loaded simvar catalog from: {}", p);
+                loaded = true;
+                break;
+            }
+        }
+        if (!loaded) {
+            spdlog::warn("[EditorApp] simvar_catalog.json not found — AVar dropdown will be empty");
+        }
+    }
 
     if (ws_.settings.hasOpenTabs()) {
         const auto saved_tabs = ws_.settings.openTabs();

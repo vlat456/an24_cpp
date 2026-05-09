@@ -14,6 +14,8 @@
 #include <misc/cpp/imgui_stdlib.h>
 #endif
 
+#include "simconnect/simvar_catalog.h"
+
 #include <algorithm>
 #include <sstream>
 #include <vector>
@@ -260,6 +262,9 @@ void PropertiesWindow::render() {
         // dropdown rendered by render_bridge_port_type_section() below.
         const bool is_bridge = target && target->is_bridge_port();
 
+        // Detect SimConnectInput/SimConnectOutput for simvar dropdown
+        bool const is_simvar_node = (type_str == "SimConnectInput" || type_str == "SimConnectOutput");
+
         for (const auto& key : string_keys) {
             if (key == "table") {
                 render_table_param(key);
@@ -269,6 +274,8 @@ void PropertiesWindow::render() {
                 render_font_size_param(key);
             } else if (key == "port_edge") {
                 render_port_edge_param(key);
+            } else if (is_simvar_node && key == "var_name") {
+                render_simvar_name_param(key);
             } else if (is_bridge && (key == "exposed_type" || key == "exposed_direction")) {
                 // Skip — handled by render_bridge_port_type_section()
             } else {
@@ -448,6 +455,66 @@ void PropertiesWindow::render_font_size_param(const std::string& key) {
 void PropertiesWindow::render_generic_string_param(const std::string& key) {
 #ifndef EDITOR_TESTING
     ImGui::InputText(key.c_str(), &pending_string_params_[key]);
+#endif
+}
+
+void PropertiesWindow::render_simvar_name_param(const std::string& key) {
+#ifndef EDITOR_TESTING
+    // Keep free-text input for manual entry
+    ImGui::InputText(key.c_str(), &pending_string_params_[key]);
+
+    // Determine current var_type from other pending params
+    auto var_type_it = pending_string_params_.find("var_type");
+    if (var_type_it == pending_string_params_.end()) return;
+
+    VarType filter_type;
+    if (!parse_var_type(var_type_it->second, filter_type)) return;
+
+    ImGui::SameLine();
+    std::string const combo_label = "##browse_" + key;
+    std::string const preview = pending_string_params_[key].empty()
+        ? "Select variable..." : pending_string_params_[key];
+
+    if (ImGui::BeginCombo(combo_label.c_str(), preview.c_str(), ImGuiComboFlags_NoArrowButton)) {
+        // Search/filter input at top
+        static char filter_buf[128] = "";
+        ImGui::InputTextWithHint("##filter", "Filter...", filter_buf, sizeof(filter_buf));
+        std::string const filter_str(filter_buf);
+
+        // "Manual entry" item — keeps the current typed text
+        {
+            bool const is_manual = false;
+            if (ImGui::Selectable("(manual entry)", &is_manual, ImGuiSelectableFlags_None)) {
+                // No-op: keep whatever was typed
+            }
+        }
+
+        // Query catalog — filtering is handled by the catalog itself
+        auto& catalog = SimVarCatalog::instance();
+        auto entries = catalog.find(filter_str, filter_type);
+
+        if (!entries.empty()) {
+            ImGui::Separator();
+            for (const auto& entry : entries) {
+                bool const selected = (entry.name == pending_string_params_[key]);
+                std::string const label = entry.name + "##" + entry.name;
+                if (ImGui::Selectable(label.c_str(), selected)) {
+                    pending_string_params_[key] = entry.name;
+                }
+                if (selected) {
+                    ImGui::SetItemDefaultFocus();
+                }
+                // Show description as tooltip
+                if (!entry.description.empty() && ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal)) {
+                    ImGui::BeginTooltip();
+                    ImGui::TextUnformatted(entry.description.c_str());
+                    ImGui::EndTooltip();
+                }
+            }
+        }
+
+        ImGui::EndCombo();
+    }
 #endif
 }
 

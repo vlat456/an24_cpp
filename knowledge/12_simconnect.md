@@ -156,3 +156,26 @@ File: `src/simconnect/intern_table.h`
 | `src/core/solvers/jit/bridge/simvar_provider_host.h/.cpp` | Provider host |
 | `src/core/solvers/jit/components/sim_connect_input.h/.cpp` | Input component |
 | `src/core/solvers/jit/components/sim_connect_output.h/.cpp` | Output component |
+| `src/simconnect/simvar_catalog.h/.cpp` | SimVar catalog singleton for UI dropdowns |
+| `src/simconnect/simconnect_coordinator.h/.cpp` | Shared SimConnect client coordinator |
+
+## SimVar Catalog
+
+The `SimVarCatalog` singleton provides a unified variable registry for the editor's SimConnectInput/SimConnectOutput property dropdowns:
+
+- **AVars** — loaded from `resources/simvar_catalog.json` (~108 curated variables) at editor startup
+- **LVars** — populated live via `send_enumerate_vars_request()` / `EnumerateVars` response from the WASM bridge
+- **UI** — `PropertiesWindow::render_simvar_name_param()` renders an ImGui combo with filtering, tooltips, and manual-entry fallback
+
+```cpp
+// Editor startup (editor_app.cpp)
+SimVarCatalog::instance().load_bundled("resources/simvar_catalog.json");
+
+// Request LVar enumeration from WASM bridge
+coordinator.send_enumerate_vars_request(VarType::LVar);
+
+// WASM bridge responds — catalog updates automatically
+// {"cmd":"EnumerateVars","var_type":"LVar","vars":[...]}
+```
+
+File: `src/simconnect/simvar_catalog.h/.cpp`

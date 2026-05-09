@@ -1,5 +1,6 @@
 #include "simconnect_provider.h"
 #include "simconnect/simconnect_coordinator.h"
+#include "simconnect/simvar_catalog.h"
 #include "core/solvers/jit/bridge/simvar_provider_host.h"
 #include "core/solvers/jit/components/all.h"
 #include "core/strings/interned_id.h"
@@ -364,8 +365,10 @@ void SimConnectProvider::on_response(std::span<const uint8_t> payload) {
             }
             return;
         }
-        // Header-sized payload but invalid binary (bad magic/version) — don't try JSON.
-        spdlog::warn("[SimConnectProvider] Invalid binary packet ({} bytes, bad magic/version)", len);
+        // Header-sized payload but invalid binary (bad magic/version) —
+        // could be a JSON control channel response. Try JSON parsing.
+        spdlog::debug("[SimConnectProvider] Payload ({} bytes) not a binary packet, trying JSON", len);
+        handle_json_response(payload);
         return;
     }
 
@@ -377,8 +380,38 @@ void SimConnectProvider::handle_json_response(std::span<const uint8_t> payload) 
     try {
         std::string_view const sv(reinterpret_cast<const char*>(payload.data()), payload.size());
         auto resp = nlohmann::json::parse(sv);
-        if (resp.contains("cmd") && resp["cmd"].is_string()) {
-            spdlog::debug("[SimConnectProvider] JSON response: {}", resp["cmd"].get<std::string>());
+        if (!resp.contains("cmd") || !resp["cmd"].is_string()) return;
+
+        std::string const cmd = resp["cmd"].get<std::string>();
+        spdlog::debug("[SimConnectProvider] JSON response: {}", cmd);
+
+        if (cmd == "EnumerateVars") {
+            auto vars_it = resp.find("vars");
+            if (vars_it == resp.end() || !vars_it->is_array()) return;
+
+            std::vector<SimVarCatalog::Entry> entries;
+            for (const auto& item : *vars_it) {
+                SimVarCatalog::Entry e;
+                e.name = item.value("name", std::string());
+                if (e.name.empty()) continue;
+
+                std::string const vt = item.value("val_type", "Float32");
+                if (!parse_val_type(vt, e.val_type)) {
+                    e.val_type = ValType::Float32;
+                }
+
+                std::string const var_type_str = item.value("var_type", "LVar");
+                if (!parse_var_type(var_type_str, e.var_type)) {
+                    e.var_type = VarType::LVar;
+                }
+                entries.push_back(std::move(e));
+            }
+
+            if (!entries.empty()) {
+                SimVarCatalog::instance().add_lvars(entries);
+                spdlog::info("[SimConnectProvider] Added {} enumerated LVars to catalog",
+                             entries.size());
+            }
         }
     } catch (const nlohmann::json::parse_error&) {
         spdlog::warn("[SimConnectProvider] Unrecognized response payload ({} bytes)", payload.size());

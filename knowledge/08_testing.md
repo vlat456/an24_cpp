@@ -164,6 +164,10 @@ Located in `tests/blueprint_v2/`:
 - `test_codegen_sanitize.cpp` — Codegen sanitization
 - `test_factory_validation_tests.cpp` — Factory validation
 
+### SimConnect / SimVar Tests
+- `test_simvar_catalog.cpp` — SimVarCatalog singleton, load/find/add/reset (12 tests)
+- `test_simconnect_coordinator.cpp` — Coordinator enumeration request/response flow (shared coordinator tests)
+
 ### Regression Tests
 - `test_architecture_regression.cpp` — Architecture regression
 - `test_push_runtime_regression.cpp` — Push runtime regression
@@ -193,5 +197,5 @@ Common helpers are in:
 | Electrical/Solver | `test_electrical_primitives.cpp`, `test_electrical_island_build.cpp`, `test_push_scheduler.cpp`, `test_push_runtime_regression.cpp`, `test_pneumatic_integration.cpp` |
 | Blueprint V2 | `tests/blueprint_v2/test_*.cpp` (21 files) |
 | Editor | `test_commands.cpp`, `test_canvas_input.cpp`, `test_scene_mutations.cpp`, `test_semantic_*.cpp`, `test_auto_layout.cpp` |
-| SimConnect | `test_simconnect_bridge.cpp`, `test_mock_provider.cpp`, `test_wire_protocol.cpp` |
+| SimConnect | `test_simconnect_bridge.cpp`, `test_mock_provider.cpp`, `test_wire_protocol.cpp`, `test_simconnect_coordinator.cpp`, `test_simvar_catalog.cpp` |
 | JIT/AOT | `test_jit_aot_bridge_equivalence.cpp`, `test_aot_composite_tests.cpp`, `test_lut_codegen.cpp` |

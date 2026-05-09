@@ -25,6 +25,10 @@ cd build && ctest
 | Push Scheduler | `src/core/solvers/jit/scheduler.h` |
 | ErasedStep | `src/core/solvers/jit/erased_step.h` |
 | JIT Solver | `src/core/solvers/jit/jit_solver.h` |
+| SimVar Catalog | `src/simconnect/simvar_catalog.h` |
+| SimConnect Coordinator | `src/simconnect/simconnect_coordinator.h` |
+| SimVar Provider Interface | `src/core/solvers/jit/bridge/simvar_provider.h` |
+| SimConnect Provider | `src/simconnect/simconnect_provider.h` |
 | JIT signal building | `src/core/solvers/jit/build_signals.cpp` |
 | JIT domain building | `src/core/solvers/jit/build_nodal_domain.cpp` |
 | JIT component factory | `src/core/solvers/jit/build_factory.cpp` (AUTO-GENERATED) |
@@ -154,6 +158,6 @@ src/
 │   ├── visual/
 │   └── window/
 ├── io/json/            # JSON loading/parsing
-├── simconnect/         # MSFS 2024 SimConnect integration
+├── simconnect/         # MSFS 2024 SimConnect integration (coordinator, provider, simvar_catalog)
 └── ui/                 # UI framework (Scene, Widget, Grid)
 ```
