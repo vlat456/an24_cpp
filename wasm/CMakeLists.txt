@@ -15,7 +15,14 @@ endif()
 
 add_executable(an24_bridge
     an24_bridge.cpp
+    an24_bridge.h
     bridge_protocol.h
+)
+
+# Project include path — for simconnect/wire_protocol.h, simconnect/wire_codec.h
+target_include_directories(an24_bridge PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}
 )
 
 # MSFS 2024 WASM SDK include path
@@ -38,8 +45,8 @@ target_compile_options(an24_bridge PRIVATE
 target_link_options(an24_bridge PRIVATE
     -O3
     -flto
-    --no-entry          # No main(), uses MSFS_CALLBACK
-    -sEXPORTED_FUNCTIONS=[]  # Export nothing, MSFS finds callbacks by name
+    --no-entry
+    -sEXPORTED_FUNCTIONS=[]  # MSFS finds callbacks by name at runtime
     -sALLOW_MEMORY_GROWTH=1
 )
 
@@ -49,3 +56,16 @@ if(DEFINED MSFS_WASM_SDK_PATH)
         ${MSFS_WASM_SDK_PATH}/lib/MSFS_WasmVersions.a
     )
 endif()
+
+# =============================================================================
+# SimVars Catalog Data — bundled AVar names (optional)
+# =============================================================================
+
+# The simvar_catalog.json is a JSON file listing bundled AVar names/descriptions
+# for the SimVarCatalog on the host side. It's not WASM-specific but is co-located
+# here since it describes the variables the bridge reads.
+#
+# Install target (host-side only):
+# install(FILES simvar_catalog.json DESTINATION share/an24/)
+
+message(STATUS "WASM bridge sources: an24_bridge.cpp an24_bridge.h bridge_protocol.h")

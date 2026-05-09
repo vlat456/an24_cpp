@@ -1,0 +1,10 @@
+[VCockpit01]
+size_mm=1024,768
+pixel_size=1024,768
+texture=SCREEN_1
+background_color=0,0,0
+
+; An-24 Bridge — data conduit gauge (invisible, 1x1 texture).
+; Reads/writes MSFS SimVars via the V2 delta wire protocol.
+; The gauge is non-visual — it occupies minimal texture space.
+htmlgauge00=WasmInstrument/WasmInstrument.html?wasm_module=an24_bridge.wasm&wasm_gauge=an24_bridge, 0,0,1,1

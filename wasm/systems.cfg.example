@@ -1,0 +1,16 @@
+; An-24 Bridge — WASM system for per-frame SimVars polling.
+; Runs every frame in the background, driving the CommBus protocol.
+; Alternative to panel.cfg gauge registration — a system does not
+; consume VRAM or require a texture slot.
+;
+; When using systems.cfg, place the .wasm file in the wasm/ folder
+; alongside this file within the SimObject package.
+;
+; Both panel.cfg and systems.cfg can reference the same module.
+; Use panel.cfg if you also need visual gauge callbacks; use
+; systems.cfg for pure background data bridge operations.
+
+[WASM_SYSTEM.0]
+ModulePath=an24_bridge
+SystemName=an24_bridge
+ParameterString=""

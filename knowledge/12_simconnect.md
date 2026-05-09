@@ -179,3 +179,75 @@ coordinator.send_enumerate_vars_request(VarType::LVar);
 ```
 
 File: `src/simconnect/simvar_catalog.h/.cpp`
+
+## WASM Bridge Module
+
+The `an24_bridge.wasm` module runs inside MSFS 2024 and acts as the SimVars
+data conduit. It receives V2 delta protocol requests on CommBus channels,
+reads/writes MSFS Vars API, and sends delta/full-sync responses back.
+
+### Module Files
+
+| File | Purpose |
+|------|---------|
+| `wasm/an24_bridge.h` | Module header — identity constants, extern state |
+| `wasm/an24_bridge.cpp` | Main module — entry points, Vars API dispatch, protocol handlers |
+| `wasm/bridge_protocol.h` | WASM-side protocol helpers — shadow buffer, variable registration |
+| `wasm/CMakeLists.txt` | WASM build target (disabled on macOS by default) |
+| `wasm/panel.cfg.example` | Example panel.cfg for gauge deployment |
+| `wasm/systems.cfg.example` | Example systems.cfg for system deployment |
+
+### Module Lifecycle
+
+MSFS 2024 resolves these callbacks by name at runtime:
+
+| Function | Type | Called When |
+|----------|------|-------------|
+| `module_init()` | Module | Module loaded (CommBus channel registration) |
+| `module_deinit()` | Module | Module unloaded (CommBus cleanup) |
+| `an24_bridge_system_init()` | System | System instance created |
+| `an24_bridge_system_update()` | System | Every frame (drives bridge protocol) |
+| `an24_bridge_system_kill()` | System | System instance destroyed |
+| `an24_bridge_gauge_init()` | Gauge | Gauge instance created (1x1 texture) |
+| `an24_bridge_gauge_update()` | Gauge | Every frame (no-op) |
+| `an24_bridge_gauge_draw()` | Gauge | Draw pass (no-op, non-visual) |
+| `an24_bridge_gauge_kill()` | Gauge | Gauge instance destroyed |
+
+### Variable Registration (Control Channel)
+
+The host sends a JSON registration message on `An24Bridge_Control`:
+
+```json
+{"cmd":"register_names","vars":[
+  {"name":"AIRSPEED INDICATED","type":"AVar","tier":0,"epsilon":0.5},
+  {"name":"ELECTRICAL MAIN BUS VOLTAGE","type":"AVar","tier":0,"epsilon":0.1}
+]}
+```
+
+The WASM module resolves each name to a Vars API ID via `fsVarsGetAVarId()` /
+`fsVarsGetLVarId()` and stores it in the shadow buffer with tier/epsilon config.
+
+### Vars API Dispatch (Frame Channel)
+
+Variable reads are dispatched by `VarType`:
+
+| VarType | Read function | Write function |
+|---------|--------------|----------------|
+| `AVar` | `fsVarsAVarGet(id)` | `fsVarsAVarSet(id, val)` |
+| `LVar` | `fsVarsLVarGet(id)` | `fsVarsLVarSet(id, val)` |
+| `BVar` | `fsVarsBVarGet(id)` | `fsVarsBVarSet(id, val)` |
+| `EVar` | `fsVarsEnvironmentVarGet(id)` | _(read-only)_ |
+
+### Build Requirements
+
+- MSFS 2024 WASM SDK (provides `MSFS.h`, `MSFS_Vars.h`, `MSFS_CommBus.h`)
+- `MSFS_WasmVersions.a` for MSFS 2024 WASM detection
+- emscripten toolchain or Visual Studio 2022 with MSFS Platform Toolset
+- Compile with: `-DENABLE_WASM_BRIDGE=ON -DMSFS_WASM_SDK_PATH=...`
+
+### Deployment
+
+The `.wasm` file can be placed in either the `wasm/` or `panel/` folder of the
+SimObject package. The module supports both panel.cfg (gauge registration) and
+systems.cfg (system registration). Using systems.cfg avoids VRAM allocation
+since no texture is needed.
