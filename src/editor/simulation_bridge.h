@@ -56,6 +56,13 @@ public:
     void rebuild(const JitBuildInput& input);
     [[nodiscard]] bool is_running() const;
 
+    // ── Pause ──
+
+    void pause();
+    void resume();
+    [[nodiscard]] bool is_paused() const;
+    void single_step();
+
     // ── Per-frame ──
 
     void step(double dt);

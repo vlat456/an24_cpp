@@ -23,7 +23,11 @@ MainMenu::Result MainMenu::render(WindowSystem& ws) {
     // Simulation indicator — always visible when running.
     if (focus.document && focus.document->isSimulationRunning()) {
         ImGui::SameLine();
-        ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), ">> SIM");
+        if (focus.document->isSimulationPaused()) {
+            ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f), ">> SIM [PAUSED]");
+        } else {
+            ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), ">> SIM");
+        }
     }
 
     // Root-only menus.
@@ -296,6 +300,29 @@ void MainMenu::renderBlueprintMenu(WindowSystem& ws, const FocusScope::Resolved&
             doc->autoLayoutEmbedded(win->resolved_scope_id());
         }
         win->pending_auto_fit = true;
+    }
+
+    ImGui::Separator();
+
+    bool const sim_running = doc->isSimulationRunning();
+    bool const sim_paused = doc->isSimulationPaused();
+
+    if (ImGui::MenuItem(sim_running ? "Restart Simulation" : "Start Simulation", "Space", false, !focus.is_read_only())) {
+        if (sim_paused) doc->resumeSimulation();
+        else doc->startSimulation();
+    }
+
+    if (ImGui::MenuItem("Stop Simulation", nullptr, false, sim_running)) {
+        doc->stopSimulation();
+    }
+
+    if (ImGui::MenuItem(sim_paused ? "Resume Simulation" : "Pause Simulation", "P", false, sim_running)) {
+        if (sim_paused) doc->resumeSimulation();
+        else doc->pauseSimulation();
+    }
+
+    if (ImGui::MenuItem("Single Step", "]", false, sim_running && sim_paused)) {
+        doc->singleStepSimulation();
     }
 
     // Set Name — root only.

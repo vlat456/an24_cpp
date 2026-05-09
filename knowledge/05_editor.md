@@ -111,7 +111,7 @@ public:
 File: `src/editor/document.h`
 
 ### SimulationBridge
-Encapsulates simulator lifecycle and signal cache:
+Encapsulates simulator lifecycle, signal cache, and pause control:
 ```cpp
 class SimulationBridge {
     Simulator<JIT_Solver> simulator_;
@@ -120,15 +120,23 @@ class SimulationBridge {
     std::unordered_set<core::InternedId> held_buttons_;
 
 public:
-    void rebuild(const bp2::Blueprint& blueprint,
-                 const ComponentRegistry& registry,
-                 const bp2::LibraryIndex* library_index);
-    void tick(double dt);
-    float get_signal(core::InternedId key) const;
-    void set_override(core::InternedId key, float value);
-    void clear_override(core::InternedId key);
+    void start(const JitBuildInput& input);
+    void stop();
+    void rebuild(const JitBuildInput& input);
+    [[nodiscard]] bool is_running() const;
+
+    void pause();
+    void resume();
+    [[nodiscard]] bool is_paused() const;
+    void single_step();
+
+    void step(double dt);
+    void update_node_content();
+    float get_signal_value(core::InternedId key) const;
 };
 ```
+
+**Pause behavior:** When paused, `step(dt)` is skipped but the simulator instance remains alive. `update_node_content()` continues to push the frozen frame's values to widgets. `single_step()` advances exactly one frame while paused. Stop clears the paused state and tears down the simulator.
 
 File: `src/editor/simulation_bridge.h`
 

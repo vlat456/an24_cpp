@@ -1,3 +1,1923 @@
-Start testing: May 01 10:26 CEST
+Start testing: May 09 08:34 CEST
 ----------------------------------------------------------
-End testing: May 01 10:26 CEST
+Failed to change working directory to "/Users/vladimir/an24_cpp/_deps/lua-src/lua-0.1.0-tests": No such file or directory
+1/120 Testing: lua-testsuite
+1/120 Test: lua-testsuite
+Command: ""
+Directory: /Users/vladimir/an24_cpp/_deps/lua-src/lua-0.1.0-tests
+"lua-testsuite" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"lua-testsuite" end time: May 09 08:34 CEST
+"lua-testsuite" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: push_state_tests_NOT_BUILT
+2/120 Testing: push_state_tests_NOT_BUILT
+2/120 Test: push_state_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"push_state_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"push_state_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"push_state_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: push_scheduler_tests_NOT_BUILT
+3/120 Testing: push_scheduler_tests_NOT_BUILT
+3/120 Test: push_scheduler_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"push_scheduler_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"push_scheduler_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"push_scheduler_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: push_build_validation_tests_NOT_BUILT
+4/120 Testing: push_build_validation_tests_NOT_BUILT
+4/120 Test: push_build_validation_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"push_build_validation_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"push_build_validation_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"push_build_validation_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: push_runtime_regression_tests_NOT_BUILT
+5/120 Testing: push_runtime_regression_tests_NOT_BUILT
+5/120 Test: push_runtime_regression_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"push_runtime_regression_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"push_runtime_regression_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"push_runtime_regression_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: electrical_island_build_tests_NOT_BUILT
+6/120 Testing: electrical_island_build_tests_NOT_BUILT
+6/120 Test: electrical_island_build_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"electrical_island_build_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"electrical_island_build_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"electrical_island_build_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: electrical_handle_build_tests_NOT_BUILT
+7/120 Testing: electrical_handle_build_tests_NOT_BUILT
+7/120 Test: electrical_handle_build_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"electrical_handle_build_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"electrical_handle_build_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"electrical_handle_build_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: electrical_subsolver_tests_NOT_BUILT
+8/120 Testing: electrical_subsolver_tests_NOT_BUILT
+8/120 Test: electrical_subsolver_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"electrical_subsolver_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"electrical_subsolver_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"electrical_subsolver_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: hydraulic_subsolver_tests_NOT_BUILT
+9/120 Testing: hydraulic_subsolver_tests_NOT_BUILT
+9/120 Test: hydraulic_subsolver_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"hydraulic_subsolver_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"hydraulic_subsolver_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"hydraulic_subsolver_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: hydraulic_integration_tests_NOT_BUILT
+10/120 Testing: hydraulic_integration_tests_NOT_BUILT
+10/120 Test: hydraulic_integration_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"hydraulic_integration_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"hydraulic_integration_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"hydraulic_integration_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: architecture_regression_tests_NOT_BUILT
+11/120 Testing: architecture_regression_tests_NOT_BUILT
+11/120 Test: architecture_regression_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"architecture_regression_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"architecture_regression_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"architecture_regression_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: port_queries_self_contained_tests_NOT_BUILT
+12/120 Testing: port_queries_self_contained_tests_NOT_BUILT
+12/120 Test: port_queries_self_contained_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"port_queries_self_contained_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"port_queries_self_contained_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"port_queries_self_contained_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: pid_tests_NOT_BUILT
+13/120 Testing: pid_tests_NOT_BUILT
+13/120 Test: pid_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"pid_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"pid_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"pid_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: pd_tests_NOT_BUILT
+14/120 Testing: pd_tests_NOT_BUILT
+14/120 Test: pd_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"pd_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"pd_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"pd_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: subtract_tests_NOT_BUILT
+15/120 Testing: subtract_tests_NOT_BUILT
+15/120 Test: subtract_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"subtract_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"subtract_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"subtract_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: logic_gates_tests_NOT_BUILT
+16/120 Testing: logic_gates_tests_NOT_BUILT
+16/120 Test: logic_gates_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"logic_gates_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"logic_gates_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"logic_gates_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: arithmetic_tests_NOT_BUILT
+17/120 Testing: arithmetic_tests_NOT_BUILT
+17/120 Test: arithmetic_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"arithmetic_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"arithmetic_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"arithmetic_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: splitter_tests_NOT_BUILT
+18/120 Testing: splitter_tests_NOT_BUILT
+18/120 Test: splitter_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"splitter_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"splitter_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"splitter_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: azs_tests_NOT_BUILT
+19/120 Testing: azs_tests_NOT_BUILT
+19/120 Test: azs_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"azs_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"azs_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"azs_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: logical_solver_tests_NOT_BUILT
+20/120 Testing: logical_solver_tests_NOT_BUILT
+20/120 Test: logical_solver_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"logical_solver_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"logical_solver_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"logical_solver_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: bridge_lowering_tests_NOT_BUILT
+21/120 Testing: bridge_lowering_tests_NOT_BUILT
+21/120 Test: bridge_lowering_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"bridge_lowering_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"bridge_lowering_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"bridge_lowering_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: current_sense_tests_NOT_BUILT
+22/120 Testing: current_sense_tests_NOT_BUILT
+22/120 Test: current_sense_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"current_sense_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"current_sense_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"current_sense_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: bug_hunt_regression_tests_NOT_BUILT
+23/120 Testing: bug_hunt_regression_tests_NOT_BUILT
+23/120 Test: bug_hunt_regression_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"bug_hunt_regression_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"bug_hunt_regression_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"bug_hunt_regression_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: slew_rate_tests_NOT_BUILT
+24/120 Testing: slew_rate_tests_NOT_BUILT
+24/120 Test: slew_rate_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"slew_rate_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"slew_rate_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"slew_rate_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: lut_tests_NOT_BUILT
+25/120 Testing: lut_tests_NOT_BUILT
+25/120 Test: lut_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"lut_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"lut_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"lut_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: time_delay_tests_NOT_BUILT
+26/120 Testing: time_delay_tests_NOT_BUILT
+26/120 Test: time_delay_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"time_delay_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"time_delay_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"time_delay_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: monostable_tests_NOT_BUILT
+27/120 Testing: monostable_tests_NOT_BUILT
+27/120 Test: monostable_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"monostable_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"monostable_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"monostable_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: sample_hold_tests_NOT_BUILT
+28/120 Testing: sample_hold_tests_NOT_BUILT
+28/120 Test: sample_hold_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"sample_hold_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"sample_hold_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"sample_hold_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: ui_math_tests_NOT_BUILT
+29/120 Testing: ui_math_tests_NOT_BUILT
+29/120 Test: ui_math_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"ui_math_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"ui_math_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"ui_math_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: ui_layout_tests_NOT_BUILT
+30/120 Testing: ui_layout_tests_NOT_BUILT
+30/120 Test: ui_layout_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"ui_layout_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"ui_layout_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"ui_layout_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: ui_renderer_tests_NOT_BUILT
+31/120 Testing: ui_renderer_tests_NOT_BUILT
+31/120 Test: ui_renderer_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"ui_renderer_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"ui_renderer_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"ui_renderer_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: ui_widget_purity_tests_NOT_BUILT
+32/120 Testing: ui_widget_purity_tests_NOT_BUILT
+32/120 Test: ui_widget_purity_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"ui_widget_purity_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"ui_widget_purity_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"ui_widget_purity_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: ui_scene_tests_NOT_BUILT
+33/120 Testing: ui_scene_tests_NOT_BUILT
+33/120 Test: ui_scene_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"ui_scene_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"ui_scene_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"ui_scene_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: ui_interning_tests_NOT_BUILT
+34/120 Testing: ui_interning_tests_NOT_BUILT
+34/120 Test: ui_interning_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"ui_interning_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"ui_interning_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"ui_interning_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: ui_grid_tests_NOT_BUILT
+35/120 Testing: ui_grid_tests_NOT_BUILT
+35/120 Test: ui_grid_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"ui_grid_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"ui_grid_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"ui_grid_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: ui_render_context_tests_NOT_BUILT
+36/120 Testing: ui_render_context_tests_NOT_BUILT
+36/120 Test: ui_render_context_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"ui_render_context_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"ui_render_context_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"ui_render_context_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: ui_linear_layout_tests_NOT_BUILT
+37/120 Testing: ui_linear_layout_tests_NOT_BUILT
+37/120 Test: ui_linear_layout_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"ui_linear_layout_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"ui_linear_layout_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"ui_linear_layout_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: visual_widget_tests_NOT_BUILT
+38/120 Testing: visual_widget_tests_NOT_BUILT
+38/120 Test: visual_widget_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"visual_widget_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"visual_widget_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"visual_widget_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: visual_grid_tests_NOT_BUILT
+39/120 Testing: visual_grid_tests_NOT_BUILT
+39/120 Test: visual_grid_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"visual_grid_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"visual_grid_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"visual_grid_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: visual_scene_v2_tests_NOT_BUILT
+40/120 Testing: visual_scene_v2_tests_NOT_BUILT
+40/120 Test: visual_scene_v2_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"visual_scene_v2_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"visual_scene_v2_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"visual_scene_v2_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: visual_wire_tests_NOT_BUILT
+41/120 Testing: visual_wire_tests_NOT_BUILT
+41/120 Test: visual_wire_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"visual_wire_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"visual_wire_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"visual_wire_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: visual_container_tests_NOT_BUILT
+42/120 Testing: visual_container_tests_NOT_BUILT
+42/120 Test: visual_container_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"visual_container_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"visual_container_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"visual_container_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: visual_primitives_tests_NOT_BUILT
+43/120 Testing: visual_primitives_tests_NOT_BUILT
+43/120 Test: visual_primitives_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"visual_primitives_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"visual_primitives_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"visual_primitives_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: node_slot_layout_tests_NOT_BUILT
+44/120 Testing: node_slot_layout_tests_NOT_BUILT
+44/120 Test: node_slot_layout_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"node_slot_layout_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"node_slot_layout_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"node_slot_layout_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: semantic_scene_snapshot_tests_NOT_BUILT
+45/120 Testing: semantic_scene_snapshot_tests_NOT_BUILT
+45/120 Test: semantic_scene_snapshot_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"semantic_scene_snapshot_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"semantic_scene_snapshot_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"semantic_scene_snapshot_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: presentation_compiler_tests_NOT_BUILT
+46/120 Testing: presentation_compiler_tests_NOT_BUILT
+46/120 Test: presentation_compiler_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"presentation_compiler_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"presentation_compiler_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"presentation_compiler_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: semantic_scene_hittest_tests_NOT_BUILT
+47/120 Testing: semantic_scene_hittest_tests_NOT_BUILT
+47/120 Test: semantic_scene_hittest_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"semantic_scene_hittest_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"semantic_scene_hittest_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"semantic_scene_hittest_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: scene_mutations_tests_NOT_BUILT
+48/120 Testing: scene_mutations_tests_NOT_BUILT
+48/120 Test: scene_mutations_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"scene_mutations_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"scene_mutations_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"scene_mutations_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: node_badge_tests_NOT_BUILT
+49/120 Testing: node_badge_tests_NOT_BUILT
+49/120 Test: node_badge_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"node_badge_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"node_badge_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"node_badge_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: document_safety_tests_NOT_BUILT
+50/120 Testing: document_safety_tests_NOT_BUILT
+50/120 Test: document_safety_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"document_safety_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"document_safety_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"document_safety_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: canvas_input_tests_NOT_BUILT
+51/120 Testing: canvas_input_tests_NOT_BUILT
+51/120 Test: canvas_input_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"canvas_input_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"canvas_input_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"canvas_input_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: window_invariants_tests_NOT_BUILT
+52/120 Testing: window_invariants_tests_NOT_BUILT
+52/120 Test: window_invariants_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"window_invariants_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"window_invariants_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"window_invariants_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: oscilloscope_stats_tests_NOT_BUILT
+53/120 Testing: oscilloscope_stats_tests_NOT_BUILT
+53/120 Test: oscilloscope_stats_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"oscilloscope_stats_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"oscilloscope_stats_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"oscilloscope_stats_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: auto_layout_tests_NOT_BUILT
+54/120 Testing: auto_layout_tests_NOT_BUILT
+54/120 Test: auto_layout_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"auto_layout_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"auto_layout_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"auto_layout_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: canvas_scene_snapshot_tests_NOT_BUILT
+55/120 Testing: canvas_scene_snapshot_tests_NOT_BUILT
+55/120 Test: canvas_scene_snapshot_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"canvas_scene_snapshot_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"canvas_scene_snapshot_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"canvas_scene_snapshot_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: pi_zn_tuner_tests_NOT_BUILT
+56/120 Testing: pi_zn_tuner_tests_NOT_BUILT
+56/120 Test: pi_zn_tuner_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"pi_zn_tuner_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"pi_zn_tuner_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"pi_zn_tuner_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: port_registry_tests_NOT_BUILT
+57/120 Testing: port_registry_tests_NOT_BUILT
+57/120 Test: port_registry_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"port_registry_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"port_registry_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"port_registry_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: port_macro_tests_NOT_BUILT
+58/120 Testing: port_macro_tests_NOT_BUILT
+58/120 Test: port_macro_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"port_macro_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"port_macro_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"port_macro_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: editor_componentvariant_tests_NOT_BUILT
+59/120 Testing: editor_componentvariant_tests_NOT_BUILT
+59/120 Test: editor_componentvariant_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"editor_componentvariant_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"editor_componentvariant_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"editor_componentvariant_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: editor_settings_tests_NOT_BUILT
+60/120 Testing: editor_settings_tests_NOT_BUILT
+60/120 Test: editor_settings_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"editor_settings_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"editor_settings_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"editor_settings_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: port_layout_resolver_tests_NOT_BUILT
+61/120 Testing: port_layout_resolver_tests_NOT_BUILT
+61/120 Test: port_layout_resolver_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"port_layout_resolver_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"port_layout_resolver_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"port_layout_resolver_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: editor_viewport_tests_NOT_BUILT
+62/120 Testing: editor_viewport_tests_NOT_BUILT
+62/120 Test: editor_viewport_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"editor_viewport_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"editor_viewport_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"editor_viewport_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: json_parser_tests_NOT_BUILT
+63/120 Testing: json_parser_tests_NOT_BUILT
+63/120 Test: json_parser_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"json_parser_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"json_parser_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"json_parser_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: factory_validation_tests_NOT_BUILT
+64/120 Testing: factory_validation_tests_NOT_BUILT
+64/120 Test: factory_validation_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"factory_validation_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"factory_validation_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"factory_validation_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: blueprint_integration_tests_NOT_BUILT
+65/120 Testing: blueprint_integration_tests_NOT_BUILT
+65/120 Test: blueprint_integration_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"blueprint_integration_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"blueprint_integration_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"blueprint_integration_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: blueprint_loading_tests_NOT_BUILT
+66/120 Testing: blueprint_loading_tests_NOT_BUILT
+66/120 Test: blueprint_loading_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"blueprint_loading_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"blueprint_loading_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"blueprint_loading_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: provider_pattern_tests_NOT_BUILT
+67/120 Testing: provider_pattern_tests_NOT_BUILT
+67/120 Test: provider_pattern_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"provider_pattern_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"provider_pattern_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"provider_pattern_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: asym_tmo_tests_NOT_BUILT
+68/120 Testing: asym_tmo_tests_NOT_BUILT
+68/120 Test: asym_tmo_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"asym_tmo_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"asym_tmo_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"asym_tmo_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: lut_codegen_tests_NOT_BUILT
+69/120 Testing: lut_codegen_tests_NOT_BUILT
+69/120 Test: lut_codegen_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"lut_codegen_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"lut_codegen_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"lut_codegen_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: port_map_regression_tests_NOT_BUILT
+70/120 Testing: port_map_regression_tests_NOT_BUILT
+70/120 Test: port_map_regression_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"port_map_regression_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"port_map_regression_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"port_map_regression_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: and_gate_debug_tests_NOT_BUILT
+71/120 Testing: and_gate_debug_tests_NOT_BUILT
+71/120 Test: and_gate_debug_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"and_gate_debug_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"and_gate_debug_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"and_gate_debug_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: codegen_sanitize_tests_NOT_BUILT
+72/120 Testing: codegen_sanitize_tests_NOT_BUILT
+72/120 Test: codegen_sanitize_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"codegen_sanitize_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"codegen_sanitize_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"codegen_sanitize_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: v_to_bool_tests_NOT_BUILT
+73/120 Testing: v_to_bool_tests_NOT_BUILT
+73/120 Test: v_to_bool_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"v_to_bool_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"v_to_bool_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"v_to_bool_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: pi_p_tests_NOT_BUILT
+74/120 Testing: pi_p_tests_NOT_BUILT
+74/120 Test: pi_p_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"pi_p_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"pi_p_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"pi_p_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: inspector_tests_NOT_BUILT
+75/120 Testing: inspector_tests_NOT_BUILT
+75/120 Test: inspector_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"inspector_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"inspector_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"inspector_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: properties_window_tests_NOT_BUILT
+76/120 Testing: properties_window_tests_NOT_BUILT
+76/120 Test: properties_window_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"properties_window_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"properties_window_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"properties_window_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: script_editor_tests_NOT_BUILT
+77/120 Testing: script_editor_tests_NOT_BUILT
+77/120 Test: script_editor_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"script_editor_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"script_editor_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"script_editor_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: codegen_accumulator_tests_NOT_BUILT
+78/120 Testing: codegen_accumulator_tests_NOT_BUILT
+78/120 Test: codegen_accumulator_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"codegen_accumulator_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"codegen_accumulator_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"codegen_accumulator_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: aot_composite_tests_NOT_BUILT
+79/120 Testing: aot_composite_tests_NOT_BUILT
+79/120 Test: aot_composite_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"aot_composite_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"aot_composite_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"aot_composite_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: jit_aot_bridge_equivalence_tests_NOT_BUILT
+80/120 Testing: jit_aot_bridge_equivalence_tests_NOT_BUILT
+80/120 Test: jit_aot_bridge_equivalence_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"jit_aot_bridge_equivalence_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"jit_aot_bridge_equivalence_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"jit_aot_bridge_equivalence_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: production_path_parity_tests_NOT_BUILT
+81/120 Testing: production_path_parity_tests_NOT_BUILT
+81/120 Test: production_path_parity_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"production_path_parity_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"production_path_parity_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"production_path_parity_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: production_path_port_map_tests_NOT_BUILT
+82/120 Testing: production_path_port_map_tests_NOT_BUILT
+82/120 Test: production_path_port_map_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"production_path_port_map_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"production_path_port_map_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"production_path_port_map_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: production_path_push_runtime_tests_NOT_BUILT
+83/120 Testing: production_path_push_runtime_tests_NOT_BUILT
+83/120 Test: production_path_push_runtime_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"production_path_push_runtime_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"production_path_push_runtime_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"production_path_push_runtime_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: asym_slew_rate_tests_NOT_BUILT
+84/120 Testing: asym_slew_rate_tests_NOT_BUILT
+84/120 Test: asym_slew_rate_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"asym_slew_rate_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"asym_slew_rate_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"asym_slew_rate_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: integrator_tests_NOT_BUILT
+85/120 Testing: integrator_tests_NOT_BUILT
+85/120 Test: integrator_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"integrator_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"integrator_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"integrator_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: accumulator_tests_NOT_BUILT
+86/120 Testing: accumulator_tests_NOT_BUILT
+86/120 Test: accumulator_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"accumulator_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"accumulator_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"accumulator_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: lua_script_tests_NOT_BUILT
+87/120 Testing: lua_script_tests_NOT_BUILT
+87/120 Test: lua_script_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"lua_script_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"lua_script_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"lua_script_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: lua_validate_tests_NOT_BUILT
+88/120 Testing: lua_validate_tests_NOT_BUILT
+88/120 Test: lua_validate_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"lua_validate_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"lua_validate_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"lua_validate_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: sam28_tests_NOT_BUILT
+89/120 Testing: sam28_tests_NOT_BUILT
+89/120 Test: sam28_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"sam28_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"sam28_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"sam28_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: clamp_normalize_tests_NOT_BUILT
+90/120 Testing: clamp_normalize_tests_NOT_BUILT
+90/120 Test: clamp_normalize_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"clamp_normalize_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"clamp_normalize_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"clamp_normalize_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: comparison_components_tests_NOT_BUILT
+91/120 Testing: comparison_components_tests_NOT_BUILT
+91/120 Test: comparison_components_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"comparison_components_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"comparison_components_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"comparison_components_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: spring_tests_NOT_BUILT
+92/120 Testing: spring_tests_NOT_BUILT
+92/120 Test: spring_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"spring_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"spring_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"spring_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: v3_migration_tests_NOT_BUILT
+93/120 Testing: v3_migration_tests_NOT_BUILT
+93/120 Test: v3_migration_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"v3_migration_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"v3_migration_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"v3_migration_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: command_tests_NOT_BUILT
+94/120 Testing: command_tests_NOT_BUILT
+94/120 Test: command_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"command_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"command_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"command_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: unmapped_port_regression_tests_NOT_BUILT
+95/120 Testing: unmapped_port_regression_tests_NOT_BUILT
+95/120 Test: unmapped_port_regression_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"unmapped_port_regression_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"unmapped_port_regression_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"unmapped_port_regression_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: bp2_path_tests_NOT_BUILT
+96/120 Testing: bp2_path_tests_NOT_BUILT
+96/120 Test: bp2_path_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"bp2_path_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"bp2_path_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"bp2_path_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: bp2_interface_tests_NOT_BUILT
+97/120 Testing: bp2_interface_tests_NOT_BUILT
+97/120 Test: bp2_interface_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"bp2_interface_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"bp2_interface_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"bp2_interface_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: bp2_blueprint_tests_NOT_BUILT
+98/120 Testing: bp2_blueprint_tests_NOT_BUILT
+98/120 Test: bp2_blueprint_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"bp2_blueprint_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"bp2_blueprint_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"bp2_blueprint_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: bp2_codec_tests_NOT_BUILT
+99/120 Testing: bp2_codec_tests_NOT_BUILT
+99/120 Test: bp2_codec_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"bp2_codec_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"bp2_codec_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"bp2_codec_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: bp2_flattener_tests_NOT_BUILT
+100/120 Testing: bp2_flattener_tests_NOT_BUILT
+100/120 Test: bp2_flattener_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"bp2_flattener_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"bp2_flattener_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"bp2_flattener_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: bp2_editor_model_tests_NOT_BUILT
+101/120 Testing: bp2_editor_model_tests_NOT_BUILT
+101/120 Test: bp2_editor_model_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"bp2_editor_model_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"bp2_editor_model_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"bp2_editor_model_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: bp2_bake_tests_NOT_BUILT
+102/120 Testing: bp2_bake_tests_NOT_BUILT
+102/120 Test: bp2_bake_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"bp2_bake_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"bp2_bake_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"bp2_bake_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: bp2_validation_tests_NOT_BUILT
+103/120 Testing: bp2_validation_tests_NOT_BUILT
+103/120 Test: bp2_validation_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"bp2_validation_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"bp2_validation_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"bp2_validation_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: electrical_primitives_tests_NOT_BUILT
+104/120 Testing: electrical_primitives_tests_NOT_BUILT
+104/120 Test: electrical_primitives_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"electrical_primitives_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"electrical_primitives_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"electrical_primitives_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: electrical_parity_fixtures_tests_NOT_BUILT
+105/120 Testing: electrical_parity_fixtures_tests_NOT_BUILT
+105/120 Test: electrical_parity_fixtures_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"electrical_parity_fixtures_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"electrical_parity_fixtures_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"electrical_parity_fixtures_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: external_ref_signal_mapping_tests_NOT_BUILT
+106/120 Testing: external_ref_signal_mapping_tests_NOT_BUILT
+106/120 Test: external_ref_signal_mapping_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"external_ref_signal_mapping_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"external_ref_signal_mapping_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"external_ref_signal_mapping_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: signal_key_resolver_tests_NOT_BUILT
+107/120 Testing: signal_key_resolver_tests_NOT_BUILT
+107/120 Test: signal_key_resolver_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"signal_key_resolver_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"signal_key_resolver_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"signal_key_resolver_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: knob_switch_tests_NOT_BUILT
+108/120 Testing: knob_switch_tests_NOT_BUILT
+108/120 Test: knob_switch_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"knob_switch_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"knob_switch_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"knob_switch_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: export_module_tests_NOT_BUILT
+109/120 Testing: export_module_tests_NOT_BUILT
+109/120 Test: export_module_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"export_module_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"export_module_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"export_module_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: codegen_export_parity_tests_NOT_BUILT
+110/120 Testing: codegen_export_parity_tests_NOT_BUILT
+110/120 Test: codegen_export_parity_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"codegen_export_parity_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"codegen_export_parity_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"codegen_export_parity_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: bp2_library_index_tests_NOT_BUILT
+111/120 Testing: bp2_library_index_tests_NOT_BUILT
+111/120 Test: bp2_library_index_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"bp2_library_index_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"bp2_library_index_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"bp2_library_index_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: elaborate_jit_parity_tests_NOT_BUILT
+112/120 Testing: elaborate_jit_parity_tests_NOT_BUILT
+112/120 Test: elaborate_jit_parity_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"elaborate_jit_parity_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"elaborate_jit_parity_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"elaborate_jit_parity_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: cross_path_signal_equivalence_tests_NOT_BUILT
+113/120 Testing: cross_path_signal_equivalence_tests_NOT_BUILT
+113/120 Test: cross_path_signal_equivalence_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"cross_path_signal_equivalence_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"cross_path_signal_equivalence_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"cross_path_signal_equivalence_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: pneumatic_integration_tests_NOT_BUILT
+114/120 Testing: pneumatic_integration_tests_NOT_BUILT
+114/120 Test: pneumatic_integration_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"pneumatic_integration_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"pneumatic_integration_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"pneumatic_integration_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: simvar_backend_tests_NOT_BUILT
+115/120 Testing: simvar_backend_tests_NOT_BUILT
+115/120 Test: simvar_backend_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"simvar_backend_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"simvar_backend_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"simvar_backend_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: simconnect_stub_tests_NOT_BUILT
+116/120 Testing: simconnect_stub_tests_NOT_BUILT
+116/120 Test: simconnect_stub_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"simconnect_stub_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"simconnect_stub_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"simconnect_stub_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: simconnect_bridge_tests_NOT_BUILT
+117/120 Testing: simconnect_bridge_tests_NOT_BUILT
+117/120 Test: simconnect_bridge_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"simconnect_bridge_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"simconnect_bridge_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"simconnect_bridge_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: mock_provider_tests_NOT_BUILT
+118/120 Testing: mock_provider_tests_NOT_BUILT
+118/120 Test: mock_provider_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"mock_provider_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"mock_provider_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"mock_provider_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: provider_host_tests_NOT_BUILT
+119/120 Testing: provider_host_tests_NOT_BUILT
+119/120 Test: provider_host_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"provider_host_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"provider_host_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"provider_host_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+Unable to find executable: wire_protocol_tests_NOT_BUILT
+120/120 Testing: wire_protocol_tests_NOT_BUILT
+120/120 Test: wire_protocol_tests_NOT_BUILT
+Command: ""
+Directory: /Users/vladimir/an24_cpp/tests
+"wire_protocol_tests_NOT_BUILT" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"wire_protocol_tests_NOT_BUILT" end time: May 09 08:34 CEST
+"wire_protocol_tests_NOT_BUILT" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: May 09 08:34 CEST

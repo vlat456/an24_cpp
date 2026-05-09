@@ -41,6 +41,7 @@ private:
     void handleEvents();
     void update();
     void render();
+    void renderSimulationToolbar();
 
     SDL_Window* window_ = nullptr;
     SDL_GLContext gl_context_ = nullptr;

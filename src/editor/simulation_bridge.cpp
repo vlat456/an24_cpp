@@ -34,6 +34,8 @@ struct SimulationBridge::Impl {
 
     Simulator<JIT_Solver> simulation;
     bool running = false;
+    bool paused = false;
+    bool single_step_pending = false;
 
     /// Provider host for external simulator I/O (SimConnect, etc.)
     SimvarProviderHost provider_host;
@@ -408,6 +410,8 @@ void SimulationBridge::start(const JitBuildInput& input) {
             i.provider_host.build(input, i.simulation);
             i.build_signal_cache();
             i.running = true;
+            i.paused = false;
+            i.single_step_pending = false;
             set_windows_simulation_mode(true);
         } catch (const std::runtime_error& e) {
             spdlog::error("[sim] Failed to start simulation: {}", e.what());
@@ -427,6 +431,8 @@ void SimulationBridge::stop() {
     i.typed_overrides.clear();
     i.held_buttons.clear();
     i.running = false;
+    i.paused = false;
+    i.single_step_pending = false;
     reset_node_content();              // Reset runtime states to blueprint defaults
     set_windows_simulation_mode(false);
 }
@@ -453,11 +459,35 @@ void SimulationBridge::rebuild(const JitBuildInput& input) {
     return impl_->running;
 }
 
+// ── Pause ──
+
+void SimulationBridge::pause() {
+    auto& i = *impl_;
+    if (i.running) i.paused = true;
+}
+
+void SimulationBridge::resume() {
+    auto& i = *impl_;
+    i.paused = false;
+    i.single_step_pending = false;
+}
+
+[[nodiscard]] bool SimulationBridge::is_paused() const {
+    return impl_->paused;
+}
+
+void SimulationBridge::single_step() {
+    auto& i = *impl_;
+    if (i.running && i.paused) i.single_step_pending = true;
+}
+
 // ── Per-frame ──
 
 void SimulationBridge::step(double dt) {
     auto& i = *impl_;
     if (!i.running) return;
+    if (i.paused && !i.single_step_pending) return;
+    i.single_step_pending = false;
 
     i.provider_host.poll(dt);
 

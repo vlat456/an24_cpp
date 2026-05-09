@@ -118,6 +118,19 @@ cd build && ctest
 | Pneumatic solve freq | 5 Hz | Nodal solver |
 | SIGNAL_BOOL_THRESHOLD | 0.5f | `simvar_provider.h` |
 
+## Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| Space | Start / Stop simulation |
+| P | Pause / Resume simulation |
+| ] | Single step (while paused) |
+| Ctrl+Z | Undo |
+| Ctrl+Y / Ctrl+Shift+Z | Redo |
+| Ctrl+S | Save |
+| Ctrl+N | New document |
+| Ctrl+O | Open document |
+
 ## Key Directories
 
 ```

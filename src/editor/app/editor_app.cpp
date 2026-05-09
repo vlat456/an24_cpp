@@ -274,6 +274,17 @@ void EditorApp::update() {
                 if (doc->isSimulationRunning()) doc->stopSimulation();
                 else doc->startSimulation();
             }
+            if (ImGui::IsKeyPressed(ImGuiKey_P)) {
+                if (doc->isSimulationRunning()) {
+                    if (doc->isSimulationPaused()) doc->resumeSimulation();
+                    else doc->pauseSimulation();
+                }
+            }
+            if (ImGui::IsKeyPressed(ImGuiKey_RightBracket)) {
+                if (doc->isSimulationRunning() && doc->isSimulationPaused()) {
+                    doc->singleStepSimulation();
+                }
+            }
             if (ImGui::IsKeyChordPressed(ImGuiMod_Shortcut | ImGuiKey_Z)) {
                 doc->performUndo();
             }
@@ -298,7 +309,9 @@ void EditorApp::update() {
         }
 
         { SCOPED_PROFILE(profiler_, prof_osc_sample_);
-        ws_.oscilloscope.sample(*doc, doc->isSimulationRunning(), io.DeltaTime);
+        if (!doc->isSimulationPaused()) {
+            ws_.oscilloscope.sample(*doc, doc->isSimulationRunning(), io.DeltaTime);
+        }
         }
     }
 }
@@ -332,6 +345,8 @@ void EditorApp::render() {
     float const menu_height = ImGui::GetFrameHeight();
     float const available_h = io.DisplaySize.y - menu_height;
     float const available_w = io.DisplaySize.x;
+
+    renderSimulationToolbar();
 
     { SCOPED_PROFILE(profiler_, prof_render_inspector_);
     inspector_panel_.setVisible(ws_.showInspector);
@@ -386,4 +401,107 @@ void EditorApp::render() {
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     SDL_GL_SwapWindow(window_);
     }
+}
+
+namespace {
+
+std::string utf8_from_codepoint(uint32_t cp) {
+    std::string s;
+    if (cp <= 0x7FF) {
+        s += static_cast<char>(0xC0 | (cp >> 6));
+        s += static_cast<char>(0x80 | (cp & 0x3F));
+    } else {
+        s += static_cast<char>(0xE0 | (cp >> 12));
+        s += static_cast<char>(0x80 | ((cp >> 6) & 0x3F));
+        s += static_cast<char>(0x80 | (cp & 0x3F));
+    }
+    return s;
+}
+
+} // namespace
+
+void EditorApp::renderSimulationToolbar() {
+    Document* doc = ws_.activeDocument();
+    if (!doc) return;
+
+    ImVec2 const display = ImGui::GetIO().DisplaySize;
+    float const menu_height = ImGui::GetFrameHeight();
+    float const pad = 8.0f;
+    float const btn_w = 32.0f;
+    float const btn_h = 28.0f;
+    float const gap = 4.0f;
+    int const btn_count = 4;
+    float const width = btn_count * btn_w + (btn_count + 1) * gap;
+    float const height = btn_h + 2 * gap + 18.0f;
+
+    float const x = display.x - width - pad;
+    float const y = menu_height + pad;
+
+    ImGui::SetNextWindowPos(ImVec2(x, y), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Always);
+    ImGui::SetNextWindowBgAlpha(0.90f);
+
+    ImGuiWindowFlags const flags =
+        ImGuiWindowFlags_NoDecoration |
+        ImGuiWindowFlags_NoSavedSettings |
+        ImGuiWindowFlags_NoMove |
+        ImGuiWindowFlags_NoNav |
+        ImGuiWindowFlags_NoFocusOnAppearing;
+
+    if (!ImGui::Begin("##sim_toolbar", nullptr, flags)) {
+        ImGui::End();
+        return;
+    }
+
+    bool const running = doc->isSimulationRunning();
+    bool const paused = doc->isSimulationPaused();
+
+    ImFont* icon_font = reinterpret_cast<ImFont*>(icon_font_.handle);
+    if (icon_font) ImGui::PushFont(icon_font);
+
+    std::string const play_label = utf8_from_codepoint(editor::IconFontLoader::Codepoint::kPlay);
+    std::string const stop_label = utf8_from_codepoint(editor::IconFontLoader::Codepoint::kStop);
+    std::string const pause_label = utf8_from_codepoint(editor::IconFontLoader::Codepoint::kPause);
+    std::string const step_label = utf8_from_codepoint(editor::IconFontLoader::Codepoint::kStepFwd);
+
+    ImGui::BeginDisabled(running && !paused);
+    if (ImGui::Button(play_label.c_str(), ImVec2(btn_w, btn_h))) {
+        if (paused) doc->resumeSimulation();
+        else doc->startSimulation();
+    }
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Start");
+    ImGui::EndDisabled();
+
+    ImGui::SameLine(0.0f, gap);
+
+    ImGui::BeginDisabled(!running);
+    if (ImGui::Button(stop_label.c_str(), ImVec2(btn_w, btn_h))) {
+        doc->stopSimulation();
+    }
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Stop");
+    ImGui::EndDisabled();
+
+    ImGui::SameLine(0.0f, gap);
+
+    ImGui::BeginDisabled(!running);
+    std::string const toggle_label = paused ? play_label : pause_label;
+    if (ImGui::Button(toggle_label.c_str(), ImVec2(btn_w, btn_h))) {
+        if (paused) doc->resumeSimulation();
+        else doc->pauseSimulation();
+    }
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip(paused ? "Resume" : "Pause");
+    ImGui::EndDisabled();
+
+    ImGui::SameLine(0.0f, gap);
+
+    ImGui::BeginDisabled(!running || !paused);
+    if (ImGui::Button(step_label.c_str(), ImVec2(btn_w, btn_h))) {
+        doc->singleStepSimulation();
+    }
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Single Step");
+    ImGui::EndDisabled();
+
+    if (icon_font) ImGui::PopFont();
+
+    ImGui::End();
 }

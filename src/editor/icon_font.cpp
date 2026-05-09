@@ -13,6 +13,10 @@ ui::IDrawList::NativeFont IconFontLoader::load(ImFontAtlas* atlas, const char* t
         Codepoint::kLocked,    Codepoint::kLocked,
         Codepoint::kWarning,   Codepoint::kWarning,
         Codepoint::kError,     Codepoint::kError,
+        Codepoint::kPlay,      Codepoint::kPlay,
+        Codepoint::kStop,      Codepoint::kStop,
+        Codepoint::kPause,     Codepoint::kPause,
+        Codepoint::kStepFwd,   Codepoint::kStepFwd,
         0
     };
 

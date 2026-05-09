@@ -121,6 +121,11 @@ public:
     void stopSimulation();
     void rebuildSimulation();
 
+    bool isSimulationPaused() const { return sim_bridge_.is_paused(); }
+    void pauseSimulation() { sim_bridge_.pause(); }
+    void resumeSimulation() { sim_bridge_.resume(); }
+    void singleStepSimulation() { sim_bridge_.single_step(); }
+
     /// Cancel gestures, rebuild every window's scene, then rebuild simulation.
     void rebuildAllWindows();
 

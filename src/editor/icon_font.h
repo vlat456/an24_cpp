@@ -24,6 +24,10 @@ struct IconFontLoader {
         static constexpr uint32_t kLocked    = 0xF023;   // fa-lock
         static constexpr uint32_t kWarning   = 0xF071;   // fa-triangle-exclamation
         static constexpr uint32_t kError     = 0xF057;   // fa-circle-xmark
+        static constexpr uint32_t kPlay      = 0xF04B;   // fa-play
+        static constexpr uint32_t kStop      = 0xF04D;   // fa-stop
+        static constexpr uint32_t kPause     = 0xF04C;   // fa-pause
+        static constexpr uint32_t kStepFwd   = 0xF051;   // fa-step-forward
     };
 
     /// Load FontAwesome from TTF path, adding only the glyphs we need.
