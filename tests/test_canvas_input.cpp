@@ -1094,7 +1094,7 @@ TEST(CanvasInputDelete, DeleteEmbeddedHostRemovesHostedNested) {
     auto inner_def = std::make_unique<bp2::Blueprint>();
     *inner_def = inner_def->with_id(I.intern("CompositeType"));
     *inner_def = inner_def->with_interface(bp2::Interface{});
-    
+
     inner_def = std::make_unique<bp2::Blueprint>(inner_def->with_id(I.intern("CompositeType")));
     host_node.blueprint_instance().source = bp2::Blueprint::Node::BlueprintSource::make_embedded(
         std::move(inner_def)
@@ -1115,6 +1115,85 @@ TEST(CanvasInputDelete, DeleteEmbeddedHostRemovesHostedNested) {
     input.on_key(Key::Delete);
 
     EXPECT_EQ(model.current().find_node(I.intern("host1")), nullptr);
+}
+
+TEST(CanvasInputDelete, MultiNodeDeleteWithManyWires) {
+    core::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto hub = make_node(I, "hub", "Bus", 200.0f, 200.0f);
+    set_iface(hub, {
+        make_port(I, "p1", Domain::Electrical, bp2::Direction::InOut, PortType::V),
+        make_port(I, "p2", Domain::Electrical, bp2::Direction::InOut, PortType::V),
+        make_port(I, "p3", Domain::Electrical, bp2::Direction::InOut, PortType::V),
+        make_port(I, "p4", Domain::Electrical, bp2::Direction::InOut, PortType::V),
+    });
+
+    auto n1 = make_node(I, "n1", "Battery", 100.0f, 100.0f);
+    set_iface(n1, { make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V) });
+    auto n2 = make_node(I, "n2", "Battery", 300.0f, 100.0f);
+    set_iface(n2, { make_port(I, "v_out", Domain::Electrical, bp2::Direction::Output, PortType::V) });
+    auto n3 = make_node(I, "n3", "Lamp", 100.0f, 300.0f);
+    set_iface(n3, { make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V) });
+    auto n4 = make_node(I, "n4", "Lamp", 300.0f, 300.0f);
+    set_iface(n4, { make_port(I, "v_in", Domain::Electrical, bp2::Direction::Input, PortType::V) });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(hub));
+    bp = bp.with_node(std::move(n1));
+    bp = bp.with_node(std::move(n2));
+    bp = bp.with_node(std::move(n3));
+    bp = bp.with_node(std::move(n4));
+    bp = bp.with_wire(make_wire(I, arena, "w1", "n1", "v_out", "hub", "p1"));
+    bp = bp.with_wire(make_wire(I, arena, "w2", "n2", "v_out", "hub", "p2"));
+    bp = bp.with_wire(make_wire(I, arena, "w3", "hub", "p3", "n3", "v_in"));
+    bp = bp.with_wire(make_wire(I, arena, "w4", "hub", "p4", "n4", "v_in"));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, std::span<const core::InternedId>{}, ci_reg());
+
+    Viewport vp;
+    auto host = create_editor_model_host(model, &ci_reg(), &I, &arena);
+    CanvasInput input(scene, vp, host.get(), I, arena, WindowScopeId::root());
+    const ui::Pt canvas_min(0.0f, 0.0f);
+
+    auto* w_hub = dynamic_cast<visual::Widget*>(scene.find("hub"));
+    auto* w_n1  = dynamic_cast<visual::Widget*>(scene.find("n1"));
+    auto* w_n3  = dynamic_cast<visual::Widget*>(scene.find("n3"));
+    ASSERT_NE(w_hub, nullptr);
+    ASSERT_NE(w_n1, nullptr);
+    ASSERT_NE(w_n3, nullptr);
+
+    input.on_mouse_down(w_hub->worldPos() + ui::Pt(10.0f, 10.0f), MouseButton::Left, canvas_min);
+    input.on_mouse_up(MouseButton::Left, w_hub->worldPos() + ui::Pt(10.0f, 10.0f), canvas_min);
+    input.on_mouse_down(w_n1->worldPos() + ui::Pt(10.0f, 10.0f), MouseButton::Left, canvas_min, Modifiers{.ctrl = true});
+    input.on_mouse_up(MouseButton::Left, w_n1->worldPos() + ui::Pt(10.0f, 10.0f), canvas_min);
+    input.on_mouse_down(w_n3->worldPos() + ui::Pt(10.0f, 10.0f), MouseButton::Left, canvas_min, Modifiers{.ctrl = true});
+    input.on_mouse_up(MouseButton::Left, w_n3->worldPos() + ui::Pt(10.0f, 10.0f), canvas_min);
+    ASSERT_EQ(input.selected_node_ids().size(), 3u);
+
+    const size_t undo_before = model.undo_depth();
+    input.on_key(Key::Delete);
+
+    ASSERT_EQ(model.undo_depth(), undo_before + 1)
+        << "Multi-node delete with many wires must be a single undo checkpoint";
+    EXPECT_EQ(model.current().find_node(I.intern("hub")), nullptr);
+    EXPECT_EQ(model.current().find_node(I.intern("n1")), nullptr);
+    EXPECT_EQ(model.current().find_node(I.intern("n3")), nullptr);
+    EXPECT_NE(model.current().find_node(I.intern("n2")), nullptr);
+    EXPECT_NE(model.current().find_node(I.intern("n4")), nullptr);
+    EXPECT_EQ(model.current().find_wire(I.intern("w1")), nullptr);
+    EXPECT_EQ(model.current().find_wire(I.intern("w2")), nullptr);
+    EXPECT_EQ(model.current().find_wire(I.intern("w3")), nullptr);
+    EXPECT_EQ(model.current().find_wire(I.intern("w4")), nullptr);
+    EXPECT_TRUE(model.current().wires().empty());
+
+    model.undo();
+    EXPECT_NE(model.current().find_node(I.intern("hub")), nullptr);
+    EXPECT_NE(model.current().find_node(I.intern("n1")), nullptr);
+    EXPECT_NE(model.current().find_node(I.intern("n3")), nullptr);
+    EXPECT_EQ(model.current().wires().size(), 4u);
 }
 
 TEST(CanvasInputDrag, MultiNodeDragIsSingleUndoStep) {

@@ -354,6 +354,17 @@ InputResult CanvasInput::on_key(Key key) {
         case Key::Backspace: {
             if (selected_node_ids_.empty()) break;
 
+            // Build node->wires adjacency map in a single pass over all wires.
+            // This avoids the previous O(S x W) nested loop.
+            std::unordered_map<core::InternedId, std::vector<core::InternedId>> node_to_wires;
+            node_to_wires.reserve(host_->wires().size() * 2);
+            for (const auto& w : host_->wires()) {
+                auto [src_node, _src_port] = editor_math::path_to_node_port(w.source, *arena_);
+                auto [tgt_node, _tgt_port] = editor_math::path_to_node_port(w.target, *arena_);
+                if (!src_node.empty()) node_to_wires[src_node].push_back(w.id);
+                if (!tgt_node.empty() && tgt_node != src_node) node_to_wires[tgt_node].push_back(w.id);
+            }
+
             // Collect connected wires before mutation so we can remove them
             // incrementally from the visual scene afterward.
             std::vector<core::InternedId> all_connected_wires;
@@ -362,14 +373,12 @@ InputResult CanvasInput::on_key(Key key) {
             host_->mutate_atomically([&] {
                 for (const auto& nid : selected_node_ids_) {
                     if (!nid.empty()) {
+                        auto it = node_to_wires.find(nid);
                         std::vector<core::InternedId> connected_wires;
-                        connected_wires.reserve(host_->wires().size());
-                        for (const auto& w : host_->wires()) {
-                            auto [src_node, _src_port] = editor_math::path_to_node_port(w.source, *arena_);
-                            auto [tgt_node, _tgt_port] = editor_math::path_to_node_port(w.target, *arena_);
-                            if (src_node == nid || tgt_node == nid) {
-                                connected_wires.push_back(w.id);
-                                all_connected_wires.push_back(w.id);
+                        if (it != node_to_wires.end()) {
+                            connected_wires = std::move(it->second);
+                            for (core::InternedId wid : connected_wires) {
+                                all_connected_wires.push_back(wid);
                             }
                         }
                         host_->remove_node(nid, std::move(connected_wires));
