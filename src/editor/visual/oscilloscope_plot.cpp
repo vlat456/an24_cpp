@@ -9,22 +9,27 @@ void render_channel_plot(const OscilloscopeProbe& probe,
                          float min_v,
                          float max_v,
                          float row_h,
-                         float width) {
+                         float width,
+                         std::array<float, kVisibleSamples>& vals) {
     ImGui::PushID(static_cast<int>(probe.wire_iid.raw()));
     ImGui::PushStyleColor(ImGuiCol_PlotLines, probe.color);
     ImGui::TextUnformatted(probe.label.c_str());
-    if (samples.empty()) {
-        std::vector<float> vals(static_cast<size_t>(kVisibleSamples), 0.0f);
-        ImGui::PlotLines("##plot", vals.data(), kVisibleSamples, 0, "", min_v, max_v, ImVec2(width, row_h));
-    } else {
-        std::vector<float> vals(static_cast<size_t>(kVisibleSamples), 0.0f);
-        const size_t copy_n = std::min(samples.size(), static_cast<size_t>(kVisibleSamples));
-        auto src_begin = samples.end() - static_cast<std::ptrdiff_t>(copy_n);
-        std::copy(src_begin, samples.end(), vals.end() - static_cast<std::ptrdiff_t>(copy_n));
-        ImGui::PlotLines("##plot", vals.data(), kVisibleSamples, 0, "", min_v, max_v, ImVec2(width, row_h));
-    }
+    const size_t copy_n = std::min(samples.size(), static_cast<size_t>(kVisibleSamples));
+    auto src_begin = samples.end() - static_cast<std::ptrdiff_t>(copy_n);
+    std::copy(src_begin, samples.end(), vals.end() - static_cast<std::ptrdiff_t>(copy_n));
+    ImGui::PlotLines("##plot", vals.data(), kVisibleSamples, 0, "", min_v, max_v, ImVec2(width, row_h));
     ImGui::PopStyleColor();
     ImGui::PopID();
+}
+
+void render_channel_plot_empty(const OscilloscopeProbe& probe,
+                                float min_v,
+                                float max_v,
+                                float row_h,
+                                float width,
+                                std::array<float, kVisibleSamples>& vals) {
+    vals.fill(0.0f);
+    render_channel_plot(probe, {}, min_v, max_v, row_h, width, vals);
 }
 
 std::deque<float> visible_tail(const std::deque<float>& samples) {

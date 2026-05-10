@@ -21,6 +21,7 @@
 | UI framework | `knowledge/11_ui_framework.md` | Scene/Widget/Grid subsystem (src/ui/) |
 | SimConnect integration | `knowledge/12_simconnect.md` | MSFS 2024 V2 delta wire protocol |
 | Multi-domain solver | `knowledge/13_multidomain_solver.md` | Electrical, hydraulic, pneumatic nodal solver |
+| Stack allocation | `knowledge/14_stack_allocation.md` | Avoiding heap allocation in hot paths (60 Hz step loop) |
 
 ## Reading Order
 

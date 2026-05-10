@@ -3,18 +3,28 @@
 #include "editor/oscilloscope.h"
 #include "ui/math/pt.h"
 
+#include <array>
 #include <imgui.h>
 
 namespace visual::osc {
 
 inline constexpr int kVisibleSamples = 300;
 
+/// vals must have kVisibleSamples elements.
 void render_channel_plot(const OscilloscopeProbe& probe,
                          const std::deque<float>& samples,
                          float min_v,
                          float max_v,
                          float row_h,
-                         float width = -1.0f);
+                         float width,
+                         std::array<float, kVisibleSamples>& vals);
+
+void render_channel_plot_empty(const OscilloscopeProbe& probe,
+                                float min_v,
+                                float max_v,
+                                float row_h,
+                                float width,
+                                std::array<float, kVisibleSamples>& vals);
 
 void compute_range(const std::vector<OscilloscopeModel::ChannelView>& channels,
                    float& out_min_v,

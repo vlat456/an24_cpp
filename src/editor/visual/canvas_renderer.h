@@ -5,6 +5,7 @@
 #include "editor/window/blueprint_window.h"
 #include "editor/window_system.h"
 #include "editor/visual/canvas_constants.h"
+#include "editor/visual/oscilloscope_plot.h"
 #include "editor/visual/port/port_circle_atlas.h"
 #include "editor/visual/node_sprite_cache.h"
 
@@ -40,6 +41,7 @@ private:
     void renderTempWire(BlueprintWindow& win, Pt cmin, ImDrawList* draw_list);
     void renderMarquee(BlueprintWindow& win, Pt cmin, ImDrawList* draw_list);
     void handleInput(BlueprintWindow& win, Document& doc, WindowSystem& ws, Pt cmin);
+    void renderHoverScopeTooltip(Document& doc, WindowSystem& ws, core::InternedId signal_iid, const Pt& anchor_screen);
 
     std::unordered_set<std::string_view, visual::StringViewHash> energized_buf_;
 
@@ -57,4 +59,5 @@ private:
     int prof_tooltips_{};
     int prof_input_{};
     bool profile_registered_{false};
+    std::array<float, visual::osc::kVisibleSamples> vals_{};
 };

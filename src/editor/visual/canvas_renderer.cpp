@@ -71,10 +71,7 @@ static void render_probe_markers(BlueprintWindow& win, Document& doc, WindowSyst
         });
 }
 
-static void render_hover_scope_tooltip(Document& doc,
-                                       WindowSystem& ws,
-                                       core::InternedId signal_iid,
-                                       const Pt& anchor_screen) {
+void CanvasRenderer::renderHoverScopeTooltip(Document& doc, WindowSystem& ws, core::InternedId signal_iid, const Pt& anchor_screen) {
     const std::deque<float>& samples = ws.oscilloscope.hover_samples(doc.id());
     if (samples.empty()) return;
 
@@ -114,7 +111,7 @@ static void render_hover_scope_tooltip(Document& doc,
         float min_v = 0.0f;
         float max_v = 0.0f;
         visual::osc::compute_range(one, min_v, max_v);
-        visual::osc::render_channel_plot(pseudo, pseudo.samples, min_v, max_v, 72.0f, -1.0f);
+        visual::osc::render_channel_plot(pseudo, pseudo.samples, min_v, max_v, 72.0f, -1.0f, vals_);
         visual::osc::render_stats_row(OscilloscopeModel::compute_stats(pseudo.samples, ws.oscilloscope.sample_period_sec()));
     }
     ImGui::End();
@@ -251,7 +248,7 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
         maybe_log_hover_signal_resolution(std::string(node_id), std::string(port_name), signal_iid, current_value);
 
         ws.oscilloscope.set_hover_signal(doc.id(), signal_iid);
-        render_hover_scope_tooltip(doc, ws, ws.oscilloscope.hover_signal_key(doc.id()), port_screen);
+        renderHoverScopeTooltip(doc, ws, ws.oscilloscope.hover_signal_key(doc.id()), port_screen);
         return;
 
     } else if (auto* hw = std::get_if<visual::HitWire>(&hit)) {
@@ -287,7 +284,7 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
 
          const Pt tip_screen = win.viewport.world_to_screen(anchor, cmin);
          ws.oscilloscope.set_hover_signal(doc.id(), signal_iid);
-         render_hover_scope_tooltip(doc, ws, ws.oscilloscope.hover_signal_key(doc.id()), tip_screen);
+         renderHoverScopeTooltip(doc, ws, ws.oscilloscope.hover_signal_key(doc.id()), tip_screen);
         return;
     }
 }

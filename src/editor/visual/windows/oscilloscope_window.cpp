@@ -49,7 +49,7 @@ void OscilloscopeWindow::render(WindowSystem& ws) {
         ImGui::PushID(static_cast<int>(ch.probe->wire_iid.raw()));
         ImGui::BeginChild("##osc", ImVec2(0.0f, row_total_h), false,
                           ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-        visual::osc::render_channel_plot(*ch.probe, ch.probe->samples, min_v, max_v, plot_h);
+        visual::osc::render_channel_plot(*ch.probe, ch.probe->samples, min_v, max_v, plot_h, -1.0f, vals_);
         const std::deque<float> tail = visual::osc::visible_tail(ch.probe->samples);
         visual::osc::render_stats_row(OscilloscopeModel::compute_stats(tail, ws.oscilloscope.sample_period_sec()));
         ImGui::EndChild();

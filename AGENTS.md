@@ -32,6 +32,7 @@ Before recrawling the repository, **always** check the knowledge docs. They are 
 | UI framework | `knowledge/11_ui_framework.md` |
 | SimConnect integration | `knowledge/12_simconnect.md` |
 | Multi-domain solver | `knowledge/13_multidomain_solver.md` |
+| Stack allocation | `knowledge/14_stack_allocation.md` |
 | JIT solver | `knowledge/knowledge_jit.md` |
 | AOT codegen | `knowledge/knowledge_aot.md` |
 | Persistence spec v1 | `knowledge/persistence_spec_v1.md` |
@@ -209,8 +210,9 @@ The simulator uses a **hybrid model**:
 
 ### Performance Notes
 
-- Simulation runs at 60 Hz - keep per-step work minimal
-- Use Structure of Arrays (SoA) - but current implementation uses flat `values[]` array
+- Simulation runs at 60 Hz — keep per-step work minimal
+- Avoid heap allocation in hot paths (`execute`, `commit`, `solve_nodal`); see `knowledge/14_stack_allocation.md`
+- Use Structure of Arrays (SoA) — but current implementation uses flat `values[]` array
 - Pre-allocate buffers, avoid dynamic allocation in solve loop
 
 ## Project Structure
